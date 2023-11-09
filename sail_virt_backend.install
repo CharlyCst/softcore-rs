@@ -1,0 +1,7 @@
+lib: [
+  "_build/install/default/lib/sail_virt_backend/META"
+  "_build/install/default/lib/sail_virt_backend/dune-package"
+]
+share_root: [
+  "_build/install/default/share/libsail/plugins/sail_plugin_virt.cmxs" {"libsail/plugins/sail_plugin_virt.cmxs"}
+]

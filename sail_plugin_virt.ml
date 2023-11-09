@@ -1,0 +1,376 @@
+(**************************************************************************)
+(*     Sail                                                               *)
+(*                                                                        *)
+(*  Copyright (c) 2013-2017                                               *)
+(*    Kathyrn Gray                                                        *)
+(*    Shaked Flur                                                         *)
+(*    Stephen Kell                                                        *)
+(*    Gabriel Kerneis                                                     *)
+(*    Robert Norton-Wright                                                *)
+(*    Christopher Pulte                                                   *)
+(*    Peter Sewell                                                        *)
+(*    Alasdair Armstrong                                                  *)
+(*    Brian Campbell                                                      *)
+(*    Thomas Bauereiss                                                    *)
+(*    Anthony Fox                                                         *)
+(*    Jon French                                                          *)
+(*    Dominic Mulligan                                                    *)
+(*    Stephen Kell                                                        *)
+(*    Mark Wassell                                                        *)
+(*                                                                        *)
+(*  All rights reserved.                                                  *)
+(*                                                                        *)
+(*  This software was developed by the University of Cambridge Computer   *)
+(*  Laboratory as part of the Rigorous Engineering of Mainstream Systems  *)
+(*  (REMS) project, funded by EPSRC grant EP/K008528/1.                   *)
+(*                                                                        *)
+(*  Redistribution and use in source and binary forms, with or without    *)
+(*  modification, are permitted provided that the following conditions    *)
+(*  are met:                                                              *)
+(*  1. Redistributions of source code must retain the above copyright     *)
+(*     notice, this list of conditions and the following disclaimer.      *)
+(*  2. Redistributions in binary form must reproduce the above copyright  *)
+(*     notice, this list of conditions and the following disclaimer in    *)
+(*     the documentation and/or other materials provided with the         *)
+(*     distribution.                                                      *)
+(*                                                                        *)
+(*  THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''    *)
+(*  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED     *)
+(*  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A       *)
+(*  PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR   *)
+(*  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,          *)
+(*  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT      *)
+(*  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF      *)
+(*  USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND   *)
+(*  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,    *)
+(*  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT    *)
+(*  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF    *)
+(*  SUCH DAMAGE.                                                          *)
+(**************************************************************************)
+
+open Libsail
+
+open Ast
+open Ast_util
+open Jib
+open Jib_util
+
+let opt_virt_preserve = ref ([]:string list)
+
+let virt_options = [
+    ( "-virt_preserve",
+      Arg.String (fun id -> opt_virt_preserve := id :: !opt_virt_preserve),
+      "<id> do not remove the provided id when generating IR");
+  ]
+
+let virt_rewrites =
+  let open Rewrites in
+  [
+    ("instantiate_outcomes", [String_arg "virt"]);
+    ("realize_mappings", []);
+    ("toplevel_string_append", []);
+    ("pat_string_append", []);
+    ("mapping_patterns", []);
+    ("truncate_hex_literals", []);
+    ("mono_rewrites", [If_flag opt_mono_rewrites]);
+    ("recheck_defs", [If_flag opt_mono_rewrites]);
+    ("toplevel_nexps", [If_mono_arg]);
+    ("monomorphise", [String_arg "c"; If_mono_arg]);
+    ("atoms_to_singletons", [String_arg "c"; If_mono_arg]);
+    ("recheck_defs", [If_mono_arg]);
+    ("undefined", [Bool_arg false]);
+    ("vector_string_pats_to_bit_list", []);
+    ("remove_not_pats", []);
+    ("remove_vector_concat", []);
+    ("remove_bitvector_pats", []);
+    ("pattern_literals", [Literal_arg "all"]);
+    ("tuple_assignments", []);
+    ("vector_concat_assignments", []);
+    ("simple_struct_assignments", []);
+    ("exp_lift_assign", []);
+    ("merge_function_clauses", []);
+    ("recheck_defs", []);
+    ("constant_fold", [String_arg "c"])
+  ]
+
+
+module Ir_config : Jib_compile.CONFIG = struct
+  open Type_check
+  open Jib_compile
+
+  let max_int n = Big_int.pred (Big_int.pow_int_positive 2 (n - 1))
+  let min_int n = Big_int.negate (Big_int.pow_int_positive 2 (n - 1))
+
+  let rec convert_typ ctx typ =
+    let Typ_aux (typ_aux, l) as typ = Env.expand_synonyms ctx.local_env typ in
+    match typ_aux with
+    | Typ_id id when string_of_id id = "bit"    -> CT_bit
+    | Typ_id id when string_of_id id = "bool"   -> CT_bool
+    | Typ_id id when string_of_id id = "int"    -> CT_lint
+    | Typ_id id when string_of_id id = "nat"    -> CT_lint
+    | Typ_id id when string_of_id id = "unit"   -> CT_unit
+    | Typ_id id when string_of_id id = "string" -> CT_string
+    | Typ_id id when string_of_id id = "real"   -> CT_real
+
+    | Typ_id id when string_of_id id = "float16" -> CT_float 16
+    | Typ_id id when string_of_id id = "float32" -> CT_float 32
+    | Typ_id id when string_of_id id = "float64" -> CT_float 64
+    | Typ_id id when string_of_id id = "float128" -> CT_float 128
+    | Typ_id id when string_of_id id = "float_rounding_mode" -> CT_rounding_mode
+
+    | Typ_app (id, _) when string_of_id id = "atom_bool" -> CT_bool
+
+    | Typ_app (id, args) when string_of_id id = "itself" ->
+       convert_typ ctx (Typ_aux (Typ_app (mk_id "atom", args), l))
+    | Typ_app (id, _) when string_of_id id = "range" || string_of_id id = "atom" || string_of_id id = "implicit" ->
+       begin match destruct_range Env.empty typ with
+       | None -> assert false (* Checked if range type in guard *)
+       | Some (kids, constr, n, m) ->
+          let ctx = { ctx with local_env = add_existential Parse_ast.Unknown (List.map (mk_kopt K_int) kids) constr ctx.local_env }in
+          match nexp_simp n, nexp_simp m with
+          | Nexp_aux (Nexp_constant n, _), Nexp_aux (Nexp_constant m, _)
+               when Big_int.less_equal (min_int 64) n && Big_int.less_equal m (max_int 64) ->
+             CT_fint 64
+          | n, m ->
+             if prove __POS__ ctx.local_env (nc_lteq (nconstant (min_int 64)) n) && prove __POS__ ctx.local_env (nc_lteq m (nconstant (max_int 64))) then
+               CT_fint 64
+             else
+               CT_lint
+       end
+
+    | Typ_app (id, [A_aux (A_typ typ, _)]) when string_of_id id = "list" ->
+       CT_list (ctyp_suprema (convert_typ ctx typ))
+
+    (* When converting a sail bitvector type into C, we have three options in order of efficiency:
+       - If the length is obviously static and smaller than 64, use the fixed bits type (aka uint64_t), fbits.
+       - If the length is less than 64, then use a small bits type, sbits.
+       - If the length may be larger than 64, use a large bits type lbits. *)
+    | Typ_app (id, [A_aux (A_nexp n, _)])
+         when string_of_id id = "bitvector" ->
+       begin match nexp_simp n with
+       | Nexp_aux (Nexp_constant n, _) when Big_int.equal n Big_int.zero -> CT_lbits
+       | Nexp_aux (Nexp_constant n, _) -> CT_fbits (Big_int.to_int n)
+       | _ -> CT_lbits
+       end
+
+    | Typ_app (id, [A_aux (A_nexp n, _);
+                    A_aux (A_typ typ, _)])
+         when string_of_id id = "vector" ->
+       begin match nexp_simp n with
+       | Nexp_aux (Nexp_constant c, _) ->
+          CT_fvector (Big_int.to_int c, convert_typ ctx typ)
+       | _ ->
+          CT_vector (convert_typ ctx typ)
+       end
+
+    | Typ_app (id, [A_aux (A_typ typ, _)]) when string_of_id id = "register" ->
+       CT_ref (convert_typ ctx typ)
+
+    | Typ_id id when Bindings.mem id ctx.records -> CT_struct (id, Bindings.find id ctx.records |> snd |> Bindings.bindings)
+    | Typ_app (id, typ_args) when Bindings.mem id ctx.records ->
+       let (typ_params, fields) = Bindings.find id ctx.records in
+       let quants =
+         List.fold_left2 (fun quants typ_param typ_arg ->
+             match typ_arg with
+             | A_aux (A_typ typ, _) ->
+                KBindings.add typ_param (convert_typ ctx typ) quants
+             | _ ->
+                Reporting.unreachable l __POS__ "Non-type argument for record here should be impossible"
+           ) ctx.quants typ_params (List.filter is_typ_arg_typ typ_args)
+       in
+       let fix_ctyp ctyp = if is_polymorphic ctyp then ctyp_suprema (subst_poly quants ctyp) else ctyp in
+       CT_struct (id, Bindings.map fix_ctyp fields |> Bindings.bindings)
+
+    | Typ_id id when Bindings.mem id ctx.variants -> CT_variant (id, Bindings.find id ctx.variants |> snd |> Bindings.bindings)
+    | Typ_app (id, typ_args) when Bindings.mem id ctx.variants ->
+       let (typ_params, ctors) = Bindings.find id ctx.variants in
+       let quants =
+         List.fold_left2 (fun quants typ_param typ_arg ->
+             match typ_arg with
+             | A_aux (A_typ typ, _) ->
+                KBindings.add typ_param (convert_typ ctx typ) quants
+             | _ ->
+                Reporting.unreachable l __POS__ "Non-type argument for variant here should be impossible"
+           ) ctx.quants typ_params (List.filter is_typ_arg_typ typ_args)
+       in
+       let fix_ctyp ctyp = if is_polymorphic ctyp then ctyp_suprema (subst_poly quants ctyp) else ctyp in
+       CT_variant (id, Bindings.map fix_ctyp ctors |> Bindings.bindings)
+
+    | Typ_id id when Bindings.mem id ctx.enums -> CT_enum (id, Bindings.find id ctx.enums |> IdSet.elements)
+
+    | Typ_tuple typs -> CT_tup (List.map (convert_typ ctx) typs)
+
+    | Typ_exist _ ->
+       (* Use Type_check.destruct_exist when optimising with SMT, to
+          ensure that we don't cause any type variable clashes in
+          local_env, and that we can optimize the existential based
+          upon it's constraints. *)
+       begin match destruct_exist (Env.expand_synonyms ctx.local_env typ) with
+       | Some (kids, nc, typ) ->
+          let env = add_existential l kids nc ctx.local_env in
+          convert_typ { ctx with local_env = env } typ
+       | None -> raise (Reporting.err_unreachable l __POS__ "Existential cannot be destructured!")
+       end
+
+    | Typ_var kid -> CT_poly kid
+
+    | _ -> Reporting.unreachable l  __POS__ ("No C type for type " ^ string_of_typ typ)
+
+  let optimize_anf _ aexp = aexp
+
+  let unroll_loops = None
+  let make_call_precise _ _ = true
+  let ignore_64 = false
+  let struct_value = true
+  let tuple_value = true
+  let track_throw = true
+  let branch_coverage = None
+  let use_real = false
+end
+
+let jib_of_ast env ast effect_info =
+  let open Jib_compile in
+  let module Jibc = Make(Ir_config) in
+  let env, effect_info = add_special_functions env effect_info in
+  let ctx = initial_ctx env effect_info in
+  Jibc.compile_ast ctx ast
+
+let remove_casts cdefs =
+  let module StringMap = Map.Make(String) in
+  let conversions = ref StringMap.empty in
+
+  let legal_cast = function
+    | CT_fbits _, CT_lbits -> true
+    | CT_lbits, CT_fbits _ -> true
+    | CT_fvector _, CT_vector _ -> true
+    | CT_vector _, CT_fvector _ -> true
+    | _, _ -> false
+  in
+
+  let both_fbits = function
+    | CT_fbits _, CT_fbits _ -> true
+    | _, _ -> false
+  in
+  let fbits_cast cval = function
+    | CT_fbits n, CT_fbits m when n > m -> V_call (Zero_extend n, [cval])
+    | CT_fbits n, CT_fbits m when n < m -> V_call (Slice n, [cval; V_lit (VL_int Big_int.zero, CT_lint)])
+    | _, _ -> cval
+  in
+
+  let remove_instr_casts = function
+    | I_aux (I_copy (clexp, cval), aux) ->
+       let ctyp_to = clexp_ctyp clexp in
+       let ctyp_from = cval_ctyp cval in
+       if ctyp_equal ctyp_to ctyp_from || legal_cast (ctyp_to, ctyp_from) then
+         [I_aux (I_copy (clexp, cval), aux)]
+       else if both_fbits (ctyp_to, ctyp_from) then
+         [I_aux (I_copy (clexp, fbits_cast cval (ctyp_to, ctyp_from)), aux)]
+       else (
+         let fid = Printf.sprintf "%s->%s" (string_of_ctyp ctyp_from) (string_of_ctyp ctyp_to) in
+         conversions := StringMap.add fid (ctyp_from, ctyp_to) !conversions;
+         [I_aux (I_funcall (clexp, false, (mk_id fid, []), [cval]), aux)]
+       )
+    | I_aux (I_init (ctyp_to, id, cval), aux) ->
+       let ctyp_from = cval_ctyp cval in
+       if ctyp_equal ctyp_to ctyp_from || legal_cast (ctyp_to, ctyp_from) then
+         [I_aux (I_init (ctyp_to, id, cval), aux)]
+       else if both_fbits (ctyp_to, ctyp_from) then
+         [I_aux (I_init (ctyp_to, id, fbits_cast cval (ctyp_to, ctyp_from)), aux)]
+       else (
+         let fid = Printf.sprintf "%s->%s" (string_of_ctyp ctyp_from) (string_of_ctyp ctyp_to) in
+         conversions := StringMap.add fid (ctyp_from, ctyp_to) !conversions;
+         [I_aux (I_decl (ctyp_to, id), aux);
+          ifuncall (snd aux) (CL_id (id, ctyp_to)) (mk_id fid, []) [cval]]
+       )
+    | instr -> [instr]
+  in
+  let cdefs = List.map (fun cdef -> cdef_concatmap_instr remove_instr_casts cdef) cdefs in
+  let vals =
+    List.map (fun (fid, (ctyp_from, ctyp_to)) ->
+        CDEF_val (mk_id fid, Some fid, [ctyp_from], ctyp_to)
+      ) (StringMap.bindings !conversions)
+  in
+  vals @ cdefs
+
+(** Sail allows val x = "y" declarations to also have an
+   implementation, which is used for some backends. Currently these
+   can be preserved by the Sail->Jib compiler, so we remove any
+   here. *)
+let remove_extern_impls cdefs =
+  let exts = ref IdSet.empty in
+  List.iter
+    (function
+     | CDEF_val (id, Some _, _, _) -> exts := IdSet.add id !exts
+     | _ -> ()
+    ) cdefs;
+  List.filter
+    (function
+     | CDEF_fundef (id, _, _, _) when IdSet.mem id !exts -> false
+     | _ -> true
+    ) cdefs
+
+(** We need to fix up calls to the list cons function, as it's handled specially by Sail->C *)
+let fix_cons cdefs =
+  let all_list_ctyps = ref CTSet.empty in
+  let cons_name ctyp = mk_id ("cons#" ^ string_of_ctyp ctyp) in
+
+  let collect_cons_ctyps list_ctyps = function
+    | I_aux (I_funcall (clexp, true, (id, [ctyp]), args), aux) when string_of_id id = "sail_cons" ->
+       list_ctyps := CTSet.add ctyp !list_ctyps;
+       list_ctyps := CTSet.add ctyp !all_list_ctyps;
+       I_aux (I_funcall (clexp, false, (cons_name ctyp, []), args), aux)
+
+    | instr -> instr
+  in
+
+  List.map (fun cdef ->
+      let list_ctyps = ref CTSet.empty in
+      let cdef = cdef_map_instr (collect_cons_ctyps list_ctyps) cdef in
+      let vals =
+        List.map (fun ctyp ->
+            CDEF_val (cons_name ctyp, Some "cons", [ctyp; CT_list ctyp], CT_list ctyp)
+          ) (CTSet.elements (CTSet.diff !list_ctyps !all_list_ctyps)) in
+      vals @ [cdef]
+    ) cdefs
+  |> List.concat
+
+let virt_target _ _ out_file ast effect_info env =
+  let out_file = match out_file with Some out_file -> out_file ^ ".ir" | None -> "out.ir" in
+  let props = Property.find_properties ast in
+  Bindings.bindings props |> List.map fst |> IdSet.of_list |> Specialize.add_initial_calls;
+
+  (* let ast, env = Specialize.(specialize typ_ord_specialization env ast) in *)
+  let cdefs, ctx = jib_of_ast env ast effect_info in
+  let cdefs, _ = Jib_optimize.remove_tuples cdefs ctx in
+  let cdefs = remove_casts cdefs |> remove_extern_impls |> fix_cons in
+  let buf = Buffer.create 256 in
+  Jib_ir.Flat_ir_formatter.output_defs buf cdefs;
+  let out_chan = open_out out_file in
+  output_string out_chan (Buffer.contents buf);
+  flush out_chan;
+  close_out out_chan
+
+let virt_initialize () =
+  Preprocess.add_symbol "SYMBOLIC";
+
+  (* These options are either needed for ARM, or increase performance significantly (memo_z3) *)
+  Nl_flow.opt_nl_flow := true;
+  Type_check.opt_no_lexp_bounds_check := true;
+  Reporting.opt_warnings := false;
+  Initial_check.opt_undefined_gen := true;
+  Initial_check.opt_magic_hash := true;
+
+  Specialize.add_initial_calls (IdSet.singleton (mk_id "virt_footprint"));
+  Specialize.add_initial_calls (IdSet.singleton (mk_id "virt_footprint_bare"));
+  Specialize.add_initial_calls (IdSet.singleton (mk_id "virt_client"));
+  List.iter (fun id ->
+      Specialize.add_initial_calls (IdSet.singleton (mk_id id))
+    ) !opt_virt_preserve
+
+let _ =
+  Target.register
+    ~name:"virt"
+    ~options:virt_options
+    ~pre_parse_hook:virt_initialize
+    ~rewrites:virt_rewrites
+    virt_target
