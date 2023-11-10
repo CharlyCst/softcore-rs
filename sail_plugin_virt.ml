@@ -89,7 +89,7 @@ let virt_rewrites =
     ("vector_concat_assignments", []);
     ("simple_struct_assignments", []);
     ("exp_lift_assign", []);
-    ("merge_function_clauses", []);
+    (* ("merge_function_clauses", []); *)
     ("recheck_defs", []);
     ("constant_fold", [String_arg "c"])
   ]
@@ -335,18 +335,50 @@ let fix_cons cdefs =
     ) cdefs
   |> List.concat
 
-let process_register reg =
-    print_string "Register ";
-    let (typ, id, exp) = match reg with | DEC_reg (typ, id, exp) -> (typ, id, exp) in
+let print_id id =
     match id with
         | Id_aux (Id (x), _) -> print_string "Id "; print_endline x;
         | Id_aux (Operator (x), _) -> print_string "Op "; print_endline x
+
+let process_register reg =
+    print_string "Register ";
+    let (typ, id, exp) = match reg with | DEC_reg (typ, id, exp) -> (typ, id, exp) in
+    print_id id
+
+let process_scattered scattered =
+    print_string "Scattered ";
+    match scattered with
+        | SD_function (rec_aux, tannot, id) -> print_string "function"; print_id id
+        | SD_funcl (funcl) -> print_string "funcl"
+        | SD_variant (id, typquant) -> print_string "variant"; print_id id
+        | SD_unioncl (id, union_type) -> print_string "union"; print_id id
+        | SD_mapping (id, tannot_opt) -> print_string "mapping"; print_id id
+        | _ -> ()
+
+let process_func func =
+    let func = match func with | FCL_aux (func, annot) -> func in
+    let (id, pexp) = match func with | FCL_funcl (id, pexp) -> (id, pexp) in
+    (* print_string "func "; *)
+    (* print_id id; *)
+    if string_of_id id = "execute" then print_endline (string_of_pexp pexp)
+
+let rec process_funcl funcl =
+    match funcl with
+        | h :: t -> process_func h; process_funcl t
+        | [] -> ()
+
+let process_fundef fundef =
+    let (rec_opt, tannot_opt, funcl) = match fundef with
+        | FD_function (rec_opt, tannot_opt, funcl) -> (rec_opt, tannot_opt, funcl) in
+    process_funcl funcl
 
 let process_node node =
     let (def, annot) = match node with | DEF_aux (def, annot) -> (def, annot) in 
     match def with
         | DEF_register (DEC_aux (dec_spec, annot)) -> process_register dec_spec
-        | _ -> () (* print_endline "Other" *)
+        | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
+        | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef
+        | _ -> ()
 
 let rec process_defs defs =
     match defs with
