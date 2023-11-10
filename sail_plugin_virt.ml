@@ -52,6 +52,7 @@ open Libsail
 
 open Ast
 open Ast_util
+open Ast_defs
 open Jib
 open Jib_util
 
@@ -334,21 +335,45 @@ let fix_cons cdefs =
     ) cdefs
   |> List.concat
 
+let process_register reg =
+    print_string "Register ";
+    let (typ, id, exp) = match reg with | DEC_reg (typ, id, exp) -> (typ, id, exp) in
+    match id with
+        | Id_aux (Id (x), _) -> print_string "Id "; print_endline x;
+        | Id_aux (Operator (x), _) -> print_string "Op "; print_endline x
+
+let process_node node =
+    let (def, annot) = match node with | DEF_aux (def, annot) -> (def, annot) in 
+    match def with
+        | DEF_register (DEC_aux (dec_spec, annot)) -> process_register dec_spec
+        | _ -> () (* print_endline "Other" *)
+
+let rec process_defs defs =
+    match defs with
+        | h :: t -> process_node h; process_defs t
+        | [] -> print_endline "Done"
+
+let rec analyse ast =
+    process_defs ast.defs
+
+(* This is the entry point *)
 let virt_target _ _ out_file ast effect_info env =
   let out_file = match out_file with Some out_file -> out_file ^ ".ir" | None -> "out.ir" in
   let props = Property.find_properties ast in
   Bindings.bindings props |> List.map fst |> IdSet.of_list |> Specialize.add_initial_calls;
 
+  analyse ast
+
   (* let ast, env = Specialize.(specialize typ_ord_specialization env ast) in *)
-  let cdefs, ctx = jib_of_ast env ast effect_info in
-  let cdefs, _ = Jib_optimize.remove_tuples cdefs ctx in
-  let cdefs = remove_casts cdefs |> remove_extern_impls |> fix_cons in
-  let buf = Buffer.create 256 in
-  Jib_ir.Flat_ir_formatter.output_defs buf cdefs;
-  let out_chan = open_out out_file in
-  output_string out_chan (Buffer.contents buf);
-  flush out_chan;
-  close_out out_chan
+  (* let cdefs, ctx = jib_of_ast env ast effect_info in *)
+  (* let cdefs, _ = Jib_optimize.remove_tuples cdefs ctx in *)
+  (* let cdefs = remove_casts cdefs |> remove_extern_impls |> fix_cons in *)
+  (* let buf = Buffer.create 256 in *)
+  (* Jib_ir.Flat_ir_formatter.output_defs buf cdefs; *)
+  (* let out_chan = open_out out_file in *)
+  (* output_string out_chan (Buffer.contents buf); *)
+  (* flush out_chan; *)
+  (* close_out out_chan *)
 
 let virt_initialize () =
   Preprocess.add_symbol "SYMBOLIC";
