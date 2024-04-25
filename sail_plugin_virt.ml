@@ -70,6 +70,10 @@ let process_func func =
     (* print_id id; *)
     if string_of_id id = "execute" then print_endline (string_of_pexp pexp)
 
+(* Find a pattern expression (Ast.pexp) by ID *)
+let find_pexp_by_id pexp name =
+    ()
+
 let rec process_funcl funcl =
     match funcl with
         | h :: t -> process_func h; process_funcl t
@@ -93,12 +97,12 @@ let rec process_defs defs =
         | h :: t -> process_node h; process_defs t
         | [] -> print_endline "Done"
 
-let rec analyse ast =
+let analyse ast =
     process_defs ast.defs
 
 (* This is the entry point *)
 let virt_target _ _ out_file ast effect_info env =
-  let out_file = match out_file with Some out_file -> out_file ^ ".ir" | None -> "out.ir" in
+  (* let out_file = match out_file with Some out_file -> out_file ^ ".ir" | None -> "out.ir" in *)
   let props = Property.find_properties ast in
   Bindings.bindings props |> List.map fst |> IdSet.of_list |> Specialize.add_initial_calls;
 
