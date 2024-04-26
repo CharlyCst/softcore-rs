@@ -7,6 +7,7 @@
 (executable
   (name sail_plugin_virt)
   (modes (native plugin))
+  (modules sail_plugin_virt rust_gen)
   (libraries libsail))
 
 (install

@@ -3,6 +3,7 @@ open Libsail
 open Ast
 open Ast_util
 open Ast_defs
+open Rust_gen
 
 let opt_virt_preserve = ref ([]:string list)
 
@@ -117,7 +118,7 @@ let process_pat (P_aux (pat_aux, annot)) =
         | P_app (id, pat_list) -> print_id id
         | _ -> ()
 
-let process_pexp_funcl (Pat_aux (pexp, annot)) =
+let process_pexp_funcl (Pat_aux (pexp, annot)) : rs_fn option =
     match pexp with
         | Pat_exp (pat, exp) ->
             (* print_string "PatExp "; *)
@@ -125,18 +126,23 @@ let process_pexp_funcl (Pat_aux (pexp, annot)) =
             (* print_string (string_of_pat pat); *)
             (* print_endline (string_of_exp exp); *)
             if pat_app_name pat = "CSR" || pat_app_name pat = "ITYPE" then begin
-                print_string "APP ";
+                print_string (pat_app_name pat);
+                print_string " ";
                 process_exp exp;
-            end
+                Some ((pat_app_name pat), [])
+            end else None
         | Pat_when (pat1, exp, pat2) -> 
             (* print_string "PatWhen "; *)
             (* print_endline (string_of_pat pat1); *)
-            ()
+            None
 
 let process_func func =
     let func = match func with | FCL_aux (func, annot) -> func in
     let (id, pexp) = match func with | FCL_funcl (id, pexp) -> (id, pexp) in
-    process_pexp_funcl pexp;
+    let fn = process_pexp_funcl pexp in
+    match fn with
+        | Some fn -> print_endline (string_of_rs_fn fn)
+        | None -> ();
 
     (* let pexp = unau *)
     (* print_string "func "; *)
