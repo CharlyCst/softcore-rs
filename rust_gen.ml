@@ -7,6 +7,7 @@ type rs_pat =
 
 type rs_exp =
     | RsLet of rs_pat * rs_exp list
+    | RsApp of string * rs_exp list list
     | RsTodo
 
 type rs_block = rs_exp list
@@ -17,7 +18,7 @@ let string_of_rs_pat (pat: rs_pat) : string =
     match pat with
         | RsPatLit -> "pat_lit"
         | RsPatId id-> id
-        | RsPatTodo -> "pat_todo"
+        | RsPatTodo -> "PAT_TODO"
 
 let rec string_of_rs_block (exps: rs_exp list) : string =
     String.concat "" (List.map string_of_rs_exp exps)
@@ -25,6 +26,7 @@ let rec string_of_rs_block (exps: rs_exp list) : string =
 and string_of_rs_exp (exp: rs_exp) : string =
     match exp with
         | RsLet (pat, exp) -> Printf.sprintf "let %s = %s" (string_of_rs_pat pat) (string_of_rs_block exp)
+        | RsApp (id, args)-> Printf.sprintf "%s(%s)" id (String.concat ", " (List.map string_of_rs_block args))
         | RsTodo -> "todo!()"
 
 let string_of_rs_fn (fn: rs_fn) : string =

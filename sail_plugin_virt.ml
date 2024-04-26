@@ -79,7 +79,7 @@ let rec process_exp exp : rs_exp list =
         | E_id id -> print_id id; [RsTodo] (*print_id id*)
         | E_lit lit -> [RsTodo] (*print_endline (string_of_lit lit)*)
         | E_typ (typ, exp) -> [RsTodo] (*print_string (string_of_typ typ);*)
-        | E_app (id, exp_list) -> (*print_string "AppID "; print_id id;*) [RsTodo]
+        | E_app (id, exp_list) -> (*print_string "AppID "; print_id id;*) [RsApp ((string_of_id id), (List.map process_exp exp_list))]
         | E_app_infix (exp1, id, exp2) -> [RsTodo]
         | E_tuple (exp_list) -> [RsTodo]
         | E_if (exp1, exp2, exp3) -> [RsTodo]
