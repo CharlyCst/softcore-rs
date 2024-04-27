@@ -56,37 +56,53 @@ let string_of_rs_lit (lit: rs_lit) : string =
         | RsLitStr s -> Printf.sprintf "\"%s\"" s
         | RsLitTodo -> "LIT_TODO"
 
-let rec string_of_rs_block (exps: rs_exp list) : string =
-    String.concat "" (List.map string_of_rs_exp exps)
+let indent (n: int) : string =
+    String.make (n * 4) ' '
 
-and string_of_rs_exp (exp: rs_exp) : string =
+let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
     match exp with
         (* The block indentation if not nedded after a  let, remove it to pretify*)
         | RsLet (pat, exp, RsBlock exps) ->
-            Printf.sprintf "let %s = %s;\n%s"
+            Printf.sprintf "let %s = %s;\n%s%s"
                 (string_of_rs_pat pat)
-                (string_of_rs_exp exp)
-                (String.concat ";\n" (List.map string_of_rs_exp exps))
+                (string_of_rs_exp n exp)
+                (indent n)
+                (String.concat ";\n" (List.map (string_of_rs_exp n) exps))
         | RsLet (pat, exp, next) ->
-            Printf.sprintf "let %s = %s;\n%s"
+            Printf.sprintf "let %s = %s;\n%s%s"
                 (string_of_rs_pat pat)
-                (string_of_rs_exp exp)
-                (string_of_rs_exp next)
-        | RsApp (id, args)-> Printf.sprintf "%s(%s)" id (String.concat ", " (List.map string_of_rs_exp args))
+                (string_of_rs_exp n exp)
+                (indent n)
+                (string_of_rs_exp n next)
+        | RsApp (id, args)->
+            Printf.sprintf "%s(%s)"
+                id 
+                (String.concat ", " (List.map (string_of_rs_exp n) args))
         | RsId id -> id
         | RsLit lit  -> string_of_rs_lit lit
-        | RsBlock exps -> Printf.sprintf "{\n%s\n}" (String.concat ";\n" (List.map string_of_rs_exp exps))
+        | RsBlock exps ->
+            Printf.sprintf "{\n%s%s%s\n}"
+                (indent n)
+                (String.concat ";\n" (List.map (string_of_rs_exp (n + 1)) exps))
+                (indent n)
         | RsIf (cond, then_exp, else_exp) ->
-            Printf.sprintf "if %s {\n%s\n} else %s"
-                (string_of_rs_exp cond)
-                (string_of_rs_exp then_exp)
+            Printf.sprintf "if %s {\n%s%s\n%s} else %s"
+                (string_of_rs_exp n cond)
+                (indent (n + 1))
+                (string_of_rs_exp (n + 1) then_exp)
+                (indent n)
                 (match else_exp with
-                    | RsIf (_, _, _) -> (string_of_rs_exp else_exp)
-                    | _ -> (Printf.sprintf "{\n%s\n}" (string_of_rs_exp else_exp)))
+                    | RsIf (_, _, _) -> (string_of_rs_exp n else_exp)
+                    | _ -> (Printf.sprintf "{\n%s%s\n%s}"
+                        (indent (n + 1))
+                        (string_of_rs_exp n else_exp))
+                        (indent n))
         | RsTodo -> "todo!()"
 
 let string_of_rs_fn (fn: rs_fn) : string =
     let (name, exp) = fn in
-    let signature = Printf.sprintf "fn %s() {\n" name in
-    let stmts = string_of_rs_exp exp in
+    let signature = Printf.sprintf "fn %s() {\n%s" name (indent 1) in
+    let stmts = (match exp with
+        | RsBlock exps -> String.concat (indent 1) (List.map (string_of_rs_exp 1) exps)
+        | _ ->string_of_rs_exp 1 exp) in
     Printf.sprintf "%s%s\n}" signature stmts
