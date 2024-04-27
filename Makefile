@@ -107,7 +107,7 @@ endif
 
 SAIL_SRCS      = $(addprefix ../sail-riscv/model/,$(SAIL_ARCH_SRCS) $(SAIL_SEQ_INST_SRCS)  $(SAIL_OTHER_SRCS))
 
-.PHONY: test clean
+.PHONY: test test2 clean
 
 all: build
 
@@ -118,6 +118,9 @@ build:
 
 test: build
 	./virt-sail arch.sail -o out
+
+test2: build
+	./virt-sail arch2.sail -o out
 
 riscv: build
 	./virt-sail $(SAIL_SRCS) ../sail-riscv/model/main.sail -o out

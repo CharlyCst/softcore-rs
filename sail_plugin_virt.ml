@@ -70,16 +70,30 @@ let process_pat (P_aux (pat, annot)) : rs_pat =
         | P_id id -> RsPatId (string_of_id id)
         | _ -> RsPatTodo
 
+let process_lit (L_aux (lit, _)) : rs_lit =
+    match lit with
+        | L_unit -> RsLitUnit
+        | L_zero -> RsLitNum Int64.zero
+        | L_one -> RsLitNum Int64.one
+        | L_true -> RsLitTrue
+        | L_false -> RsLitFalse
+        | L_num n -> RsLitNum (Big_int.to_int64 n)
+        | L_hex s -> RsLitHex s
+        | L_bin s -> RsLitBin s
+        | L_string s -> RsLitStr s
+        | L_undef -> RsLitTodo
+        | L_real s -> RsLitTodo
+
 let rec process_exp exp : rs_exp list = 
     (* print_string "Exp "; *)
     (* print_endline (string_of_exp exp); *)
     let exp = match exp with | E_aux (exp, aux) -> exp in
     match exp with
-        | E_block exp_list -> [RsTodo]
-        | E_id id -> print_id id; [RsTodo] (*print_id id*)
-        | E_lit lit -> [RsTodo] (*print_endline (string_of_lit lit)*)
+        | E_block exp_list -> [RsBlock (List.map process_exp exp_list)]
+        | E_id id -> [RsId (string_of_id id)]
+        | E_lit lit -> [RsLit (process_lit lit)]
         | E_typ (typ, exp) -> [RsTodo] (*print_string (string_of_typ typ);*)
-        | E_app (id, exp_list) -> (*print_string "AppID "; print_id id;*) [RsApp ((string_of_id id), (List.map process_exp exp_list))]
+        | E_app (id, exp_list) -> [RsApp ((string_of_id id), (List.map process_exp exp_list))]
         | E_app_infix (exp1, id, exp2) -> [RsTodo]
         | E_tuple (exp_list) -> [RsTodo]
         | E_if (exp1, exp2, exp3) -> [RsTodo]
