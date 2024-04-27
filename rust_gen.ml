@@ -16,16 +16,16 @@ type rs_lit =
     | RsLitTodo
 
 type rs_exp =
-    | RsLet of rs_pat * rs_exp list
-    | RsApp of string * rs_exp list list
+    | RsLet of rs_pat * rs_exp * rs_exp
+    | RsApp of string * rs_exp list
     | RsId of string
     | RsLit of rs_lit
-    | RsBlock of rs_exp list list
+    | RsBlock of rs_exp list
     | RsTodo
 
 type rs_block = rs_exp list
 
-type rs_fn = string * rs_block
+type rs_fn = string * rs_exp
 
 let string_of_rs_pat (pat: rs_pat) : string =
     match pat with
@@ -49,15 +49,25 @@ let rec string_of_rs_block (exps: rs_exp list) : string =
 
 and string_of_rs_exp (exp: rs_exp) : string =
     match exp with
-        | RsLet (pat, exp) -> Printf.sprintf "let %s = %s" (string_of_rs_pat pat) (string_of_rs_block exp)
-        | RsApp (id, args)-> Printf.sprintf "%s(%s)" id (String.concat ", " (List.map string_of_rs_block args))
+        (* The block indentation if not nedded after a  let, remove it to pretify*)
+        | RsLet (pat, exp, RsBlock exps) ->
+            Printf.sprintf "let %s = %s;\n%s"
+                (string_of_rs_pat pat)
+                (string_of_rs_exp exp)
+                (String.concat ";\n" (List.map string_of_rs_exp exps))
+        | RsLet (pat, exp, next) ->
+            Printf.sprintf "let %s = %s;\n%s"
+                (string_of_rs_pat pat)
+                (string_of_rs_exp exp)
+                (string_of_rs_exp next)
+        | RsApp (id, args)-> Printf.sprintf "%s(%s)" id (String.concat ", " (List.map string_of_rs_exp args))
         | RsId id -> id
         | RsLit lit  -> string_of_rs_lit lit
-        | RsBlock exps -> Printf.sprintf "{\n%s\n}" (String.concat ";\n" (List.map string_of_rs_block exps))
+        | RsBlock exps -> Printf.sprintf "{\n%s\n}" (String.concat ";\n" (List.map string_of_rs_exp exps))
         | RsTodo -> "todo!()"
 
 let string_of_rs_fn (fn: rs_fn) : string =
-    let (name, block) = fn in
+    let (name, exp) = fn in
     let signature = Printf.sprintf "fn %s() {\n" name in
-    let stmts = String.concat ";\n" (List.map string_of_rs_exp block) in
+    let stmts = string_of_rs_exp exp in
     Printf.sprintf "%s%s\n}" signature stmts

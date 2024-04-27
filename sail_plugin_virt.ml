@@ -84,48 +84,53 @@ let process_lit (L_aux (lit, _)) : rs_lit =
         | L_undef -> RsLitTodo
         | L_real s -> RsLitTodo
 
-let rec process_exp exp : rs_exp list = 
+let rec process_exp exp : rs_exp = 
     (* print_string "Exp "; *)
     (* print_endline (string_of_exp exp); *)
     let exp = match exp with | E_aux (exp, aux) -> exp in
     match exp with
-        | E_block exp_list -> [RsBlock (List.map process_exp exp_list)]
-        | E_id id -> [RsId (string_of_id id)]
-        | E_lit lit -> [RsLit (process_lit lit)]
-        | E_typ (typ, exp) -> [RsTodo] (*print_string (string_of_typ typ);*)
-        | E_app (id, exp_list) -> [RsApp ((string_of_id id), (List.map process_exp exp_list))]
-        | E_app_infix (exp1, id, exp2) -> [RsTodo]
-        | E_tuple (exp_list) -> [RsTodo]
-        | E_if (exp1, exp2, exp3) -> [RsTodo]
-        | E_loop (loop, measure, exp1, exp2) -> [RsTodo]
-        | E_for (id, exp1, exp2, exp3, order, exp4) -> [RsTodo]
-        | E_vector (exp_list) -> [RsTodo]
-        | E_vector_access (exp1, exp2) -> [RsTodo]
-        | E_vector_subrange (exp1, exp2, exp3) -> [RsTodo]
-        | E_vector_update (exp1, exp2, exp3) -> [RsTodo]
-        | E_vector_update_subrange (exp1 ,exp2, exp3, exp4) -> [RsTodo]
-        | E_vector_append (exp1 ,exp2) -> [RsTodo]
-        | E_list (exp_list) -> [RsTodo]
-        | E_cons (exp1, exp2) -> [RsTodo]
-        | E_struct (fexp_list) -> [RsTodo]
-        | E_struct_update (exp, fexp_list) -> [RsTodo]
-        | E_field (exp, id) -> [RsTodo]
-        | E_match (exp, pexp_list) -> [RsTodo]
-        | E_let (LB_aux (LB_val (let_var, let_exp), _), exp) -> (RsLet ((process_pat let_var), (process_exp let_exp))) :: process_exp exp
-        | E_assign (lexp, exp) -> [RsTodo]
-        | E_sizeof nexp -> [RsTodo]
-        | E_return exp -> [RsTodo]
-        | E_exit exp -> [RsTodo]
-        | E_ref id -> [RsTodo]
-        | E_throw exp -> [RsTodo]
-        | E_try (exp, pexp_list) -> [RsTodo]
-        | E_assert (exp1, exp2) -> [RsTodo]
-        | E_var (lexp, exp1, exp2) -> [RsTodo]
-        | E_internal_plet (pat, exp1, exp2) -> [RsTodo]
-        | E_internal_return exp -> [RsTodo]
-        | E_internal_value value -> [RsTodo]
-        | E_internal_assume (n_constraint, exp) -> [RsTodo]
-        | E_constraint n_constraint -> [RsTodo]
+        | E_block exp_list -> RsBlock (List.map process_exp exp_list)
+        | E_id id -> RsId (string_of_id id)
+        | E_lit lit -> RsLit (process_lit lit)
+        | E_typ (typ, exp) -> RsTodo (*print_string (string_of_typ typ);*)
+        | E_app (id, exp_list) -> RsApp ((string_of_id id), (List.map process_exp exp_list))
+        | E_app_infix (exp1, id, exp2) -> RsTodo
+        | E_tuple (exp_list) -> RsTodo
+        | E_if (exp1, exp2, exp3) -> RsTodo
+        | E_loop (loop, measure, exp1, exp2) -> RsTodo
+        | E_for (id, exp1, exp2, exp3, order, exp4) -> RsTodo
+        | E_vector (exp_list) -> RsTodo
+        | E_vector_access (exp1, exp2) -> RsTodo
+        | E_vector_subrange (exp1, exp2, exp3) -> RsTodo
+        | E_vector_update (exp1, exp2, exp3) -> RsTodo
+        | E_vector_update_subrange (exp1 ,exp2, exp3, exp4) -> RsTodo
+        | E_vector_append (exp1 ,exp2) -> RsTodo
+        | E_list (exp_list) -> RsTodo
+        | E_cons (exp1, exp2) -> RsTodo
+        | E_struct (fexp_list) -> RsTodo
+        | E_struct_update (exp, fexp_list) -> RsTodo
+        | E_field (exp, id) -> RsTodo
+        | E_match (exp, pexp_list) -> RsTodo
+        | E_let (LB_aux (LB_val (let_var, let_exp), _), exp)
+            -> (RsLet (
+                (process_pat let_var),
+                (process_exp let_exp),
+                (process_exp exp)
+            ))
+        | E_assign (lexp, exp) -> RsTodo
+        | E_sizeof nexp -> RsTodo
+        | E_return exp -> RsTodo
+        | E_exit exp -> RsTodo
+        | E_ref id -> RsTodo
+        | E_throw exp -> RsTodo
+        | E_try (exp, pexp_list) -> RsTodo
+        | E_assert (exp1, exp2) -> RsTodo
+        | E_var (lexp, exp1, exp2) -> RsTodo
+        | E_internal_plet (pat, exp1, exp2) -> RsTodo
+        | E_internal_return exp -> RsTodo
+        | E_internal_value value -> RsTodo
+        | E_internal_assume (n_constraint, exp) -> RsTodo
+        | E_constraint n_constraint -> RsTodo
 
 (* Return the ID of an application pattern as a string, or "" otherwise. *)
 let pat_app_name (P_aux (pat_aux, _)) =
@@ -148,9 +153,9 @@ let process_pexp_funcl (Pat_aux (pexp, annot)) : rs_fn option =
             if pat_app_name pat = "CSR" || pat_app_name pat = "ITYPE" then begin
                 print_string (pat_app_name pat);
                 print_string " ";
-                let rs_exps = process_exp exp in
+                let rs_exp = process_exp exp in
                 print_endline (string_of_exp exp);
-                Some ((pat_app_name pat), rs_exps)
+                Some ((pat_app_name pat), rs_exp)
             end else None
         | Pat_when (pat1, exp, pat2) -> 
             (* print_string "PatWhen "; *)
