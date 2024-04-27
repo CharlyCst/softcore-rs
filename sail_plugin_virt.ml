@@ -64,10 +64,16 @@ let process_scattered scattered =
         | SD_mapping (id, tannot_opt) -> print_string "mapping"; print_id id
         | _ -> ()
 
-let process_pat (P_aux (pat, annot)) : rs_pat =
+let process_type (Typ_aux (typ, annot)) : rs_type =
+    match typ with
+        | Typ_id id -> RsTypId (string_of_id id)
+        | _ -> RsTypTodo
+
+let rec process_pat (P_aux (pat, annot)) : rs_pat =
     match pat with
         | P_lit lit -> RsPatLit
         | P_id id -> RsPatId (string_of_id id)
+        | P_typ (typ, pat) -> RsPatType ((process_type typ), (process_pat pat))
         | _ -> RsPatTodo
 
 let process_lit (L_aux (lit, _)) : rs_lit =

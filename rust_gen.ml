@@ -1,8 +1,13 @@
 (** Rust generation module **)
 
+type rs_type =
+    | RsTypId of string
+    | RsTypTodo
+
 type rs_pat =
     | RsPatLit
     | RsPatId of string
+    | RsPatType of rs_type * rs_pat
     | RsPatTodo
 
 type rs_lit =
@@ -27,10 +32,16 @@ type rs_block = rs_exp list
 
 type rs_fn = string * rs_exp
 
-let string_of_rs_pat (pat: rs_pat) : string =
+let string_of_rs_type (typ: rs_type) : string =
+    match typ with
+        | RsTypId s -> s
+        | RsTypTodo -> "TYPE_TODO"
+
+let rec string_of_rs_pat (pat: rs_pat) : string =
     match pat with
         | RsPatLit -> "pat_lit"
         | RsPatId id-> id
+        | RsPatType (typ, pat) -> Printf.sprintf "%s: %s" (string_of_rs_pat pat) (string_of_rs_type typ)
         | RsPatTodo -> "PAT_TODO"
 
 let string_of_rs_lit (lit: rs_lit) : string =
