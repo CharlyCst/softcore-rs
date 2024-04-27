@@ -102,7 +102,7 @@ let rec process_exp exp : rs_exp =
         | E_app (id, exp_list) -> RsApp ((string_of_id id), (List.map process_exp exp_list))
         | E_app_infix (exp1, id, exp2) -> RsTodo
         | E_tuple (exp_list) -> RsTodo
-        | E_if (exp1, exp2, exp3) -> RsTodo
+        | E_if (exp1, exp2, exp3) -> RsIf ((process_exp exp1), (process_exp exp2), (process_exp exp3)) 
         | E_loop (loop, measure, exp1, exp2) -> RsTodo
         | E_for (id, exp1, exp2, exp3, order, exp4) -> RsTodo
         | E_vector (exp_list) -> RsTodo

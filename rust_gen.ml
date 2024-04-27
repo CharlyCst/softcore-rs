@@ -26,6 +26,7 @@ type rs_exp =
     | RsId of string
     | RsLit of rs_lit
     | RsBlock of rs_exp list
+    | RsIf of rs_exp * rs_exp * rs_exp
     | RsTodo
 
 type rs_block = rs_exp list
@@ -75,6 +76,13 @@ and string_of_rs_exp (exp: rs_exp) : string =
         | RsId id -> id
         | RsLit lit  -> string_of_rs_lit lit
         | RsBlock exps -> Printf.sprintf "{\n%s\n}" (String.concat ";\n" (List.map string_of_rs_exp exps))
+        | RsIf (cond, then_exp, else_exp) ->
+            Printf.sprintf "if %s {\n%s\n} else %s"
+                (string_of_rs_exp cond)
+                (string_of_rs_exp then_exp)
+                (match else_exp with
+                    | RsIf (_, _, _) -> (string_of_rs_exp else_exp)
+                    | _ -> (Printf.sprintf "{\n%s\n}" (string_of_rs_exp else_exp)))
         | RsTodo -> "todo!()"
 
 let string_of_rs_fn (fn: rs_fn) : string =
