@@ -134,7 +134,10 @@ let string_of_rs_fn (fn: rs_fn) : string =
     let (name, exp) = fn in
     let signature = Printf.sprintf "fn %s() {\n%s" name (indent 1) in
     let stmts = (match exp with
-        | RsBlock exps -> String.concat (indent 1) (List.map (string_of_rs_exp 1) exps)
+        | RsBlock exps
+            -> String.concat
+                (Printf.sprintf ";\n%s" (indent 1))
+                (List.map (string_of_rs_exp 1) exps)
         | _ ->string_of_rs_exp 1 exp) in
     Printf.sprintf "%s%s\n}" signature stmts
 
