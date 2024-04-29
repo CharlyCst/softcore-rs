@@ -76,6 +76,10 @@ function clause execute (ITYPE (imm, rs1, rd, RISCV_ADDI)) = {
     let rs1_val = X(rs1);
     let imm_ext : xlenbits = EXTS(imm);
     let result = rs1_val + imm_ext;
+    let test : bool = match true {
+        true => true,
+        _ => false,
+    };
     if result != result then
         let z : xlenbits = EXTZ(0b0) in
         X(rd) = z

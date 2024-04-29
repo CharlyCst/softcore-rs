@@ -8,6 +8,7 @@ type rs_pat =
     | RsPatLit
     | RsPatId of string
     | RsPatType of rs_type * rs_pat
+    | RsPatWildcard
     | RsPatTodo
 
 type rs_lit =
@@ -27,7 +28,11 @@ type rs_exp =
     | RsLit of rs_lit
     | RsBlock of rs_exp list
     | RsIf of rs_exp * rs_exp * rs_exp
+    | RsMatch of rs_exp * rs_pexp list
     | RsTodo
+and rs_pexp =
+    | RsPexp of rs_pat * rs_exp
+    | RsPexpTodo
 
 type rs_block = rs_exp list
 
@@ -40,9 +45,10 @@ let string_of_rs_type (typ: rs_type) : string =
 
 let rec string_of_rs_pat (pat: rs_pat) : string =
     match pat with
-        | RsPatLit -> "pat_lit"
+        | RsPatLit -> "TODO_PAT_LIT"
         | RsPatId id-> id
         | RsPatType (typ, pat) -> Printf.sprintf "%s: %s" (string_of_rs_pat pat) (string_of_rs_type typ)
+        | RsPatWildcard -> "_"
         | RsPatTodo -> "PAT_TODO"
 
 let string_of_rs_lit (lit: rs_lit) : string =
@@ -97,7 +103,22 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                         (indent (n + 1))
                         (string_of_rs_exp n else_exp))
                         (indent n))
+        | RsMatch (exp, pexps) ->
+            Printf.sprintf "match %s {\n%s%s%s}"
+                (string_of_rs_exp n exp)
+                (indent (n + 1))
+                (String.concat
+                    (indent (n + 1))
+                    (List.map (string_of_rs_pexp (n+1)) pexps))
+                (indent n)
         | RsTodo -> "todo!()"
+and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
+    match pexp with
+        | RsPexp (pat, exp) ->
+            Printf.sprintf "%s => %s,\n"
+                (string_of_rs_pat pat)
+                (string_of_rs_exp n exp)
+        | RsPexpTodo -> "PEXP_TODO\n"
 
 let string_of_rs_fn (fn: rs_fn) : string =
     let (name, exp) = fn in

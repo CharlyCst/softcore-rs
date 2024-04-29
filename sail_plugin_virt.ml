@@ -74,6 +74,7 @@ let rec process_pat (P_aux (pat, annot)) : rs_pat =
         | P_lit lit -> RsPatLit
         | P_id id -> RsPatId (string_of_id id)
         | P_typ (typ, pat) -> RsPatType ((process_type typ), (process_pat pat))
+        | P_wild -> RsPatWildcard
         | _ -> RsPatTodo
 
 let process_lit (L_aux (lit, _)) : rs_lit =
@@ -116,7 +117,11 @@ let rec process_exp exp : rs_exp =
         | E_struct (fexp_list) -> RsTodo
         | E_struct_update (exp, fexp_list) -> RsTodo
         | E_field (exp, id) -> RsTodo
-        | E_match (exp, pexp_list) -> RsTodo
+        | E_match (exp, pexp_list)
+            -> (RsMatch (
+                (process_exp exp),
+                (List.map process_pexp pexp_list)
+            ))
         | E_let (LB_aux (LB_val (let_var, let_exp), _), exp)
             -> (RsLet (
                 (process_pat let_var),
@@ -137,6 +142,16 @@ let rec process_exp exp : rs_exp =
         | E_internal_value value -> RsTodo
         | E_internal_assume (n_constraint, exp) -> RsTodo
         | E_constraint n_constraint -> RsTodo
+and process_pexp (Pat_aux (pexp, annot)) : rs_pexp =
+    match pexp with
+        | Pat_exp (pat, exp)
+            -> (RsPexp (
+                (process_pat pat),
+                (process_exp exp)
+            ))
+        | Pat_when (pat, exp1, exp2) -> (print_endline (string_of_exp exp1));(print_endline (string_of_exp exp2)) ; RsPexpTodo
+
+
 
 (* Return the ID of an application pattern as a string, or "" otherwise. *)
 let pat_app_name (P_aux (pat_aux, _)) =
