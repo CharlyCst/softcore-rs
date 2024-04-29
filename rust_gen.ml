@@ -38,6 +38,14 @@ type rs_block = rs_exp list
 
 type rs_fn = string * rs_exp
 
+type rs_program =
+    | RsProg of rs_fn list
+
+let merge_rs_prog (prog1: rs_program) (prog2: rs_program) : rs_program =
+    let RsProg (fn1) = prog1 in
+    let RsProg (fn2) = prog2 in
+    RsProg (fn1 @ fn2)
+
 let string_of_rs_type (typ: rs_type) : string =
     match typ with
         | RsTypId s -> s
@@ -129,3 +137,7 @@ let string_of_rs_fn (fn: rs_fn) : string =
         | RsBlock exps -> String.concat (indent 1) (List.map (string_of_rs_exp 1) exps)
         | _ ->string_of_rs_exp 1 exp) in
     Printf.sprintf "%s%s\n}" signature stmts
+
+let string_of_rs_prog (prog: rs_program) : string =
+    let RsProg (funs) = prog in
+    String.concat "\n\n" (List.map string_of_rs_fn funs)

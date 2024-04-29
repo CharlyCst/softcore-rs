@@ -1,2 +1,8 @@
 _build
 plugin.cmxs
+out.rs
+
+
+# Added by cargo
+
+/target

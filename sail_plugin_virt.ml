@@ -49,20 +49,22 @@ let print_id id =
         | Id_aux (Id (x), _) -> print_string "Id "; print_endline x;
         | Id_aux (Operator (x), _) -> print_string "Op "; print_endline x
 
-let process_register reg =
+let process_register reg : rs_program =
     print_string "Register ";
     let (typ, id, exp) = match reg with | DEC_reg (typ, id, exp) -> (typ, id, exp) in
-    print_id id
+    print_id id;
+    RsProg []
 
-let process_scattered scattered =
+let process_scattered scattered : rs_program =
     print_string "Scattered ";
-    match scattered with
+    (match scattered with
         | SD_function (rec_aux, tannot, id) -> print_string "function"; print_id id
         | SD_funcl (funcl) -> print_string "funcl"
         | SD_variant (id, typquant) -> print_string "variant"; print_id id
         | SD_unioncl (id, union_type) -> print_string "union"; print_id id
         | SD_mapping (id, tannot_opt) -> print_string "mapping"; print_id id
-        | _ -> ()
+        | _ -> ());
+    RsProg []
 
 let process_type (Typ_aux (typ, annot)) : rs_type =
     match typ with
@@ -149,7 +151,7 @@ and process_pexp (Pat_aux (pexp, annot)) : rs_pexp =
                 (process_pat pat),
                 (process_exp exp)
             ))
-        | Pat_when (pat, exp1, exp2) -> (print_endline (string_of_exp exp1));(print_endline (string_of_exp exp2)) ; RsPexpTodo
+        | Pat_when (pat, exp1, exp2) -> RsPexpTodo
 
 
 
@@ -183,58 +185,62 @@ let process_pexp_funcl (Pat_aux (pexp, annot)) : rs_fn option =
             (* print_endline (string_of_pat pat1); *)
             None
 
-let process_func func =
+let process_func func: rs_program =
     let func = match func with | FCL_aux (func, annot) -> func in
     let (id, pexp) = match func with | FCL_funcl (id, pexp) -> (id, pexp) in
     let fn = process_pexp_funcl pexp in
     match fn with
-        | Some fn -> print_endline (string_of_rs_fn fn)
-        | None -> ();
+        | Some fn -> RsProg [fn]
+        | None -> RsProg []
 
     (* let pexp = unau *)
     (* print_string "func "; *)
     (* print_endline (string_of_pexp pexp) *)
     (* print_id id; *)
     (* if string_of_id id = "execute" then print_endline (string_of_pexp pexp) *)
-    ()
 
 (* Find a pattern expression (Ast.pexp) by ID *)
 let find_pexp_by_id pexp name =
     ()
 
-let rec process_funcl funcl =
+let rec process_funcl funcl : rs_program =
     match funcl with
-        | h :: t -> process_func h; process_funcl t
-        | [] -> ()
+        | h :: t -> merge_rs_prog (process_func h) (process_funcl t)
+        | [] -> RsProg []
 
-let process_fundef fundef =
+let process_fundef fundef : rs_program =
     let (rec_opt, tannot_opt, funcl) = match fundef with
         | FD_function (rec_opt, tannot_opt, funcl) -> (rec_opt, tannot_opt, funcl) in
     process_funcl funcl
 
-let process_node node =
+let process_node node : rs_program =
     let (def, annot) = match node with | DEF_aux (def, annot) -> (def, annot) in 
     match def with
         | DEF_register (DEC_aux (dec_spec, annot)) -> process_register dec_spec
         | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
         | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef
-        | _ -> ()
+        | _ -> RsProg []
 
-let rec process_defs defs =
+let rec process_defs defs : rs_program =
     match defs with
-        | h :: t -> process_node h; process_defs t
-        | [] -> print_endline "Done"
+        | h :: t -> merge_rs_prog (process_node h) (process_defs t)
+        | [] -> print_endline "Done"; RsProg []
 
-let analyse ast =
+let analyse ast : rs_program =
     process_defs ast.defs
 
 (* This is the entry point *)
 let virt_target _ _ out_file ast effect_info env =
-  (* let out_file = match out_file with Some out_file -> out_file ^ ".ir" | None -> "out.ir" in *)
+  let out_file = match out_file with Some out_file -> out_file ^ ".rs" | None -> "out.rs" in
   let props = Property.find_properties ast in
   Bindings.bindings props |> List.map fst |> IdSet.of_list |> Specialize.add_initial_calls;
 
-  analyse ast
+  let rust_program = analyse ast in
+  let out_chan = open_out out_file in
+  output_string out_chan (string_of_rs_prog rust_program);
+  flush out_chan;
+  close_out out_chan;
+  print_endline (string_of_rs_prog rust_program)
 
 let virt_initialize () =
   Preprocess.add_symbol "SYMBOLIC";
