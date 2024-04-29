@@ -73,7 +73,9 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (string_of_rs_pat pat)
                 (string_of_rs_exp n exp)
                 (indent n)
-                (String.concat ";\n" (List.map (string_of_rs_exp n) exps))
+                (String.concat
+                    (Printf.sprintf ";\n%s" (indent n))
+                    (List.map (string_of_rs_exp n) exps))
         | RsLet (pat, exp, next) ->
             Printf.sprintf "let %s = %s;\n%s%s"
                 (string_of_rs_pat pat)

@@ -80,6 +80,7 @@ function clause execute (ITYPE (imm, rs1, rd, RISCV_ADDI)) = {
         true => true,
         _ => false,
     };
+    X(rd) = EXTZ(0b0);
     if result != result then
         let z : xlenbits = EXTZ(0b0) in
         X(rd) = z
