@@ -4,6 +4,7 @@ open Ast
 open Ast_util
 open Ast_defs
 open Rust_gen
+open Call_set
 
 let opt_virt_preserve = ref ([]:string list)
 
@@ -227,6 +228,7 @@ let rec process_defs defs : rs_program =
         | [] -> print_endline "Done"; RsProg []
 
 let analyse ast : rs_program =
+    let call_set = get_call_set ast in
     process_defs ast.defs
 
 (* This is the entry point *)
