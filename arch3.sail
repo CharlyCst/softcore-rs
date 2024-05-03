@@ -106,7 +106,6 @@ scattered mapping encdec
 
 val execute : ast -> Retired
 
-
 // ————————————————————————————————— IType —————————————————————————————————— //
 
 union clause ast = ITYPE : (bits(12), regidx, regidx, iop)

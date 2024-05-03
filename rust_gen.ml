@@ -100,7 +100,7 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
             Printf.sprintf "{\n%s%s\n%s}"
                 (indent (n + 1))
                 (String.concat
-                    (Printf.sprintf ";%s\n" (indent (n + 1)))
+                    (Printf.sprintf ";\n%s" (indent (n + 1)))
                     (List.map (string_of_rs_exp (n + 1)) exps))
                 (indent n)
         | RsIf (cond, then_exp, else_exp) ->
