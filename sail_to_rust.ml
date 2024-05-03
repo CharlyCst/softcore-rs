@@ -162,10 +162,6 @@ let process_func func: rs_program =
     (* print_id id; *)
     (* if string_of_id id = "execute" then print_endline (string_of_pexp pexp) *)
 
-(* Find a pattern expression (Ast.pexp) by ID *)
-let find_pexp_by_id pexp name =
-    ()
-
 let rec process_funcl funcl : rs_program =
     match funcl with
         | h :: t -> merge_rs_prog (process_func h) (process_funcl t)
