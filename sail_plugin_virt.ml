@@ -52,8 +52,13 @@ let virt_target _ _ out_file ast effect_info env =
   let props = Property.find_properties ast in
   Bindings.bindings props |> List.map fst |> IdSet.of_list |> Specialize.add_initial_calls;
 
-  let call_set = get_call_set ast in
-  let rust_program = sail_to_rust ast in
+  let set = Call_set.SSet.empty in
+  let set = SSet.add "CSR" set in
+  let set = SSet.add "ITYPE" set in
+  let call_set = get_call_set ast set in
+  SSet.iter (Printf.printf "%s ") call_set;
+  print_endline "";
+  let rust_program = sail_to_rust ast call_set in
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);
   flush out_chan;

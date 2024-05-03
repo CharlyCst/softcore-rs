@@ -105,10 +105,5 @@ let rec defs_call_set (defs: 'a def list) (s: SSet.t) : SSet.t =
         | h :: t -> SSet.union (node_call_set h s) (defs_call_set t s)
         | [] -> s
 
-let get_call_set (ast: 'a ast) : unit =
-    let set = SSet.empty in
-    let set = SSet.add "CSR" set in
-    let set = SSet.add "ITYPE" set in
-    let set = defs_call_set ast.defs set in
-    SSet.iter (Printf.printf "%s ") set;
-    print_endline "Hello, world!"
+let get_call_set (ast: 'a ast) (s: SSet.t) : SSet.t =
+    defs_call_set ast.defs s

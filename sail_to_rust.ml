@@ -7,6 +7,8 @@ open Ast_defs
 open Rust_gen
 open Call_set
 
+module SSet = Call_set.SSet
+
 let print_id id =
     match id with
         | Id_aux (Id (x), _) -> print_string "Id "; print_endline x;
@@ -129,61 +131,44 @@ let process_pat (P_aux (pat_aux, annot)) =
         | P_app (id, pat_list) -> print_id id
         | _ -> ()
 
-let process_pexp_funcl (Pat_aux (pexp, annot)) : rs_fn option =
-    match pexp with
-        | Pat_exp (pat, exp) ->
-            (* print_string "PatExp "; *)
-            (* process_pat pat; *)
-            (* print_string (string_of_pat pat); *)
-            (* print_endline (string_of_exp exp); *)
-            if pat_app_name pat = "CSR" || pat_app_name pat = "ITYPE" then begin
-                print_string (pat_app_name pat);
-                print_string " ";
-                let rs_exp = process_exp exp in
-                print_endline (string_of_exp exp);
-                Some ((pat_app_name pat), rs_exp)
-            end else None
-        | Pat_when (pat1, exp, pat2) -> 
-            (* print_string "PatWhen "; *)
-            (* print_endline (string_of_pat pat1); *)
-            None
-
-let process_func func: rs_program =
-    let func = match func with | FCL_aux (func, annot) -> func in
+let process_func (FCL_aux (func, annot)) (s: SSet.t) : rs_program =
     let (id, pexp) = match func with | FCL_funcl (id, pexp) -> (id, pexp) in
-    let fn = process_pexp_funcl pexp in
-    match fn with
-        | Some fn -> RsProg [fn]
-        | None -> RsProg []
+    let (pexp, annot) = match pexp with | Pat_aux (pexp, annot) -> (pexp, annot) in
+    let name = (string_of_id id) in
+    if SSet.mem name s then match pexp with
+        | Pat_exp (pat, exp) ->
+            let rs_exp = process_exp exp in
+            RsProg [(name, rs_exp)]
+        | Pat_when (pat1, exp, pat2) -> RsProg []
+    else match pexp with
+        | Pat_exp (pat, exp) ->
+            let name = pat_app_name pat in
+            if SSet.mem name s then
+                let rs_exp = process_exp exp in
+                RsProg [(name, rs_exp)]
+            else RsProg []
+        | _ -> RsProg []
 
-    (* let pexp = unau *)
-    (* print_string "func "; *)
-    (* print_endline (string_of_pexp pexp) *)
-    (* print_id id; *)
-    (* if string_of_id id = "execute" then print_endline (string_of_pexp pexp) *)
-
-let rec process_funcl funcl : rs_program =
+let rec process_funcl (funcl: 'a funcl list) (s: SSet.t) : rs_program =
     match funcl with
-        | h :: t -> merge_rs_prog (process_func h) (process_funcl t)
+        | h :: t -> merge_rs_prog (process_func h s) (process_funcl t s)
         | [] -> RsProg []
 
-let process_fundef fundef : rs_program =
-    let (rec_opt, tannot_opt, funcl) = match fundef with
-        | FD_function (rec_opt, tannot_opt, funcl) -> (rec_opt, tannot_opt, funcl) in
-    process_funcl funcl
+let process_fundef (FD_function (rec_opt, tannot_opt, funcl)) (s: SSet.t) : rs_program =
+    process_funcl funcl s
 
-let process_node node : rs_program =
-    let (def, annot) = match node with | DEF_aux (def, annot) -> (def, annot) in 
+let process_node (DEF_aux (def, annot)) (s: SSet.t) : rs_program =
     match def with
         | DEF_register (DEC_aux (dec_spec, annot)) -> process_register dec_spec
         | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
-        | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef
+        | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef s
+        | DEF_impl funcl -> process_func funcl s
         | _ -> RsProg []
 
-let rec process_defs defs : rs_program =
+let rec process_defs defs (s: SSet.t): rs_program =
     match defs with
-        | h :: t -> merge_rs_prog (process_node h) (process_defs t)
-        | [] -> print_endline "Done"; RsProg []
+        | h :: t -> merge_rs_prog (process_node h s) (process_defs t s)
+        | [] -> RsProg []
 
-let sail_to_rust (ast: 'a ast) : rs_program =
-    process_defs ast.defs
+let sail_to_rust (ast: 'a ast) (s: SSet.t) : rs_program =
+    process_defs ast.defs s
