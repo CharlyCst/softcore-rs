@@ -42,6 +42,7 @@ let rec process_pat (P_aux (pat, annot)) : rs_pat =
         | P_id id -> RsPatId (string_of_id id)
         | P_typ (typ, pat) -> RsPatType ((process_type typ), (process_pat pat))
         | P_wild -> RsPatWildcard
+        | P_tuple pats -> RsPatTuple (List.map process_pat pats)
         | _ -> RsPatTodo
 
 let process_lit (L_aux (lit, _)) : rs_lit =
@@ -58,10 +59,28 @@ let process_lit (L_aux (lit, _)) : rs_lit =
         | L_undef -> RsLitTodo
         | L_real s -> RsLitTodo
 
-let rec process_exp exp : rs_exp = 
+let process_vector (items: 'a exp list) : rs_lit =
+    let is_only_bits acc exp = match exp with
+        | E_aux (E_lit(L_aux(lit, _)), _) -> (match lit with
+            | L_zero -> acc
+            | L_one -> acc
+            | _ -> false)
+        | _ -> false
+    in
+    let string_of_bit (E_aux (exp, _)) = match exp with
+        | E_lit (L_aux (lit, _)) -> (match lit with
+            | L_zero -> "0"
+            | L_one -> "1"
+            | _ -> "x")
+        | _ -> "X"
+    in
+    if (List.fold_left is_only_bits true items) then
+        RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items)))
+    else RsLitTodo
+
+let rec process_exp (E_aux (exp, aux)) : rs_exp = 
     (* print_string "Exp "; *)
     (* print_endline (string_of_exp exp); *)
-    let exp = match exp with | E_aux (exp, aux) -> exp in
     match exp with
         | E_block exp_list -> RsBlock (List.map process_exp exp_list)
         | E_id id -> RsId (string_of_id id)
@@ -69,11 +88,11 @@ let rec process_exp exp : rs_exp =
         | E_typ (typ, exp) -> RsTodo (*print_string (string_of_typ typ);*)
         | E_app (id, exp_list) -> RsApp ((string_of_id id), (List.map process_exp exp_list))
         | E_app_infix (exp1, id, exp2) -> RsTodo
-        | E_tuple (exp_list) -> RsTodo
+        | E_tuple (exp_list) -> RsTuple (List.map process_exp exp_list)
         | E_if (exp1, exp2, exp3) -> RsIf ((process_exp exp1), (process_exp exp2), (process_exp exp3)) 
         | E_loop (loop, measure, exp1, exp2) -> RsTodo
         | E_for (id, exp1, exp2, exp3, order, exp4) -> RsTodo
-        | E_vector (exp_list) -> RsTodo
+        | E_vector (exp_list) -> RsLit (process_vector exp_list)
         | E_vector_access (exp1, exp2) -> RsTodo
         | E_vector_subrange (exp1, exp2, exp3) -> RsTodo
         | E_vector_update (exp1, exp2, exp3) -> RsTodo
@@ -111,12 +130,17 @@ let rec process_exp exp : rs_exp =
         | E_constraint n_constraint -> RsTodo
 and process_pexp (Pat_aux (pexp, annot)) : rs_pexp =
     match pexp with
-        | Pat_exp (pat, exp)
-            -> (RsPexp (
+        | Pat_exp (pat, exp) ->
+            (RsPexp (
                 (process_pat pat),
                 (process_exp exp)
             ))
-        | Pat_when (pat, exp1, exp2) -> RsPexpTodo
+        | Pat_when (pat, exp1, exp2) ->
+            (RsPexpWhen (
+                (process_pat pat),
+                (process_exp exp1),
+                (process_exp exp2)
+            ))
 
 
 
