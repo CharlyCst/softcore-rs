@@ -22,6 +22,10 @@ type rs_lit =
     | RsLitStr of string
     | RsLitTodo
 
+type rs_lexp =
+    | RsLexpId of string
+    | RsLexpTodo
+
 type rs_exp =
     | RsLet of rs_pat * rs_exp * rs_exp
     | RsApp of string * rs_exp list
@@ -31,6 +35,7 @@ type rs_exp =
     | RsIf of rs_exp * rs_exp * rs_exp
     | RsMatch of rs_exp * rs_pexp list
     | RsTuple of rs_exp list
+    | RsAssign of rs_lexp * rs_exp
     | RsTodo
 and rs_pexp =
     | RsPexp of rs_pat * rs_exp
@@ -76,6 +81,11 @@ let string_of_rs_lit (lit: rs_lit) : string =
 
 let indent (n: int) : string =
     String.make (n * 4) ' '
+
+let string_of_rs_lexp (lexp: rs_lexp) : string =
+    match lexp with
+        | RsLexpId id -> id
+        | RsLexpTodo ->  "LEXP_TODO"
 
 let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
     match exp with
@@ -129,6 +139,10 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (indent n)
         | RsTuple exps ->
             Printf.sprintf "(%s)" (String.concat ", " (List.map (string_of_rs_exp n) exps))
+        | RsAssign (exp1, exp2) ->
+            Printf.sprintf "%s = %s"
+                (string_of_rs_lexp exp1)
+                (string_of_rs_exp n exp2)
         | RsTodo -> "todo!()"
 and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
     match pexp with
