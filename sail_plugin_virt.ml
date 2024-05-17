@@ -4,6 +4,7 @@ open Ast_util
 open Ast_defs
 
 open Sail_to_rust
+open Rust_transform
 open Rust_gen
 open Call_set
 
@@ -59,6 +60,7 @@ let virt_target _ _ out_file ast effect_info env =
   SSet.iter (Printf.printf "%s ") call_set;
   print_endline "";
   let rust_program = sail_to_rust ast call_set in
+  let rust_program = rust_transform rust_program in
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);
   flush out_chan;

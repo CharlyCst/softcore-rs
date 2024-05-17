@@ -40,7 +40,6 @@ pub fn ITYPE(imm: usize, rs1: usize, rd: usize, ctx: &mut Ctx) {
 
 // —————————————————————————————————— Kani —————————————————————————————————— //
 
-#[cfg(kani)]
 mod kani {
     use super::{mirage_itype, Ctx, ITYPE};
 
