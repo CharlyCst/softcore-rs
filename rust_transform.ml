@@ -7,7 +7,7 @@ let transform_pat (pat: rs_pat) : rs_pat =
     pat
 
 let transform_lexp (lexp: rs_lexp) : rs_lexp =
-    lexp
+    lexp 
 
 let rec transform_exp (exp: rs_exp) : rs_exp =
     match exp with
@@ -16,10 +16,7 @@ let rec transform_exp (exp: rs_exp) : rs_exp =
                 (transform_pat pat),
                 (transform_exp exp),
                 (transform_exp next)))
-        | RsApp (app, args) ->
-            (RsApp (
-                app,
-                (List.map transform_exp args)))
+        | RsApp (app, args) -> transform_app app args
         | RsId id -> RsId id
         | RsLit lit -> RsLit lit
         | RsBlock exps -> RsBlock (List.map transform_exp exps)
@@ -39,13 +36,35 @@ let rec transform_exp (exp: rs_exp) : rs_exp =
             (RsAssign (
                 (transform_lexp lexp),
                 (transform_exp exp)))
+        | RsIndex (exp1, exp2) ->
+            (RsIndex (
+                (transform_exp exp1),
+                (transform_exp exp2)))
         | RsTodo -> RsTodo
+
+and transform_app (fn: string) (args: rs_exp list) : rs_exp =
+    let args = List.map transform_exp args in
+    match (fn, args) with
+        | ("plain_vector_access", vector::item::[]) -> (RsIndex (vector, item))
+        | _ -> (RsApp (fn, args))
+
 and transform_pexp (pexp: rs_pexp) : rs_pexp =
-    pexp
+    match pexp with
+        | RsPexp (pat, exp) ->
+            (RsPexp (
+                (transform_pat pat),
+                (transform_exp exp)))
+        | RsPexpWhen (pat, exp1, exp2) ->
+            (RsPexpWhen (
+                (transform_pat pat),
+                (transform_exp exp1),
+                (transform_exp exp2)))
+ 
  
 
 let transform_fn (fn: rs_fn) : rs_fn =
-    fn
+    let (name, exp) = fn in
+    (name, (transform_exp exp))
 
 let rust_transform (RsProg fns) : rs_program =
     RsProg (List.map transform_fn fns)

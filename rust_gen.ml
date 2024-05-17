@@ -36,6 +36,7 @@ type rs_exp =
     | RsMatch of rs_exp * rs_pexp list
     | RsTuple of rs_exp list
     | RsAssign of rs_lexp * rs_exp
+    | RsIndex of rs_exp * rs_exp
     | RsTodo
 and rs_pexp =
     | RsPexp of rs_pat * rs_exp
@@ -142,6 +143,10 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
         | RsAssign (exp1, exp2) ->
             Printf.sprintf "%s = %s"
                 (string_of_rs_lexp exp1)
+                (string_of_rs_exp n exp2)
+        | RsIndex (exp1, exp2) ->
+            Printf.sprintf "%s[%s]"
+                (string_of_rs_exp n exp1)
                 (string_of_rs_exp n exp2)
         | RsTodo -> "todo!()"
 and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
