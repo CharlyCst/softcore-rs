@@ -36,14 +36,24 @@ let process_type (Typ_aux (typ, annot)) : rs_type =
         | Typ_id id -> RsTypId (string_of_id id)
         | _ -> RsTypTodo
 
-let rec process_pat (P_aux (pat, annot)) : rs_pat =
-    match pat with
-        | P_lit lit -> RsPatLit
-        | P_id id -> RsPatId (string_of_id id)
-        | P_typ (typ, pat) -> RsPatType ((process_type typ), (process_pat pat))
-        | P_wild -> RsPatWildcard
-        | P_tuple pats -> RsPatTuple (List.map process_pat pats)
-        | _ -> RsPatTodo
+let process_vector_pat (items: 'a pat list) : rs_lit =
+    let is_only_bits acc pat = match pat with
+        | P_aux ((P_lit (L_aux (lit, _))), _) -> (match lit with
+            | L_zero -> acc
+            | L_one -> acc
+            | _ -> false)
+        | _ -> false
+    in
+    let string_of_bit (P_aux (pat, _)) = match pat with
+        | P_lit (L_aux (lit, _)) -> (match lit with
+            | L_zero -> "0"
+            | L_one -> "1"
+            | _ -> "x")
+        | _ -> "X"
+    in
+    if (List.fold_left is_only_bits true items) then
+        RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items)))
+    else RsLitTodo
 
 let process_lit (L_aux (lit, _)) : rs_lit =
     match lit with
@@ -58,6 +68,16 @@ let process_lit (L_aux (lit, _)) : rs_lit =
         | L_string s -> RsLitStr s
         | L_undef -> RsLitTodo
         | L_real s -> RsLitTodo
+
+let rec process_pat (P_aux (pat, annot)) : rs_pat =
+    match pat with
+        | P_lit lit -> RsPatLit (process_lit lit)
+        | P_id id -> RsPatId (string_of_id id)
+        | P_typ (typ, pat) -> RsPatType ((process_type typ), (process_pat pat))
+        | P_wild -> RsPatWildcard
+        | P_tuple pats -> RsPatTuple (List.map process_pat pats)
+        | P_vector pats -> RsPatLit (process_vector_pat pats)
+        | _ -> RsPatTodo
 
 let process_vector (items: 'a exp list) : rs_lit =
     let is_only_bits acc exp = match exp with

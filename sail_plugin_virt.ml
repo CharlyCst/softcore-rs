@@ -36,11 +36,11 @@ let virt_rewrites =
     ("vector_string_pats_to_bit_list", []);
     ("remove_not_pats", []);
     ("remove_vector_concat", []);
-    ("remove_bitvector_pats", []);
-    ("pattern_literals", [Literal_arg "all"]);
+    (* ("remove_bitvector_pats", []); *)
+    (* ("pattern_literals", [Literal_arg "all"]); *)
     ("tuple_assignments", []);
     ("vector_concat_assignments", []);
-    (* ("simple_struct_assignments", []); (1* TODO: invectigate the impact of this one on vector assignments *1) *)
+    (* ("simple_struct_assignments", []); (1* TODO: investigate the impact of this one on vector assignments *1) *)
     ("exp_lift_assign", []);
     (* ("merge_function_clauses", []); *)
     ("recheck_defs", []);

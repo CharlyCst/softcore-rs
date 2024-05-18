@@ -4,14 +4,6 @@ type rs_type =
     | RsTypId of string
     | RsTypTodo
 
-type rs_pat =
-    | RsPatLit
-    | RsPatId of string
-    | RsPatType of rs_type * rs_pat
-    | RsPatWildcard
-    | RsPatTuple of rs_pat list
-    | RsPatTodo
-
 type rs_lit =
     | RsLitUnit
     | RsLitTrue
@@ -21,6 +13,14 @@ type rs_lit =
     | RsLitHex of string
     | RsLitStr of string
     | RsLitTodo
+
+type rs_pat =
+    | RsPatLit of rs_lit
+    | RsPatId of string
+    | RsPatType of rs_type * rs_pat
+    | RsPatWildcard
+    | RsPatTuple of rs_pat list
+    | RsPatTodo
 
 type rs_binop =
     | RsBinopEq
@@ -70,16 +70,6 @@ let string_of_rs_type (typ: rs_type) : string =
         | RsTypId s -> s
         | RsTypTodo -> "TYPE_TODO"
 
-let rec string_of_rs_pat (pat: rs_pat) : string =
-    match pat with
-        | RsPatLit -> "TODO_PAT_LIT"
-        | RsPatId id-> id
-        | RsPatType (typ, pat) -> Printf.sprintf "%s: %s" (string_of_rs_pat pat) (string_of_rs_type typ)
-        | RsPatWildcard -> "_"
-        | RsPatTuple pats ->
-            Printf.sprintf "(%s)" (String.concat ", " (List.map string_of_rs_pat pats))
-        | RsPatTodo -> "PAT_TODO"
-
 let string_of_rs_lit (lit: rs_lit) : string =
     match lit  with
         | RsLitUnit -> "()"
@@ -90,6 +80,16 @@ let string_of_rs_lit (lit: rs_lit) : string =
         | RsLitHex n -> n
         | RsLitStr s -> Printf.sprintf "\"%s\"" s
         | RsLitTodo -> "LIT_TODO"
+
+let rec string_of_rs_pat (pat: rs_pat) : string =
+    match pat with
+        | RsPatLit lit -> string_of_rs_lit lit
+        | RsPatId id-> id
+        | RsPatType (typ, pat) -> Printf.sprintf "%s: %s" (string_of_rs_pat pat) (string_of_rs_type typ)
+        | RsPatWildcard -> "_"
+        | RsPatTuple pats ->
+            Printf.sprintf "(%s)" (String.concat ", " (List.map string_of_rs_pat pats))
+        | RsPatTodo -> "PAT_TODO"
 
 let string_of_rs_binop (binop: rs_binop) : string =
     match binop with
