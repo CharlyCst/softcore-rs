@@ -22,9 +22,19 @@ type rs_lit =
     | RsLitStr of string
     | RsLitTodo
 
+type rs_binop =
+    | RsBinopEq
+    | RsBinopNeq
+    | RsBinopAnd
+    | RsBinopOr
+    | RsBinopXor
+    | RsBinopLAnd
+    | RsBinopLOr
+
 type rs_exp =
     | RsLet of rs_pat * rs_exp * rs_exp
     | RsApp of string * rs_exp list
+    | RsMethodApp of rs_exp * string * rs_exp list
     | RsId of string
     | RsLit of rs_lit
     | RsBlock of rs_exp list
@@ -33,6 +43,7 @@ type rs_exp =
     | RsTuple of rs_exp list
     | RsAssign of rs_lexp * rs_exp
     | RsIndex of rs_exp * rs_exp
+    | RsBinop of rs_exp * rs_binop * rs_exp
     | RsTodo
 and rs_lexp =
     | RsLexpId of string
@@ -80,6 +91,16 @@ let string_of_rs_lit (lit: rs_lit) : string =
         | RsLitStr s -> Printf.sprintf "\"%s\"" s
         | RsLitTodo -> "LIT_TODO"
 
+let string_of_rs_binop (binop: rs_binop) : string =
+    match binop with
+        | RsBinopEq -> "=="
+        | RsBinopNeq -> "!="
+        | RsBinopAnd -> "&"
+        | RsBinopOr -> "|"
+        | RsBinopXor -> "^"
+        | RsBinopLAnd -> "&&"
+        | RsBinopLOr -> "||"
+
 let indent (n: int) : string =
     String.make (n * 4) ' '
 
@@ -102,6 +123,11 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (string_of_rs_exp n next)
         | RsApp (id, args)->
             Printf.sprintf "%s(%s)"
+                id 
+                (String.concat ", " (List.map (string_of_rs_exp n) args))
+        | RsMethodApp (exp, id, args)->
+            Printf.sprintf "%s.%s(%s)"
+                (string_of_rs_exp n exp)
                 id 
                 (String.concat ", " (List.map (string_of_rs_exp n) args))
         | RsId id -> id
@@ -142,6 +168,11 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
         | RsIndex (exp1, exp2) ->
             Printf.sprintf "%s[%s]"
                 (string_of_rs_exp n exp1)
+                (string_of_rs_exp n exp2)
+        | RsBinop (exp1, binop, exp2) ->
+            Printf.sprintf "(%s %s %s)"
+                (string_of_rs_exp n exp1)
+                (string_of_rs_binop binop)
                 (string_of_rs_exp n exp2)
         | RsTodo -> "todo!()"
 and string_of_rs_lexp (n: int) (lexp: rs_lexp) : string =
