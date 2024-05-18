@@ -78,11 +78,6 @@ let process_vector (items: 'a exp list) : rs_lit =
         RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items)))
     else RsLitTodo
 
-let process_lexp (LE_aux (lexp, annot)) : rs_lexp =
-    match lexp with
-        | LE_id id -> RsLexpId (string_of_id id)
-        | _ -> RsLexpTodo
-
 let rec process_exp (E_aux (exp, aux)) : rs_exp = 
     (* print_string "Exp "; *)
     (* print_endline (string_of_exp exp); *)
@@ -137,6 +132,14 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_internal_value value -> RsTodo
         | E_internal_assume (n_constraint, exp) -> RsTodo
         | E_constraint n_constraint -> RsTodo
+and process_lexp (LE_aux (lexp, annot)) : rs_lexp =
+    match lexp with
+        | LE_id id -> RsLexpId (string_of_id id)
+        | LE_vector (lexp, idx) ->
+            (RsLexpIndex (
+                (process_lexp lexp),
+                (process_exp idx)))
+        | _ -> RsLexpTodo
 and process_pexp (Pat_aux (pexp, annot)) : rs_pexp =
     match pexp with
         | Pat_exp (pat, exp) ->

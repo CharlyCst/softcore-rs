@@ -40,7 +40,7 @@ let virt_rewrites =
     ("pattern_literals", [Literal_arg "all"]);
     ("tuple_assignments", []);
     ("vector_concat_assignments", []);
-    ("simple_struct_assignments", []);
+    (* ("simple_struct_assignments", []); (1* TODO: invectigate the impact of this one on vector assignments *1) *)
     ("exp_lift_assign", []);
     (* ("merge_function_clauses", []); *)
     ("recheck_defs", []);
