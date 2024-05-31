@@ -57,7 +57,10 @@ and transform_app (fn: string) (args: rs_exp list) : rs_exp =
     match (fn, args) with
         | ("plain_vector_access", vector::item::[]) -> (RsIndex (vector, item))
         | ("neq_int", left::right::[]) -> (RsBinop (left, RsBinopNeq, right))
+        | ("neq_bits", left::right::[]) -> (RsBinop (left, RsBinopNeq, right))
         | ("eq_int", left::right::[]) -> (RsBinop (left, RsBinopEq, right))
+        | ("eq_bool", left::right::[]) -> (RsBinop (left, RsBinopEq, right))
+        | ("eq_bits", left::right::[]) -> (RsBinop (left, RsBinopEq, right))
         | ("eq_anything", left::right::[]) -> (RsBinop (left, RsBinopEq, right))
         | ("or_vec", left::right::[]) -> (RsBinop (left, RsBinopOr, right))
         | ("and_vec", left::right::[]) -> (RsBinop (left, RsBinopAnd, right))
