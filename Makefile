@@ -125,6 +125,9 @@ test2: build
 test3: build
 	./virt-sail arch3.sail -o out
 
+test4: build
+	./virt-sail arch4.sail -o out
+
 riscv: build
 	./virt-sail $(SAIL_SRCS) ../sail-riscv/model/main.sail -o out
 
