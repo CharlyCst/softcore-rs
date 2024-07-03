@@ -2,7 +2,11 @@
 
 type rs_type =
     | RsTypId of string
+    | RsTypTuple of rs_type list
+    | RsTypUnit
     | RsTypTodo
+
+type rs_fn_type = rs_type list * rs_type
 
 type rs_lit =
     | RsLitUnit
@@ -65,9 +69,13 @@ let merge_rs_prog (prog1: rs_program) (prog2: rs_program) : rs_program =
     let RsProg (fn2) = prog2 in
     RsProg (fn1 @ fn2)
 
-let string_of_rs_type (typ: rs_type) : string =
+let rec string_of_rs_type (typ: rs_type) : string =
     match typ with
         | RsTypId s -> s
+        | RsTypTuple types ->
+            Printf.sprintf "(%s)"
+                (String.concat ", " (List.map string_of_rs_type types))
+        | RsTypUnit -> "()"
         | RsTypTodo -> "TYPE_TODO"
 
 let string_of_rs_lit (lit: rs_lit) : string =
