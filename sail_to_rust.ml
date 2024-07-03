@@ -182,9 +182,19 @@ let pat_app_name (P_aux (pat_aux, _)) =
         | P_app (id, _) -> string_of_id id
         | _ -> ""
 
-let process_pat (P_aux (pat_aux, annot)) = 
+let rec process_id_pat_list id_pat_list =
+    match id_pat_list with
+        | (id, pat) :: t -> print_string "id/pat:"; print_id id; process_id_pat_list t
+        | _ -> ()
+
+let process_arg_pat (P_aux (pat_aux, annot)) = 
+    print_endline (string_of_pat (P_aux (pat_aux, annot)));
     match pat_aux with
-        | P_app (id, pat_list) -> print_id id
+        | P_app (id, pat_list) -> print_string "DEBUG: ArgApp"; print_string (string_of_id id);
+        | P_struct (id_pat_list, field_pat_wildcard) -> process_id_pat_list id_pat_list
+        | P_list pats -> print_string "DEBUG: ArgPat List"
+        | P_var (var, typ) -> print_string "DEBUG: ArgVar"
+        | P_cons (h, t) -> print_string "DEBUG: ArgCons"
         | _ -> ()
 
 let process_func (FCL_aux (func, annot)) (s: SSet.t) : rs_program =
@@ -193,6 +203,7 @@ let process_func (FCL_aux (func, annot)) (s: SSet.t) : rs_program =
     let name = (string_of_id id) in
     if SSet.mem name s then match pexp with
         | Pat_exp (pat, exp) ->
+            let _ = process_arg_pat pat in
             let rs_exp = process_exp exp in
             RsProg [(name, rs_exp)]
         | Pat_when (pat1, exp, pat2) -> RsProg []
@@ -200,6 +211,7 @@ let process_func (FCL_aux (func, annot)) (s: SSet.t) : rs_program =
         | Pat_exp (pat, exp) ->
             let name = pat_app_name pat in
             if SSet.mem name s then
+                let _ = process_arg_pat pat in
                 let rs_exp = process_exp exp in
                 RsProg [(name, rs_exp)]
             else RsProg []

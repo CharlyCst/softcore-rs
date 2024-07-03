@@ -7,6 +7,7 @@ open Sail_to_rust
 open Rust_transform
 open Rust_gen
 open Call_set
+open Fun_defs
 
 let opt_virt_preserve = ref ([]:string list)
 
@@ -17,6 +18,7 @@ let virt_options = [
   ]
 
 (* Sail comes with some built-in passes, here we select the ones we want to apply*)
+(* see https://github.com/rems-project/sail/blob/284c4795a25723139443dedee1d178f68ddb304e/src/lib/rewrites.ml#L4422 *)
 let virt_rewrites =
   let open Rewrites in
   [
@@ -53,12 +55,18 @@ let virt_target _ _ out_file ast effect_info env =
   let props = Property.find_properties ast in
   Bindings.bindings props |> List.map fst |> IdSet.of_list |> Specialize.add_initial_calls;
 
+  (* Compute call set *)
   let set = Call_set.SSet.empty in
   let set = SSet.add "CSR" set in
   let set = SSet.add "ITYPE" set in
   let call_set = get_call_set ast set in
   SSet.iter (Printf.printf "%s ") call_set;
   print_endline "";
+
+  (* Collect definitions *)
+  let fun_defs = get_fun_defs ast in
+  print_all_fun_defs fun_defs;
+
   let rust_program = sail_to_rust ast call_set in
   let rust_program = rust_transform rust_program in
   let out_chan = open_out out_file in
