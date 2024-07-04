@@ -5,7 +5,7 @@ open Ast
 open Ast_util
 open Ast_defs
 open Rust_gen
-open Call_set
+open Context
 
 module SSet = Call_set.SSet
 
@@ -190,42 +190,50 @@ let rec process_id_pat_list id_pat_list =
 let process_arg_pat (P_aux (pat_aux, annot)) = 
     print_endline (string_of_pat (P_aux (pat_aux, annot)));
     match pat_aux with
-        | P_app (id, pat_list) -> print_string "DEBUG: ArgApp"; print_string (string_of_id id);
+        | P_app (id, pat_list) -> print_string "DEBUG: ArgApp "; print_string (string_of_id id);
         | P_struct (id_pat_list, field_pat_wildcard) -> process_id_pat_list id_pat_list
         | P_list pats -> print_string "DEBUG: ArgPat List"
         | P_var (var, typ) -> print_string "DEBUG: ArgVar"
         | P_cons (h, t) -> print_string "DEBUG: ArgCons"
         | _ -> ()
 
-let process_func (FCL_aux (func, annot)) (s: SSet.t) : rs_program =
+let build_function (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
+    let _ = process_arg_pat pat in
+    let signature = match ctx_fun_type name ctx with
+        | Some signature -> signature
+        | None -> ([RsTypId "TodoNoSignature"], RsTypUnit)
+    in
+    let rs_exp = process_exp exp in
+    {
+        name = name;
+        signature = signature;
+        body = rs_exp;
+    }
+
+let process_func (FCL_aux (func, annot)) (ctx: context) : rs_program =
     let (id, pexp) = match func with | FCL_funcl (id, pexp) -> (id, pexp) in
     let (pexp, annot) = match pexp with | Pat_aux (pexp, annot) -> (pexp, annot) in
     let name = (string_of_id id) in
-    if SSet.mem name s then match pexp with
-        | Pat_exp (pat, exp) ->
-            let _ = process_arg_pat pat in
-            let rs_exp = process_exp exp in
-            RsProg [(name, rs_exp)]
+    if ctx_fun_is_used name ctx then match pexp with
+        | Pat_exp (pat, exp) -> RsProg [build_function name pat exp ctx]
         | Pat_when (pat1, exp, pat2) -> RsProg []
     else match pexp with
         | Pat_exp (pat, exp) ->
-            let name = pat_app_name pat in
-            if SSet.mem name s then
-                let _ = process_arg_pat pat in
-                let rs_exp = process_exp exp in
-                RsProg [(name, rs_exp)]
-            else RsProg []
+                let name = pat_app_name pat in
+                if ctx_fun_is_used name ctx then
+                    RsProg [(build_function name pat exp ctx)]
+                else RsProg []
         | _ -> RsProg []
 
-let rec process_funcl (funcl: 'a funcl list) (s: SSet.t) : rs_program =
+let rec process_funcl (funcl: 'a funcl list) (s: context) : rs_program =
     match funcl with
         | h :: t -> merge_rs_prog (process_func h s) (process_funcl t s)
         | [] -> RsProg []
 
-let process_fundef (FD_function (rec_opt, tannot_opt, funcl)) (s: SSet.t) : rs_program =
+let process_fundef (FD_function (rec_opt, tannot_opt, funcl)) (s: context) : rs_program =
     process_funcl funcl s
 
-let process_node (DEF_aux (def, annot)) (s: SSet.t) : rs_program =
+let process_node (DEF_aux (def, annot)) (s: context) : rs_program =
     match def with
         | DEF_register (DEC_aux (dec_spec, annot)) -> process_register dec_spec
         | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
@@ -233,10 +241,10 @@ let process_node (DEF_aux (def, annot)) (s: SSet.t) : rs_program =
         | DEF_impl funcl -> process_func funcl s
         | _ -> RsProg []
 
-let rec process_defs defs (s: SSet.t): rs_program =
+let rec process_defs defs (ctx: context): rs_program =
     match defs with
-        | h :: t -> merge_rs_prog (process_node h s) (process_defs t s)
+        | h :: t -> merge_rs_prog (process_node h ctx) (process_defs t ctx)
         | [] -> RsProg []
 
-let sail_to_rust (ast: 'a ast) (s: SSet.t) : rs_program =
-    process_defs ast.defs s
+let sail_to_rust (ast: 'a ast) (ctx: context) : rs_program =
+    process_defs ast.defs ctx

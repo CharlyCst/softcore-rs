@@ -8,6 +8,7 @@ open Rust_transform
 open Rust_gen
 open Call_set
 open Fun_defs
+open Context
 
 let opt_virt_preserve = ref ([]:string list)
 
@@ -67,7 +68,13 @@ let virt_target _ _ out_file ast effect_info env =
   let fun_defs = get_fun_defs ast in
   print_all_fun_defs fun_defs;
 
-  let rust_program = sail_to_rust ast call_set in
+  (* Build the context *)
+  let ctx = {
+    fun_type = fun_defs;
+    call_set = call_set;
+  } in
+
+  let rust_program = sail_to_rust ast ctx in
   let rust_program = rust_transform rust_program in
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);

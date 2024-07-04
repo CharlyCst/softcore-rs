@@ -43,9 +43,9 @@ let extract_types (TypSchm_aux (typeschm, _)) : rs_fn_type =
 let val_fun_def (val_spec: val_spec_aux) : defmap =
     let map = SMap.empty in
     let VS_val_spec (typeschm, id, extern) = val_spec in
-    print_string (string_of_id id);
-    print_string " - ";
-    print_endline (string_of_typschm typeschm);
+    (* print_string (string_of_id id); *)
+    (* print_string " - "; *)
+    (* print_endline (string_of_typschm typeschm); *)
     SMap.add (string_of_id id) (extract_types typeschm) map
 
 let node_fun_def (DEF_aux (def, annot)) : defmap =

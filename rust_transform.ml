@@ -85,8 +85,11 @@ and transform_pexp (pexp: rs_pexp) : rs_pexp =
  
 
 let transform_fn (fn: rs_fn) : rs_fn =
-    let (name, exp) = fn in
-    (name, (transform_exp exp))
+    {
+        name = fn.name;
+        signature = fn.signature;
+        body = transform_exp fn.body;
+    }
 
 let rust_transform (RsProg fns) : rs_program =
     RsProg (List.map transform_fn fns)

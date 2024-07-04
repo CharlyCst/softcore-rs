@@ -65,7 +65,11 @@ and rs_pexp =
 
 type rs_block = rs_exp list
 
-type rs_fn = string * rs_exp
+type rs_fn = {
+    name: string;
+    signature: rs_fn_type;
+    body: rs_exp;
+}
 
 type rs_program =
     | RsProg of rs_fn list
@@ -219,14 +223,15 @@ and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
                 (string_of_rs_exp n exp)
 
 let string_of_rs_fn (fn: rs_fn) : string =
-    let (name, exp) = fn in
-    let signature = Printf.sprintf "fn %s() {\n%s" name (indent 1) in
-    let stmts = (match exp with
+    let (args, ret) = fn.signature in 
+    let args = String.concat ", " (List.map string_of_rs_type args) in
+    let signature = Printf.sprintf "fn %s(%s) {\n%s" fn.name args (indent 1) in
+    let stmts = (match fn.body with
         | RsBlock exps
             -> String.concat
                 (Printf.sprintf ";\n%s" (indent 1))
                 (List.map (string_of_rs_exp 1) exps)
-        | _ ->string_of_rs_exp 1 exp) in
+        | _ ->string_of_rs_exp 1 fn.body) in
     Printf.sprintf "%s%s\n}" signature stmts
 
 let string_of_rs_prog (prog: rs_program) : string =
