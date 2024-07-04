@@ -1,10 +1,16 @@
 (** Rust generation module **)
 
+
 type rs_type =
     | RsTypId of string
     | RsTypTuple of rs_type list
     | RsTypUnit
+    | RsTypGeneric of string
+    | RsTypGenericParam of string * rs_type_param list
     | RsTypTodo
+and  rs_type_param =
+    | RsTypParamTyp of rs_type
+    | RsTypParamNum of int
 
 type rs_fn_type = rs_type list * rs_type
 
@@ -76,7 +82,16 @@ let rec string_of_rs_type (typ: rs_type) : string =
             Printf.sprintf "(%s)"
                 (String.concat ", " (List.map string_of_rs_type types))
         | RsTypUnit -> "()"
+        | RsTypGeneric t -> t
+        | RsTypGenericParam (id, params) ->
+            Printf.sprintf "%s<%s>"
+                id
+                (String.concat ", " (List.map string_of_rs_type_param params))
         | RsTypTodo -> "TYPE_TODO"
+and string_of_rs_type_param (typ: rs_type_param) : string =
+    match typ with
+        | RsTypParamTyp typ -> string_of_rs_type typ
+        | RsTypParamNum n -> Printf.sprintf "%d" n
 
 let string_of_rs_lit (lit: rs_lit) : string =
     match lit  with

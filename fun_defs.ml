@@ -14,9 +14,23 @@ let defmap_union (a: defmap) (b: defmap) : defmap =
     let select key elt_a elt_b = Some(elt_a) in
     SMap.union select a b
 
-let extract_type (Typ_aux (typ, _)): rs_type =
+let rec extract_type (Typ_aux (typ, _)): rs_type =
     match typ with
+        | Typ_id id -> RsTypId (string_of_id id)
+        | Typ_var (Kid_aux (Var x, _)) -> RsTypGeneric x
+        | Typ_tuple types -> RsTypTuple (List.map extract_type types)
+        | Typ_fn _ -> RsTypId "TodoFnType"
+        | Typ_app (id, params) -> RsTypGenericParam ((string_of_id id), (List.map extract_type_arg params))
         | _ -> RsTypTodo
+and extract_type_arg (A_aux (typ, _)): rs_type_param =
+    match typ with
+        | A_nexp exp -> extract_type_nexp exp
+        | A_typ typ -> RsTypParamTyp (extract_type typ)
+        | A_bool b -> RsTypParamTyp (RsTypId "TodoBoolType")
+and extract_type_nexp (Nexp_aux (nexp, _)): rs_type_param =
+    match nexp with
+        | Nexp_constant n -> RsTypParamNum (Nat_big_num.to_int n)
+        | _ -> RsTypParamTyp (RsTypId "TodoNexpType")
 
 let extract_types (TypSchm_aux (typeschm, _)) : rs_fn_type =
     (* We ignore the type quantifier for now, there is no `forall` on most types of interest *)
