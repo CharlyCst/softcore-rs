@@ -235,7 +235,12 @@ let string_of_rs_fn_args (fn: rs_fn) : string =
 let string_of_rs_fn (fn: rs_fn) : string =
     let (args, ret) = fn.signature in 
     let args = string_of_rs_fn_args fn in
-    let signature = Printf.sprintf "fn %s(%s) {\n%s" fn.name args (indent 1) in
+    let (_, ret_type) = fn.signature in
+    let ret_type = match ret_type with
+        | RsTypUnit -> ""
+        | _ -> Printf.sprintf " -> %s" (string_of_rs_type ret_type)
+    in
+    let signature = Printf.sprintf "fn %s(%s)%s {\n%s" fn.name args ret_type (indent 1) in
     let stmts = (match fn.body with
         | RsBlock exps
             -> String.concat
