@@ -61,12 +61,12 @@ let virt_target _ _ out_file ast effect_info env =
   let set = SSet.add "CSR" set in
   let set = SSet.add "ITYPE" set in
   let call_set = get_call_set ast set in
-  SSet.iter (Printf.printf "%s ") call_set;
-  print_endline "";
+  (* SSet.iter (Printf.printf "%s ") call_set; *)
+  (* print_endline ""; *)
 
   (* Collect definitions *)
   let fun_defs = get_fun_defs ast in
-  print_all_fun_defs fun_defs;
+  (* print_all_fun_defs fun_defs; *)
 
   (* Build the context *)
   let ctx = {

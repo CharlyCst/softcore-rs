@@ -87,6 +87,7 @@ and transform_pexp (pexp: rs_pexp) : rs_pexp =
 let transform_fn (fn: rs_fn) : rs_fn =
     {
         name = fn.name;
+        args = fn.args;
         signature = fn.signature;
         body = transform_exp fn.body;
     }

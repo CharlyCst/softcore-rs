@@ -105,7 +105,7 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_block exp_list -> RsBlock (List.map process_exp exp_list)
         | E_id id -> RsId (string_of_id id)
         | E_lit lit -> RsLit (process_lit lit)
-        | E_typ (typ, exp) -> RsTodo (*print_string (string_of_typ typ);*)
+        | E_typ (typ, exp) -> RsTodo
         | E_app (id, exp_list) -> RsApp ((string_of_id id), (List.map process_exp exp_list))
         | E_app_infix (exp1, id, exp2) -> RsTodo
         | E_tuple (exp_list) -> RsTuple (List.map process_exp exp_list)
@@ -187,25 +187,46 @@ let rec process_id_pat_list id_pat_list =
         | (id, pat) :: t -> print_string "id/pat:"; print_id id; process_id_pat_list t
         | _ -> ()
 
-let process_arg_pat (P_aux (pat_aux, annot)) = 
-    print_endline (string_of_pat (P_aux (pat_aux, annot)));
+let process_args_pat (P_aux (pat_aux, annot)) : string = 
     match pat_aux with
-        | P_app (id, pat_list) -> print_string "DEBUG: ArgApp "; print_string (string_of_id id);
-        | P_struct (id_pat_list, field_pat_wildcard) -> process_id_pat_list id_pat_list
-        | P_list pats -> print_string "DEBUG: ArgPat List"
-        | P_var (var, typ) -> print_string "DEBUG: ArgVar"
-        | P_cons (h, t) -> print_string "DEBUG: ArgCons"
-        | _ -> ()
+        | P_id id -> string_of_id id
+        | _ -> "TodoArg"
+
+let process_args_pat (P_aux (pat_aux, annot)) : string list = 
+    (* print_endline (string_of_pat (P_aux (pat_aux, annot))); *)
+    match pat_aux with
+        | P_app (id, pat_list) -> ["TodoArgsApp"] (* This one is used by scattered functions *)
+        | P_struct (id_pat_list, field_pat_wildcard) -> ["TodoArgsStruct"]
+        | P_list pats -> ["TodoArgsList"]
+        | P_var (var, typ) -> ["TodoArgsVar"]
+        | P_cons (h, t) -> ["TodoArgsCons"]
+        | P_tuple pats -> List.map process_args_pat pats
+        | P_id id -> [string_of_id id]
+        | _ -> ["TodoArgs"]
 
 let build_function (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
-    let _ = process_arg_pat pat in
+    (* This function balances the lenghts of the argument and argument type list by adding more arguments if neccesary *)
+    let rec add_missing_args args args_type new_args : string list =
+        match (args, args_type) with
+            | (ha::ta, ht::tt) -> add_missing_args ta tt (new_args @ [ha])
+            | ([], ht::tt) -> add_missing_args [] tt (new_args @ ["TodoMissingArg"])
+            | (_, []) -> new_args
+    in
+
+    let arg_names = process_args_pat pat in
+    print_string name;
+    print_string " ";
+    print_endline (String.concat ", " arg_names);
     let signature = match ctx_fun_type name ctx with
         | Some signature -> signature
         | None -> ([RsTypId "TodoNoSignature"], RsTypUnit)
     in
+    let (arg_types, _) = signature in
+    let arg_names = add_missing_args arg_names arg_types [] in
     let rs_exp = process_exp exp in
     {
         name = name;
+        args = arg_names;
         signature = signature;
         body = rs_exp;
     }
