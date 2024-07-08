@@ -190,10 +190,10 @@ let rec process_id_pat_list id_pat_list =
 let process_args_pat (P_aux (pat_aux, annot)) : string = 
     match pat_aux with
         | P_id id -> string_of_id id
+        | P_typ (_, P_aux (P_id id  , _)) -> string_of_id id
         | _ -> "TodoArg"
 
 let process_args_pat (P_aux (pat_aux, annot)) : string list = 
-    (* print_endline (string_of_pat (P_aux (pat_aux, annot))); *)
     match pat_aux with
         | P_app (id, pat_list) -> ["TodoArgsApp"] (* This one is used by scattered functions *)
         | P_struct (id_pat_list, field_pat_wildcard) -> ["TodoArgsStruct"]
@@ -202,6 +202,7 @@ let process_args_pat (P_aux (pat_aux, annot)) : string list =
         | P_cons (h, t) -> ["TodoArgsCons"]
         | P_tuple pats -> List.map process_args_pat pats
         | P_id id -> [string_of_id id]
+        | P_typ (_, P_aux (P_id id  , _)) -> [string_of_id id]
         | _ -> ["TodoArgs"]
 
 let build_function (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =

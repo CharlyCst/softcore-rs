@@ -5,14 +5,56 @@ open Ast_defs
 
 open Rust_gen
 
+
+(* ————————————————————————————————— Types —————————————————————————————————— *)
+
 module SSet = Set.Make(String)
 module SMap = Map.Make(String)
 
 type defmap = rs_fn_type SMap.t
+type unionmap = rs_type SMap.t
+type defs = {
+    funs : defmap;
+    unions: unionmap;
+}
 
-let defmap_union (a: defmap) (b: defmap) : defmap =
+(* ——————————————————————————————— Type Utils ——————————————————————————————— *)
+
+let map_union (a: 'a SMap.t) (b: 'a SMap.t) : 'a SMap.t =
     let select key elt_a elt_b = Some(elt_a) in
     SMap.union select a b
+
+let defs_empty = {
+    funs = SMap.empty;
+    unions = SMap.empty;
+}
+
+let defs_merge (a: defs) (b: defs) : defs =
+    {
+        funs = map_union a.funs b.funs;
+        unions = map_union a.unions b.unions;
+    }
+
+let defs_add_union (defs: defs) (union: unionmap) : defs =
+    let unions = map_union union defs.unions in
+    {
+        funs = defs.funs;
+        unions = unions;
+    }
+
+let defs_from_union (union: unionmap) : defs = 
+    {
+        funs = SMap.empty;
+        unions = union;
+    }
+
+let defs_from_funs (funs: defmap) : defs =
+    {
+        funs = funs;
+        unions = SMap.empty;
+    }
+
+(* ———————————————————————— Sail Types to Rust Types ———————————————————————— *)
 
 let rec extract_type (Typ_aux (typ, _)): rs_type =
     match typ with
@@ -32,6 +74,8 @@ and extract_type_nexp (Nexp_aux (nexp, _)): rs_type_param =
         | Nexp_constant n -> RsTypParamNum (Nat_big_num.to_int n)
         | _ -> RsTypParamTyp (RsTypId "TodoNexpType")
 
+(* ———————————————————————————— Value Definition ———————————————————————————— *)
+
 let extract_types (TypSchm_aux (typeschm, _)) : rs_fn_type =
     (* We ignore the type quantifier for now, there is no `forall` on most types of interest *)
     let TypSchm_ts (type_quant, typ) = typeschm in
@@ -48,30 +92,63 @@ let val_fun_def (val_spec: val_spec_aux) : defmap =
     (* print_endline (string_of_typschm typeschm); *)
     SMap.add (string_of_id id) (extract_types typeschm) map
 
-let node_fun_def (DEF_aux (def, annot)) : defmap =
-    match def with
-        | DEF_val (VS_aux (val_spec, annot)) -> val_fun_def val_spec
-        | DEF_register (DEC_aux (dec_spec, annot)) -> SMap.empty
-        | DEF_scattered (SD_aux (scattered, annot)) -> SMap.empty
-        | DEF_fundef (FD_aux (fundef, annot)) -> SMap.empty 
-        | DEF_impl funcl -> SMap.empty
-        | _ -> SMap.empty
+(* ————————————————————————————————— Union —————————————————————————————————— *)
 
-let rec defs_fun_defs(defs: 'a def list) : defmap =
-    match defs with
-        | h :: t -> defmap_union (node_fun_def h) (defs_fun_defs t)
+let type_union_def (Tu_aux (union, _)) : unionmap = 
+    let Tu_ty_id (typ, id) = union in
+    SMap.add (string_of_id id) (extract_type typ) SMap.empty 
+
+let rec type_union_defs (members: type_union list) : unionmap =
+    match members with
+        | head :: tail -> map_union (type_union_def head) (type_union_defs tail)
         | [] -> SMap.empty
 
-let get_fun_defs (ast: 'a ast) : defmap =
-    defs_fun_defs ast.defs
+let type_def_fun_def (TD_aux (typ, _)) : unionmap =
+    match typ with
+        | TD_abbrev (id, typquant, typ_arg) -> print_string (string_of_id id); print_endline " Abbrev"; SMap.empty
+        | TD_record (id, typquant, items, _) -> print_string (string_of_id id); print_endline " Record"; SMap.empty
+        | TD_variant (id, typquant, members, _) ->
+            print_string (string_of_id id);
+            type_union_defs members
+        | TD_enum (id, member, _) -> print_string (string_of_id id); print_endline " Enum"; SMap.empty
+        | TD_bitfield _ -> print_endline "Bitfield"; SMap.empty
 
-let print_all_fun_defs (defs: defmap) =
-    let print_one key (args, ret) =
+(* ——————————————————————— Iterating over definitions ——————————————————————— *)
+
+let node_defs (DEF_aux (def, annot)) : defs =
+    match def with
+        | DEF_val (VS_aux (val_spec, annot)) -> defs_from_funs (val_fun_def val_spec)
+        | DEF_register (DEC_aux (dec_spec, annot)) -> defs_empty
+        | DEF_scattered (SD_aux (scattered, annot)) -> defs_empty
+        | DEF_fundef (FD_aux (fundef, annot)) -> defs_empty (* fundef_fun_defs fundef *)
+        | DEF_impl funcl -> defs_empty
+        | DEF_type typ -> defs_from_union (type_def_fun_def typ)
+        | _ -> defs_empty
+
+let rec process_defs(defs: 'a def list) : defs =
+    match defs with
+        | h :: t -> defs_merge (node_defs h) (process_defs t)
+        | [] -> defs_empty
+
+let get_defs (ast: 'a ast) : defs =
+    process_defs ast.defs
+
+(* ————————————————————————————— Display Utils —————————————————————————————— *)
+
+let print_all_defs (defs: defs) =
+    let print_one_fun key (args, ret) =
         Printf.printf "  %s(%s) -> %s\n"
             key
             (String.concat ", " (List.map string_of_rs_type args))
             (string_of_rs_type ret)
     in
+    let print_one_union key typ =
+        Printf.printf "  %s %s\n"
+            key
+            (string_of_rs_type typ)
+    in
     print_endline "Fun defs:";
-    SMap.iter print_one defs
-    
+    SMap.iter print_one_fun defs.funs;
+    print_endline "Union defs:";
+    SMap.iter print_one_union defs.unions;
+
