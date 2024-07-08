@@ -205,7 +205,11 @@ let process_args_pat (P_aux (pat_aux, annot)) : string list =
         | P_typ (_, P_aux (P_id id  , _)) -> [string_of_id id]
         | _ -> ["TodoArgs"]
 
-let build_function (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
+type function_kind =
+    | FunKindFunc
+    | FunKindUnion of string
+
+let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
     (* This function balances the lenghts of the argument and argument type list by adding more arguments if neccesary *)
     let rec add_missing_args args args_type new_args : string list =
         match (args, args_type) with
@@ -215,12 +219,15 @@ let build_function (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs
     in
 
     let arg_names = process_args_pat pat in
-    print_string name;
-    print_string " ";
-    print_endline (String.concat ", " arg_names);
-    let signature = match ctx_fun_type name ctx with
-        | Some signature -> signature
-        | None -> ([RsTypId "TodoNoSignature"], RsTypUnit)
+    let signature = match kind with
+        | FunKindFunc -> (match ctx_fun_type name ctx with
+            | Some signature -> signature
+            | None -> ([RsTypId "TodoNoSignature"], RsTypUnit))
+        | FunKindUnion union -> match ctx_union_type union ctx with
+            | Some typ -> (match typ with
+                | RsTypTuple types -> (types, RsTypUnit) (* TODO: handle non-unit return *)
+                | _ -> ([RsTypId "TodoUnsupportedUnionSignature"], RsTypUnit))
+            | None -> ([RsTypId "TodoNoUnionSignature"], RsTypUnit)
     in
     let (arg_types, _) = signature in
     let arg_names = add_missing_args arg_names arg_types [] in
@@ -237,13 +244,14 @@ let process_func (FCL_aux (func, annot)) (ctx: context) : rs_program =
     let (pexp, annot) = match pexp with | Pat_aux (pexp, annot) -> (pexp, annot) in
     let name = (string_of_id id) in
     if ctx_fun_is_used name ctx then match pexp with
-        | Pat_exp (pat, exp) -> RsProg [build_function name pat exp ctx]
+        | Pat_exp (pat, exp) -> RsProg [build_function FunKindFunc name pat exp ctx]
         | Pat_when (pat1, exp, pat2) -> RsProg []
     else match pexp with
         | Pat_exp (pat, exp) ->
-                let name = pat_app_name pat in
-                if ctx_fun_is_used name ctx then
-                    RsProg [(build_function name pat exp ctx)]
+                let pat_name = pat_app_name pat in
+                let fun_name = Printf.sprintf "%s_%s" name pat_name in
+                if ctx_fun_is_used pat_name ctx then
+                    RsProg [(build_function (FunKindUnion pat_name) fun_name pat exp ctx)]
                 else RsProg []
         | _ -> RsProg []
 

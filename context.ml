@@ -10,3 +10,6 @@ let ctx_fun_is_used (fun_id: string) (ctx: context) : bool =
 
 let ctx_fun_type (fun_id: string) (ctx: context) : rs_fn_type option =
     Fun_defs.SMap.find_opt fun_id ctx.defs.funs
+
+let ctx_union_type (union_id: string) (ctx: context) : rs_type option =
+    Fun_defs.SMap.find_opt union_id ctx.defs.unions

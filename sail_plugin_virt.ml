@@ -66,7 +66,7 @@ let virt_target _ _ out_file ast effect_info env =
 
   (* Collect definitions *)
   let defs = get_defs ast in
-  print_all_defs defs;
+  (* print_all_defs defs; *)
 
   (* Build the context *)
   let ctx = {

@@ -120,7 +120,7 @@ let node_defs (DEF_aux (def, annot)) : defs =
         | DEF_val (VS_aux (val_spec, annot)) -> defs_from_funs (val_fun_def val_spec)
         | DEF_register (DEC_aux (dec_spec, annot)) -> defs_empty
         | DEF_scattered (SD_aux (scattered, annot)) -> defs_empty
-        | DEF_fundef (FD_aux (fundef, annot)) -> defs_empty (* fundef_fun_defs fundef *)
+        | DEF_fundef (FD_aux (fundef, annot)) -> defs_empty
         | DEF_impl funcl -> defs_empty
         | DEF_type typ -> defs_from_union (type_def_fun_def typ)
         | _ -> defs_empty
