@@ -122,7 +122,7 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_cons (exp1, exp2) -> RsTodo
         | E_struct (fexp_list) -> RsTodo
         | E_struct_update (exp, fexp_list) -> RsTodo
-        | E_field (exp, id) -> RsTodo
+        | E_field (exp, id) -> RsField ((process_exp exp), (string_of_id id))
         | E_match (exp, pexp_list)
             -> (RsMatch (
                 (process_exp exp),

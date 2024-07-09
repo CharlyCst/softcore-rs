@@ -41,6 +41,7 @@ and transform_exp (exp: rs_exp) : rs_exp =
                 (List.map transform_exp args)))
         | RsId id -> RsId id
         | RsLit lit -> RsLit lit
+        | RsField (exp, field) -> RsField ((transform_exp exp), field)
         | RsBlock exps -> RsBlock (List.map transform_exp exps)
         | RsIf (cond, exp_true, exp_false) ->
             (RsIf (

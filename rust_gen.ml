@@ -47,6 +47,7 @@ type rs_exp =
     | RsMethodApp of rs_exp * string * rs_exp list
     | RsId of string
     | RsLit of rs_lit
+    | RsField of rs_exp * string
     | RsBlock of rs_exp list
     | RsIf of rs_exp * rs_exp * rs_exp
     | RsMatch of rs_exp * rs_pexp list
@@ -163,6 +164,10 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (String.concat ", " (List.map (string_of_rs_exp n) args))
         | RsId id -> id
         | RsLit lit  -> string_of_rs_lit lit
+        | RsField (exp, field) ->
+            Printf.sprintf "%s.%s"
+                (string_of_rs_exp n exp)
+                field
         | RsBlock exps ->
             Printf.sprintf "{\n%s%s\n%s}"
                 (indent (n + 1))
