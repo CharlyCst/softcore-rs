@@ -59,6 +59,7 @@ let virt_target _ _ out_file ast effect_info env =
   (* Compute call set *)
   let set = Call_set.SSet.empty in
   let set = SSet.add "CSR" set in
+  let set = SSet.add "MRET" set in
   let set = SSet.add "ITYPE" set in
   let call_set = get_call_set ast set in
   (* SSet.iter (Printf.printf "%s ") call_set; *)

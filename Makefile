@@ -116,17 +116,20 @@ build:
 	cp _build/default/sail_plugin_virt.cmxs plugin.cmxs
 	chmod +rwx plugin.cmxs
 
-test: build
-	./virt-sail arch.sail -o out
+basic: build
+	./virt-sail arch-basic.sail -o out
 
-test2: build
-	./virt-sail arch2.sail -o out
+basic-alt: build
+	./virt-sail arch-basic-alt.sail -o out
 
-test3: build
-	./virt-sail arch3.sail -o out
+csr: build
+	./virt-sail arch-csr.sail -o out
 
-test4: build
-	./virt-sail arch4.sail -o out
+mret: build
+	./virt-sail arch-mret.sail -o out
+
+trap: build
+	./virt-sail arch-trap.sail -o out
 
 riscv: build
 	./virt-sail $(SAIL_SRCS) ../sail-riscv/model/main.sail -o out
