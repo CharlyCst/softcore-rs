@@ -4,4 +4,10 @@ open Ast_defs
 open Rust_gen
 open Call_set
 
-val rust_transform: rs_program -> rs_program
+type custom_transform = {
+    exp : rs_exp -> rs_exp
+}
+
+val kani_transform: custom_transform
+
+val rust_transform: custom_transform -> rs_program -> rs_program
