@@ -43,7 +43,7 @@ type rs_binop =
 
 type rs_exp =
     | RsLet of rs_pat * rs_exp * rs_exp
-    | RsApp of string * rs_exp list
+    | RsApp of rs_exp * rs_exp list
     | RsMethodApp of rs_exp * string * rs_exp list
     | RsId of string
     | RsLit of rs_lit
@@ -153,9 +153,9 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (string_of_rs_exp n exp)
                 (indent n)
                 (string_of_rs_exp n next)
-        | RsApp (id, args)->
+        | RsApp (fn, args)->
             Printf.sprintf "%s(%s)"
-                id 
+                (string_of_rs_exp n fn)
                 (String.concat ", " (List.map (string_of_rs_exp n) args))
         | RsMethodApp (exp, id, args)->
             Printf.sprintf "%s.%s(%s)"

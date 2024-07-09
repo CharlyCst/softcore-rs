@@ -11,7 +11,7 @@ type custom_transform = {
 
 let kani_transfrom_exp (exp: rs_exp) : rs_exp =
     match exp with
-        | RsApp ("subrange_bits", [bitvec; range_end; range_start]) -> RsTodo
+        (* | RsApp (RsId "subrange_bits", [bitvec; range_end; range_start]) -> RsTodo *)
         | _ -> exp
 
 let kani_transform = {
@@ -90,26 +90,26 @@ and transform_exp (ct: custom_transform) (exp: rs_exp) : rs_exp =
                 (transform_type ct typ)))
         | RsTodo -> RsTodo
 
-and transform_app (ct: custom_transform) (fn: string) (args: rs_exp list) : rs_exp =
+and transform_app (ct: custom_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
     let args = List.map (transform_exp ct) args in
     match (fn, args) with
         (* Built-in elementary operations *)
-        | ("plain_vector_access", vector::item::[]) -> (RsIndex (vector, item))
-        | ("neq_int", left::right::[]) -> (RsBinop (left, RsBinopNeq, right))
-        | ("neq_bits", left::right::[]) -> (RsBinop (left, RsBinopNeq, right))
-        | ("eq_int", left::right::[]) -> (RsBinop (left, RsBinopEq, right))
-        | ("eq_bool", left::right::[]) -> (RsBinop (left, RsBinopEq, right))
-        | ("eq_bits", left::right::[]) -> (RsBinop (left, RsBinopEq, right))
-        | ("eq_anything", left::right::[]) -> (RsBinop (left, RsBinopEq, right))
-        | ("or_vec", left::right::[]) -> (RsBinop (left, RsBinopOr, right))
-        | ("and_vec", left::right::[]) -> (RsBinop (left, RsBinopAnd, right))
-        | ("xor_vec", left::right::[]) -> (RsBinop (left, RsBinopXor, right))
-        | ("add_bits", left::right::[]) -> (RsMethodApp (left, "wrapped_add", [right]))
-        | ("and_bool", left::right::[]) -> (RsBinop (left, RsBinopLAnd, right))
-        | ("or_bool", left::right::[]) -> (RsBinop (left, RsBinopLOr, right))
+        | (RsId "plain_vector_access", [vector; item]) -> (RsIndex (vector, item))
+        | (RsId "neq_int", [left; right]) -> (RsBinop (left, RsBinopNeq, right))
+        | (RsId "neq_bits", [left; right]) -> (RsBinop (left, RsBinopNeq, right))
+        | (RsId "eq_int", [left; right]) -> (RsBinop (left, RsBinopEq, right))
+        | (RsId "eq_bool", [left; right]) -> (RsBinop (left, RsBinopEq, right))
+        | (RsId "eq_bits", [left; right]) -> (RsBinop (left, RsBinopEq, right))
+        | (RsId "eq_anything", [left; right]) -> (RsBinop (left, RsBinopEq, right))
+        | (RsId "or_vec", [left; right]) -> (RsBinop (left, RsBinopOr, right))
+        | (RsId "and_vec", [left; right]) -> (RsBinop (left, RsBinopAnd, right))
+        | (RsId "xor_vec", [left; right]) -> (RsBinop (left, RsBinopXor, right))
+        | (RsId "add_bits", [left; right]) -> (RsMethodApp (left, "wrapped_add", [right]))
+        | (RsId "and_bool", [left; right]) -> (RsBinop (left, RsBinopLAnd, right))
+        | (RsId "or_bool", [left; right]) -> (RsBinop (left, RsBinopLOr, right))
 
         (* Custom RISC-V bit extension functions *)
-        | ("EXTZ", (RsLit (RsLitNum n))::value::[]) ->
+        | (RsId "EXTZ", (RsLit (RsLitNum n))::value::[]) ->
             (match n with
                 | 8L -> RsAs (value, RsTypId "u8")
                 | 16L -> RsAs (value, RsTypId "u16")
@@ -118,7 +118,7 @@ and transform_app (ct: custom_transform) (fn: string) (args: rs_exp list) : rs_e
                 | _ -> RsAs (value, RsTypId "InvalidUSigned")
             )
         (* Unsigned is used for array indexing *)
-        | ("unsigned", value::[]) -> RsAs (value, RsTypId "usize")
+        | (RsId "unsigned", value::[]) -> RsAs (value, RsTypId "usize")
 
         (* Otherwise keep as is *)
         | _ -> (RsApp (fn, args))

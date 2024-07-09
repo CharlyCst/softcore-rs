@@ -106,7 +106,7 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_id id -> RsId (string_of_id id)
         | E_lit lit -> RsLit (process_lit lit)
         | E_typ (typ, exp) -> RsTodo
-        | E_app (id, exp_list) -> RsApp ((string_of_id id), (List.map process_exp exp_list))
+        | E_app (id, exp_list) -> RsApp (RsId (string_of_id id), (List.map process_exp exp_list))
         | E_app_infix (exp1, id, exp2) -> RsTodo
         | E_tuple (exp_list) -> RsTuple (List.map process_exp exp_list)
         | E_if (exp1, exp2, exp3) -> RsIf ((process_exp exp1), (process_exp exp2), (process_exp exp3)) 
