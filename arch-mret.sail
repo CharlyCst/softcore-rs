@@ -171,8 +171,6 @@ val prepare_xret_target : (Privilege) -> xlenbits
 function prepare_xret_target(p) =
   get_xret_target(p)
 
-
-
 function exception_handler(cur_priv : Privilege, pc: xlenbits) -> xlenbits = {
   let prev_priv   = cur_privilege;
   mstatus[MIE]  = mstatus[MPIE];

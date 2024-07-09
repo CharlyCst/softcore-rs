@@ -11,10 +11,19 @@ let rec transform_pat (pat: rs_pat) : rs_pat =
 and transform_lexp (lexp: rs_lexp) : rs_lexp =
     match lexp with
         | RsLexpId id -> RsLexpId id
+        | RsLexpField (lexp, id) ->
+            (RsLexpField (
+                (transform_lexp lexp),
+                id))
         | RsLexpIndex (lexp, exp) ->
             (RsLexpIndex (
                 (transform_lexp lexp),
                 (transform_exp exp)))
+        | RsLexpIndexRange (lexp, range_start, range_end) ->
+            (RsLexpIndexRange (
+                (transform_lexp lexp),
+                (transform_exp range_start),
+                (transform_exp range_end)))
         | RsLexpTodo -> RsLexpTodo
 
 and transform_exp (exp: rs_exp) : rs_exp =

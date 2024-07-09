@@ -159,7 +159,21 @@ and process_lexp (LE_aux (lexp, annot)) : rs_lexp =
             (RsLexpIndex (
                 (process_lexp lexp),
                 (process_exp idx)))
-        | _ -> RsLexpTodo
+        | LE_vector_range (lexp, range_end, range_start) ->
+            (* NOTE: Sail effectively invert the range bounds compared to rust*)
+            (RsLexpIndexRange (
+                (process_lexp lexp),
+                (process_exp range_start),
+                (process_exp range_end)))
+        | LE_field (lexp, id) ->
+            (RsLexpField (
+                (process_lexp lexp),
+                (string_of_id id)))
+        | LE_app _ -> RsLexpId "TodoLexpApp"
+        | LE_deref _ -> RsLexpId "TodoLexpDeref"
+        | LE_vector_concat _ -> RsLexpId "TodoLexpVectorConcat"
+        | LE_tuple _ -> RsLexpId "TodoLexpTuple"
+        | LE_typ _ -> RsLexpId "TodoLexpTyp"
 and process_pexp (Pat_aux (pexp, annot)) : rs_pexp =
     match pexp with
         | Pat_exp (pat, exp) ->

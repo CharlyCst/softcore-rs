@@ -58,7 +58,9 @@ type rs_exp =
     | RsTodo
 and rs_lexp =
     | RsLexpId of string
+    | RsLexpField of rs_lexp * string
     | RsLexpIndex of rs_lexp * rs_exp
+    | RsLexpIndexRange of rs_lexp * rs_exp * rs_exp
     | RsLexpTodo
 and rs_pexp =
     | RsPexp of rs_pat * rs_exp
@@ -211,10 +213,19 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
 and string_of_rs_lexp (n: int) (lexp: rs_lexp) : string =
     match lexp with
         | RsLexpId id -> id
+        | RsLexpField (lexp, id) ->
+            Printf.sprintf "%s.%s"
+                (string_of_rs_lexp n lexp)
+                id
         | RsLexpIndex (lexp, idx) ->
             Printf.sprintf "%s[%s]"
                 (string_of_rs_lexp n lexp)
                 (string_of_rs_exp n idx)
+        | RsLexpIndexRange (lexp, range_start, range_end) ->
+            Printf.sprintf "%s[(%s)..=(%s)]"
+                (string_of_rs_lexp n lexp)
+                (string_of_rs_exp n range_start)
+                (string_of_rs_exp n range_end)
         | RsLexpTodo ->  "LEXP_TODO"
 and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
     match pexp with
