@@ -15,13 +15,17 @@ impl<const N: usize> BitVector<N> {
         Self { bits: val }
     }
 
-    pub fn subrange<const A: usize, const B: usize, const C: usize>(self) -> BitVector<C> {
-        assert_eq!(A - B, C, "Invalid subrange parameters");
-        assert!(A >= N, "Invalid subrange");
+    pub fn bits(self) -> u64 {
+        self.bits
+    }
 
-        let mut val = self.bits;           // The current value
-        val &= BitVector::<A>::bit_mask(); // Remove top bits
-        val >>= B;                         // Shift all the bits
+    pub fn subrange<const A: usize, const B: usize, const C: usize>(self) -> BitVector<C> {
+        assert_eq!(B - A, C, "Invalid subrange parameters");
+        assert!(B <= N, "Invalid subrange");
+
+        let mut val = self.bits; // The current value
+        val &= BitVector::<B>::bit_mask(); // Remove top bits
+        val >>= A; // Shift all the bits
         BitVector::new(val)
     }
 
@@ -53,9 +57,27 @@ mod tests {
 
     #[test]
     fn bitvec_masks() {
+        assert_eq!(BitVector::<0>::bit_mask(), 0b0);
         assert_eq!(BitVector::<1>::bit_mask(), 0b1);
         assert_eq!(BitVector::<2>::bit_mask(), 0b11);
         assert_eq!(BitVector::<8>::bit_mask(), 0b11111111);
         assert_eq!(BitVector::<64>::bit_mask(), 0xffffffffffffffff);
+    }
+
+    #[test]
+    fn subrange() {
+        let v = BitVector::<32>::new(0b10110111);
+
+        assert_eq!(v.subrange::<0, 1, 1>().bits(), 0b1);
+        assert_eq!(v.subrange::<0, 2, 2>().bits(), 0b11);
+        assert_eq!(v.subrange::<0, 3, 3>().bits(), 0b111);
+        assert_eq!(v.subrange::<0, 4, 4>().bits(), 0b0111);
+        assert_eq!(v.subrange::<0, 5, 5>().bits(), 0b10111);
+
+        assert_eq!(v.subrange::<2, 3, 1>().bits(), 0b1);
+        assert_eq!(v.subrange::<2, 4, 2>().bits(), 0b01);
+        assert_eq!(v.subrange::<2, 5, 3>().bits(), 0b101);
+        assert_eq!(v.subrange::<2, 6, 4>().bits(), 0b1101);
+        assert_eq!(v.subrange::<2, 7, 5>().bits(), 0b01101);
     }
 }

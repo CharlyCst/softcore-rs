@@ -5,7 +5,8 @@ open Rust_gen
 open Call_set
 
 type custom_transform = {
-    exp : rs_exp -> rs_exp
+    exp : rs_exp -> rs_exp;
+    typ : rs_type -> rs_type;
 }
 
 val kani_transform: custom_transform

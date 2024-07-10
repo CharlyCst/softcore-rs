@@ -6,16 +6,49 @@ open Rust_gen
 (* ——————————————————————————— Custom transforms ———————————————————————————— *)
 
 type custom_transform = {
-    exp : rs_exp -> rs_exp
+    exp : rs_exp -> rs_exp;
+    typ : rs_type -> rs_type;
 }
 
 let kani_transfrom_exp (exp: rs_exp) : rs_exp =
     match exp with
-        (* | RsApp (RsId "subrange_bits", [bitvec; range_end; range_start]) -> RsTodo *)
+        | RsApp (RsId "subrange_bits", [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
+            let r_end = Int64.add r_end Int64.one in
+            let subrange_call =
+                Printf.sprintf "subrange::<%Lu, %Lu, %Lu>"
+                    r_start
+                    r_end
+                    (Int64.sub r_end r_start)
+            in
+            RsApp (RsField (bitvec, subrange_call), [])
         | _ -> exp
 
+and bitvector_to_uint (n: int) : rs_type =
+    if n <= 8 then
+        RsTypId "u8"
+    else if n <= 16 then
+        RsTypId "u16"
+    else if n <= 32 then
+        RsTypId "u32"
+    else if n <= 64 then
+        RsTypId "u64"
+    else
+        RsTypId "InvalidBitVectorSize"
+
+let kani_transfrom_type (typ: rs_type) : rs_type =
+    match typ with
+        | RsTypGenericParam ("bitvector", [RsTypParamNum n]) -> RsTypGenericParam ("BitVector", [RsTypParamNum n])
+        | RsTypGenericParam ("bits", [RsTypParamNum n]) -> RsTypGenericParam ("BitVector", [RsTypParamNum n])
+
+        (* TODO: once we resolve type aliasing we can remove those manual conversions *)
+        | RsTypId "regbits" -> RsTypGenericParam ("BitVector", [RsTypParamNum 5])
+
+        (* Otherwise keep as is *)
+        | _ -> typ
+
 let kani_transform = {
-    exp = kani_transfrom_exp
+    exp = kani_transfrom_exp;
+    typ = kani_transfrom_type;
 }
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
@@ -137,29 +170,21 @@ and transform_pexp (ct: custom_transform) (pexp: rs_pexp) : rs_pexp =
  
 (* ———————————————————————————— Transform Types ————————————————————————————— *)
  
-and bitvector_to_uint (n: int) : rs_type =
-    if n <= 8 then
-        RsTypId "u8"
-    else if n <= 16 then
-        RsTypId "u16"
-    else if n <= 32 then
-        RsTypId "u32"
-    else if n <= 64 then
-        RsTypId "u64"
-    else
-        RsTypId "InvalidBitVectorSize"
+and transform_type_param (ct: custom_transform) (param: rs_type_param) : rs_type_param =
+    match param with
+        | RsTypParamTyp typ -> RsTypParamTyp (transform_type ct typ)
+        | RsTypParamNum n -> RsTypParamNum n
 
 and transform_type (ct: custom_transform) (typ: rs_type) : rs_type =
+    let typ = ct.typ typ in
     match typ with
         | RsTypId "unit" -> RsTypUnit
-        | RsTypGenericParam ("bitvector", [RsTypParamNum n]) -> bitvector_to_uint n
-        | RsTypGenericParam ("bits", [RsTypParamNum n]) -> bitvector_to_uint n
-
-        (* TODO: once we resolve type aliasing we can remove those manual conversions *)
-        | RsTypId "regbits" -> RsTypId "u8"
-
-        (* Otherwise keep as is *)
-        | _ -> typ
+        | RsTypId id -> RsTypId id
+        | RsTypUnit -> RsTypUnit
+        | RsTypTodo -> RsTypTodo
+        | RsTypTuple types -> RsTypTuple (List.map (transform_type ct) types)
+        | RsTypGeneric typ -> RsTypGeneric typ
+        | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, (List.map (transform_type_param ct) params))
 
 (* ———————————————————————— Transform Rust Programs ————————————————————————— *)
 
