@@ -1,74 +1,95 @@
+#![allow(unused, non_snake_case)]
+
+use crate::VirtContext;
 use sail_prelude::*;
 
-fn haveUsrMode(TodoArgs: ()) -> bool {
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub enum Privilege {
+    User,
+    Supervisor,
+    Machine,
+}
+
+pub enum Execute {
+    RetireFail,
+    RetireSuccess,
+}
+
+fn haveUsrMode() -> bool {
     true
 }
 
 fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
-    match p.bits {
-        User => 0b00,
-        Supervisor => 0b01,
-        Machine => 0b11,
+    match p {
+        Privilege::User => BitVector::new(0b00),
+        Privilege::Supervisor => BitVector::new(0b01),
+        Privilege::Machine => BitVector::new(0b11),
     }
 }
 
 fn privLevel_of_bits(p: BitVector<2>) -> Privilege {
     match p.bits() {
-        0b00 => User,
-        0b01 => Supervisor,
-        0b11 => Machine,
-        _: TYPE_TODO => not_implemented("Invalid privilege level"),
+        0b00 => Privilege::User,
+        0b01 => Privilege::Supervisor,
+        0b11 => Privilege::Machine,
+        _ => panic!("Invalid privilege level"),
     }
 }
 
 fn pc_alignment_mask() -> BitVector<64> {
-    not_vec((0b10 as u64))
+    !(BitVector::new(0b10))
 }
 
-fn _get_Mstatus_MPIE(v: Mstatus) -> BitVector<1> {
-    v.subrange::<7, 8, 1>()
+fn _get_Mstatus_MPIE(ctx: &mut VirtContext) -> BitVector<1> {
+    ctx.mstatus.subrange::<7, 8, 1>()
 }
 
-fn _get_Mstatus_MPP(v: Mstatus) -> BitVector<2> {
-    v.subrange::<11, 13, 2>()
+fn _get_Mstatus_MPP(ctx: &mut VirtContext) -> BitVector<2> {
+    ctx.mstatus.subrange::<11, 13, 2>()
 }
 
-fn set_next_pc(pc: BitVector<64>) {
-    nextPC = pc
+fn set_next_pc(ctx: &mut VirtContext, pc: BitVector<64>) {
+    ctx.next_pc = pc
 }
 
 fn handle_illegal(TodoArgs: ()) {
     ()
 }
 
-fn get_xret_target(p: Privilege) -> BitVector<64> {
+fn get_xret_target(p: Privilege, ctx: &mut VirtContext) -> BitVector<64> {
     match p {
-        Machine => mepc,
-        Supervisor => sepc,
-        User => uepc,
+        Privilege::Machine => ctx.mepc,
+        Privilege::Supervisor => ctx.sepc,
+        Privilege::User => ctx.sepc,
     }
 }
 
-fn prepare_xret_target(p: Privilege) -> BitVector<64> {
-    get_xret_target(p)
+fn prepare_xret_target(p: Privilege, ctx: &mut VirtContext) -> BitVector<64> {
+    get_xret_target(p, ctx)
 }
 
-fn exception_handler(cur_priv: Privilege, pc: BitVector<64>) -> BitVector<64> {
-    let prev_priv = cur_privilege;
-    mstatus.bits[(3)..=(3)] = _get_Mstatus_MPIE(mstatus);
-    mstatus.bits[(7)..=(7)] = 0b1;
-    cur_privilege = privLevel_of_bits(_get_Mstatus_MPP(mstatus));
-    mstatus.bits[(11)..=(12)] = privLevel_to_bits(if haveUsrMode(()) {
-        User
-    } else {
-        Machine
-    });
-    if neq_anything(cur_privilege, Machine) {
-        mstatus.bits[(17)..=(17)] = 0b0
+fn exception_handler(
+    cur_priv: Privilege,
+    pc: BitVector<64>,
+    ctx: &mut VirtContext,
+) -> BitVector<64> {
+    let prev_priv = ctx.cur_privilege;
+    ctx.mstatus = ctx.mstatus.set_subrange::<3, 4, 1>(_get_Mstatus_MPIE(ctx));
+    ctx.mstatus = ctx.mstatus.set_subrange::<7, 8, 1>(BitVector::new(0b1));
+    ctx.cur_privilege = privLevel_of_bits(_get_Mstatus_MPP(ctx));
+    ctx.mstatus = ctx
+        .mstatus
+        .set_subrange::<11, 13, 2>(privLevel_to_bits(if haveUsrMode() {
+            Privilege::User
+        } else {
+            Privilege::Machine
+        }));
+    if ctx.cur_privilege != Privilege::Machine {
+        ctx.mstatus = ctx.mstatus.set_subrange::<17, 18, 1>(BitVector::new(0));
     } else {
         ()
     };
-    (prepare_xret_target(Machine) & pc_alignment_mask(()))
+    prepare_xret_target(Privilege::Machine, ctx) & pc_alignment_mask()
 }
 
 fn ext_check_xret_priv(TodoArgs: Privilege) -> bool {
@@ -79,21 +100,23 @@ fn ext_fail_xret_priv(TodoArgs: ()) {
     ()
 }
 
-fn execute_MRET(TodoArgsApp: TodoUnsupportedUnionSignature) {
-    if neq_anything(cur_privilege, Machine) {
+pub fn execute_MRET(ctx: &mut VirtContext) -> Execute{
+    if ctx.cur_privilege != Privilege::Machine {
         {
             handle_illegal(());
-            RETIRE_FAIL
+            Execute::RetireFail
         }
-    } else if not(ext_check_xret_priv(Machine)) {
+    } else if !ext_check_xret_priv(Privilege::Machine) {
         {
             ext_fail_xret_priv(());
-            RETIRE_FAIL
+            Execute::RetireFail
         }
     } else {
         {
-        set_next_pc(exception_handler(cur_privilege, PC));
-        RETIRE_SUCCESS
-    }
+            let tmp = exception_handler(ctx.cur_privilege, ctx.pc, ctx);
+            set_next_pc(ctx, tmp);
+            Execute::RetireSuccess
+        }
     }
 }
+
