@@ -52,7 +52,7 @@ let virt_rewrites =
 
 (* This is the entry point *)
 let virt_target _ _ out_file ast effect_info env =
-  let out_file = match out_file with Some out_file -> out_file ^ ".rs" | None -> "out.rs" in
+  let out_file = match out_file with Some out_file -> out_file | None -> "out.rs" in
   let props = Property.find_properties ast in
   Bindings.bindings props |> List.map fst |> IdSet.of_list |> Specialize.add_initial_calls;
 

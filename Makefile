@@ -117,22 +117,25 @@ build:
 	chmod +rwx plugin.cmxs
 
 basic: build
-	./virt-sail arch-basic.sail -o out
+	./virt-sail sail_arch/basic.sail -o out.rs
 
 basic-alt: build
-	./virt-sail arch-basic-alt.sail -o out
+	./virt-sail sail_arch/basic_alt.sail -o out.rs
 
 csr: build
-	./virt-sail arch-csr.sail -o out
+	./virt-sail sail_arch/csr.sail -o out.rs
 
 mret: build
-	./virt-sail arch-mret.sail -o out
+	./virt-sail sail_arch/mret.sail -o out.rs
 
 trap: build
-	./virt-sail arch-trap.sail -o out
+	./virt-sail sail_arch/arch_trap.sail -o out.rs
 
 riscv: build
-	./virt-sail $(SAIL_SRCS) ../sail-riscv/model/main.sail -o out
+	./virt-sail $(SAIL_SRCS) ../sail-riscv/model/main.sail -o out.rs
+
+generate: build
+	./virt-sail sail_arch/mret.sail -o ./rust_arch/mret/src/sail.rs
 
 clean:
 	-dune clean
