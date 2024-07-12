@@ -1,6 +1,6 @@
 #![allow(unused, non_snake_case)]
 
-use crate::VirtContext;
+use crate::SailVirtContext;
 use sail_prelude::*;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -40,15 +40,15 @@ fn pc_alignment_mask() -> BitVector<64> {
     !(BitVector::new(0b10))
 }
 
-fn _get_Mstatus_MPIE(ctx: &mut VirtContext) -> BitVector<1> {
+fn _get_Mstatus_MPIE(ctx: &mut SailVirtContext) -> BitVector<1> {
     ctx.mstatus.subrange::<7, 8, 1>()
 }
 
-fn _get_Mstatus_MPP(ctx: &mut VirtContext) -> BitVector<2> {
+fn _get_Mstatus_MPP(ctx: &mut SailVirtContext) -> BitVector<2> {
     ctx.mstatus.subrange::<11, 13, 2>()
 }
 
-fn set_next_pc(ctx: &mut VirtContext, pc: BitVector<64>) {
+fn set_next_pc(ctx: &mut SailVirtContext, pc: BitVector<64>) {
     ctx.next_pc = pc
 }
 
@@ -56,7 +56,7 @@ fn handle_illegal(TodoArgs: ()) {
     ()
 }
 
-fn get_xret_target(p: Privilege, ctx: &mut VirtContext) -> BitVector<64> {
+fn get_xret_target(p: Privilege, ctx: &mut SailVirtContext) -> BitVector<64> {
     match p {
         Privilege::Machine => ctx.mepc,
         Privilege::Supervisor => ctx.sepc,
@@ -64,14 +64,14 @@ fn get_xret_target(p: Privilege, ctx: &mut VirtContext) -> BitVector<64> {
     }
 }
 
-fn prepare_xret_target(p: Privilege, ctx: &mut VirtContext) -> BitVector<64> {
+fn prepare_xret_target(p: Privilege, ctx: &mut SailVirtContext) -> BitVector<64> {
     get_xret_target(p, ctx)
 }
 
 fn exception_handler(
     cur_priv: Privilege,
     pc: BitVector<64>,
-    ctx: &mut VirtContext,
+    ctx: &mut SailVirtContext,
 ) -> BitVector<64> {
     let prev_priv = ctx.cur_privilege;
     ctx.mstatus = ctx.mstatus.set_subrange::<3, 4, 1>(_get_Mstatus_MPIE(ctx));
@@ -100,7 +100,7 @@ fn ext_fail_xret_priv(TodoArgs: ()) {
     ()
 }
 
-pub fn execute_MRET(ctx: &mut VirtContext) -> Execute{
+pub fn execute_MRET(ctx: &mut SailVirtContext) -> Execute{
     if ctx.cur_privilege != Privilege::Machine {
         {
             handle_illegal(());
