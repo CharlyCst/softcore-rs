@@ -9,6 +9,6 @@ type custom_transform = {
     typ : rs_type -> rs_type;
 }
 
-val kani_transform: custom_transform
+val bitvec_transform: custom_transform
 
 val rust_transform: custom_transform -> rs_program -> rs_program

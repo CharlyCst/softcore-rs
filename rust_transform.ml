@@ -10,7 +10,20 @@ type custom_transform = {
     typ : rs_type -> rs_type;
 }
 
-let kani_transfrom_exp (exp: rs_exp) : rs_exp =
+let lexp_to_exp (lexp: rs_lexp) : rs_exp =
+    match lexp with
+        | RsLexpId id -> RsId id
+        | _ -> RsId "LexpToExpTodo" 
+
+let is_num_lit (pexp: rs_pexp) : bool =
+    match pexp with
+        | RsPexp (RsPatLit RsLitNum _, _) -> true
+        | RsPexp (RsPatLit RsLitHex _, _) -> true
+        | RsPexp (RsPatLit RsLitBin _, _) -> true
+        | _ -> false
+
+
+let bitvec_transfrom_exp (exp: rs_exp) : rs_exp =
     match exp with
         | RsApp (RsId "subrange_bits", [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
@@ -21,9 +34,29 @@ let kani_transfrom_exp (exp: rs_exp) : rs_exp =
                     (Int64.sub r_end r_start)
             in
             RsApp (RsField (bitvec, subrange_call), [])
+        | RsAssign (RsLexpIndexRange (RsLexpField (lexp, "bits"), RsLit RsLitNum r_end, RsLit RsLitNum r_start), exp) ->
+            let r_end = Int64.add r_end Int64.one in
+            let set_subrange =
+                Printf.sprintf "set_subrange::<%Lu, %Lu, %Lu>"
+                    r_start
+                    r_end
+                    (Int64.sub r_end r_start)
+            in
+            RsAssign (lexp, RsMethodApp (lexp_to_exp lexp, set_subrange, [exp]))
+        | RsLit (RsLitNum n) ->
+            let bitvec = Printf.sprintf "BitVector::new(%Lu)" n in
+            RsId bitvec
+        | RsLit (RsLitBin n) ->
+            let bitvec = Printf.sprintf "BitVector::new(%s)" n in
+            RsId bitvec
+        | RsLit (RsLitHex n) ->
+            let bitvec = Printf.sprintf "BitVector::new(%s)" n in
+            RsId bitvec
+        | RsMatch (exp, pat::pats) when is_num_lit pat ->
+            RsMatch (RsMethodApp (exp, "bits", []), pat::pats)
         | _ -> exp
 
-and bitvector_to_uint (n: int) : rs_type =
+and uint_to_bitvector (n: int) : rs_type =
     if n <= 8 then
         RsTypId "u8"
     else if n <= 16 then
@@ -35,7 +68,7 @@ and bitvector_to_uint (n: int) : rs_type =
     else
         RsTypId "InvalidBitVectorSize"
 
-let kani_transfrom_type (typ: rs_type) : rs_type =
+let bitvec_transfrom_type (typ: rs_type) : rs_type =
     match typ with
         | RsTypGenericParam ("bitvector", [RsTypParamNum n]) -> RsTypGenericParam ("BitVector", [RsTypParamNum n])
         | RsTypGenericParam ("bits", [RsTypParamNum n]) -> RsTypGenericParam ("BitVector", [RsTypParamNum n])
@@ -46,9 +79,9 @@ let kani_transfrom_type (typ: rs_type) : rs_type =
         (* Otherwise keep as is *)
         | _ -> typ
 
-let kani_transform = {
-    exp = kani_transfrom_exp;
-    typ = kani_transfrom_type;
+let bitvec_transform = {
+    exp = bitvec_transfrom_exp;
+    typ = bitvec_transfrom_type;
 }
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
@@ -134,6 +167,7 @@ and transform_app (ct: custom_transform) (fn: rs_exp) (args: rs_exp list) : rs_e
         | (RsId "eq_bool", [left; right]) -> (RsBinop (left, RsBinopEq, right))
         | (RsId "eq_bits", [left; right]) -> (RsBinop (left, RsBinopEq, right))
         | (RsId "eq_anything", [left; right]) -> (RsBinop (left, RsBinopEq, right))
+        | (RsId "neq_anything", [left; right]) -> (RsBinop (left, RsBinopNeq, right))
         | (RsId "or_vec", [left; right]) -> (RsBinop (left, RsBinopOr, right))
         | (RsId "and_vec", [left; right]) -> (RsBinop (left, RsBinopAnd, right))
         | (RsId "xor_vec", [left; right]) -> (RsBinop (left, RsBinopXor, right))
