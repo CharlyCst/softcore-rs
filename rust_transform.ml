@@ -15,9 +15,8 @@ let lexp_to_exp (lexp: rs_lexp) : rs_exp =
         | RsLexpId id -> RsId id
         | _ -> RsId "LexpToExpTodo" 
 
-let is_num_lit (pexp: rs_pexp) : bool =
+let is_bitvec_lit (pexp: rs_pexp) : bool =
     match pexp with
-        | RsPexp (RsPatLit RsLitNum _, _) -> true
         | RsPexp (RsPatLit RsLitHex _, _) -> true
         | RsPexp (RsPatLit RsLitBin _, _) -> true
         | _ -> false
@@ -43,16 +42,13 @@ let bitvec_transfrom_exp (exp: rs_exp) : rs_exp =
                     (Int64.sub r_end r_start)
             in
             RsAssign (lexp, RsMethodApp (lexp_to_exp lexp, set_subrange, [exp]))
-        | RsLit (RsLitNum n) ->
-            let bitvec = Printf.sprintf "BitVector::new(%Lu)" n in
-            RsId bitvec
         | RsLit (RsLitBin n) ->
             let bitvec = Printf.sprintf "BitVector::new(%s)" n in
             RsId bitvec
         | RsLit (RsLitHex n) ->
             let bitvec = Printf.sprintf "BitVector::new(%s)" n in
             RsId bitvec
-        | RsMatch (exp, pat::pats) when is_num_lit pat ->
+        | RsMatch (exp, pat::pats) when is_bitvec_lit pat ->
             RsMatch (RsMethodApp (exp, "bits", []), pat::pats)
         | _ -> exp
 
