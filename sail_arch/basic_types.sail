@@ -3,7 +3,6 @@ $include <prelude.sail>
 
 // ———————————————————————————————— Function having int and bool in the signature ————————————————————————————————— //
 
-
 function handle_int(a1: int): int -> int = {
     123
 }
@@ -36,10 +35,18 @@ scattered mapping encdec
 val execute : ast -> unit
 union clause ast = TEST : unit
 
+
+enum Retired = {RETIRE_SUCCESS, RETIRE_FAIL}
+function handle_retired() -> Retired = {
+    RETIRE_SUCCESS
+}
+
+
 function clause execute TEST() = {
     handle_empty();
     handle_bool(true);
     let a = handle_int(1234);
     let b = handle_int_int(1234, 12345);
     let c = handle_int_int_bool_int(1234, 12345, false, 2);
+    let d = handle_retired();
 }

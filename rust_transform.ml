@@ -229,5 +229,10 @@ let transform_fn (ct: custom_transform) (fn: rs_fn) : rs_fn =
         body = transform_exp ct fn.body;
     }
 
-let rust_transform (ct: custom_transform) (RsProg fns) : rs_program =
-    RsProg (List.map (transform_fn ct) fns)
+let transform_obj (ct: custom_transform) (obj: rs_obj) : rs_obj = 
+    match obj with
+    | RsFn fn -> RsFn (transform_fn ct fn) 
+    | RsEnum enum -> RsEnum enum           
+
+let rust_transform (ct: custom_transform) (RsProg objs) : rs_program =
+    RsProg (List.map (transform_obj ct) objs)

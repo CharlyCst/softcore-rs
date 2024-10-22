@@ -261,14 +261,14 @@ let process_func (FCL_aux (func, annot)) (ctx: context) : rs_program =
     let (pexp, annot) = match pexp with | Pat_aux (pexp, annot) -> (pexp, annot) in
     let name = (string_of_id id) in
     if ctx_fun_is_used name ctx then match pexp with
-        | Pat_exp (pat, exp) -> RsProg [build_function FunKindFunc name pat exp ctx]
+        | Pat_exp (pat, exp) -> RsProg [RsFn(build_function FunKindFunc name pat exp ctx)]
         | Pat_when (pat1, exp, pat2) -> RsProg []
     else match pexp with
         | Pat_exp (pat, exp) ->
                 let pat_name = pat_app_name pat in
                 let fun_name = Printf.sprintf "%s_%s" name pat_name in
                 if ctx_fun_is_used pat_name ctx then
-                    RsProg [(build_function (FunKindUnion pat_name) fun_name pat exp ctx)]
+                    RsProg [RsFn(build_function (FunKindUnion pat_name) fun_name pat exp ctx)]
                 else RsProg []
         | _ -> RsProg []
 
@@ -280,12 +280,26 @@ let rec process_funcl (funcl: 'a funcl list) (s: context) : rs_program =
 let process_fundef (FD_function (rec_opt, tannot_opt, funcl)) (s: context) : rs_program =
     process_funcl funcl s
 
+let process_enum (id: Ast.id) (members: Ast.id list) : rs_enum =
+        let enum_name = string_of_id id in
+        let enum_fields = List.map string_of_id members in 
+        {
+            name = enum_name;
+            fields = enum_fields; 
+        }
+    
+let process_def (TD_aux (typ, _)) : rs_program = 
+        match typ with
+        | TD_enum (id, member, _) -> RsProg [RsEnum(process_enum id member)] 
+        | _ -> RsProg []
+    
 let process_node (DEF_aux (def, annot)) (s: context) : rs_program =
     match def with
         | DEF_register (DEC_aux (dec_spec, annot)) -> process_register dec_spec
         | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
         | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef s
         | DEF_impl funcl -> process_func funcl s
+        | DEF_type typ -> process_def typ
         | _ -> RsProg []
 
 let rec process_defs defs (ctx: context): rs_program =

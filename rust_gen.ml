@@ -76,8 +76,17 @@ type rs_fn = {
     body: rs_exp;
 }
 
+type rs_enum = {
+    name: string;
+    fields: string list;
+}
+
+type rs_obj = 
+    | RsFn of rs_fn
+    | RsEnum of rs_enum
+
 type rs_program =
-    | RsProg of rs_fn list
+    | RsProg of rs_obj list
 
 let merge_rs_prog (prog1: rs_program) (prog2: rs_program) : rs_program =
     let RsProg (fn1) = prog1 in
@@ -273,6 +282,25 @@ let string_of_rs_fn (fn: rs_fn) : string =
         | _ ->string_of_rs_exp 1 fn.body) in
     Printf.sprintf "%s%s\n}" signature stmts
 
+let remove_last_char (s: string) : string =
+    if String.length s = 0 then
+        s
+    else
+        String.sub s 0 (String.length s - 1)
+
+let parse_enum_fields (entries: string list) : string = 
+    let prefixed_entries = List.map (fun s -> "    " ^ s ^ ",\n") entries in
+    let merged_fields = String.concat "" prefixed_entries in
+    remove_last_char merged_fields (* Removes last '\n'*)
+ 
+let string_of_rs_enum (enum: rs_enum) : string = 
+    Printf.sprintf "enum %s {\n%s\n}" enum.name (parse_enum_fields enum.fields)
+
+let string_of_rs_obj (obj: rs_obj) : string =
+    match obj with
+        | RsFn fn -> string_of_rs_fn fn
+        | RsEnum enum -> string_of_rs_enum enum 
+
 let string_of_rs_prog (prog: rs_program) : string =
     let RsProg (funs) = prog in
-    String.concat "\n\n" (List.map string_of_rs_fn funs)
+    String.concat "\n\n" (List.map string_of_rs_obj funs)
