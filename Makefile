@@ -113,6 +113,9 @@ RISCV_SAIL_SRCS      = $(addprefix ../sail-riscv/,$(SAIL_SRCS))
 
 .PHONY: test test2 clean
 
+install: 
+	opam install libsail.0.17.1
+	
 all: build
 
 build:
