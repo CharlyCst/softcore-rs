@@ -104,7 +104,7 @@ and string_of_rs_type_param (typ: rs_type_param) : string =
 
 let string_of_rs_lit (lit: rs_lit) : string =
     match lit  with
-        | RsLitUnit -> "()"
+        | RsLitUnit -> ""
         | RsLitTrue -> "true"
         | RsLitFalse -> "false"
         | RsLitNum n -> Printf.sprintf "%Li" n
@@ -247,9 +247,11 @@ and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
 
 let string_of_rs_fn_args (fn: rs_fn) : string =
     let string_of_arg_and_type (arg: string) (typ: rs_type) : string =
-        Printf.sprintf "%s: %s"
-            arg
-            (string_of_rs_type typ)
+        match typ with
+            | RsTypUnit -> ""
+            | _ -> Printf.sprintf "%s: %s"
+                arg
+                (string_of_rs_type typ)
     in
     let (arg_types, _) = fn.signature in
     String.concat ", " (List.map2 string_of_arg_and_type fn.args arg_types)
