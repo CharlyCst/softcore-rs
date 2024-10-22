@@ -132,6 +132,9 @@ csr: build
 mret: build
 	./virt-sail sail_arch/mret.sail -o out.rs
 
+basic_types: build
+	./virt-sail sail_arch/basic_types.sail -o out.rs
+
 trap: build
 	./virt-sail sail_arch/arch_trap.sail -o out.rs
 
