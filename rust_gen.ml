@@ -117,6 +117,7 @@ let rec string_of_rs_pat (pat: rs_pat) : string =
     match pat with
         | RsPatLit lit -> string_of_rs_lit lit
         | RsPatId id-> id
+        | RsPatType (typ, RsPatWildcard) -> "_"
         | RsPatType (typ, pat) -> Printf.sprintf "%s: %s" (string_of_rs_pat pat) (string_of_rs_type typ)
         | RsPatWildcard -> "_"
         | RsPatTuple pats ->
