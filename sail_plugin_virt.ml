@@ -80,6 +80,7 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = sail_to_rust ast ctx in
   let rust_program = rust_transform_expr bitvec_transform rust_program in
   let rust_program = rust_transform_func virt_context_transform rust_program in
+  let rust_program = rust_transform_func unit_remove_transform rust_program in
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);
   flush out_chan;
