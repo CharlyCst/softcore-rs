@@ -195,7 +195,7 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                     | RsIf (_, _, _) -> (string_of_rs_exp n else_exp)
                     | _ -> (Printf.sprintf "{\n%s%s\n%s}"
                         (indent (n + 1))
-                        (string_of_rs_exp n else_exp))
+                        (string_of_rs_exp (n+1) else_exp))
                         (indent n))
         | RsMatch (exp, pexps) ->
             Printf.sprintf "match %s {\n%s%s%s}"
