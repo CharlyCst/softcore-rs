@@ -3,10 +3,11 @@
 
 open Rust_gen
 
-(* ——————————————————————————— Custom transforms ———————————————————————————— *)
+(* ——————————————————————————— BitVec transformation ———————————————————————————— *)
 
 type expr_type_transform = {
     exp : rs_exp -> rs_exp;
+    lexp : rs_lexp -> rs_lexp;
     typ : rs_type -> rs_type;
 }
 
@@ -21,6 +22,7 @@ let is_bitvec_lit (pexp: rs_pexp) : bool =
         | RsPexp (RsPatLit RsLitBin _, _) -> true
         | _ -> false
 
+let bitvec_transform_lexp (exp: rs_lexp) : rs_lexp = exp
 
 let bitvec_transfrom_exp (exp: rs_exp) : rs_exp =
     match exp with
@@ -77,6 +79,7 @@ let bitvec_transfrom_type (typ: rs_type) : rs_type =
 
 let bitvec_transform = {
     exp = bitvec_transfrom_exp;
+    lexp = bitvec_transform_lexp;
     typ = bitvec_transfrom_type;
 }
 
@@ -86,6 +89,7 @@ let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat =
     pat
 
 and transform_lexp (ct: expr_type_transform) (lexp: rs_lexp): rs_lexp =
+    let lexp = ct.lexp lexp in
     match lexp with
         | RsLexpId id -> RsLexpId id
         | RsLexpField (lexp, id) ->
@@ -245,12 +249,11 @@ type func_transform = {
     func : rs_fn -> rs_fn
 }
 
-
-let transform_obj2 (ct: func_transform) (obj: rs_obj) : rs_obj = 
+let transform_obj_func (ct: func_transform) (obj: rs_obj) : rs_obj = 
     match obj with
     | RsFn fn -> RsFn (ct.func fn) 
     | RsEnum enum -> RsEnum enum       
     | RsStruct struc -> RsStruct struc
 
 let rust_transform_func (ct: func_transform) (RsProg objs) : rs_program =
-    RsProg (List.map (transform_obj2 ct) objs)
+    RsProg (List.map (transform_obj_func ct) objs)

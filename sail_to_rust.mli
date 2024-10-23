@@ -3,4 +3,5 @@ open Ast
 open Ast_defs
 open Rust_gen
 
+val gather_registers_list: 'a ast -> string list
 val sail_to_rust : 'a ast -> Context.context -> rs_program

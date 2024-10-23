@@ -6,6 +6,7 @@ open Call_set
 
 type expr_type_transform = {
     exp : rs_exp -> rs_exp;
+    lexp: rs_lexp -> rs_lexp;
     typ : rs_type -> rs_type;
 }
 

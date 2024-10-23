@@ -323,14 +323,17 @@ let rec gather_registers defs : ((string * rs_type) list) =
         | h :: t -> let (value,typ, is_register) = process_if_register h in 
             if is_register then  (value, typ) :: gather_registers t
             else gather_registers t
-        | [] -> []
-  
+        | [] -> []  
 let generate_sail_virt_ctx defs (ctx: context): rs_program = RsProg[
     RsStruct({
         name = "SailVirtCtx";
         fields =  gather_registers defs;
     })
 ]
+
+let gather_registers_list (ast: 'a ast) : string list =
+    List.map (fun (x, _) -> x) (gather_registers ast.defs)
+
 
 let sail_to_rust (ast: 'a ast) (ctx: context) : rs_program =
     merge_rs_prog (generate_sail_virt_ctx ast.defs ctx) (process_defs ast.defs ctx)

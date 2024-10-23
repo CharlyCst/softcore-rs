@@ -4,6 +4,8 @@
 open Rust_gen
 open Rust_transform
 
+module StringSet = Set.Make(String)
+
 (* ———————————————————————— VirtContext transformer ————————————————————————— *)
 
 
@@ -16,6 +18,27 @@ let sail_context_inserter (func: rs_fn): rs_fn = {
 
 let virt_context_transform = {
   func = sail_context_inserter;
+}
+
+(* ———————————————————————— VirtContext binder ————————————————————————— *)
+
+
+let sail_context_binder_exp (register_list: StringSet.t) (exp: rs_exp) : rs_exp = 
+  match exp with
+    | RsId value -> if (StringSet.mem value register_list) then (RsId ("sail_ctx." ^ value)) else RsId value
+    | _ -> exp
+
+let sail_context_binder_lexp (register_list: StringSet.t) (lexp: rs_lexp) : rs_lexp = 
+  match lexp with
+    | RsLexpId value -> if (StringSet.mem value register_list) then (RsLexpId ("sail_ctx." ^ value)) else RsLexpId value
+    | _ -> lexp
+
+let sail_context_binder_type (typ: rs_type) : rs_type = typ
+
+let sail_context_binder_generator (register_list: StringSet.t): expr_type_transform = {
+    exp = sail_context_binder_exp register_list;
+    lexp = sail_context_binder_lexp register_list;
+    typ = sail_context_binder_type;
 }
 
 (* ———————————————————————— Remove last unit transformer ————————————————————————— *)
