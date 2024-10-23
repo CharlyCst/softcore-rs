@@ -81,9 +81,15 @@ type rs_enum = {
     fields: string list;
 }
 
+type rs_struct = {
+    name: string;
+    fields: (string * rs_type) list;
+}
+
 type rs_obj = 
     | RsFn of rs_fn
     | RsEnum of rs_enum
+    | RsStruct of rs_struct
 
 type rs_program =
     | RsProg of rs_obj list
@@ -296,10 +302,19 @@ let parse_enum_fields (entries: string list) : string =
 let string_of_rs_enum (enum: rs_enum) : string = 
     Printf.sprintf "enum %s {\n%s\n}" enum.name (parse_enum_fields enum.fields)
 
+let parse_struct_fields (entries: (string * rs_type)  list) : string = 
+    let prefixed_entries = List.map (fun s -> "    " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
+    let merged_fields = String.concat "" prefixed_entries in
+    remove_last_char merged_fields (* Removes last '\n'*)
+
+let string_of_rs_struct (struc: rs_struct) : string = 
+    Printf.sprintf "struct %s {\n%s\n}" struc.name (parse_struct_fields struc.fields)
+
 let string_of_rs_obj (obj: rs_obj) : string =
     match obj with
         | RsFn fn -> string_of_rs_fn fn
         | RsEnum enum -> string_of_rs_enum enum 
+        | RsStruct struc -> string_of_rs_struct struc
 
 let string_of_rs_prog (prog: rs_program) : string =
     let RsProg (funs) = prog in

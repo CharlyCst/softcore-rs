@@ -232,7 +232,8 @@ let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
 let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj = 
     match obj with
     | RsFn fn -> RsFn (transform_fn ct fn) 
-    | RsEnum enum -> RsEnum enum           
+    | RsEnum enum -> RsEnum enum      
+    | RsStruct struc -> RsStruct struc     
 
 let rust_transform_expr (ct: expr_type_transform) (RsProg objs) : rs_program =
     RsProg (List.map (transform_obj ct) objs)
@@ -249,6 +250,7 @@ let transform_obj2 (ct: func_transform) (obj: rs_obj) : rs_obj =
     match obj with
     | RsFn fn -> RsFn (ct.func fn) 
     | RsEnum enum -> RsEnum enum       
+    | RsStruct struc -> RsStruct struc
 
 let rust_transform_func (ct: func_transform) (RsProg objs) : rs_program =
     RsProg (List.map (transform_obj2 ct) objs)

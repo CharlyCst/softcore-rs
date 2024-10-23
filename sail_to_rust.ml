@@ -308,5 +308,29 @@ let rec process_defs defs (ctx: context): rs_program =
         | h :: t -> merge_rs_prog (process_node h ctx) (process_defs t ctx)
         | [] -> RsProg []
 
+let process_reg_name_type reg : (string * rs_type) =
+    let (typ, id, exp) = match reg with 
+        | DEC_reg (typ, id, exp) -> (typ, id, exp) in (string_of_id id, process_type typ)
+
+let process_if_register  (DEF_aux (def, annot)) : string * rs_type * bool = 
+    match def with 
+        | DEF_register (DEC_aux (dec_spec, annot)) -> let (reg_name, reg_type) = process_reg_name_type dec_spec in
+            (reg_name, reg_type, true)
+        | _ -> ("",RsTypId "", false)
+
+let rec gather_registers defs : ((string * rs_type) list) = 
+    match defs with
+        | h :: t -> let (value,typ, is_register) = process_if_register h in 
+            if is_register then  (value, typ) :: gather_registers t
+            else gather_registers t
+        | [] -> []
+  
+let generate_sail_virt_ctx defs (ctx: context): rs_program = RsProg[
+    RsStruct({
+        name = "SailVirtCtx";
+        fields =  gather_registers defs;
+    })
+]
+
 let sail_to_rust (ast: 'a ast) (ctx: context) : rs_program =
-    process_defs ast.defs ctx
+    merge_rs_prog (generate_sail_virt_ctx ast.defs ctx) (process_defs ast.defs ctx)
