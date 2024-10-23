@@ -5,7 +5,7 @@ open Rust_gen
 
 (* ——————————————————————————— Custom transforms ———————————————————————————— *)
 
-type custom_transform = {
+type expr_type_transform = {
     exp : rs_exp -> rs_exp;
     typ : rs_type -> rs_type;
 }
@@ -82,10 +82,10 @@ let bitvec_transform = {
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
-let rec transform_pat (ct: custom_transform) (pat: rs_pat): rs_pat =
+let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat =
     pat
 
-and transform_lexp (ct: custom_transform) (lexp: rs_lexp): rs_lexp =
+and transform_lexp (ct: expr_type_transform) (lexp: rs_lexp): rs_lexp =
     match lexp with
         | RsLexpId id -> RsLexpId id
         | RsLexpField (lexp, id) ->
@@ -103,7 +103,7 @@ and transform_lexp (ct: custom_transform) (lexp: rs_lexp): rs_lexp =
                 (transform_exp ct range_end)))
         | RsLexpTodo -> RsLexpTodo
 
-and transform_exp (ct: custom_transform) (exp: rs_exp) : rs_exp =
+and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
     let exp = ct.exp exp in
     match exp with
         | RsLet (pat, exp, next) ->
@@ -152,7 +152,7 @@ and transform_exp (ct: custom_transform) (exp: rs_exp) : rs_exp =
                 (transform_type ct typ)))
         | RsTodo -> RsTodo
 
-and transform_app (ct: custom_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
+and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
     let args = List.map (transform_exp ct) args in
     match (fn, args) with
         (* Built-in elementary operations *)
@@ -186,7 +186,7 @@ and transform_app (ct: custom_transform) (fn: rs_exp) (args: rs_exp list) : rs_e
         (* Otherwise keep as is *)
         | _ -> (RsApp (fn, args))
 
-and transform_pexp (ct: custom_transform) (pexp: rs_pexp) : rs_pexp =
+and transform_pexp (ct: expr_type_transform) (pexp: rs_pexp) : rs_pexp =
     match pexp with
         | RsPexp (pat, exp) ->
             (RsPexp (
@@ -200,12 +200,12 @@ and transform_pexp (ct: custom_transform) (pexp: rs_pexp) : rs_pexp =
  
 (* ———————————————————————————— Transform Types ————————————————————————————— *)
  
-and transform_type_param (ct: custom_transform) (param: rs_type_param) : rs_type_param =
+and transform_type_param (ct: expr_type_transform) (param: rs_type_param) : rs_type_param =
     match param with
         | RsTypParamTyp typ -> RsTypParamTyp (transform_type ct typ)
         | RsTypParamNum n -> RsTypParamNum n
 
-and transform_type (ct: custom_transform) (typ: rs_type) : rs_type =
+and transform_type (ct: expr_type_transform) (typ: rs_type) : rs_type =
     let typ = ct.typ typ in
     match typ with
         | RsTypId "unit" -> RsTypUnit
@@ -216,9 +216,9 @@ and transform_type (ct: custom_transform) (typ: rs_type) : rs_type =
         | RsTypGeneric typ -> RsTypGeneric typ
         | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, (List.map (transform_type_param ct) params))
 
-(* ———————————————————————— Transform Rust Programs ————————————————————————— *)
+(* ———————————————————————— Expression and Type transformer ————————————————————————— *)
 
-let transform_fn (ct: custom_transform) (fn: rs_fn) : rs_fn =
+let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
     let (args, ret) = fn.signature in
     let args = List.map (transform_type ct) args in
     let ret = transform_type ct ret in
@@ -229,10 +229,26 @@ let transform_fn (ct: custom_transform) (fn: rs_fn) : rs_fn =
         body = transform_exp ct fn.body;
     }
 
-let transform_obj (ct: custom_transform) (obj: rs_obj) : rs_obj = 
+let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj = 
     match obj with
     | RsFn fn -> RsFn (transform_fn ct fn) 
     | RsEnum enum -> RsEnum enum           
 
-let rust_transform (ct: custom_transform) (RsProg objs) : rs_program =
+let rust_transform_expr (ct: expr_type_transform) (RsProg objs) : rs_program =
     RsProg (List.map (transform_obj ct) objs)
+
+
+(* ———————————————————————— Function transformer ————————————————————————— *)
+
+type func_transform = {
+    func : rs_fn -> rs_fn
+}
+
+
+let transform_obj2 (ct: func_transform) (obj: rs_obj) : rs_obj = 
+    match obj with
+    | RsFn fn -> RsFn (ct.func fn) 
+    | RsEnum enum -> RsEnum enum       
+
+let rust_transform_func (ct: func_transform) (RsProg objs) : rs_program =
+    RsProg (List.map (transform_obj2 ct) objs)
