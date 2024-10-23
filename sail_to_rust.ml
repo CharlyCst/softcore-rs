@@ -243,6 +243,7 @@ let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a e
         | FunKindUnion union -> match ctx_union_type union ctx with
             | Some typ -> (match typ with
                 | RsTypTuple types -> (types, RsTypUnit) (* TODO: handle non-unit return *)
+                | RsTypId id -> ([RsTypId id], RsTypUnit) (* TODO: same here *)
                 | _ -> ([RsTypId "TodoUnsupportedUnionSignature"], RsTypUnit))
             | None -> ([RsTypId "TodoNoUnionSignature"], RsTypUnit)
     in
