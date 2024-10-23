@@ -11,6 +11,7 @@
     sail_plugin_virt
     sail_to_rust
     rust_transform
+    context_pass
     rust_gen
     call_set
     fun_defs

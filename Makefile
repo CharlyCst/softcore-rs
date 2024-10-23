@@ -114,7 +114,15 @@ RISCV_SAIL_SRCS      = $(addprefix ../sail-riscv/,$(SAIL_SRCS))
 .PHONY: test test2 clean
 
 install: 
+	sudo apt-get install opam
+	sudo apt-get install z3
+
+	opam init
+	eval $(opam env)
+
+	opam install dune
 	opam install libsail.0.17.1
+	opam install sail.0.17.1
 	
 all: build
 
