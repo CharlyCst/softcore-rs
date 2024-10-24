@@ -66,11 +66,11 @@ and uint_to_bitvector (n: int) : rs_type =
     else
         RsTypId "InvalidBitVectorSize"
 
-let bitvec_transfrom_type (typ: rs_type) : rs_type =
+let rec bitvec_transfrom_type (typ: rs_type) : rs_type =
     match typ with
-        | RsTypGenericParam ("bitvector", [RsTypParamNum n]) -> RsTypGenericParam ("BitVector", [RsTypParamNum n])
-        | RsTypGenericParam ("bits", [RsTypParamNum n]) -> RsTypGenericParam ("BitVector", [RsTypParamNum n])
-
+        | RsTypGenericParam ("bitvector", t) -> RsTypGenericParam ("BitVector", t)
+        | RsTypGenericParam ("bits", t) -> RsTypGenericParam ("BitVector", t)
+        
         (* TODO: once we resolve type aliasing we can remove those manual conversions *)
         | RsTypId "regbits" -> RsTypGenericParam ("BitVector", [RsTypParamNum 5])
 
@@ -233,9 +233,15 @@ let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
         body = transform_exp ct fn.body;
     }
 
+let transform_alias (ct: expr_type_transform) (alias: rs_alias) : rs_alias = {
+        new_typ = alias.new_typ; 
+        old_type = transform_type ct alias.old_type
+    }
+
 let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj = 
     match obj with
         | RsFn fn -> RsFn (transform_fn ct fn)
+        | RsAlias alias -> RsAlias (transform_alias ct alias)
         | _ -> obj
 
 let rust_transform_expr (ct: expr_type_transform) (RsProg objs) : rs_program =
@@ -255,3 +261,12 @@ let transform_obj_func (ct: func_transform) (obj: rs_obj) : rs_obj =
 
 let rust_transform_func (ct: func_transform) (RsProg objs) : rs_program =
     RsProg (List.map (transform_obj_func ct) objs)
+
+(* ———————————————————————— type bits = bitvector eraser  ————————————————————————— *)
+
+let filter_bits_bitvector_alias (obj: rs_obj) : rs_program = 
+    match obj with
+        | RsAlias { new_typ = "bits"; _ } -> RsProg []
+        | _ -> RsProg[obj]
+
+let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List.map (filter_bits_bitvector_alias) objs)
