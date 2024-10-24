@@ -376,5 +376,25 @@ let generate_sail_abbrev_list defs : rs_program list =
 let generate_sail_abbrev defs : rs_program =
     merge_rs_prog_list (generate_sail_abbrev_list defs)
 
+
+(* ———————————————————————— Generate the enumeration context  ————————————————————————— *)
+  
+let gen_enum_list (id: Ast.id) (members: Ast.id list) : (string * string) list =
+    let enum_name = string_of_id id in
+    let enum_fields = List.map string_of_id members in 
+    List.map (fun e -> (e, enum_name)) enum_fields
+
+let process_enum_entries_aux (DEF_aux (def, annot)): (string * string) list =
+match def with
+    | DEF_type (TD_aux (TD_enum (id, member, _), _)) -> gen_enum_list id member
+    | _ -> []
+    
+let rec process_enum_entries (defs: 'a Libsail.Ast.def list): (string * string) list =
+    match defs with
+        | h :: t -> (process_enum_entries_aux h) @ (process_enum_entries t)
+        | [] -> []
+
+(* ———————————————————————— Translation function  ————————————————————————— *)
+
 let sail_to_rust (ast: 'a ast) (ctx: context) : rs_program =
     merge_rs_prog_list [generate_sail_abbrev ast.defs; generate_sail_virt_ctx ast.defs ctx; process_defs ast.defs ctx]

@@ -80,6 +80,9 @@ let virt_target _ _ out_file ast effect_info env =
   let register_list = StringSet.of_list (gather_registers_list ast) in
   let sail_context_binder = sail_context_binder_generator register_list in
 
+  let enum_entries = process_enum_entries ast.defs in
+  let enum_binder = enum_binder_generator enum_entries in
+
   let rust_program = sail_to_rust ast ctx in
   let rust_program = rust_transform_expr bitvec_transform rust_program in
   let rust_program = rust_transform_func virt_context_transform rust_program in
@@ -87,6 +90,7 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_transform_expr sail_context_binder rust_program in
   let rust_program = rust_transform_expr sail_context_arg_inserter rust_program in
   let rust_program = rust_transform_expr remove_last_unit_func_arg rust_program in 
+  let rust_program = rust_transform_expr enum_binder rust_program in
   let rust_program = rust_remove_type_bits rust_program in
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);

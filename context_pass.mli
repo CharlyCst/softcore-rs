@@ -11,8 +11,10 @@ module StringSet : sig
     type t
     val of_list : string list -> t
   end
-  
+
 val sail_context_binder_generator : StringSet.t -> expr_type_transform
+
+val enum_binder_generator: (string * string) list -> expr_type_transform
 
 val virt_context_transform: func_transform
 val unit_remove_transform: func_transform

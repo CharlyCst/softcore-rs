@@ -8,6 +8,7 @@ open Rust_gen
 type expr_type_transform = {
     exp : rs_exp -> rs_exp;
     lexp : rs_lexp -> rs_lexp;
+    pexp : rs_pexp -> rs_pexp;
     typ : rs_type -> rs_type;
 }
 
@@ -66,6 +67,8 @@ and uint_to_bitvector (n: int) : rs_type =
     else
         RsTypId "InvalidBitVectorSize"
 
+let rec bitvec_transform_rexp (pexp: rs_pexp) : rs_pexp = pexp
+
 let rec bitvec_transfrom_type (typ: rs_type) : rs_type =
     match typ with
         | RsTypGenericParam ("bitvector", t) -> RsTypGenericParam ("BitVector", t)
@@ -80,6 +83,7 @@ let rec bitvec_transfrom_type (typ: rs_type) : rs_type =
 let bitvec_transform = {
     exp = bitvec_transfrom_exp;
     lexp = bitvec_transform_lexp;
+    pexp = bitvec_transform_rexp;
     typ = bitvec_transfrom_type;
 }
 
@@ -191,6 +195,7 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
         | _ -> (RsApp (fn, args))
 
 and transform_pexp (ct: expr_type_transform) (pexp: rs_pexp) : rs_pexp =
+    let pexp = ct.pexp pexp in
     match pexp with
         | RsPexp (pat, exp) ->
             (RsPexp (

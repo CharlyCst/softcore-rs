@@ -317,7 +317,8 @@ let parse_enum_fields (entries: string list) : string =
     remove_last_char merged_fields (* Removes last '\n'*)
  
 let string_of_rs_enum (enum: rs_enum) : string = 
-    Printf.sprintf "enum %s {\n%s\n}" enum.name (parse_enum_fields enum.fields)
+    let guards = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]" in
+    Printf.sprintf "%s\nenum %s {\n%s\n}" guards enum.name (parse_enum_fields enum.fields)
 
 let parse_struct_fields (entries: (string * rs_type)  list) : string = 
     let prefixed_entries = List.map (fun s -> "    " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
