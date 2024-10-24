@@ -348,12 +348,19 @@ let process_sub_type (id: string) (A_aux (typ, _)) : rs_obj * bool =
         | A_typ typ -> (RsAlias {new_typ = id; old_type = extract_type typ }, true)
         | A_bool b -> (RsConst {name = "todo"; value = "todo"}, true)
         | A_nexp exp -> (RsConst {name = id; value = extract_type_nexp exp}, true)
-
+        
+let extract_first_item_type (items: (Libsail.Ast.typ * Libsail.Ast.id) list) : rs_type =   
+    assert(List.length items = 1);
+    match items with 
+        | x :: _ -> extract_type (fst x)
+        | _ -> RsTypTodo
+    
 let process_type_name_type (TD_aux (typ, _)) : (rs_obj * bool) =
     match typ with
         | TD_abbrev (id, typquant, typ_arg) -> process_sub_type (string_of_id id) typ_arg
+        | TD_record (id, typquant, items, _) -> (RsAlias {new_typ = (string_of_id id); old_type = extract_first_item_type items}, true)
         | _ -> (RsConst {name = "dummy"; value = "dummy"}, false)
-
+ 
 let process_if_abbrev  (DEF_aux (def, annot)) : (rs_obj * bool) =
     match def with
         | DEF_type typ -> process_type_name_type typ
