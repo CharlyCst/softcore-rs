@@ -85,6 +85,8 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_transform_func virt_context_transform rust_program in
   let rust_program = rust_transform_func unit_remove_transform rust_program in
   let rust_program = rust_transform_expr sail_context_binder rust_program in
+  let rust_program = rust_transform_expr sail_context_arg_inserter rust_program in
+  let rust_program = rust_transform_expr remove_last_unit_func_arg rust_program in 
   let rust_program = rust_remove_type_bits rust_program in
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);

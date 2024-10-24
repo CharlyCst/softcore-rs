@@ -41,6 +41,46 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
     typ = sail_context_binder_type;
 }
 
+(* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
+
+
+let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
+  match exp with 
+    | RsApp (app, args) -> let args = RsId "sail_ctx" :: args in RsApp(app, args)
+    | _ -> exp
+
+let sail_context_arg_inserter_lexp (lexp: rs_lexp) : rs_lexp = lexp
+
+let sail_context_arg_inserter_type (typ: rs_type) : rs_type = typ
+
+let sail_context_arg_inserter: expr_type_transform = {
+    exp = sail_context_arg_inserter_exp;
+    lexp = sail_context_arg_inserter_lexp;
+    typ = sail_context_arg_inserter_type;
+}
+
+(* ———————————————————————— FuncArgument remove last unit  ————————————————————————— *)
+
+
+let remove_last_unit_func_arg_exp (exp: rs_exp) : rs_exp = 
+  match exp with 
+    | RsApp (app, args) -> let args_no_unit = List.filter (
+      function 
+        | RsLit _ -> false 
+        | _ -> true 
+    ) args in RsApp(app, args_no_unit)
+    | _ -> exp
+
+let remove_last_unit_func_arg_lexp (lexp: rs_lexp) : rs_lexp = lexp
+
+let remove_last_unit_func_arg_type (typ: rs_type) : rs_type = typ
+
+let remove_last_unit_func_arg: expr_type_transform = {
+    exp = remove_last_unit_func_arg_exp;
+    lexp = remove_last_unit_func_arg_lexp;
+    typ = remove_last_unit_func_arg_type;
+}
+
 (* ———————————————————————— Remove last unit transformer ————————————————————————— *)
 
 
