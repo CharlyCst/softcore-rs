@@ -56,13 +56,23 @@ let defs_from_funs (funs: defmap) : defs =
 
 (* ———————————————————————— Sail Types to Rust Types ———————————————————————— *)
 
+let get_first_two_elements lst =
+    assert ((List.length lst) = 2);
+    match lst with
+    | first :: second :: _ -> (first, second)
+    | _ -> failwith "List does not have enough elements"
+  
 let rec extract_type (Typ_aux (typ, _)): rs_type =
     match typ with
         | Typ_id id -> RsTypId (string_of_id id)
         | Typ_var (Kid_aux (Var x, _)) -> RsTypGeneric x
         | Typ_tuple types -> RsTypTuple (List.map extract_type types)
         | Typ_fn _ -> RsTypId "TodoFnType"
-        | Typ_app (id, params) -> RsTypGenericParam ((string_of_id id), (List.map extract_type_arg params))
+        | Typ_app (id, params) -> if (string_of_id id) = "vector" then 
+                let (size, typ) = get_first_two_elements (List.map extract_type_arg params) in
+                RsTypArray (typ,size)
+            else 
+                RsTypGenericParam ((string_of_id id), (List.map extract_type_arg params))
         | _ -> RsTypTodo
 and extract_type_arg (A_aux (typ, _)): rs_type_param =
     match typ with

@@ -224,6 +224,8 @@ and transform_type (ct: expr_type_transform) (typ: rs_type) : rs_type =
         | RsTypTuple types -> RsTypTuple (List.map (transform_type ct) types)
         | RsTypGeneric typ -> RsTypGeneric typ
         | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, (List.map (transform_type_param ct) params))
+        | RsTypArray (typ, size) -> RsTypArray (transform_type_param ct typ, transform_type_param ct size)
+        
 
 (* ———————————————————————— Expression and Type transformer ————————————————————————— *)
 

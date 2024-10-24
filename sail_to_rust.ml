@@ -32,10 +32,6 @@ let process_scattered scattered : rs_program =
         | _ -> ());
     RsProg []
 
-let process_type (Typ_aux (typ, annot)) : rs_type =
-    match typ with
-        | Typ_id id -> RsTypId (string_of_id id)
-        | _ -> RsTypTodo
 
 let process_vector_pat (items: 'a pat list) : rs_lit =
     let is_only_bits acc pat = match pat with
@@ -74,7 +70,7 @@ let rec process_pat (P_aux (pat, annot)) : rs_pat =
     match pat with
         | P_lit lit -> RsPatLit (process_lit lit)
         | P_id id -> RsPatId (string_of_id id)
-        | P_typ (typ, pat) -> RsPatType ((process_type typ), (process_pat pat))
+        | P_typ (typ, pat) -> RsPatType ((extract_type typ), (process_pat pat))
         | P_wild -> RsPatWildcard
         | P_tuple pats -> RsPatTuple (List.map process_pat pats)
         | P_vector pats -> RsPatLit (process_vector_pat pats)
@@ -314,7 +310,7 @@ let rec process_defs defs (ctx: context): rs_program =
 
 let process_reg_name_type reg : (string * rs_type) =
     let (typ, id, exp) = match reg with 
-        | DEC_reg (typ, id, exp) -> (typ, id, exp) in (string_of_id id, process_type typ)
+        | DEC_reg (typ, id, exp) -> (typ, id, exp) in (string_of_id id, extract_type typ)
 
 let process_if_register  (DEF_aux (def, annot)) : string * rs_type * bool = 
     match def with 
