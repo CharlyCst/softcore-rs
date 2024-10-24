@@ -22,7 +22,7 @@ let is_bitvec_lit (pexp: rs_pexp) : bool =
         | RsPexp (RsPatLit RsLitBin _, _) -> true
         | _ -> false
 
-let bitvec_transform_lexp (exp: rs_lexp) : rs_lexp = exp
+let bitvec_transform_lexp (lexp: rs_lexp) : rs_lexp = lexp
 
 let bitvec_transfrom_exp (exp: rs_exp) : rs_exp =
     match exp with
@@ -235,9 +235,8 @@ let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
 
 let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj = 
     match obj with
-    | RsFn fn -> RsFn (transform_fn ct fn) 
-    | RsEnum enum -> RsEnum enum      
-    | RsStruct struc -> RsStruct struc     
+        | RsFn fn -> RsFn (transform_fn ct fn)
+        | _ -> obj
 
 let rust_transform_expr (ct: expr_type_transform) (RsProg objs) : rs_program =
     RsProg (List.map (transform_obj ct) objs)
@@ -249,11 +248,10 @@ type func_transform = {
     func : rs_fn -> rs_fn
 }
 
-let transform_obj_func (ct: func_transform) (obj: rs_obj) : rs_obj = 
+let transform_obj_func (ct: func_transform) (obj: rs_obj) : rs_obj =
     match obj with
     | RsFn fn -> RsFn (ct.func fn) 
-    | RsEnum enum -> RsEnum enum       
-    | RsStruct struc -> RsStruct struc
+    | _ -> obj
 
 let rust_transform_func (ct: func_transform) (RsProg objs) : rs_program =
     RsProg (List.map (transform_obj_func ct) objs)

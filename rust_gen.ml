@@ -7,7 +7,7 @@ type rs_type =
     | RsTypUnit
     | RsTypGeneric of string
     | RsTypGenericParam of string * rs_type_param list
-    | RsTypTodo
+    | RsTypTodo 
 and  rs_type_param =
     | RsTypParamTyp of rs_type
     | RsTypParamNum of int
@@ -86,10 +86,22 @@ type rs_struct = {
     fields: (string * rs_type) list;
 }
 
+type rs_alias = {
+    new_typ: string;
+    old_type: rs_type;
+}
+
+type rs_const = {
+    name: string;
+    value: string;
+}
+
 type rs_obj = 
     | RsFn of rs_fn
     | RsEnum of rs_enum
     | RsStruct of rs_struct
+    | RsAlias of rs_alias
+    | RsConst of rs_const
 
 type rs_program =
     | RsProg of rs_obj list
@@ -98,6 +110,11 @@ let merge_rs_prog (prog1: rs_program) (prog2: rs_program) : rs_program =
     let RsProg (fn1) = prog1 in
     let RsProg (fn2) = prog2 in
     RsProg (fn1 @ fn2)
+
+let rec merge_rs_prog_list (programs: rs_program list): rs_program =
+    match programs with
+        | h :: t -> merge_rs_prog h (merge_rs_prog_list t)
+        | _ -> RsProg []
 
 let rec string_of_rs_type (typ: rs_type) : string =
     match typ with
@@ -315,6 +332,8 @@ let string_of_rs_obj (obj: rs_obj) : string =
         | RsFn fn -> string_of_rs_fn fn
         | RsEnum enum -> string_of_rs_enum enum 
         | RsStruct struc -> string_of_rs_struct struc
+        | RsAlias alias -> Printf.sprintf "type %s = %s;" alias.new_typ (string_of_rs_type alias.old_type)
+        | RsConst const -> Printf.sprintf "const %s: usize = %s;" const.name const.value
 
 let string_of_rs_prog (prog: rs_program) : string =
     let RsProg (funs) = prog in

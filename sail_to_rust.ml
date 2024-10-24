@@ -6,6 +6,7 @@ open Ast_util
 open Ast_defs
 open Rust_gen
 open Context
+open Fun_defs
 
 module SSet = Call_set.SSet
 
@@ -308,6 +309,9 @@ let rec process_defs defs (ctx: context): rs_program =
         | h :: t -> merge_rs_prog (process_node h ctx) (process_defs t ctx)
         | [] -> RsProg []
 
+
+(* ———————————————————————— Sail Virtual Context Generator ————————————————————————— *)
+
 let process_reg_name_type reg : (string * rs_type) =
     let (typ, id, exp) = match reg with 
         | DEC_reg (typ, id, exp) -> (typ, id, exp) in (string_of_id id, process_type typ)
@@ -323,7 +327,7 @@ let rec gather_registers defs : ((string * rs_type) list) =
         | h :: t -> let (value,typ, is_register) = process_if_register h in 
             if is_register then  (value, typ) :: gather_registers t
             else gather_registers t
-        | [] -> []  
+        | [] -> []
 let generate_sail_virt_ctx defs (ctx: context): rs_program = RsProg[
     RsStruct({
         name = "SailVirtCtx";
@@ -335,5 +339,42 @@ let gather_registers_list (ast: 'a ast) : string list =
     List.map (fun (x, _) -> x) (gather_registers ast.defs)
 
 
+(* ———————————————————————— Sail Types Generator ————————————————————————— *)
+
+
+let extract_type_nexp (Nexp_aux (nexp, _)): string =
+     match nexp with
+        | Nexp_constant n -> string_of_int (Nat_big_num.to_int n)
+        | _ -> "TodoNumExpr"
+                
+let process_sub_type (id: string) (A_aux (typ, _)) : rs_obj * bool =
+    match typ with
+        | A_typ typ -> (RsAlias {new_typ = id; old_type = extract_type typ }, true)
+        | A_bool b -> (RsConst {name = "todo"; value = "todo"}, true)
+        | A_nexp exp -> (RsConst {name = id; value = extract_type_nexp exp}, true)
+
+let process_type_name_type (TD_aux (typ, _)) : (rs_obj * bool) =
+    match typ with
+        | TD_abbrev (id, typquant, typ_arg) -> process_sub_type (string_of_id id) typ_arg
+        | _ -> (RsConst {name = "dummy"; value = "dummy"}, false)
+
+let process_if_abbrev  (DEF_aux (def, annot)) : (rs_obj * bool) =
+    match def with
+        | DEF_type typ -> process_type_name_type typ
+        | _ -> (RsConst {name = "dummy"; value = "dummy"}, false)
+
+let rec gather_abbrev defs : (rs_obj list) =
+    match defs with
+        | h :: t -> let (obj, is_register) = process_if_abbrev h in
+            if is_register then  obj :: gather_abbrev t
+            else gather_abbrev t
+        | [] -> []
+
+let generate_sail_abbrev_list defs : rs_program list =
+    List.map (fun obj -> RsProg [obj]) (gather_abbrev defs)
+        
+let generate_sail_abbrev defs : rs_program =
+    merge_rs_prog_list (generate_sail_abbrev_list defs)
+
 let sail_to_rust (ast: 'a ast) (ctx: context) : rs_program =
-    merge_rs_prog (generate_sail_virt_ctx ast.defs ctx) (process_defs ast.defs ctx)
+    merge_rs_prog_list [generate_sail_abbrev ast.defs; generate_sail_virt_ctx ast.defs ctx; process_defs ast.defs ctx]

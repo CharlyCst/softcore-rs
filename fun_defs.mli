@@ -1,5 +1,6 @@
 open Libsail
 open Ast
+open Ast_util
 open Ast_defs
 
 open Rust_gen
@@ -15,3 +16,4 @@ type defs = {
 
 val get_defs: 'a ast -> defs
 val print_all_defs: defs -> unit
+val extract_type: typ -> rs_type

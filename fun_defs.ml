@@ -72,7 +72,14 @@ and extract_type_arg (A_aux (typ, _)): rs_type_param =
 and extract_type_nexp (Nexp_aux (nexp, _)): rs_type_param =
     match nexp with
         | Nexp_constant n -> RsTypParamNum (Nat_big_num.to_int n)
-        | _ -> RsTypParamTyp (RsTypId "TodoNexpType")
+        | Nexp_app (Id_aux (_, _), _) -> RsTypParamTyp (RsTypId "TodoNexpTypeApp")
+        | Nexp_id id -> RsTypParamTyp (RsTypId (string_of_id id))
+        | Nexp_var var  -> RsTypParamTyp (RsTypId "TodoNexpTypeVar")
+        | Nexp_times (_, _) -> RsTypParamTyp (RsTypId "TodoNexpTypeTimes")
+        | Nexp_sum (_, _) -> RsTypParamTyp (RsTypId "TodoNexpTypeSum")
+        | Nexp_minus (_, _) -> RsTypParamTyp (RsTypId "TodoNexpTypeMinus")
+        | Nexp_exp _ -> RsTypParamTyp (RsTypId "TodoNexpTypeExp")
+        | Nexp_neg _ -> RsTypParamTyp (RsTypId "TodoNexpTypeNeg")
 
 (* ———————————————————————————— Value Definition ———————————————————————————— *)
 
