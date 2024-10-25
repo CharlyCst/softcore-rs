@@ -60,6 +60,7 @@ type rs_exp =
     | RsLit of rs_lit
     | RsField of rs_exp * string
     | RsBlock of rs_exp list
+    | RsInstrList of rs_exp list
     | RsIf of rs_exp * rs_exp * rs_exp
     | RsMatch of rs_exp * rs_pexp list
     | RsTuple of rs_exp list
@@ -234,6 +235,11 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                     (Printf.sprintf ";\n%s" (indent (n + 1)))
                     (List.map (string_of_rs_exp (n + 1)) exps))
                 (indent n)
+        | RsInstrList exps ->
+            Printf.sprintf "%s"
+                (String.concat
+                    (Printf.sprintf ";\n%s" (indent (n)))
+                    (List.map (string_of_rs_exp (n)) exps))
         | RsIf (cond, then_exp, else_exp) ->
             Printf.sprintf "if %s {\n%s%s\n%s} else %s"
                 (string_of_rs_exp n cond)

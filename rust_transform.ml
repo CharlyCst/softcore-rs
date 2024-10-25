@@ -87,6 +87,30 @@ let bitvec_transform = {
     typ = bitvec_transform_type;
 }
 
+(* ——————————————————————————— Nested Blocks remover ———————————————————————————— *)
+
+
+let nested_block_remover_lexp (lexp: rs_lexp) : rs_lexp = lexp
+
+let nested_block_remover_exp (exp: rs_exp) : rs_exp = 
+    match exp with
+        | RsIf (c, RsBlock e1, RsBlock e2) -> RsIf (c, RsInstrList e1, RsInstrList e2)
+        | RsIf (c, RsBlock e1, e2) -> RsIf (c, RsInstrList e1, e2)
+        | RsIf (c, e1, RsBlock e2) -> RsIf (c, e1, RsInstrList e2)
+        | _ -> exp 
+
+let rec nested_block_remover_pexp (pexp: rs_pexp) : rs_pexp = pexp
+
+let rec nested_block_remover_type (typ: rs_type) : rs_type = typ
+
+let nested_block_remover = {
+    exp = nested_block_remover_exp;
+    lexp = nested_block_remover_lexp;
+    pexp = nested_block_remover_pexp;
+    typ = nested_block_remover_type;
+}
+
+
 (* ——————————————————————————— Native functions transformation ———————————————————————————— *)
 
 (* TODO: This list is probably incomplete and we might want to add extra fields in the future *)
@@ -237,6 +261,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
         | RsLit lit -> RsLit lit
         | RsField (exp, field) -> RsField ((transform_exp ct exp), field)
         | RsBlock exps -> RsBlock (List.map (transform_exp ct) exps)
+        | RsInstrList exps -> RsInstrList (List.map (transform_exp ct) exps)
         | RsIf (cond, exp_true, exp_false) ->
             (RsIf (
                 (transform_exp ct cond),
