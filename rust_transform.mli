@@ -16,6 +16,7 @@ type func_transform = {
 }
 
 val bitvec_transform: expr_type_transform
+val native_func_transform: expr_type_transform
 
 val rust_transform_expr: expr_type_transform -> rs_program -> rs_program
 val rust_transform_func: func_transform -> rs_program -> rs_program

@@ -41,6 +41,12 @@ type rs_binop =
     | RsBinopXor
     | RsBinopLAnd
     | RsBinopLOr
+    | RsBinopAdd 
+    | RsBinopSub 
+    | RsBinopMult 
+
+type rs_unop = 
+    | RsUnopNeg
 
 type rs_exp =
     | RsLet of rs_pat * rs_exp * rs_exp
@@ -56,6 +62,7 @@ type rs_exp =
     | RsAssign of rs_lexp * rs_exp
     | RsIndex of rs_exp * rs_exp
     | RsBinop of rs_exp * rs_binop * rs_exp
+    | RsUnop of rs_unop * rs_exp
     | RsAs of rs_exp * rs_type
     | RsTodo
 and rs_lexp =
@@ -167,6 +174,13 @@ let string_of_rs_binop (binop: rs_binop) : string =
         | RsBinopXor -> "^"
         | RsBinopLAnd -> "&&"
         | RsBinopLOr -> "||"
+        | RsBinopAdd -> "+"
+        | RsBinopSub -> "-"
+        | RsBinopMult -> "*"
+
+let string_of_rs_unop (unop: rs_unop) : string =
+    match unop with
+        | RsUnopNeg -> "!"
 
 let indent (n: int) : string =
     String.make (n * 4) ' '
@@ -245,6 +259,10 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (string_of_rs_exp n exp1)
                 (string_of_rs_binop binop)
                 (string_of_rs_exp n exp2)
+        | RsUnop (unop, exp) ->
+            Printf.sprintf "%s(%s)"
+                (string_of_rs_unop unop)
+                (string_of_rs_exp n exp)
         | RsAs (exp, typ) ->
             Printf.sprintf "(%s as %s)"
                 (string_of_rs_exp (n + 1) exp)

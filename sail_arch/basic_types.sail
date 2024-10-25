@@ -4,7 +4,7 @@ $include <prelude.sail>
 // ———————————————————————————————— Function having int and bool in the signature ————————————————————————————————— //
 
 function handle_int(a1: int): int -> int = {
-    123
+    a1 + 4
 }
 
 function handle_int_int(a1: int, a2: int): (int,int) -> bool = {
@@ -12,7 +12,7 @@ function handle_int_int(a1: int, a2: int): (int,int) -> bool = {
 }
 
 function handle_int_int_bool_int(a1: int, a2: int, a3: bool, a4: int): (int,int,bool,int) -> int = {
-    123
+    123 + 4 + 4
 }
 
 

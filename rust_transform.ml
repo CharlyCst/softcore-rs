@@ -25,7 +25,7 @@ let is_bitvec_lit (pexp: rs_pexp) : bool =
 
 let bitvec_transform_lexp (lexp: rs_lexp) : rs_lexp = lexp
 
-let bitvec_transfrom_exp (exp: rs_exp) : rs_exp =
+let bitvec_transform_exp (exp: rs_exp) : rs_exp =
     match exp with
         | RsApp (RsId "subrange_bits", [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
@@ -67,9 +67,9 @@ and uint_to_bitvector (n: int) : rs_type =
     else
         RsTypId "InvalidBitVectorSize"
 
-let rec bitvec_transform_rexp (pexp: rs_pexp) : rs_pexp = pexp
+let rec bitvec_transform_pexp (pexp: rs_pexp) : rs_pexp = pexp
 
-let rec bitvec_transfrom_type (typ: rs_type) : rs_type =
+let rec bitvec_transform_type (typ: rs_type) : rs_type =
     match typ with
         | RsTypGenericParam ("bitvector", t) -> RsTypGenericParam ("BitVector", t)
         | RsTypGenericParam ("bits", t) -> RsTypGenericParam ("BitVector", t)
@@ -81,10 +81,116 @@ let rec bitvec_transfrom_type (typ: rs_type) : rs_type =
         | _ -> typ
 
 let bitvec_transform = {
-    exp = bitvec_transfrom_exp;
+    exp = bitvec_transform_exp;
     lexp = bitvec_transform_lexp;
-    pexp = bitvec_transform_rexp;
-    typ = bitvec_transfrom_type;
+    pexp = bitvec_transform_pexp;
+    typ = bitvec_transform_type;
+}
+
+(* ——————————————————————————— Native functions transformation ———————————————————————————— *)
+
+(* TODO: This list is probably incomplete and we might want to add extra fields in the future *)
+let native_func_transform_exp (exp : rs_exp) : rs_exp = 
+    match exp with
+    | RsApp (RsId "add_atom", [b1;b2]) -> RsBinop(b1,RsBinopAdd,b2)
+    | RsApp (RsId "sub_atom", [b1;b2]) -> RsBinop(b1,RsBinopSub,b2)
+    | RsApp (RsId "negate_atom", _) -> RsId "BUILTIN_atom_negate_TODO" 
+    | RsApp (RsId "mult_atom", _) -> RsId "BUILTIN_atommult_TODO" 
+    | RsApp (RsId "ediv_int", _) -> RsId "BUILTIN_atom_ediv_TODO" 
+    | RsApp (RsId "emod_int", _) -> RsId "BUILTIN_atom_emod_int_TODO" 
+    | RsApp (RsId "abs_int_atom", _) -> RsId "BUILTIN_atom_abs_int_TODO" 
+    | RsApp (RsId "not_vec", [v]) -> RsUnop(RsUnopNeg, v)
+    | RsApp (RsId "eq_bit", _) -> RsId "BUILTIN_eq_bit_TODO"
+    | RsApp (RsId "eq_bool", _) -> RsId "BUILTIN_eq_bool_TODO"
+    | RsApp (RsId "eq_string", _) -> RsId "BUILTIN_eq_string_TODO"
+    | RsApp (RsId "eq_int", _) -> RsId "BUILTIN_eq_int_TODO"
+    | RsApp (RsId "not", [b]) -> RsUnop(RsUnopNeg, b)
+    | RsApp (RsId "lt", _) -> RsId "BUILTIN_lt_TODO"
+    | RsApp (RsId "lteq", _) -> RsId "BUILTIN_lteq_TODO"
+    | RsApp (RsId "gt", _) -> RsId "BUILTIN_gt_TODO"
+    | RsApp (RsId "gteq", _) -> RsId "BUILTIN_gteq_TODO"
+    | RsApp (RsId "add_int", _) -> RsId "BUILTIN_add_int_TODO"
+    | RsApp (RsId "sub_int", _) -> RsId "BUILTIN_sub_int_TODO"
+    | RsApp (RsId "mult_int", _) -> RsId "BUILTIN_mult_int_TODO"
+    | RsApp (RsId "neg_int", _) -> RsId "BUILTIN_neg_int_TODO"
+    | RsApp (RsId "abs_int", _) -> RsId "BUILTIN_abs_int_TODO"
+    | RsApp (RsId "max_int", _) -> RsId "BUILTIN_max_int_TODO"
+    | RsApp (RsId "min_int", _) -> RsId "BUILTIN_min_int_TODO"
+    | RsApp (RsId "tdiv_int", _) -> RsId "BUILTIN_tdiv_int_TODO"
+    | RsApp (RsId "tmod_int", _) -> RsId "BUILTIN_tmod_int_TODO"
+    | RsApp (RsId "pow2", _) -> RsId "BUILTIN_pow2_TODO"
+    | RsApp (RsId "zeros", _) -> RsId "BUILTIN_zeros_TODO"
+    | RsApp (RsId "ones", _) -> RsId "BUILTIN_ones_TODO"
+    | RsApp (RsId "zero_extend", _) -> RsId "BUILTIN_zero_extend_TODO"
+    | RsApp (RsId "sign_extend", _) -> RsId "BUILTIN_sign_extend_TODO"
+    | RsApp (RsId "sail_signed", _) -> RsId "BUILTIN_sail_signed_TODO"
+    | RsApp (RsId "sail_unsigned", _) -> RsId "BUILTIN_sail_unsigned_TODO"
+    | RsApp (RsId "slice", _) -> RsId "BUILTIN_slice_TODO"
+    | RsApp (RsId "slice_inc", _) -> RsId "BUILTIN_slice_inc_TODO"
+    | RsApp (RsId "add_bits", _) -> RsId "BUILTIN_add_bits_TODO"
+    | RsApp (RsId "add_bits_int", [b1;b2]) -> RsBinop(b1, RsBinopAdd, b2)
+    | RsApp (RsId "sub_bits", _) -> RsId "BUILTIN_sub_bits_TODO"
+    | RsApp (RsId "sub_bits_int", _) -> RsId "BUILTIN_sub_bits_int_TODO"
+    | RsApp (RsId "append", _) -> RsId "BUILTIN_append_TODO"
+    | RsApp (RsId "get_slice_int", _) -> RsId "BUILTIN_get_slice_int_TODO"
+    | RsApp (RsId "eq_bits", _) -> RsId "BUILTIN_eq_bits_TODO"
+    | RsApp (RsId "neq_bits", _) -> RsId "BUILTIN_neq_bits_TODO"
+    | RsApp (RsId "not_bits", _) -> RsId "BUILTIN_not_bits_TODO"
+    | RsApp (RsId "sail_truncate", _) -> RsId "BUILTIN_sail_truncate_TODO"
+    | RsApp (RsId "sail_truncateLSB", _) -> RsId "BUILTIN_sail_truncateLSB_TODO"
+    | RsApp (RsId "shiftl", _) -> RsId "BUILTIN_shiftl_TODO"
+    | RsApp (RsId "shiftr", _) -> RsId "BUILTIN_shiftr_TODO"
+    | RsApp (RsId "arith_shiftr", _) -> RsId "BUILTIN_arith_shiftr_TODO"
+    | RsApp (RsId "and_bits", _) -> RsId "BUILTIN_and_bits_TODO"
+    | RsApp (RsId "or_bits", _) -> RsId "BUILTIN_or_bits_TODO"
+    | RsApp (RsId "xor_bits", _) -> RsId "BUILTIN_xor_bits_TODO"
+    | RsApp (RsId "vector_init", _) -> RsId "BUILTIN_vector_init_TODO"
+    | RsApp (RsId "vector_access", _) -> RsId "BUILTIN_vector_access_TODO"
+    | RsApp (RsId "vector_access_inc", _) -> RsId "BUILTIN_vector_access_inc_TODO"
+    | RsApp (RsId "vector_subrange", _) -> RsId "BUILTIN_vector_subrange_TODO"
+    | RsApp (RsId "vector_subrange_inc", _) -> RsId "BUILTIN_vector_subrange_inc_TODO"
+    | RsApp (RsId "vector_update", _) -> RsId "BUILTIN_vector_update_TODO"
+    | RsApp (RsId "vector_update_inc", _) -> RsId "BUILTIN_vector_update_inc_TODO"
+    | RsApp (RsId "vector_update_subrange", _) -> RsId "BUILTIN_vector_update_subrange_TODO"
+    | RsApp (RsId "vector_update_subrange_inc", _) -> RsId "BUILTIN_vector_update_subrange_inc_TODO"
+    | RsApp (RsId "length", _) -> RsId "BUILTIN_length_TODO"
+    | RsApp (RsId "replicate_bits", _) -> RsId "BUILTIN_replicate_bits_TODO"
+    | RsApp (RsId "count_leading_zeros", _) -> RsId "BUILTIN_count_leading_zeros_TODO"
+    | RsApp (RsId "eq_real", _) -> RsId "BUILTIN_eq_real_TODO"
+    | RsApp (RsId "neg_real", _) -> RsId "BUILTIN_neg_real_TODO"
+    | RsApp (RsId "add_real", _) -> RsId "BUILTIN_add_real_TODO"
+    | RsApp (RsId "sub_real", _) -> RsId "BUILTIN_sub_real_TODO"
+    | RsApp (RsId "mult_real", _) -> RsId "BUILTIN_mult_real_TODO"
+    | RsApp (RsId "div_real", _) -> RsId "BUILTIN_div_real_TODO"
+    | RsApp (RsId "lt_real", _) -> RsId "BUILTIN_lt_real_TODO"
+    | RsApp (RsId "gt_real", _) -> RsId "BUILTIN_gt_real_TODO"
+    | RsApp (RsId "lteq_real", _) -> RsId "BUILTIN_lteq_real_TODO"
+    | RsApp (RsId "gteq_real", _) -> RsId "BUILTIN_gteq_real_TODO"
+    | RsApp (RsId "concat_str", _) -> RsId "BUILTIN_concat_str_TODO"
+    | RsApp (RsId "print_bits", _) -> RsId "BUILTIN_print_bits_TODO"
+    | RsApp (RsId "string_of_bits", _) -> RsId "BUILTIN_string_of_bits_TODO"
+    | RsApp (RsId "dec_str", _) -> RsId "BUILTIN_dec_str_TODO"
+    | RsApp (RsId "hex_str", _) -> RsId "BUILTIN_hex_str_TODO"
+    | RsApp (RsId "hex_str_upper", _) -> RsId "BUILTIN_hex_str_upper_TODO"
+    | RsApp (RsId "sail_assert", _) -> RsId "BUILTIN_sail_assert_TODO"
+    | RsApp (RsId "reg_deref", _) -> RsId "BUILTIN_reg_deref_TODO"
+    | RsApp (RsId "sail_cons", _) -> RsId "BUILTIN_sail_cons_TODO"
+    | RsApp (RsId "eq_anything", _) -> RsId "BUILTIN_eq_anything_TODO"
+    | RsApp (RsId "id", _) -> RsId "BUILTIN_id_TODO"
+    | _ -> exp
+  
+
+let native_func_transform_lexp (lexp: rs_lexp) : rs_lexp = lexp 
+
+let native_func_transform_pexp (pexp: rs_pexp) : rs_pexp = pexp
+
+let native_func_transform_type (typ: rs_type) : rs_type = typ
+
+let native_func_transform = {
+    exp = native_func_transform_exp;
+    lexp = native_func_transform_lexp;
+    pexp = native_func_transform_pexp;
+    typ = native_func_transform_type;
 }
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
@@ -154,6 +260,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
                 (transform_exp ct exp1),
                 binop,
                 (transform_exp ct exp2)))
+        | RsUnop (unop, exp) -> RsUnop(unop, transform_exp ct exp)
         | RsAs (exp, typ) ->
             (RsAs (
                 (transform_exp ct exp),

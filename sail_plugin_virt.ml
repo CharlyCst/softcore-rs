@@ -85,6 +85,7 @@ let virt_target _ _ out_file ast effect_info env =
 
   let rust_program = sail_to_rust ast ctx in
   let rust_program = rust_transform_expr bitvec_transform rust_program in
+  let rust_program = rust_transform_expr native_func_transform rust_program in
   let rust_program = rust_transform_func virt_context_transform rust_program in
   let rust_program = rust_transform_func unit_remove_transform rust_program in
   let rust_program = rust_transform_expr sail_context_binder rust_program in
