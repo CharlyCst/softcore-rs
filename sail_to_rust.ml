@@ -156,8 +156,7 @@ and process_lexp (LE_aux (lexp, annot)) : rs_lexp =
             (RsLexpIndex (
                 (process_lexp lexp),
                 (process_exp idx)))
-        | LE_vector_range (lexp, range_end, range_start) ->
-            (* NOTE: Sail effectively invert the range bounds compared to rust*)
+        | LE_vector_range (lexp, range_start, range_end) ->
             (RsLexpIndexRange (
                 (process_lexp lexp),
                 (process_exp range_start),
