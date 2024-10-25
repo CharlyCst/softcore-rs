@@ -266,6 +266,8 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
             (RsAs (
                 (transform_exp ct exp),
                 (transform_type ct typ)))
+        | RsSome(exp) -> RsSome (transform_exp ct exp)
+        | RsNone -> RsNone
         | RsTodo -> RsTodo
 
 and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
@@ -286,6 +288,8 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
         | (RsId "add_bits", [left; right]) -> (RsMethodApp (left, "wrapped_add", [right]))
         | (RsId "and_bool", [left; right]) -> (RsBinop (left, RsBinopLAnd, right))
         | (RsId "or_bool", [left; right]) -> (RsBinop (left, RsBinopLOr, right))
+        | (RsId "Some", [exp]) -> RsSome(exp)
+        | (RsId "None", _) -> RsNone 
 
         (* Custom RISC-V bit extension functions *)
         | (RsId "EXTZ", (RsLit (RsLitNum n))::value::[]) ->

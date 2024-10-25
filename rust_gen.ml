@@ -68,6 +68,8 @@ type rs_exp =
     | RsBinop of rs_exp * rs_binop * rs_exp
     | RsUnop of rs_unop * rs_exp
     | RsAs of rs_exp * rs_type
+    | RsSome of rs_exp
+    | RsNone
     | RsTodo
 and rs_lexp =
     | RsLexpId of string
@@ -275,6 +277,9 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
             Printf.sprintf "(%s as %s)"
                 (string_of_rs_exp (n + 1) exp)
                 (string_of_rs_type typ)
+        | RsSome (exp) -> 
+            Printf.sprintf "Some(%s)" (string_of_rs_exp n exp)
+        | RsNone -> "None"
         | RsTodo -> "todo!()"
 and string_of_rs_lexp (n: int) (lexp: rs_lexp) : string =
     match lexp with
