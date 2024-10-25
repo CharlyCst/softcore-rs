@@ -1,7 +1,7 @@
 use core::ops;
 use std::usize;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitVector<const N: usize> {
     bits: u64,
 }
@@ -20,6 +20,10 @@ impl<const N: usize> BitVector<N> {
 
     pub const fn bits(self) -> u64 {
         self.bits
+    }
+
+    pub const fn as_usize(self) -> usize {
+        self.bits as usize
     }
 
     pub const fn subrange<const A: usize, const B: usize, const C: usize>(self) -> BitVector<C> {

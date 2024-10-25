@@ -296,7 +296,7 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
                 | _ -> RsAs (value, RsTypId "InvalidUSigned")
             )
         (* Unsigned is used for array indexing *)
-        | (RsId "unsigned", value::[]) -> RsAs (value, RsTypId "usize")
+        | (RsId "unsigned", value::[]) -> RsMethodApp (value, "as_usize",[])
 
         (* Otherwise keep as is *)
         | _ -> (RsApp (fn, args))
@@ -376,7 +376,7 @@ let transform_obj_func (ct: func_transform) (obj: rs_obj) : rs_obj =
 let rust_transform_func (ct: func_transform) (RsProg objs) : rs_program =
     RsProg (List.map (transform_obj_func ct) objs)
 
-(* ———————————————————————— type bits = bitvector eraser  ————————————————————————— *)
+(* ———————————————————————— type bits = bitvector filter  ————————————————————————— *)
 
 let filter_bits_bitvector_alias (obj: rs_obj) : rs_program = 
     match obj with
