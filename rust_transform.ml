@@ -289,10 +289,10 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
         (* Custom RISC-V bit extension functions *)
         | (RsId "EXTZ", (RsLit (RsLitNum n))::value::[]) ->
             (match n with
-                | 8L -> RsAs (value, RsTypId "u8")
-                | 16L -> RsAs (value, RsTypId "u16")
-                | 32L -> RsAs (value, RsTypId "u32")
-                | 64L -> RsAs (value, RsTypId "u64")
+                | 8L -> RsAs (value, RsTypId "BitVector<8>")
+                | 16L -> RsAs (value, RsTypId "BitVector<16>")
+                | 32L -> RsAs (value, RsTypId "BitVector<32>")
+                | 64L -> RsAs (value, RsTypId "BitVector<64>")
                 | _ -> RsAs (value, RsTypId "InvalidUSigned")
             )
         (* Unsigned is used for array indexing *)
