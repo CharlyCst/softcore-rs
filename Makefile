@@ -149,6 +149,9 @@ basic_types: build
 trap: build
 	./virt-sail sail_arch/arch_trap.sail -o out.rs
 
+wfi: build
+	./virt-sail sail_arch/wfi.sail -o out.rs
+
 riscv: build
 	./virt-sail $(RISCV_SAIL_SRCS) ../sail-riscv/model/main.sail -o out.rs
 
