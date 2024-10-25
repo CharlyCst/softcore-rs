@@ -36,6 +36,10 @@ type rs_pat =
 type rs_binop =
     | RsBinopEq
     | RsBinopNeq
+    | RsBinopGt
+    | RsBinopGe
+    | RsBinopLt
+    | RsBinopLe
     | RsBinopAnd
     | RsBinopOr
     | RsBinopXor
@@ -169,6 +173,10 @@ let string_of_rs_binop (binop: rs_binop) : string =
     match binop with
         | RsBinopEq -> "=="
         | RsBinopNeq -> "!="
+        | RsBinopGt -> ">"
+        | RsBinopGe -> ">="
+        | RsBinopLt -> "<"
+        | RsBinopLe -> "<="
         | RsBinopAnd -> "&"
         | RsBinopOr -> "|"
         | RsBinopXor -> "^"

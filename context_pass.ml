@@ -87,7 +87,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 (* TODO: We need to refactor this function in the future if we add more type transformations *)
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
-    | RsApp (RsId app_id, args) when app_id <> "subrange_bits" -> 
+    | RsApp (RsId app_id, args) when app_id <> "subrange_bits" && app_id <> "Some" && app_id <> "None" -> 
       let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, args)
     | _ -> exp
     

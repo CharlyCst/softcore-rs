@@ -177,6 +177,7 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "sail_cons", _) -> RsId "BUILTIN_sail_cons_TODO"
     | RsApp (RsId "eq_anything", _) -> RsId "BUILTIN_eq_anything_TODO"
     | RsApp (RsId "id", _) -> RsId "BUILTIN_id_TODO"
+    | RsApp (RsId "gteq_int", [e1; e2]) ->  RsBinop (e1, RsBinopGe, e2)
     | _ -> exp
   
 
