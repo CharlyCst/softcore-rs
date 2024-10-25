@@ -22,3 +22,6 @@ val rust_transform_expr: expr_type_transform -> rs_program -> rs_program
 val rust_transform_func: func_transform -> rs_program -> rs_program
 
 val rust_remove_type_bits: rs_program -> rs_program
+
+val operator_rewriter: func_transform
+val expr_type_operator_rewriter: expr_type_transform

@@ -384,3 +384,47 @@ let filter_bits_bitvector_alias (obj: rs_obj) : rs_program =
         | _ -> RsProg[obj]
 
 let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List.map (filter_bits_bitvector_alias) objs)
+
+(* ———————————————————————— Operator rewriter function side  ————————————————————————— *)
+
+open Str
+
+let remove_illegal_operator_char str =
+  let str = global_replace (regexp "=") "equal" str in
+  let str = global_replace (regexp "<") "smaller" str in
+  let str = global_replace (regexp ">") "bigger" str in
+  let str = global_replace (regexp "(") "_" str in
+  let str = global_replace (regexp ")") "_" str in
+  let str = global_replace (regexp " ") "_" str in
+  str  (* Return the final modified string *)
+
+let operator_rewriter_func (func: rs_fn): rs_fn = {
+  name = remove_illegal_operator_char func.name;  (* Use `func` instead of `rs_fn` *)
+  args = func.args;
+  signature = func.signature;
+  body = func.body;
+}
+
+let operator_rewriter = {
+  func = operator_rewriter_func
+}
+
+(* ———————————————————————— Operator rewriter caller side  ————————————————————————— *)
+
+let expr_operator_rewriter (exp: rs_exp) : rs_exp = 
+    match exp with
+        | RsApp (RsId id, args) -> RsApp(RsId(remove_illegal_operator_char id), args)
+        | _ -> exp
+
+let lexpr_operator_rewriter (lexp: rs_lexp) : rs_lexp = lexp
+
+let pexpr_operator_rewriter (pexp: rs_pexp) : rs_pexp = pexp 
+
+let type_operator_rewriter (typ: rs_type) : rs_type = typ 
+
+let expr_type_operator_rewriter = {
+    exp = expr_operator_rewriter;
+    lexp = lexpr_operator_rewriter;
+    pexp = pexpr_operator_rewriter;
+    typ = type_operator_rewriter;
+}
