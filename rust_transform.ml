@@ -3,6 +3,9 @@
 
 open Rust_gen
 
+module StringSet = Set.Make(String)
+
+
 (* ——————————————————————————— BitVec transformation ———————————————————————————— *)
 
 type expr_type_transform = {
@@ -415,6 +418,17 @@ let filter_bits_bitvector_alias (obj: rs_obj) : rs_program =
         | _ -> RsProg[obj]
 
 let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List.map (filter_bits_bitvector_alias) objs)
+
+(* ———————————————————————— prelude_func_filter  ————————————————————————— *)
+
+let prelude_func: StringSet.t = StringSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"])
+
+let rust_prelude_func_filter_alias (obj: rs_obj) : rs_program = 
+    match obj with
+        | RsFn {name;_ } when (StringSet.mem name prelude_func)-> RsProg []
+        | _ -> RsProg[obj]
+
+let rust_prelude_func_filter (RsProg objs) : rs_program =  merge_rs_prog_list (List.map (rust_prelude_func_filter_alias) objs)
 
 (* ———————————————————————— Operator rewriter function side  ————————————————————————— *)
 
