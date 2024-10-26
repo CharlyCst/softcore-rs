@@ -84,10 +84,11 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
 
-(* TODO: We need to refactor this function in the future if we add more type transformations *)
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"])
+
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
-    | RsApp (RsId app_id, args) when app_id <> "subrange_bits" && app_id <> "Some" && app_id <> "None" -> 
+    | RsApp (RsId app_id, args) when not(StringSet.mem app_id external_func)-> 
       let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, args)
     | _ -> exp
     

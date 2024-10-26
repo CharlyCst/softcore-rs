@@ -1,6 +1,10 @@
 use core::ops;
 use std::usize;
 
+pub fn not_implemented() -> ! {
+    panic!("Feature not implemented yet");
+}
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitVector<const N: usize> {
     bits: u64,
