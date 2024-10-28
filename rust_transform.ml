@@ -28,6 +28,22 @@ let is_bitvec_lit (pexp: rs_pexp) : bool =
 
 let bitvec_transform_lexp (lexp: rs_lexp) : rs_lexp = lexp
 
+let bitvec_transform_match_tuple (exp: rs_exp list) (patterns: rs_pat list) : rs_exp =
+    assert(List.length exp = List.length patterns);
+    RsTuple (List.map2 (fun e p ->
+      match p with
+      | RsPatLit (RsLitHex _) -> RsMethodApp (e, "bits", [])
+      | RsPatLit (RsLitBin _) -> RsMethodApp (e, "bits", [])
+      | _ -> e
+    ) exp patterns)
+     
+  
+let parse_first_tuple_entry(values: rs_pexp list) : rs_pat list = 
+    match values with 
+        | RsPexp(RsPatTuple t, _) :: rest -> t
+        | RsPexpWhen(RsPatTuple t, _, _) :: rest -> t
+        | _ -> failwith "Code should be unreachable"
+  
 let bitvec_transform_exp (exp: rs_exp) : rs_exp =
     match exp with
         | RsApp (RsId "subrange_bits", [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
@@ -56,6 +72,7 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
             RsId bitvec
         | RsMatch (exp, pat::pats) when is_bitvec_lit pat ->
             RsMatch (RsMethodApp (exp, "bits", []), pat::pats)
+        | RsMatch (RsTuple exp_tuple, patterns) -> RsMatch (bitvec_transform_match_tuple exp_tuple (parse_first_tuple_entry patterns), patterns)
         | _ -> exp
 
 and uint_to_bitvector (n: int) : rs_type =
