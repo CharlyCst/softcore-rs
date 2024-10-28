@@ -222,6 +222,18 @@ type function_kind =
     | FunKindFunc
     | FunKindUnion of string
 
+let contains_execute str =
+    let re = Str.regexp_string "execute" in
+    try
+        ignore (Str.search_forward re str 0);
+        true
+    with Not_found -> false
+
+let process_union_ret_type (name: string) : rs_type = 
+    match contains_execute name with 
+        | true -> RsTypId "Retired"
+        | false -> RsTypUnit
+
 let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
     (* This function balances the lenghts of the argument and argument type list by adding more arguments if neccesary *)
     let rec add_missing_args args args_type new_args : string list =
@@ -238,8 +250,8 @@ let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a e
             | None -> ([RsTypId "TodoNoSignature"], RsTypUnit))
         | FunKindUnion union -> match ctx_union_type union ctx with
             | Some typ -> (match typ with
-                | RsTypTuple types -> (types, RsTypUnit) (* TODO: handle non-unit return *)
-                | RsTypId id -> ([RsTypId id], RsTypUnit) (* TODO: same here *)
+                | RsTypTuple types -> (types, process_union_ret_type name)
+                | RsTypId id -> ([RsTypId id], process_union_ret_type name)
                 | _ -> ([RsTypId "TodoUnsupportedUnionSignature"], RsTypUnit))
             | None -> ([RsTypId "TodoNoUnionSignature"], RsTypUnit)
     in

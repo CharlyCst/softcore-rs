@@ -125,7 +125,7 @@ let type_def_fun_def (TD_aux (typ, _)) : unionmap =
         | TD_abbrev (id, typquant, typ_arg) -> print_string (string_of_id id); print_endline " Abbrev"; SMap.empty
         | TD_record (id, typquant, items, _) -> print_string (string_of_id id); print_endline " Record"; SMap.empty
         | TD_variant (id, typquant, members, _) ->
-            print_string (string_of_id id);
+            print_string (string_of_id id); print_endline " Variant";
             type_union_defs members
         | TD_enum (id, member, _) -> print_string (string_of_id id); print_endline " Enum"; SMap.empty
         | TD_bitfield _ -> print_endline "Bitfield"; SMap.empty
