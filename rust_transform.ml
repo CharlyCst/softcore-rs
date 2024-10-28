@@ -498,3 +498,52 @@ let expr_type_operator_rewriter = {
     pexp = pexpr_operator_rewriter;
     typ = type_operator_rewriter;
 }
+
+(* ———————————————————————— Hoisting rewriting  ————————————————————————— *)
+
+let create_variable_generator () =
+    let counter = ref 0 in
+    fun () ->
+      counter := !counter + 1;
+      Printf.sprintf "var_%d" !counter
+  
+let variable_generator = create_variable_generator ();;
+
+let rec contains_func (exp: rs_exp list) : bool =
+    match exp with
+        | [] -> false
+        | RsApp _ :: _ -> true  
+        | _ :: tail -> contains_func tail
+    
+let rec hoistise (exp: rs_exp list) : rs_exp list * rs_exp list = 
+    match exp with
+    | e :: arr -> 
+        let ident = variable_generator () in 
+        let (l1, l2) = hoistise arr in
+        (RsLet (RsPatId ident, e, RsTodo) :: l1, RsId ident :: l2)
+    | [] -> ([], [])
+
+let rec generate_hoistised_block (exp: rs_exp list) (app) : rs_exp = 
+    match exp with
+        | RsLet (pat, exp2, _) :: arr -> RsLet(pat, exp2, generate_hoistised_block arr app)
+        | [] -> app
+        | _ -> failwith "Unreachable code"
+
+let expr_hoister (exp: rs_exp) : rs_exp = 
+    match exp with
+        | RsApp (name, args) when contains_func args -> let ret = hoistise args in 
+            RsBlock[generate_hoistised_block (fst ret) (RsApp (name, snd ret))]
+        | _ -> exp
+
+let lexpr_hoister (lexp: rs_lexp) : rs_lexp = lexp
+
+let pexpr_hoister (pexp: rs_pexp) : rs_pexp = pexp 
+
+let type_hoister (typ: rs_type) : rs_type = typ 
+
+let expr_type_hoister = {
+    exp = expr_hoister;
+    lexp = lexpr_hoister;
+    pexp = pexpr_hoister;
+    typ = type_hoister;
+}

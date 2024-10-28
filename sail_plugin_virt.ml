@@ -88,6 +88,7 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_transform_expr bitvec_transform rust_program in
   let rust_program = rust_transform_expr nested_block_remover rust_program in
   let rust_program = rust_transform_expr native_func_transform rust_program in
+  let rust_program = rust_transform_expr expr_type_hoister rust_program in 
   let rust_program = rust_transform_func virt_context_transform rust_program in
   let rust_program = rust_transform_func unit_remove_transform rust_program in
   let rust_program = rust_transform_expr sail_context_binder rust_program in
@@ -99,7 +100,7 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_remove_type_bits rust_program in
   let rust_program = rust_prelude_func_filter rust_program in
   let rust_program = insert_annotation_imports rust_program in
-  
+   
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);
   flush out_chan;
