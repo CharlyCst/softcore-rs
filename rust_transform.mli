@@ -27,3 +27,4 @@ val expr_type_operator_rewriter: expr_type_transform
 
 val rust_remove_type_bits: rs_program -> rs_program
 val rust_prelude_func_filter: rs_program -> rs_program
+val insert_annotation_imports: rs_program -> rs_program

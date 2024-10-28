@@ -98,6 +98,7 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_transform_expr expr_type_operator_rewriter rust_program in
   let rust_program = rust_remove_type_bits rust_program in
   let rust_program = rust_prelude_func_filter rust_program in
+  let rust_program = insert_annotation_imports rust_program in
   
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);

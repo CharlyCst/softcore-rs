@@ -117,6 +117,8 @@ type rs_obj =
     | RsStruct of rs_struct
     | RsAlias of rs_alias
     | RsConst of rs_const
+    | RsImport of string 
+    | RsAttribute of string
 
 type rs_program =
     | RsProg of rs_obj list
@@ -374,6 +376,8 @@ let string_of_rs_obj (obj: rs_obj) : string =
         | RsStruct struc -> string_of_rs_struct struc
         | RsAlias alias -> Printf.sprintf "type %s = %s;" alias.new_typ (string_of_rs_type alias.old_type)
         | RsConst const -> Printf.sprintf "const %s: usize = %s;" const.name const.value
+        | RsAttribute value -> Printf.sprintf "#![%s]" value
+        | RsImport value -> Printf.sprintf "use %s;" value
 
 let string_of_rs_prog (prog: rs_program) : string =
     let RsProg (funs) = prog in

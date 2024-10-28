@@ -430,6 +430,14 @@ let rust_prelude_func_filter_alias (obj: rs_obj) : rs_program =
 
 let rust_prelude_func_filter (RsProg objs) : rs_program =  merge_rs_prog_list (List.map (rust_prelude_func_filter_alias) objs)
 
+
+(* ———————————————————————— Annotations and imports inserter  ————————————————————————— *)
+
+(* todo: Is a static function good enough here? *)
+let insert_annotation_imports_aux () : rs_program = RsProg[RsAttribute "allow(unused, non_snake_case, non_upper_case_globals, non_camel_case_types)"; RsImport "crate::SailVirtContext"; RsImport "sail_prelude::*"]
+
+let insert_annotation_imports (RsProg objs) : rs_program =  merge_rs_prog_list[insert_annotation_imports_aux();RsProg(objs)]
+ 
 (* ———————————————————————— Operator rewriter function side  ————————————————————————— *)
 
 open Str
