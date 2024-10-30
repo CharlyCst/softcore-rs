@@ -241,8 +241,11 @@ let native_func_transform = {
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
-let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat =
-    pat
+let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat = 
+    match pat with 
+        | RsPatType (typ, pat) -> RsPatType(transform_type ct typ, transform_pat ct pat)
+        | RsPatTuple (pat_list) -> RsPatTuple(List.map (transform_pat ct) pat_list)
+        | _ -> pat
 
 and transform_lexp (ct: expr_type_transform) (lexp: rs_lexp): rs_lexp =
     let lexp = ct.lexp lexp in
@@ -381,8 +384,10 @@ and transform_type (ct: expr_type_transform) (typ: rs_type) : rs_type =
         | RsTypTodo -> RsTypTodo
         | RsTypTuple types -> RsTypTuple (List.map (transform_type ct) types)
         | RsTypGeneric typ -> RsTypGeneric typ
+        | RsTypGenericParam (typ, e::params) when typ = "option" -> RsTypOption e
         | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, (List.map (transform_type_param ct) params))
         | RsTypArray (typ, size) -> RsTypArray (transform_type_param ct typ, transform_type_param ct size)
+        | RsTypOption param -> RsTypOption (transform_type_param ct param)
         
 
 (* ———————————————————————— Expression and Type transformer ————————————————————————— *)

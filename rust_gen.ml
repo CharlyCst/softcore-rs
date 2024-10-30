@@ -8,6 +8,7 @@ type rs_type =
     | RsTypGeneric of string
     | RsTypGenericParam of string * rs_type_param list
     | RsTypArray of rs_type_param * rs_type_param
+    | RsTypOption of rs_type_param
     | RsTypTodo 
 and  rs_type_param =
     | RsTypParamTyp of rs_type
@@ -146,6 +147,7 @@ let rec string_of_rs_type (typ: rs_type) : string =
                 id
                 (String.concat ", " (List.map string_of_rs_type_param params))
         | RsTypArray (typ, size) -> Printf.sprintf "[%s;%s]" (string_of_rs_type_param typ) (string_of_rs_type_param size)
+        | RsTypOption param -> Printf.sprintf "Option<%s>" (string_of_rs_type_param param)
         | RsTypTodo -> "TYPE_TODO"
 and string_of_rs_type_param (typ: rs_type_param) : string =
     match typ with
