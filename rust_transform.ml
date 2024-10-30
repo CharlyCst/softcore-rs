@@ -326,6 +326,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
                 (transform_type ct typ)))
         | RsSome(exp) -> RsSome (transform_exp ct exp)
         | RsNone -> RsNone
+        | RsPathSeparator (t1, t2) -> RsPathSeparator (t1,t2)
         | RsTodo -> RsTodo
 
 and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
@@ -352,12 +353,21 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
         (* Custom RISC-V bit extension functions *)
         | (RsId "EXTZ", (RsLit (RsLitNum n))::value::[]) ->
             (match n with
-                | 8L -> RsAs (value, RsTypId "BitVector<8>")
-                | 16L -> RsAs (value, RsTypId "BitVector<16>")
-                | 32L -> RsAs (value, RsTypId "BitVector<32>")
-                | 64L -> RsAs (value, RsTypId "BitVector<64>")
+                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 8]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 16]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 32]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 64]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
                 | _ -> RsAs (value, RsTypId "InvalidUSigned")
             )
+        | (RsId "EXTS", (RsLit (RsLitNum n))::value::[]) ->
+            (match n with
+                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 8]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 16]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 32]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 64]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | _ -> RsAs (value, RsTypId "InvalidUSigned")
+            )
+
         (* Unsigned is used for array indexing *)
         | (RsId "unsigned", value::[]) -> RsMethodApp (value, "as_usize",[])
 
@@ -465,7 +475,7 @@ let rust_prelude_func_filter (RsProg objs) : rs_program =  merge_rs_prog_list (L
 (* ———————————————————————— Annotations and imports inserter  ————————————————————————— *)
 
 (* todo: Is a static function good enough here? *)
-let insert_annotation_imports_aux () : rs_program = RsProg[RsAttribute "allow(unused, non_snake_case, non_upper_case_globals, non_camel_case_types)"; RsImport "crate::SailVirtContext"; RsImport "sail_prelude::*"]
+let insert_annotation_imports_aux () : rs_program = RsProg[RsAttribute "allow(unused, non_snake_case, non_upper_case_globals, non_camel_case_types, bindings_with_variant_name)"; RsImport "crate::SailVirtContext"; RsImport "sail_prelude::*"]
 
 let insert_annotation_imports (RsProg objs) : rs_program =  merge_rs_prog_list[insert_annotation_imports_aux();RsProg(objs)]
  

@@ -52,8 +52,8 @@ impl<const N: usize> BitVector<N> {
         BitVector::new((self.bits & mask) | new_bits)
     }
 
-    pub const fn wrapped_add(&mut self, other: BitVector<N>) {
-        self.bits = self.bits.wrapping_add(other.bits);
+    pub const fn wrapped_add(self, other: BitVector<N>) -> BitVector<N> {
+        BitVector::<N>::new(self.bits.wrapping_add(other.bits))
     }
 
     /// Returns a bit mask with 1 for the first [N] bits.
