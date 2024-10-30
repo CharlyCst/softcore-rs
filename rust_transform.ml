@@ -537,6 +537,7 @@ let rec contains_func (exp: rs_exp list) : bool =
     match exp with
         | [] -> false
         | RsApp _ :: _ -> true  
+        | RsIf (_,_,_) :: _ -> true
         | _ :: tail -> contains_func tail
     
 let rec hoistise (exp: rs_exp list) : rs_exp list * rs_exp list = 
@@ -557,6 +558,8 @@ let expr_hoister (exp: rs_exp) : rs_exp =
     match exp with
         | RsApp (name, args) when contains_func args -> let ret = hoistise args in 
             RsBlock[generate_hoistised_block (fst ret) (RsApp (name, snd ret))]
+        | RsMethodApp (name,met, args) when contains_func args -> let ret = hoistise args in 
+            RsBlock[generate_hoistised_block (fst ret) (RsMethodApp (name,met, snd ret))]
         | _ -> exp
 
 let lexpr_hoister (lexp: rs_lexp) : rs_lexp = lexp
