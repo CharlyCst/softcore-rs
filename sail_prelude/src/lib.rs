@@ -52,6 +52,10 @@ impl<const N: usize> BitVector<N> {
         BitVector::new((self.bits & mask) | new_bits)
     }
 
+    pub const fn wrapped_add(&mut self, other: BitVector<N>) {
+        self.bits = self.bits.wrapping_add(other.bits);
+    }
+
     /// Returns a bit mask with 1 for the first [N] bits.
     const fn bit_mask() -> u64 {
         assert!(N <= 64);
@@ -70,6 +74,26 @@ impl<const N: usize> ops::BitAnd for BitVector<N> {
     fn bitand(self, rhs: Self) -> Self::Output {
         Self {
             bits: self.bits & rhs.bits,
+        }
+    }
+}
+
+impl<const N: usize> ops::BitOr for BitVector<N> {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self {
+            bits: self.bits | rhs.bits,
+        }
+    }
+}
+
+impl<const N: usize> ops::BitXor for BitVector<N> {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self::Output {
+        Self {
+            bits: self.bits ^ rhs.bits,
         }
     }
 }
