@@ -55,6 +55,15 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                     (Int64.sub r_end r_start)
             in
             RsApp (RsField (bitvec, subrange_call), [])
+        | RsApp (RsId "subrange_bits", [RsId id; RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
+            let r_end = Int64.add r_end Int64.one in
+            let subrange_call =
+                Printf.sprintf "subrange::<%Lu, %Lu, %Lu>"
+                    r_start
+                    r_end
+                    (Int64.sub r_end r_start)
+            in
+            RsApp (RsField (RsId id, subrange_call), [])
         | RsAssign (RsLexpIndexRange (RsLexpField (lexp, "bits"), RsLit RsLitNum r_end, RsLit RsLitNum r_start), exp) ->
             let r_end = Int64.add r_end Int64.one in
             let set_subrange =
