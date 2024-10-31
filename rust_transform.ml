@@ -490,10 +490,10 @@ let remove_illegal_operator_char str =
   let str = global_replace (regexp "(") "_" str in
   let str = global_replace (regexp ")") "_" str in
   let str = global_replace (regexp " ") "_" str in
-  str  (* Return the final modified string *)
+  str 
 
 let operator_rewriter_func (func: rs_fn): rs_fn = {
-  name = remove_illegal_operator_char func.name;  (* Use `func` instead of `rs_fn` *)
+  name = remove_illegal_operator_char func.name;
   args = func.args;
   signature = func.signature;
   body = func.body;
@@ -502,6 +502,36 @@ let operator_rewriter_func (func: rs_fn): rs_fn = {
 let operator_rewriter = {
   func = operator_rewriter_func
 }
+
+(* ———————————————————————— Parametric functions rewriter  ————————————————————————— *)
+
+let is_rs_typ_param_typ (typ: rs_type) : bool = 
+    match typ with
+        | RsTypGenericParam (name, RsTypParamTyp t1::other) -> true
+        | _ -> false
+
+let rec is_parametric (type_list: rs_type list) : bool = 
+    match type_list with
+        | e :: list -> (is_rs_typ_param_typ e) || (is_parametric list)
+        | [] -> false
+
+let generate_func_name(func: rs_fn) : string = 
+    if is_parametric (fst func.signature) then
+        Printf.sprintf "%s<const N: usize>" func.name
+    else 
+        func.name
+
+let parametric_rewriter_func (func: rs_fn): rs_fn = {
+  name = generate_func_name func; 
+  args = func.args;
+  signature = func.signature;
+  body = func.body;
+}
+
+let parametric_rewriter = {
+  func = parametric_rewriter_func
+}
+
 
 (* ———————————————————————— Operator rewriter caller side  ————————————————————————— *)
 

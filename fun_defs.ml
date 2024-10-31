@@ -56,6 +56,12 @@ let defs_from_funs (funs: defmap) : defs =
 
 (* ———————————————————————— Sail Types to Rust Types ———————————————————————— *)
 
+let capitalize_after_removal s =
+    if String.length s > 1 then
+      String.uppercase_ascii (String.sub s 1 (String.length s - 1))
+    else
+      ""
+  
 let get_first_two_elements lst =
     assert ((List.length lst) = 2);
     match lst with
@@ -84,7 +90,7 @@ and extract_type_nexp (Nexp_aux (nexp, _)): rs_type_param =
         | Nexp_constant n -> RsTypParamNum (Nat_big_num.to_int n)
         | Nexp_app (Id_aux (_, _), _) -> RsTypParamTyp (RsTypId "TodoNexpTypeApp")
         | Nexp_id id -> RsTypParamTyp (RsTypId (string_of_id id))
-        | Nexp_var var  -> RsTypParamTyp (RsTypId "TodoNexpTypeVar")
+        | Nexp_var var -> RsTypParamTyp (RsTypId (capitalize_after_removal (string_of_kid var))) 
         | Nexp_times (_, _) -> RsTypParamTyp (RsTypId "TodoNexpTypeTimes")
         | Nexp_sum (_, _) -> RsTypParamTyp (RsTypId "TodoNexpTypeSum")
         | Nexp_minus (_, _) -> RsTypParamTyp (RsTypId "TodoNexpTypeMinus")
