@@ -3,7 +3,6 @@ open Ast
 open Ast_util
 open Ast_defs
 
-open Context_pass
 open Sail_to_rust
 open Rust_transform
 open Rust_gen
@@ -58,13 +57,7 @@ let virt_target _ _ out_file ast effect_info env =
   Bindings.bindings props |> List.map fst |> IdSet.of_list |> Specialize.add_initial_calls;
 
   (* Compute call set *)
-  let set = Call_set.SSet.empty in
-  let set = SSet.add "CSR" set in
-  let set = SSet.add "MRET" set in
-  let set = SSet.add "ITYPE" set in
-  let set = SSet.add "TEST" set in
-  let set = SSet.add "WFI" set in
-  let call_set = get_call_set ast set in
+  let call_set = get_call_set ast in
   (* SSet.iter (Printf.printf "%s ") call_set; *)
   (* print_endline ""; *)
 
@@ -78,21 +71,26 @@ let virt_target _ _ out_file ast effect_info env =
     call_set = call_set;
   } in
 
+  (* Build list of registers *)
   let register_list = StringSet.of_list (gather_registers_list ast) in
   let sail_context_binder = sail_context_binder_generator register_list in
 
+  (* Process enumerations *)
   let enum_entries = process_enum_entries ast.defs in
   let enum_binder = enum_binder_generator enum_entries in
 
+  (* First stage : sail to raw (invalid) rust *)
   let rust_program = sail_to_rust ast ctx in
+
+  (* Second stage: bitvector transformations *)
   let rust_program = rust_transform_expr bitvec_transform rust_program in
+
+  (* Third stage: general valid rust code*)
   let rust_program = rust_transform_expr nested_block_remover rust_program in
   let rust_program = rust_transform_expr native_func_transform rust_program in
   let rust_program = rust_transform_expr expr_type_hoister rust_program in 
   let rust_program = rust_transform_func virt_context_transform rust_program in
   let rust_program = rust_transform_func unit_remove_transform rust_program in
-  let rust_program = rust_transform_expr sail_context_binder rust_program in
-  let rust_program = rust_transform_expr sail_context_arg_inserter rust_program in
   let rust_program = rust_transform_expr remove_last_unit_func_arg rust_program in 
   let rust_program = rust_transform_expr enum_binder rust_program in
   let rust_program = rust_transform_func operator_rewriter rust_program in
@@ -101,7 +99,11 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_prelude_func_filter rust_program in
   let rust_program = insert_annotation_imports rust_program in
   let rust_program = rust_transform_func parametric_rewriter rust_program in
-   
+
+  (* Last stage : Transform into a borrow checker friendly code *)
+  let rust_program = rust_transform_expr sail_context_binder rust_program in
+  let rust_program = rust_transform_expr sail_context_arg_inserter rust_program in
+
   let out_chan = open_out out_file in
   output_string out_chan (string_of_rs_prog rust_program);
   flush out_chan;
