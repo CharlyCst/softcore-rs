@@ -70,6 +70,7 @@ let get_first_two_elements lst =
   
 let rec extract_type (Typ_aux (typ, _)): rs_type =
     match typ with
+        | Typ_id id when string_of_id id = "unit" -> RsTypUnit
         | Typ_id id -> RsTypId (string_of_id id)
         | Typ_var (Kid_aux (Var x, _)) -> RsTypGeneric x
         | Typ_tuple types -> RsTypTuple (List.map extract_type types)

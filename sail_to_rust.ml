@@ -74,7 +74,18 @@ let rec process_pat (P_aux (pat, annot)) : rs_pat =
         | P_wild -> RsPatWildcard
         | P_tuple pats -> RsPatTuple (List.map process_pat pats)
         | P_vector pats -> RsPatLit (process_vector_pat pats)
-        | _ -> RsPatTodo
+        | P_or (_, _) -> RsPatId "TODO_PAT_or"
+        | P_not _ -> RsPatId "TODO_PAT_not"
+        | P_as (_, _) -> RsPatId "TODO_PAT_as"
+        | P_var (_, _) -> RsPatId "TODO_PAT_var"
+        | P_app (id, exp_list) -> RsPatApp(RsPatId (string_of_id id), List.map process_pat exp_list)
+        
+        | P_vector_concat _ -> RsPatId "TODO_PAT_vector_concat"
+        | P_vector_subrange (_, _, _) -> RsPatId "TODO_PAT_vector_subrange"
+        | P_list _ -> RsPatId "TODO_PAT_list"
+        | P_cons (_, _) -> RsPatId "TODO_PAT_cons"
+        | P_string_append _ -> RsPatId "TODO_PAT_string_append"
+        | P_struct (_, _) -> RsPatId "TODO_PAT_struct"
 
 let process_vector (items: 'a exp list) : rs_lit =
     let is_only_bits acc exp = match exp with
@@ -296,10 +307,20 @@ let process_enum (id: Ast.id) (members: Ast.id list) : rs_enum =
             name = enum_name;
             fields = enum_fields; 
         }
-    
+
+let rec process_unions (members: Ast.type_union list) : (string * rs_type) list = 
+    match members with 
+        | (Tu_aux (Tu_ty_id (typ, id), annot)) :: v -> (string_of_id id, extract_type typ) :: process_unions v
+        | [] -> [] 
+             
 let process_def (TD_aux (typ, _)) : rs_program = 
         match typ with
         | TD_enum (id, member, _) -> RsProg [RsEnum(process_enum id member)] 
+        | TD_variant (id, typquant, members, _) when string_of_id id = "option" -> RsProg [] (* Special semantics in rust *)
+        | TD_variant (id, typquant, members, _) -> RsProg[RsTypedEnum({ 
+            name = string_of_id id;
+            fields = process_unions members;
+        })]
         | _ -> RsProg []
     
 let process_node (DEF_aux (def, annot)) (s: context) : rs_program =
@@ -393,14 +414,21 @@ let generate_sail_abbrev defs : rs_program =
 
 (* ———————————————————————— Generate the enumeration context  ————————————————————————— *)
   
-let gen_enum_list (id: Ast.id) (members: Ast.id list) : (string * string) list =
+let gen_enum_list (id: Ast.id) (enum_fields: string list) : (string * string) list =
     let enum_name = string_of_id id in
-    let enum_fields = List.map string_of_id members in 
     List.map (fun e -> (e, enum_name)) enum_fields
+    
+let ast_id_list_to_string_list (members: Ast.id list) : string list = (List.map string_of_id members)
 
+let rec ast_union_type_list_to_string_list (members: Ast.type_union list) : string list = 
+    match members with 
+        | (Tu_aux (Tu_ty_id (typ, id), annot)) :: v -> (string_of_id id) :: ast_union_type_list_to_string_list v
+        | [] -> []
+       
 let process_enum_entries_aux (DEF_aux (def, annot)): (string * string) list =
 match def with
-    | DEF_type (TD_aux (TD_enum (id, member, _), _)) -> gen_enum_list id member
+    | DEF_type (TD_aux (TD_enum (id, members, _), _)) -> gen_enum_list id (ast_id_list_to_string_list members)
+    | DEF_type (TD_aux (TD_variant (id, _, members, _), _)) -> gen_enum_list id (ast_union_type_list_to_string_list members)
     | _ -> []
     
 let rec process_enum_entries (defs: 'a Libsail.Ast.def list): (string * string) list =

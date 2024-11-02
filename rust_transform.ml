@@ -18,7 +18,11 @@ let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat =
     match pat with 
         | RsPatType (typ, pat) -> RsPatType(transform_type ct typ, transform_pat ct pat)
         | RsPatTuple (pat_list) -> RsPatTuple(List.map (transform_pat ct) pat_list)
-        | _ -> pat
+        | RsPatWildcard -> RsPatWildcard
+        | RsPatLit l -> RsPatLit l
+        | RsPatId id -> RsPatId id
+        | RsPatApp (name, args) -> RsPatApp(transform_pat ct name, List.map (fun p -> transform_pat ct p) args)
+        | RsPatTodo -> RsPatTodo
 
 and transform_lexp (ct: expr_type_transform) (lexp: rs_lexp): rs_lexp =
     let lexp = ct.lexp lexp in
@@ -583,8 +587,9 @@ let rec enum_prefix_inserter (key : string) (lst : (string * string) list) : str
   let enum_binder_exp (enum_list: (string * string) list) (exp: rs_exp) : rs_exp = 
     match exp with
       | RsId id -> RsId (enum_prefix_inserter id enum_list)
+      | RsApp (RsId id, args) -> RsApp (RsId (enum_prefix_inserter id enum_list), args)
       | _ -> exp
-  
+   
   let enum_binder_lexp (enum_list: (string * string) list) (lexp: rs_lexp) : rs_lexp = 
     match lexp with
       | RsLexpId id -> RsLexpId (enum_prefix_inserter id enum_list)

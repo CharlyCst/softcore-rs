@@ -79,6 +79,9 @@ let virt_target _ _ out_file ast effect_info env =
   let enum_entries = process_enum_entries ast.defs in
   let enum_binder = enum_binder_generator enum_entries in
 
+  (*List.map (fun e -> print_endline(Printf.sprintf "%s %s" (fst e) (snd e))) enum_entries;
+  print_endline ""; *)
+
   (* First stage : sail to raw (invalid) rust *)
   let rust_program = sail_to_rust ast ctx in
 

@@ -32,6 +32,7 @@ type rs_pat =
     | RsPatType of rs_type * rs_pat
     | RsPatWildcard
     | RsPatTuple of rs_pat list
+    | RsPatApp of rs_pat * rs_pat list
     | RsPatTodo
 
 type rs_binop =
@@ -100,6 +101,11 @@ type rs_enum = {
     fields: string list;
 }
 
+type rs_typed_enum = {
+    name: string;
+    fields: (string * rs_type) list;
+}
+
 type rs_struct = {
     name: string;
     fields: (string * rs_type) list;
@@ -118,6 +124,7 @@ type rs_const = {
 type rs_obj = 
     | RsFn of rs_fn
     | RsEnum of rs_enum
+    | RsTypedEnum of rs_typed_enum
     | RsStruct of rs_struct
     | RsAlias of rs_alias
     | RsConst of rs_const
@@ -143,7 +150,7 @@ let rec string_of_rs_type (typ: rs_type) : string =
         | RsTypTuple types ->
             Printf.sprintf "(%s)"
                 (String.concat ", " (List.map string_of_rs_type types))
-        | RsTypUnit -> "()"
+        | RsTypUnit -> ""
         | RsTypGeneric t -> t
         | RsTypGenericParam (id, params) ->
             Printf.sprintf "%s<%s>"
@@ -177,6 +184,7 @@ let rec string_of_rs_pat (pat: rs_pat) : string =
         | RsPatWildcard -> "_"
         | RsPatTuple pats ->
             Printf.sprintf "(%s)" (String.concat ", " (List.map string_of_rs_pat pats))
+        | RsPatApp (name, arg) -> Printf.sprintf "%s(%s)" (string_of_rs_pat name)  "arguments"
         | RsPatTodo -> "PAT_TODO"
 
 let string_of_rs_binop (binop: rs_binop) : string =
@@ -365,9 +373,18 @@ let parse_enum_fields (entries: string list) : string =
     let merged_fields = String.concat "" prefixed_entries in
     remove_last_char merged_fields (* Removes last '\n'*)
  
+let get_enum_guards () : string = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]"
+
 let string_of_rs_enum (enum: rs_enum) : string = 
-    let guards = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]" in
-    Printf.sprintf "%s\nenum %s {\n%s\n}" guards enum.name (parse_enum_fields enum.fields)
+    Printf.sprintf "%s\nenum %s {\n%s\n}" (get_enum_guards()) enum.name (parse_enum_fields enum.fields)
+
+let parse_typed_enum_fields (entries: (string * rs_type) list) : string = 
+    let prefixed_entries = List.map (fun s -> "    " ^ (fst s) ^ "(" ^ (string_of_rs_type (snd s)) ^ "),\n") entries in
+    let merged_fields = String.concat "" prefixed_entries in
+    remove_last_char merged_fields (* Removes last '\n'*)
+
+let string_of_rs_typed_enum (enum: rs_typed_enum) : string = 
+    Printf.sprintf "%s\nenum %s {\n%s\n}" (get_enum_guards()) enum.name (parse_typed_enum_fields enum.fields)
 
 let parse_struct_fields (entries: (string * rs_type)  list) : string = 
     let prefixed_entries = List.map (fun s -> "    " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
@@ -381,6 +398,7 @@ let string_of_rs_obj (obj: rs_obj) : string =
     match obj with
         | RsFn fn -> string_of_rs_fn fn
         | RsEnum enum -> string_of_rs_enum enum 
+        | RsTypedEnum typed_enum -> string_of_rs_typed_enum typed_enum
         | RsStruct struc -> string_of_rs_struct struc
         | RsAlias alias -> Printf.sprintf "type %s = %s;" alias.new_typ (string_of_rs_type alias.old_type)
         | RsConst const -> Printf.sprintf "const %s: usize = %s;" const.name const.value
