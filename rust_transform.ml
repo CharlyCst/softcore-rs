@@ -354,7 +354,7 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "negate_atom", _) -> RsId "BUILTIN_atom_negate_TODO" 
     | RsApp (RsId "mult_atom", [e1;e2]) -> RsBinop(e1,RsBinopMult,e2)
     | RsApp (RsId "ediv_int", _) -> RsId "BUILTIN_atom_ediv_TODO" 
-    | RsApp (RsId "emod_int", _) -> RsId "BUILTIN_atom_emod_int_TODO" 
+    | RsApp (RsId "emod_int", [e1; e2]) -> RsBinop(e1, RsBinopMod, e2)
     | RsApp (RsId "abs_int_atom", _) -> RsId "BUILTIN_atom_abs_int_TODO" 
     | RsApp (RsId "not_vec", [v]) -> RsUnop(RsUnopNeg, v)
     | RsApp (RsId "eq_bit", [e1; e2]) -> RsBinop(e1, RsBinopEq, e2) (* TODO Is it correct to compare like that? *)

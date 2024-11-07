@@ -52,6 +52,7 @@ type rs_binop =
     | RsBinopMult 
     | RsBinopShiftLeft
     | RsBinopShiftRight
+    | RsBinopMod
 
 type rs_unop = 
     | RsUnopNeg
@@ -205,6 +206,7 @@ let string_of_rs_binop (binop: rs_binop) : string =
         | RsBinopMult -> "*"
         | RsBinopShiftLeft -> "<<"
         | RsBinopShiftRight -> ">>"
+        | RsBinopMod -> "%"
 
 let string_of_rs_unop (unop: rs_unop) : string =
     match unop with
