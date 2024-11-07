@@ -151,9 +151,9 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_return exp -> RsTodo
         | E_exit exp -> RsTodo
         | E_ref id -> RsTodo
-        | E_throw exp -> RsTodo
+        | E_throw exp -> RsApp(RsId "panic!", [RsLit(RsLitStr "todo_process_panic_type")])
         | E_try (exp, pexp_list) -> RsTodo
-        | E_assert (exp1, exp2) -> RsTodo
+        | E_assert (exp1, exp2) -> RsApp(RsId "assert!", [process_exp exp1;process_exp exp2])
         | E_var (lexp, exp1, exp2) -> RsTodo
         | E_internal_plet (pat, exp1, exp2) -> RsTodo
         | E_internal_return exp -> RsTodo

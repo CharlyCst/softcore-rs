@@ -68,6 +68,11 @@ function handle_retired() -> Retired = {
     RETIRE_SUCCESS
 }
 
+union exception = {
+  Error_not_implemented : string,
+  Error_internal_error  : unit
+}
+
 
 function clause execute TEST() = {
     handle_empty();
@@ -77,4 +82,7 @@ function clause execute TEST() = {
     let c = handle_int_int_bool_int(1234, 12345, false, 2);
     let d = handle_retired();
     let e = handle_union();
+
+    assert(true, "works");
+    throw Error_internal_error();
 }

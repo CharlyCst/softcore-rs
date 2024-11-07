@@ -14,6 +14,10 @@ make install
 
 It is important to choose the version 0.17.1 [link](https://ocaml.org/p/libsail/0.17.1) of libsail, otherwise the code won't compile.
 
+### Current semantic violations
+
+> Throwing an error implies a direct panic in rust. Virt-sail doesn't support the try catch semantic currently.
+
 ### Example Usage
 
 You can generate a few examples by running:

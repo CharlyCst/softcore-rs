@@ -556,7 +556,7 @@ let remove_last_unit_func_arg_exp (exp: rs_exp) : rs_exp =
   match exp with 
     | RsApp (app, args) -> let args_no_unit = List.filter (
       function 
-        | RsLit _ -> false 
+        | RsLit RsLitUnit -> false 
         | _ -> true 
     ) args in RsApp(app, args_no_unit)
     | _ -> exp
@@ -746,7 +746,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"])
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
