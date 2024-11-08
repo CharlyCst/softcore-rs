@@ -49,6 +49,8 @@ type rs_binop =
     | RsBinopAdd 
     | RsBinopSub 
     | RsBinopMult 
+    | RsBinopShiftLeft
+    | RsBinopShiftRight
 
 type rs_unop = 
     | RsUnopNeg
@@ -193,6 +195,8 @@ let string_of_rs_binop (binop: rs_binop) : string =
         | RsBinopAdd -> "+"
         | RsBinopSub -> "-"
         | RsBinopMult -> "*"
+        | RsBinopShiftLeft -> "<<"
+        | RsBinopShiftRight -> ">>"
 
 let string_of_rs_unop (unop: rs_unop) : string =
     match unop with

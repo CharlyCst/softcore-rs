@@ -5,6 +5,10 @@ pub fn not_implemented() -> ! {
     panic!("Feature not implemented yet");
 }
 
+pub fn print_output(text: &str) {
+    println!("{}", text)
+}
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitVector<const N: usize> {
     bits: u64,

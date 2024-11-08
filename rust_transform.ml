@@ -345,15 +345,15 @@ let nested_block_remover = {
 (* TODO: This list is probably incomplete and we might want to add extra fields in the future *)
 let native_func_transform_exp (exp : rs_exp) : rs_exp = 
     match exp with
-    | RsApp (RsId "add_atom", [b1;b2]) -> RsBinop(b1,RsBinopAdd,b2)
-    | RsApp (RsId "sub_atom", [b1;b2]) -> RsBinop(b1,RsBinopSub,b2)
+    | RsApp (RsId "add_atom", [e1;e2]) -> RsBinop(e1,RsBinopAdd,e2)
+    | RsApp (RsId "sub_atom", [e1;e2]) -> RsBinop(e1,RsBinopSub,e2)
     | RsApp (RsId "negate_atom", _) -> RsId "BUILTIN_atom_negate_TODO" 
-    | RsApp (RsId "mult_atom", _) -> RsId "BUILTIN_atommult_TODO" 
+    | RsApp (RsId "mult_atom", [e1;e2]) -> RsBinop(e1,RsBinopMult,e2)
     | RsApp (RsId "ediv_int", _) -> RsId "BUILTIN_atom_ediv_TODO" 
     | RsApp (RsId "emod_int", _) -> RsId "BUILTIN_atom_emod_int_TODO" 
     | RsApp (RsId "abs_int_atom", _) -> RsId "BUILTIN_atom_abs_int_TODO" 
     | RsApp (RsId "not_vec", [v]) -> RsUnop(RsUnopNeg, v)
-    | RsApp (RsId "eq_bit", _) -> RsId "BUILTIN_eq_bit_TODO"
+    | RsApp (RsId "eq_bit", [e1; e2]) -> RsBinop(e1, RsBinopEq, e2) (* TODO Is it correct to compare like that? *)
     | RsApp (RsId "eq_bool", _) -> RsId "BUILTIN_eq_bool_TODO"
     | RsApp (RsId "eq_string", _) -> RsId "BUILTIN_eq_string_TODO"
     | RsApp (RsId "eq_int", _) -> RsId "BUILTIN_eq_int_TODO"
@@ -391,8 +391,8 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "not_bits", _) -> RsId "BUILTIN_not_bits_TODO"
     | RsApp (RsId "sail_truncate", _) -> RsId "BUILTIN_sail_truncate_TODO"
     | RsApp (RsId "sail_truncateLSB", _) -> RsId "BUILTIN_sail_truncateLSB_TODO"
-    | RsApp (RsId "shiftl", _) -> RsId "BUILTIN_shiftl_TODO"
-    | RsApp (RsId "shiftr", _) -> RsId "BUILTIN_shiftr_TODO"
+    | RsApp (RsId "shiftl", [e1; e2]) -> RsBinop(e1, RsBinopShiftLeft, e2)
+    | RsApp (RsId "shiftr", [e1; e2]) -> RsBinop(e1, RsBinopShiftRight, e2)
     | RsApp (RsId "arith_shiftr", _) -> RsId "BUILTIN_arith_shiftr_TODO"
     | RsApp (RsId "and_bits", _) -> RsId "BUILTIN_and_bits_TODO"
     | RsApp (RsId "or_bits", _) -> RsId "BUILTIN_or_bits_TODO"
@@ -419,8 +419,8 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "gt_real", _) -> RsId "BUILTIN_gt_real_TODO"
     | RsApp (RsId "lteq_real", _) -> RsId "BUILTIN_lteq_real_TODO"
     | RsApp (RsId "gteq_real", _) -> RsId "BUILTIN_gteq_real_TODO"
-    | RsApp (RsId "concat_str", _) -> RsId "BUILTIN_concat_str_TODO"
-    | RsApp (RsId "print_bits", _) -> RsId "BUILTIN_print_bits_TODO"
+    | RsApp (RsId "concat_str", [s1; s2]) -> RsApp(RsId "format!", [RsId "\"{}{}\""; s1; s2]) (* There is a bug with hoisting here *)
+    | RsApp (RsId "print_bits", e) -> RsApp(RsId "print_output", e)
     | RsApp (RsId "string_of_bits", _) -> RsId "BUILTIN_string_of_bits_TODO"
     | RsApp (RsId "dec_str", _) -> RsId "BUILTIN_dec_str_TODO"
     | RsApp (RsId "hex_str", _) -> RsId "BUILTIN_hex_str_TODO"
@@ -741,7 +741,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"])
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 

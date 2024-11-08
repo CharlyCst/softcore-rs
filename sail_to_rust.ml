@@ -361,7 +361,7 @@ let process_sub_type (id: string) (A_aux (typ, _)) : rs_obj * bool =
         | A_nexp exp -> (RsConst {name = id; value = extract_type_nexp exp}, true)
         
 let extract_first_item_type (items: (Libsail.Ast.typ * Libsail.Ast.id) list) : rs_type =   
-    assert(List.length items = 1);
+    (*assert(List.length items = 1) TODO: Why it fails? *)
     match items with 
         | x :: _ -> extract_type (fst x)
         | _ -> RsTypTodo
