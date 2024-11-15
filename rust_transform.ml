@@ -426,8 +426,8 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "concat_str", [s1; s2]) -> RsApp(RsId "format!", [RsId "\"{}{}\""; s1; s2]) (* There is a bug with hoisting here *)
     | RsApp (RsId "print_bits", e) -> RsApp(RsId "print_output", e)
     | RsApp (RsId "string_of_bits", _) -> RsId "BUILTIN_string_of_bits_TODO"
-    | RsApp (RsId "dec_str", _) -> RsId "BUILTIN_dec_str_TODO"
-    | RsApp (RsId "hex_str", _) -> RsId "BUILTIN_hex_str_TODO"
+    | RsApp (RsId "dec_str", e) ->RsApp (RsId "dec_str", e) (* Handled by an external lib *)
+    | RsApp (RsId "hex_str", e) -> RsApp (RsId "hex_str", e) (* Handled by an external lib *)
     | RsApp (RsId "hex_str_upper", _) -> RsId "BUILTIN_hex_str_upper_TODO"
     | RsApp (RsId "sail_assert", _) -> RsId "BUILTIN_sail_assert_TODO"
     | RsApp (RsId "reg_deref", _) -> RsId "BUILTIN_reg_deref_TODO"

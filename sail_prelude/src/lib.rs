@@ -9,6 +9,16 @@ pub fn print_output(text: &str) {
     println!("{}", text)
 }
 
+pub fn dec_str(val: usize) -> String {
+    // Format into a normal decimal string
+    format!("{}", val) 
+}
+
+pub fn hex_str(val: usize) -> String {
+    // Format into a hexadecimal string
+    format!("{:x}", val) 
+}
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitVector<const N: usize> {
     bits: u64,
