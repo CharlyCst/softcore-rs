@@ -85,4 +85,8 @@ function clause execute TEST() = {
 
     assert(true, "works");
     throw Error_internal_error();
+
+    foreach (i from 0 to 3) {
+        let idx = i;
+    }
 }

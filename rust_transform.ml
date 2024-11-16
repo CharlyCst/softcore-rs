@@ -95,6 +95,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
         | RsSome(exp) -> RsSome (transform_exp ct exp)
         | RsNone -> RsNone
         | RsPathSeparator (t1, t2) -> RsPathSeparator (t1,t2)
+        | RsFor (var, start, until, body) ->  RsFor (var, start, until, transform_exp ct body)
         | RsTodo str -> RsTodo str
 
 and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
@@ -331,6 +332,7 @@ let nested_block_remover_exp (exp: rs_exp) : rs_exp =
         | RsIf (c, RsBlock e1, RsBlock e2) -> RsIf (c, RsInstrList e1, RsInstrList e2)
         | RsIf (c, RsBlock e1, e2) -> RsIf (c, RsInstrList e1, e2)
         | RsIf (c, e1, RsBlock e2) -> RsIf (c, e1, RsInstrList e2)
+        | RsFor (var, start, until, RsBlock b) -> RsFor(var, start, until, RsInstrList b)
         | _ -> exp 
 
 let rec nested_block_remover_pexp (pexp: rs_pexp) : rs_pexp = pexp

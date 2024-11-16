@@ -1,8 +1,13 @@
 use core::ops;
-use std::usize;
+use std::{process, usize};
 
 pub fn not_implemented() -> ! {
     panic!("Feature not implemented yet");
+}
+
+pub fn __exit() -> ! {
+    println!("Called exit, leaving the program");
+    process::exit(1)
 }
 
 pub fn print_output(text: &str) {

@@ -77,6 +77,7 @@ type rs_exp =
     | RsSome of rs_exp
     | RsNone
     | RsPathSeparator of rs_type * rs_type
+    | RsFor of rs_type * rs_lit * rs_lit * rs_exp
     | RsTodo of string
 and rs_lexp =
     | RsLexpId of string
@@ -306,6 +307,13 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
             Printf.sprintf "Some(%s)" (string_of_rs_exp n exp)
         | RsNone -> "None"
         | RsPathSeparator (t1, t2) -> Printf.sprintf "%s::%s" (string_of_rs_type t1) (string_of_rs_type t2)
+        | RsFor (var, start, until, body) -> Printf.sprintf "for %s in %s..%s {\n%s%s\n%s}"
+            (string_of_rs_type var)
+            (string_of_rs_lit start)
+            (string_of_rs_lit until)
+            (indent (n + 1))
+            (string_of_rs_exp (n + 1) body)
+            (indent n)
         | RsTodo text -> Printf.sprintf "todo!(\"%s\")" text
 and string_of_rs_lexp (n: int) (lexp: rs_lexp) : string =
     match lexp with

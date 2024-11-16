@@ -106,6 +106,11 @@ let process_vector (items: 'a exp list) : rs_lit =
         RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items)))
     else RsLitTodo
 
+let parse_order order: string = 
+    match order with
+        | Ord_aux (Ord_inc, _) -> "inc"
+        | Ord_aux (Ord_dec, _) -> "dec"
+
 let rec process_exp (E_aux (exp, aux)) : rs_exp = 
     (* print_string "Exp "; *)
     (* print_endline (string_of_exp exp); *)
@@ -113,13 +118,15 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_block exp_list -> RsBlock (List.map process_exp exp_list)
         | E_id id -> RsId (string_of_id id)
         | E_lit lit -> RsLit (process_lit lit)
-        | E_typ (typ, exp) -> RsTodo "E_typ"
+        | E_typ (typ, exp) -> RsAs(process_exp exp, extract_type typ)
         | E_app (id, exp_list) -> RsApp (RsId (string_of_id id), (List.map process_exp exp_list))
         | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
         | E_tuple (exp_list) -> RsTuple (List.map process_exp exp_list)
         | E_if (exp1, exp2, exp3) -> RsIf ((process_exp exp1), (process_exp exp2), (process_exp exp3)) 
         | E_loop (loop, measure, exp1, exp2) -> RsTodo "E_loop"
-        | E_for (id, exp1, exp2, exp3, order, exp4) -> RsTodo "E_for"
+        | E_for (id, E_aux (E_lit lit1, _), E_aux (E_lit lit2, _) , exp3, order, exp4) ->  assert(string_of_exp exp3 ="1"); assert(parse_order order = "inc");
+           RsFor (RsTypId(string_of_id id), process_lit lit1, process_lit lit2, process_exp exp4 )(* TODO: Implement a more general for loop*)
+        | E_for (_,_,_,_,_,_) -> RsTodo "E_for"
         | E_vector (exp_list) -> RsLit (process_vector exp_list)
         | E_vector_access (exp1, exp2) -> RsTodo "E_vector_access"
         | E_vector_subrange (exp1, exp2, exp3) -> RsTodo "E_vector_subrange"
@@ -149,7 +156,7 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
             ))
         | E_sizeof nexp -> RsTodo "E_sizeof"
         | E_return exp -> RsTodo "E_return"
-        | E_exit exp -> RsTodo "E_exit"
+        | E_exit exp -> RsApp(RsId "__exit" , [])
         | E_ref id -> RsTodo "E_ref"
         | E_throw exp -> RsApp(RsId "panic!", [RsLit(RsLitStr "todo_process_panic_type")])
         | E_try (exp, pexp_list) -> RsTodo "E_try"
