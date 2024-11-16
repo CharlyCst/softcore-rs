@@ -113,23 +113,23 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_block exp_list -> RsBlock (List.map process_exp exp_list)
         | E_id id -> RsId (string_of_id id)
         | E_lit lit -> RsLit (process_lit lit)
-        | E_typ (typ, exp) -> RsTodo
+        | E_typ (typ, exp) -> RsTodo "E_typ"
         | E_app (id, exp_list) -> RsApp (RsId (string_of_id id), (List.map process_exp exp_list))
-        | E_app_infix (exp1, id, exp2) -> RsTodo
+        | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
         | E_tuple (exp_list) -> RsTuple (List.map process_exp exp_list)
         | E_if (exp1, exp2, exp3) -> RsIf ((process_exp exp1), (process_exp exp2), (process_exp exp3)) 
-        | E_loop (loop, measure, exp1, exp2) -> RsTodo
-        | E_for (id, exp1, exp2, exp3, order, exp4) -> RsTodo
+        | E_loop (loop, measure, exp1, exp2) -> RsTodo "E_loop"
+        | E_for (id, exp1, exp2, exp3, order, exp4) -> RsTodo "E_for"
         | E_vector (exp_list) -> RsLit (process_vector exp_list)
-        | E_vector_access (exp1, exp2) -> RsTodo
-        | E_vector_subrange (exp1, exp2, exp3) -> RsTodo
-        | E_vector_update (exp1, exp2, exp3) -> RsTodo
-        | E_vector_update_subrange (exp1 ,exp2, exp3, exp4) -> RsTodo
-        | E_vector_append (exp1 ,exp2) -> RsTodo
-        | E_list (exp_list) -> RsTodo
-        | E_cons (exp1, exp2) -> RsTodo
-        | E_struct (fexp_list) -> RsTodo
-        | E_struct_update (exp, fexp_list) -> RsTodo
+        | E_vector_access (exp1, exp2) -> RsTodo "E_vector_access"
+        | E_vector_subrange (exp1, exp2, exp3) -> RsTodo "E_vector_subrange"
+        | E_vector_update (exp1, exp2, exp3) -> RsTodo "E_vector_update"
+        | E_vector_update_subrange (exp1 ,exp2, exp3, exp4) -> RsTodo "E_update_subrange"
+        | E_vector_append (exp1 ,exp2) -> RsTodo "E_vector_append"
+        | E_list (exp_list) -> RsTodo "E_list"
+        | E_cons (exp1, exp2) -> RsTodo "E_cons"
+        | E_struct (fexp_list) -> RsTodo "E_struct"
+        | E_struct_update (exp, fexp_list) -> RsTodo "E_struct_udpate"
         | E_field (exp, id) -> RsField ((process_exp exp), (string_of_id id))
         | E_match (exp, pexp_list)
             -> (RsMatch (
@@ -147,19 +147,19 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
                 (process_lexp lexp),
                 (process_exp exp)
             ))
-        | E_sizeof nexp -> RsTodo
-        | E_return exp -> RsTodo
-        | E_exit exp -> RsTodo
-        | E_ref id -> RsTodo
+        | E_sizeof nexp -> RsTodo "E_sizeof"
+        | E_return exp -> RsTodo "E_return"
+        | E_exit exp -> RsTodo "E_exit"
+        | E_ref id -> RsTodo "E_ref"
         | E_throw exp -> RsApp(RsId "panic!", [RsLit(RsLitStr "todo_process_panic_type")])
-        | E_try (exp, pexp_list) -> RsTodo
+        | E_try (exp, pexp_list) -> RsTodo "E_try"
         | E_assert (exp1, exp2) -> RsApp(RsId "assert!", [process_exp exp1;process_exp exp2])
-        | E_var (lexp, exp1, exp2) -> RsTodo
-        | E_internal_plet (pat, exp1, exp2) -> RsTodo
-        | E_internal_return exp -> RsTodo
-        | E_internal_value value -> RsTodo
-        | E_internal_assume (n_constraint, exp) -> RsTodo
-        | E_constraint n_constraint -> RsTodo
+        | E_var (lexp, exp1, exp2) -> RsTodo "E_var"
+        | E_internal_plet (pat, exp1, exp2) -> RsTodo "E_internal_plet"
+        | E_internal_return exp -> RsTodo "E_internal_return"
+        | E_internal_value value -> RsTodo "E_internal_value"
+        | E_internal_assume (n_constraint, exp) -> RsTodo "E_internal_assume"
+        | E_constraint n_constraint -> RsTodo "E_constraint"
 and process_lexp (LE_aux (lexp, annot)) : rs_lexp =
     match lexp with
         | LE_id id -> RsLexpId (string_of_id id)

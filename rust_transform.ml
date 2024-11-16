@@ -95,7 +95,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
         | RsSome(exp) -> RsSome (transform_exp ct exp)
         | RsNone -> RsNone
         | RsPathSeparator (t1, t2) -> RsPathSeparator (t1,t2)
-        | RsTodo -> RsTodo
+        | RsTodo str -> RsTodo str
 
 and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
     let args = List.map (transform_exp ct) args in
@@ -474,7 +474,7 @@ let rec hoistise (exp: rs_exp list) : rs_exp list * rs_exp list =
     | e :: arr -> 
         let ident = variable_generator () in 
         let (l1, l2) = hoistise arr in
-        (RsLet (RsPatId ident, e, RsTodo) :: l1, RsId ident :: l2)
+        (RsLet (RsPatId ident, e, RsTodo "hoistise") :: l1, RsId ident :: l2)
     | [] -> ([], [])
 
 let rec generate_hoistised_block (exp: rs_exp list) (app) : rs_exp = 
@@ -746,7 +746,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"])
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
