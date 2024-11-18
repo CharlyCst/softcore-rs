@@ -398,10 +398,14 @@ let extract_type_nexp (Nexp_aux (nexp, _)): string =
      match nexp with
         | Nexp_constant n -> string_of_int (Nat_big_num.to_int n)
         | _ -> "TodoNumExpr"
+
+let extract_type_no_unit typ = match extract_type typ with
+    | RsTypUnit -> RsTypId "()"
+    | e -> e
                 
 let process_sub_type (id: string) (A_aux (typ, _)) : rs_obj * bool =
     match typ with
-        | A_typ typ -> (RsAlias {new_typ = id; old_type = extract_type typ }, true)
+        | A_typ typ -> (RsAlias {new_typ = id; old_type = extract_type_no_unit typ }, true)
         | A_bool b -> (RsConst {name = "todo"; value = "todo"}, true)
         | A_nexp exp -> (RsConst {name = id; value = extract_type_nexp exp}, true)
         
