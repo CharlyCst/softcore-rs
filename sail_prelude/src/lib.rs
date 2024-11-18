@@ -28,9 +28,21 @@ pub fn bitvector_access<const N: usize>(vec: BitVector<N>, idx: usize) -> bool {
     (vec.bits() & (1 << idx)) > 0
 }
 
+pub fn update_subrange_bits<const N: usize>(bits: usize, from: usize, to: usize, value: BitVector<N>) -> usize {
+    assert!(from - to + 1 == N, "size don't match");
+
+    // Generate the 111111 mask
+    let mut mask = (1 << (N+1)) - 1;
+    // Shit and invert it
+    mask = !(mask << from);
+    
+    // Now we can update and return the updated value
+    return (bits & mask) | (value.bits() << from) as usize
+}
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitVector<const N: usize> {
-    bits: u64,
+    pub bits: u64,
 }
 
 impl<const N: usize> BitVector<N> {

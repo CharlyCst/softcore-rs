@@ -158,6 +158,9 @@ riscv: build
 generate: build
 	./virt-sail sail_arch/mret.sail -o ./rust_arch/mret/src/sail.rs
 
+riscv-c:  
+	sail -c $(RISCV_SAIL_SRCS) 1> riscv_c.c 
+
 verify: build
 	cd rust_arch/mret && cargo kani 
 

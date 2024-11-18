@@ -73,6 +73,11 @@ union exception = {
   Error_internal_error  : unit
 }
 
+struct My_struct = {
+  field1 : bits(5),
+  field2 : int,
+  field3 : string,
+}
 
 function clause execute TEST() = {
     handle_empty();
@@ -88,5 +93,11 @@ function clause execute TEST() = {
 
     foreach (i from 0 to 3) {
         let idx = i;
-    }
+    };
+
+    let s : My_struct = struct {
+        field1 = 0b11111,
+        field2 = 5,
+        field3 = "test",
+    };
 }

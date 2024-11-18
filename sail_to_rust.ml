@@ -117,8 +117,9 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_vector_append (exp1 ,exp2) -> RsTodo "E_vector_append"
         | E_list (exp_list) -> RsTodo "E_list"
         | E_cons (exp1, exp2) -> RsTodo "E_cons"
-        | E_struct (fexp_list) -> RsTodo "E_struct"
-        | E_struct_update (exp, fexp_list) -> RsTodo "E_struct_udpate"
+        | E_struct fexp_list -> RsStruct (RsTypId "add_struct_name", process_fexp_entries fexp_list)
+        | E_struct_update (exp, fexp_list) ->
+            RsInstrList (List.map (fun (field_name, exp_arg) -> RsStructAssign (process_exp exp, field_name, exp_arg)) (process_fexp_entries fexp_list))
         | E_field (exp, id) -> RsField ((process_exp exp), (string_of_id id))
         | E_match (exp, pexp_list)
             -> (RsMatch (
@@ -211,8 +212,10 @@ and process_vector (items: 'a exp list) : rs_exp =
         let init_type = RsId (Printf.sprintf "BitVector::<%d>::new_empty()" vector_length) in
         let init_expr = RsInstrList ((parse_arguments 0 items) @ [ RsId "__generated_vector"]) in
         RsBlock[RsLet (RsPatType (RsTypGenericParam ("vector", [RsTypParamNum vector_length]), RsPatId "__generated_vector"), init_type, init_expr)]
-
-
+and process_fexp_entries (fexps: 'a Libsail.Ast.fexp list) : (string * rs_exp) list =
+    match fexps with
+    | (FE_aux (FE_fexp (id, exp), _)) :: r -> (string_of_id id, process_exp exp) :: process_fexp_entries r
+    | [] -> []
 
 (* Return the ID of an application pattern as a string, or "" otherwise. *)
 let pat_app_name (P_aux (pat_aux, _)) =

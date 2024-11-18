@@ -96,6 +96,8 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
         | RsNone -> RsNone
         | RsPathSeparator (t1, t2) -> RsPathSeparator (t1,t2)
         | RsFor (var, start, until, body) ->  RsFor (var, start, until, transform_exp ct body)
+        | RsStruct (typ, entries) -> RsStruct(transform_type ct typ, entries) (*TODO: Apply transform here as well*)
+        | RsStructAssign (e1, name, e2) -> RsStructAssign(transform_exp ct e1, name, transform_exp ct e2)
         | RsTodo str -> RsTodo str
 
 and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
@@ -750,7 +752,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"])
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
