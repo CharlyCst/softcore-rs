@@ -383,9 +383,11 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "tmod_int", _) -> RsId "BUILTIN_tmod_int_TODO"
     | RsApp (RsId "pow2", _) -> RsId "BUILTIN_pow2_TODO"
     | RsApp (RsId "zeros", _) -> RsId "BUILTIN_zeros_TODO"
-    | RsApp (RsId "ones", _) -> RsId "BUILTIN_ones_TODO"
-    | RsApp (RsId "zero_extend", _) -> RsId "BUILTIN_zero_extend_TODO"
-    | RsApp (RsId "sign_extend", _) -> RsId "BUILTIN_sign_extend_TODO"
+    (*| RsApp (RsId "ones", e) -> RsApp (RsId "ones", e) Handled by the integrated library *) 
+    (* Implemented in lib.sail *)
+    (*| RsApp (RsId "zero_extend", e) -> RsApp (RsId "zero_extend", e)
+    | RsApp (RsId "sign_extend", e) -> RsApp (RsId "sign_extend", e) 
+    | RsApp (RsId "sail_ones", e) -> RsApp (RsId "sail_ones", e) *)
     | RsApp (RsId "sail_signed", _) -> RsId "BUILTIN_sail_signed_TODO"
     | RsApp (RsId "sail_unsigned", _) -> RsId "BUILTIN_sail_unsigned_TODO"
     | RsApp (RsId "slice", _) -> RsId "BUILTIN_slice_TODO"
@@ -673,7 +675,7 @@ let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List
 
 (* ———————————————————————— prelude_func_filter  ————————————————————————— *)
 
-let prelude_func: StringSet.t = StringSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"])
+let prelude_func: StringSet.t = StringSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"])
 
 let rust_prelude_func_filter_alias (obj: rs_obj) : rs_program = 
     match obj with
@@ -752,7 +754,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"])
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 

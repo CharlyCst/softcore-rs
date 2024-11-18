@@ -28,6 +28,18 @@ pub fn bitvector_access<const N: usize>(vec: BitVector<N>, idx: usize) -> bool {
     (vec.bits() & (1 << idx)) > 0
 }
 
+pub fn zero_extend<const M: usize>(input: BitVector<M>) -> BitVector<64> {
+    BitVector::<64>::new(input.bits())
+}
+
+pub fn sign_extend<const M: usize>(input: BitVector<M>) -> BitVector<64> {
+    BitVector::<64>::new(input.bits())
+}
+
+pub fn sail_ones<const N: usize>(n: usize) -> BitVector<N> {
+    !BitVector::<N>::new(0)
+}
+
 pub fn update_subrange_bits<const N: usize>(bits: usize, from: usize, to: usize, value: BitVector<N>) -> usize {
     assert!(from - to + 1 == N, "size don't match");
 
