@@ -9,7 +9,7 @@ type rs_type =
     | RsTypGenericParam of string * rs_type_param list
     | RsTypArray of rs_type_param * rs_type_param
     | RsTypOption of rs_type_param
-    | RsTypTodo 
+    | RsTypTodo of string
 and  rs_type_param =
     | RsTypParamTyp of rs_type
     | RsTypParamNum of int
@@ -33,7 +33,7 @@ type rs_pat =
     | RsPatWildcard
     | RsPatTuple of rs_pat list
     | RsPatApp of rs_pat * rs_pat list
-    | RsPatTodo
+    | RsPatTodo of string
 
 type rs_binop =
     | RsBinopEq
@@ -162,7 +162,7 @@ let rec string_of_rs_type (typ: rs_type) : string =
                 (String.concat ", " (List.map string_of_rs_type_param params))
         | RsTypArray (typ, size) -> Printf.sprintf "[%s;%s]" (string_of_rs_type_param typ) (string_of_rs_type_param size)
         | RsTypOption param -> Printf.sprintf "Option<%s>" (string_of_rs_type_param param)
-        | RsTypTodo -> "TYPE_TODO"
+        | RsTypTodo e -> e
 and string_of_rs_type_param (typ: rs_type_param) : string =
     match typ with
         | RsTypParamTyp typ -> string_of_rs_type typ
@@ -189,7 +189,7 @@ let rec string_of_rs_pat (pat: rs_pat) : string =
         | RsPatTuple pats ->
             Printf.sprintf "(%s)" (String.concat ", " (List.map string_of_rs_pat pats))
         | RsPatApp (name, arg) -> Printf.sprintf "%s(%s)" (string_of_rs_pat name)  "arguments"
-        | RsPatTodo -> "PAT_TODO"
+        | RsPatTodo text -> Printf.sprintf "%s" text
 
 let string_of_rs_binop (binop: rs_binop) : string =
     match binop with

@@ -80,7 +80,9 @@ let rec extract_type (Typ_aux (typ, _)): rs_type =
                 RsTypArray (typ,size)
             else 
                 RsTypGenericParam ((string_of_id id), (List.map extract_type_arg params))
-        | _ -> RsTypTodo
+        | Typ_internal_unknown -> RsTypId "TodoUnknownType"
+        | Typ_bidir (_, _) -> RsTypId "TodoBidirType"
+        | Typ_exist (_, _, typ) -> extract_type typ
 and extract_type_arg (A_aux (typ, _)): rs_type_param =
     match typ with
         | A_nexp exp -> extract_type_nexp exp
@@ -106,7 +108,7 @@ let extract_types (TypSchm_aux (typeschm, _)) : rs_fn_type =
     let Typ_aux (typ, _) = typ in
     match typ with 
         | Typ_fn (args, ret) -> ((List.map extract_type args), extract_type ret)
-        | _ -> ([RsTypTodo], RsTypTodo)
+        | _ -> ([RsTypTodo "todo_extract_types"], RsTypTodo "todo_extract_types")
 
 let val_fun_def (val_spec: val_spec_aux) : defmap =
     let map = SMap.empty in

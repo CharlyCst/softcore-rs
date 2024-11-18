@@ -22,7 +22,7 @@ let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat =
         | RsPatLit l -> RsPatLit l
         | RsPatId id -> RsPatId id
         | RsPatApp (name, args) -> RsPatApp(transform_pat ct name, List.map (fun p -> transform_pat ct p) args)
-        | RsPatTodo -> RsPatTodo
+        | RsPatTodo text -> RsPatTodo text
 
 and transform_lexp (ct: expr_type_transform) (lexp: rs_lexp): rs_lexp =
     let lexp = ct.lexp lexp in
@@ -171,7 +171,7 @@ and transform_type (ct: expr_type_transform) (typ: rs_type) : rs_type =
         | RsTypId "unit" -> RsTypUnit
         | RsTypId id -> RsTypId id
         | RsTypUnit -> RsTypUnit
-        | RsTypTodo -> RsTypTodo
+        | RsTypTodo e -> RsTypTodo e
         | RsTypTuple types -> RsTypTuple (List.map (transform_type ct) types)
         | RsTypGeneric typ -> RsTypGeneric typ
         | RsTypGenericParam (typ, e::params) when typ = "option" -> RsTypOption e
@@ -378,7 +378,7 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "neg_int", _) -> RsId "BUILTIN_neg_int_TODO"
     | RsApp (RsId "abs_int", _) -> RsId "BUILTIN_abs_int_TODO"
     | RsApp (RsId "max_int", _) -> RsId "BUILTIN_max_int_TODO"
-    | RsApp (RsId "min_int", _) -> RsId "BUILTIN_min_int_TODO"
+    (*| RsApp (RsId "min_int", _) -> RsId "BUILTIN_min_int_TODO" *)
     | RsApp (RsId "tdiv_int", _) -> RsId "BUILTIN_tdiv_int_TODO"
     | RsApp (RsId "tmod_int", _) -> RsId "BUILTIN_tmod_int_TODO"
     | RsApp (RsId "pow2", _) -> RsId "BUILTIN_pow2_TODO"
@@ -754,7 +754,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"])
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 

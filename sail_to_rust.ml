@@ -228,26 +228,30 @@ let rec process_id_pat_list id_pat_list =
         | (id, pat) :: t -> print_string "id/pat:"; print_id id; process_id_pat_list t
         | _ -> ()
 
-let process_args_pat_list (P_aux (pat_aux, annot)) : string = 
-    match pat_aux with
-        | P_id id -> string_of_id id
-        | P_typ (_, P_aux (P_id id  , _)) -> string_of_id id
-        | P_tuple _ -> "TodoTupleArg"
-        | _ -> "TodoArg"
-
 let rec process_args_pat (P_aux (pat_aux, annot)) : string list = 
     match pat_aux with
-        | P_app (id, [P_aux ((P_tuple pats), _)]) -> List.map process_args_pat_list pats
+        | P_app (id, [P_aux ((P_tuple pats), _)]) -> 
+            let pat_output = List.map process_pat pats in
+            List.map string_of_rs_pat pat_output
         | P_app _ -> ["TodoArgsApp"]
         | P_struct (id_pat_list, field_pat_wildcard) -> ["TodoArgsStruct"]
         | P_list pats -> ["TodoArgsList"]
         | P_var (var, typ) -> ["TodoArgsVar"]
         | P_cons (h, t) -> ["TodoArgsCons"]
-        | P_tuple pats -> List.map process_args_pat_list pats
+        | P_tuple pats -> 
+            let pat_output = List.map process_pat pats in
+            List.map string_of_rs_pat pat_output
         | P_id id -> [string_of_id id]
         | P_typ (_, recur) -> process_args_pat recur
         | P_lit lit -> ["TodoLiteral"]
-        | _ -> ["TodoArgs"]  
+        | P_wild -> ["_"]
+        | P_or (_, _) -> ["TodoOr"]
+        | P_not _ -> ["TodoNot"]
+        | P_as (_, _) -> ["TodoAs"]
+        | P_vector vec -> [string_of_rs_pat(RsPatLit (process_vector_pat vec))]
+        | P_vector_concat _ -> ["TodoVectorConcat"]
+        | P_vector_subrange (_, _, _) -> ["TodoVectorSubrange"]
+        | P_string_append _  -> ["TodoStringAppend"]
 
 type function_kind =
     | FunKindFunc
@@ -405,7 +409,7 @@ let extract_first_item_type (items: (Libsail.Ast.typ * Libsail.Ast.id) list) : r
     (*assert(List.length items = 1) TODO: Why it fails? *)
     match items with 
         | x :: _ -> extract_type (fst x)
-        | _ -> RsTypTodo
+        | _ -> RsTypTodo "type_extract_first_item_type"
     
 let process_type_name_type (TD_aux (typ, _)) : (rs_obj * bool) =
     match typ with

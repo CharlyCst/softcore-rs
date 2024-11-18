@@ -1,5 +1,5 @@
 use core::ops;
-use std::{process, usize};
+use std::{cmp::min, process, usize};
 
 pub fn not_implemented() -> ! {
     panic!("Feature not implemented yet");
@@ -38,6 +38,10 @@ pub fn sign_extend<const M: usize>(input: BitVector<M>) -> BitVector<64> {
 
 pub fn sail_ones<const N: usize>(n: usize) -> BitVector<N> {
     !BitVector::<N>::new(0)
+}
+
+pub fn min_int(v1: usize, v2: usize) -> usize {
+    min(v1, v2)
 }
 
 pub fn update_subrange_bits<const N: usize>(bits: usize, from: usize, to: usize, value: BitVector<N>) -> usize {
