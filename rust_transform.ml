@@ -308,6 +308,8 @@ let rec bitvec_transform_type (typ: rs_type) : rs_type =
     match typ with
         | RsTypGenericParam ("bitvector", t) -> RsTypGenericParam ("BitVector", t)
         | RsTypGenericParam ("bits", t) -> RsTypGenericParam ("BitVector", t)
+        (* todo: This violate the fact that vector or bits != bitvector. Change it in the future *)
+        | RsTypGenericParam ("vector", t) -> RsTypGenericParam ("BitVector", t)
         
         (* TODO: once we resolve type aliasing we can remove those manual conversions *)
         | RsTypId "regbits" -> RsTypGenericParam ("BitVector", [RsTypParamNum 5])

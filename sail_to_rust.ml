@@ -87,24 +87,6 @@ let rec process_pat (P_aux (pat, annot)) : rs_pat =
         | P_string_append _ -> RsPatId "TODO_PAT_string_append"
         | P_struct (_, _) -> RsPatId "TODO_PAT_struct"
 
-let process_vector (items: 'a exp list) : rs_lit =
-    let is_only_bits acc exp = match exp with
-        | E_aux (E_lit(L_aux(lit, _)), _) -> (match lit with
-            | L_zero -> acc
-            | L_one -> acc
-            | _ -> false)
-        | _ -> false
-    in
-    let string_of_bit (E_aux (exp, _)) = match exp with
-        | E_lit (L_aux (lit, _)) -> (match lit with
-            | L_zero -> "0"
-            | L_one -> "1"
-            | _ -> "x")
-        | _ -> "X"
-    in
-    if (List.fold_left is_only_bits true items) then
-        RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items)))
-    else RsLitTodo
 
 let parse_order order: string = 
     match order with
@@ -127,7 +109,7 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_for (id, E_aux (E_lit lit1, _), E_aux (E_lit lit2, _) , exp3, order, exp4) ->  assert(string_of_exp exp3 ="1"); assert(parse_order order = "inc");
            RsFor (RsTypId(string_of_id id), process_lit lit1, process_lit lit2, process_exp exp4 )(* TODO: Implement a more general for loop*)
         | E_for (_,_,_,_,_,_) -> RsTodo "E_for"
-        | E_vector (exp_list) -> RsLit (process_vector exp_list)
+        | E_vector (exp_list) -> process_vector exp_list
         | E_vector_access (exp1, exp2) -> RsTodo "E_vector_access"
         | E_vector_subrange (exp1, exp2, exp3) -> RsTodo "E_vector_subrange"
         | E_vector_update (exp1, exp2, exp3) -> RsTodo "E_vector_update"
@@ -201,6 +183,34 @@ and process_pexp (Pat_aux (pexp, annot)) : rs_pexp =
                 (process_exp exp1),
                 (process_exp exp2)
             ))
+(* todo: Currently we assume that all vectors are vector of bits, in the future we should make this function more general*)
+and process_vector (items: 'a exp list) : rs_exp =
+    let is_only_bits acc exp = match exp with
+        | E_aux (E_lit(L_aux(lit, _)), _) -> (match lit with
+            | L_zero -> acc
+            | L_one -> acc
+            | _ -> false)
+        | _ -> false
+    in
+    let is_literral = (List.fold_left is_only_bits true items) in
+    let string_of_bit (E_aux (exp, _)) = match exp with
+        | E_lit (L_aux (lit, _)) -> (match lit with
+            | L_zero -> "0"
+            | L_one -> "1"
+            | _ -> "x")
+        | _ -> "X"
+    in
+    let vector_length = List.length items in
+    let rec parse_arguments (idx: int) (elements: 'a exp list) : rs_exp list = match elements with
+        | e1 :: e -> RsMethodApp(RsId "__generated_vector", "set_vector_entry", [RsLit(RsLitNum (Int64.of_int idx)); process_exp (e1)]) :: parse_arguments (idx+1) (e)
+        | [] -> []
+    in 
+    if is_literral then
+        RsLit(RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items))))
+    else 
+        let init_type = RsId (Printf.sprintf "BitVector::<%d>::new_empty()" vector_length) in
+        let init_expr = RsInstrList ((parse_arguments 0 items) @ [ RsId "__generated_vector"]) in
+        RsBlock[RsLet (RsPatType (RsTypGenericParam ("vector", [RsTypParamNum vector_length]), RsPatId "__generated_vector"), init_type, init_expr)]
 
 
 

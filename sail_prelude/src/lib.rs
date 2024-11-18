@@ -24,6 +24,10 @@ pub fn hex_str(val: usize) -> String {
     format!("{:x}", val) 
 }
 
+pub fn bitvector_access<const N: usize>(vec: BitVector<N>, idx: usize) -> bool {
+    (vec.bits() & (1 << idx)) > 0
+}
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitVector<const N: usize> {
     bits: u64,
@@ -41,12 +45,25 @@ impl<const N: usize> BitVector<N> {
         Self { bits: val }
     }
 
+    pub const fn new_empty() -> Self {
+        Self { bits: 0}
+    }
+
     pub const fn bits(self) -> u64 {
         self.bits
     }
 
     pub const fn as_usize(self) -> usize {
         self.bits as usize
+    }
+
+    pub fn set_vector_entry(&mut self, idx: usize, value: bool) {
+        assert!(idx < N, "Out of bounds array check");
+        if value {
+            self.bits |= 1u64 << idx;
+        } else {
+            self.bits &= !(1u64 << idx);
+        }
     }
 
     pub const fn subrange<const A: usize, const B: usize, const C: usize>(self) -> BitVector<C> {

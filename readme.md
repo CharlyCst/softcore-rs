@@ -18,6 +18,9 @@ It is important to choose the version 0.17.1 [link](https://ocaml.org/p/libsail/
 
 > Throwing an error implies a direct panic in rust. Virt-sail doesn't support the try catch semantic currently.
 
+> Currently we don't make a difference between bitvector and vector of bits (according to the documentation: "Note that a generic vector of bits and a bitvector are not the same type, despite us being able to write them using the same syntax. This means you cannot write a function that is polymorphic over both generic vectors and bitvectors). This is because we typically want these types to have very different representations in our various Sail backends, and we don’t want to be forced into a compilation strategy that requires monomorphising such functions.")
+
+
 ### Example Usage
 
 You can generate a few examples by running:
