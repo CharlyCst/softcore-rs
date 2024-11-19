@@ -5,6 +5,10 @@ open Rust_gen
 
 module StringSet = Set.Make(String)
 
+(* ————————————————————————— List of external expressions —————————————————————————— *)
+
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"])
+
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
 type expr_type_transform = {
@@ -96,7 +100,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
         | RsNone -> RsNone
         | RsPathSeparator (t1, t2) -> RsPathSeparator (t1,t2)
         | RsFor (var, start, until, body) ->  RsFor (var, start, until, transform_exp ct body)
-        | RsStruct (typ, entries) -> RsStruct(transform_type ct typ, entries) (*TODO: Apply transform here as well*)
+        | RsStruct (typ, entries) -> RsStruct(transform_type ct typ, List.map (fun (s,e) -> (s, transform_exp ct e)) entries)
         | RsStructAssign (e1, name, e2) -> RsStructAssign(transform_exp ct e1, name, transform_exp ct e2)
         | RsTodo str -> RsTodo str
 
@@ -493,8 +497,9 @@ let rec generate_hoistised_block (exp: rs_exp list) (app) : rs_exp =
 
 let expr_hoister (exp: rs_exp) : rs_exp = 
     match exp with
-        | RsApp (name, args) when contains_func args -> let ret = hoistise args in 
-            RsBlock[generate_hoistised_block (fst ret) (RsApp (name, snd ret))]
+        (* We dont need to hoistise external functions & some macro might not work with hoisting (for example: format!)*)
+        | RsApp (RsId name, args) when contains_func args && not(StringSet.mem name external_func) -> let ret = hoistise args in 
+            RsBlock[generate_hoistised_block (fst ret) (RsApp (RsId name, snd ret))]
         | RsMethodApp (name,met, args) when contains_func args -> let ret = hoistise args in 
             RsBlock[generate_hoistised_block (fst ret) (RsMethodApp (name,met, snd ret))]
         | _ -> exp
@@ -752,9 +757,6 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 }
 
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
-
-
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"])
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
