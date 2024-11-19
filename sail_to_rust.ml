@@ -228,19 +228,25 @@ let rec process_id_pat_list id_pat_list =
         | (id, pat) :: t -> print_string "id/pat:"; print_id id; process_id_pat_list t
         | _ -> ()
 
+let rec extract_pat_name (pat: rs_pat) : string =
+    match pat with
+        | RsPatLit lit -> string_of_rs_lit lit
+        | RsPatId id-> id
+        | RsPatType (typ, pat) -> (string_of_rs_pat pat) 
+        | RsPatWildcard -> "_"
+        | _ -> failwith "Implement this part"
+
+let process_args_pat_list value : string = (extract_pat_name (process_pat value))
+        
 let rec process_args_pat (P_aux (pat_aux, annot)) : string list = 
     match pat_aux with
-        | P_app (id, [P_aux ((P_tuple pats), _)]) -> 
-            let pat_output = List.map process_pat pats in
-            List.map string_of_rs_pat pat_output
+        | P_app (id, [P_aux ((P_tuple pats), _)]) -> List.map process_args_pat_list pats
         | P_app _ -> ["TodoArgsApp"]
         | P_struct (id_pat_list, field_pat_wildcard) -> ["TodoArgsStruct"]
         | P_list pats -> ["TodoArgsList"]
         | P_var (var, typ) -> ["TodoArgsVar"]
         | P_cons (h, t) -> ["TodoArgsCons"]
-        | P_tuple pats -> 
-            let pat_output = List.map process_pat pats in
-            List.map string_of_rs_pat pat_output
+        | P_tuple pats -> List.map process_args_pat_list pats
         | P_id id -> [string_of_id id]
         | P_typ (_, recur) -> process_args_pat recur
         | P_lit lit -> ["TodoLiteral"]
