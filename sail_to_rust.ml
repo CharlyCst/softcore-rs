@@ -87,29 +87,28 @@ let rec process_pat (P_aux (pat, annot)) : rs_pat =
         | P_string_append _ -> RsPatId "TODO_PAT_string_append"
         | P_struct (_, _) -> RsPatId "TODO_PAT_struct"
 
-
 let parse_order order: string = 
     match order with
         | Ord_aux (Ord_inc, _) -> "inc"
         | Ord_aux (Ord_dec, _) -> "dec"
 
-let rec process_exp (E_aux (exp, aux)) : rs_exp = 
+let rec process_exp (ctx: context) (E_aux (exp, aux)) : rs_exp = 
     (* print_string "Exp "; *)
     (* print_endline (string_of_exp exp); *)
     match exp with
-        | E_block exp_list -> RsBlock (List.map process_exp exp_list)
+        | E_block exp_list -> RsBlock (List.map (process_exp ctx) exp_list)
         | E_id id -> RsId (string_of_id id)
         | E_lit lit -> RsLit (process_lit lit)
-        | E_typ (typ, exp) -> RsAs(process_exp exp, extract_type typ)
-        | E_app (id, exp_list) -> RsApp (RsId (string_of_id id), (List.map process_exp exp_list))
+        | E_typ (typ, exp) -> RsAs(process_exp ctx exp, extract_type typ)
+        | E_app (id, exp_list) -> RsApp (RsId (string_of_id id), (List.map (process_exp ctx) exp_list))
         | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
-        | E_tuple (exp_list) -> RsTuple (List.map process_exp exp_list)
-        | E_if (exp1, exp2, exp3) -> RsIf ((process_exp exp1), (process_exp exp2), (process_exp exp3)) 
+        | E_tuple (exp_list) -> RsTuple (List.map (process_exp ctx) exp_list)
+        | E_if (exp1, exp2, exp3) -> RsIf ((process_exp ctx exp1), (process_exp ctx exp2), (process_exp ctx exp3)) 
         | E_loop (loop, measure, exp1, exp2) -> RsTodo "E_loop"
         | E_for (id, E_aux (E_lit lit1, _), E_aux (E_lit lit2, _) , exp3, order, exp4) ->  assert(string_of_exp exp3 ="1"); assert(parse_order order = "inc");
-           RsFor (RsTypId(string_of_id id), process_lit lit1, process_lit lit2, process_exp exp4 )(* TODO: Implement a more general for loop*)
+           RsFor (RsTypId(string_of_id id), process_lit lit1, process_lit lit2, process_exp ctx exp4 )(* TODO: Implement a more general for loop*)
         | E_for (_,_,_,_,_,_) -> RsTodo "E_for"
-        | E_vector (exp_list) -> process_vector exp_list
+        | E_vector (exp_list) -> process_vector ctx exp_list
         | E_vector_access (exp1, exp2) -> RsTodo "E_vector_access"
         | E_vector_subrange (exp1, exp2, exp3) -> RsTodo "E_vector_subrange"
         | E_vector_update (exp1, exp2, exp3) -> RsTodo "E_vector_update"
@@ -117,25 +116,33 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_vector_append (exp1 ,exp2) -> RsTodo "E_vector_append"
         | E_list (exp_list) -> RsTodo "E_list"
         | E_cons (exp1, exp2) -> RsTodo "E_cons"
-        | E_struct fexp_list -> RsStruct (RsTypId "add_struct_name", process_fexp_entries fexp_list)
+        | E_struct fexp_list -> RsStruct (ctx.ret_type, process_fexp_entries ctx fexp_list)
         | E_struct_update (exp, fexp_list) ->
-            RsInstrList (List.map (fun (field_name, exp_arg) -> RsStructAssign (process_exp exp, field_name, exp_arg)) (process_fexp_entries fexp_list))
-        | E_field (exp, id) -> RsField ((process_exp exp), (string_of_id id))
+            RsInstrList (List.map (fun (field_name, exp_arg) -> RsStructAssign (process_exp ctx exp, field_name, exp_arg)) (process_fexp_entries ctx fexp_list))
+        | E_field (exp, id) -> RsField ((process_exp ctx exp), (string_of_id id))
         | E_match (exp, pexp_list)
             -> (RsMatch (
-                (process_exp exp),
-                (List.map process_pexp pexp_list)
+                (process_exp ctx exp),
+                (List.map (process_pexp ctx) pexp_list)
             ))
         | E_let (LB_aux (LB_val (let_var, let_exp), _), exp)
-            -> (RsLet (
-                (process_pat let_var),
-                (process_exp let_exp),
-                (process_exp exp)
+            -> 
+            let new_pat = process_pat let_var in
+            let new_pat = match new_pat with 
+                | RsPatType (typ, exp) -> 
+                    ctx.ret_type <- typ; 
+                    RsPatType (typ, exp)
+                | _ -> new_pat
+            in
+            (RsLet (
+                (new_pat),
+                (process_exp ctx let_exp),
+                (process_exp ctx exp)
             ))
         | E_assign (lexp, exp) -> 
             (RsAssign (
-                (process_lexp lexp),
-                (process_exp exp)
+                (process_lexp ctx lexp),
+                (process_exp ctx exp)
             ))
         | E_sizeof nexp -> RsTodo "E_sizeof"
         | E_return exp -> RsTodo "E_return"
@@ -143,49 +150,50 @@ let rec process_exp (E_aux (exp, aux)) : rs_exp =
         | E_ref id -> RsTodo "E_ref"
         | E_throw exp -> RsApp(RsId "panic!", [RsLit(RsLitStr "todo_process_panic_type")])
         | E_try (exp, pexp_list) -> RsTodo "E_try"
-        | E_assert (exp1, exp2) -> RsApp(RsId "assert!", [process_exp exp1;process_exp exp2])
+        (* TODO: In the future process the assertion message *)
+        | E_assert (exp1, exp2) -> RsApp(RsId "assert!", [RsLit RsLitFalse;RsId "\"todo_process_message\""](*[process_exp ctx exp1;process_exp ctx exp2]*))
         | E_var (lexp, exp1, exp2) -> RsTodo "E_var"
         | E_internal_plet (pat, exp1, exp2) -> RsTodo "E_internal_plet"
         | E_internal_return exp -> RsTodo "E_internal_return"
         | E_internal_value value -> RsTodo "E_internal_value"
         | E_internal_assume (n_constraint, exp) -> RsTodo "E_internal_assume"
         | E_constraint n_constraint -> RsTodo "E_constraint"
-and process_lexp (LE_aux (lexp, annot)) : rs_lexp =
+and process_lexp (ctx: context) (LE_aux (lexp, annot)) : rs_lexp =
     match lexp with
         | LE_id id -> RsLexpId (string_of_id id)
         | LE_vector (lexp, idx) ->
             (RsLexpIndex (
-                (process_lexp lexp),
-                (process_exp idx)))
+                (process_lexp ctx lexp),
+                (process_exp ctx idx)))
         | LE_vector_range (lexp, range_start, range_end) ->
             (RsLexpIndexRange (
-                (process_lexp lexp),
-                (process_exp range_start),
-                (process_exp range_end)))
+                (process_lexp ctx lexp),
+                (process_exp ctx range_start),
+                (process_exp ctx range_end)))
         | LE_field (lexp, id) ->
             (RsLexpField (
-                (process_lexp lexp),
+                (process_lexp ctx lexp),
                 (string_of_id id)))
         | LE_app _ -> RsLexpId "TodoLexpApp"
         | LE_deref _ -> RsLexpId "TodoLexpDeref"
         | LE_vector_concat _ -> RsLexpId "TodoLexpVectorConcat"
         | LE_tuple _ -> RsLexpId "TodoLexpTuple"
         | LE_typ _ -> RsLexpId "TodoLexpTyp"
-and process_pexp (Pat_aux (pexp, annot)) : rs_pexp =
+and process_pexp (ctx: context) (Pat_aux (pexp, annot)) : rs_pexp =
     match pexp with
         | Pat_exp (pat, exp) ->
             (RsPexp (
                 (process_pat pat),
-                (process_exp exp)
+                (process_exp ctx exp)
             ))
         | Pat_when (pat, exp1, exp2) ->
             (RsPexpWhen (
                 (process_pat pat),
-                (process_exp exp1),
-                (process_exp exp2)
+                (process_exp ctx exp1),
+                (process_exp ctx exp2)
             ))
 (* todo: Currently we assume that all vectors are vector of bits, in the future we should make this function more general*)
-and process_vector (items: 'a exp list) : rs_exp =
+and process_vector (ctx: context) (items: 'a exp list) : rs_exp =
     let is_only_bits acc exp = match exp with
         | E_aux (E_lit(L_aux(lit, _)), _) -> (match lit with
             | L_zero -> acc
@@ -203,7 +211,7 @@ and process_vector (items: 'a exp list) : rs_exp =
     in
     let vector_length = List.length items in
     let rec parse_arguments (idx: int) (elements: 'a exp list) : rs_exp list = match elements with
-        | e1 :: e -> RsMethodApp(RsId "__generated_vector", "set_vector_entry", [RsLit(RsLitNum (Int64.of_int idx)); process_exp (e1)]) :: parse_arguments (idx+1) (e)
+        | e1 :: e -> RsMethodApp(RsId "__generated_vector", "set_vector_entry", [RsLit(RsLitNum (Int64.of_int idx)); process_exp ctx e1]) :: parse_arguments (idx+1) (e)
         | [] -> []
     in 
     if is_literral then
@@ -212,9 +220,9 @@ and process_vector (items: 'a exp list) : rs_exp =
         let init_type = RsId (Printf.sprintf "BitVector::<%d>::new_empty()" vector_length) in
         let init_expr = RsInstrList ((parse_arguments 0 items) @ [ RsId "__generated_vector"]) in
         RsBlock[RsLet (RsPatType (RsTypGenericParam ("vector", [RsTypParamNum vector_length]), RsPatId "__generated_vector"), init_type, init_expr)]
-and process_fexp_entries (fexps: 'a Libsail.Ast.fexp list) : (string * rs_exp) list =
+and process_fexp_entries (ctx: context) (fexps: 'a Libsail.Ast.fexp list) : (string * rs_exp) list =
     match fexps with
-    | (FE_aux (FE_fexp (id, exp), _)) :: r -> (string_of_id id, process_exp exp) :: process_fexp_entries r
+    | (FE_aux (FE_fexp (id, exp), _)) :: r -> (string_of_id id, process_exp ctx exp) :: process_fexp_entries ctx r
     | [] -> []
 
 (* Return the ID of an application pattern as a string, or "" otherwise. *)
@@ -298,7 +306,8 @@ let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a e
     in
     let (arg_types, _) = signature in
     let arg_names = add_missing_args arg_names arg_types [] in
-    let rs_exp = process_exp exp in
+    ctx.ret_type <- snd signature;
+    let rs_exp = process_exp ctx exp in
     {
         name = name;
         args = arg_names;

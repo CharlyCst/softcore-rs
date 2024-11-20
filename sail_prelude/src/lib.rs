@@ -19,6 +19,10 @@ pub fn lteq_int(e1: usize, e2: usize) -> bool {
     e1 <= e2
 } 
 
+pub fn gt_int(e1: usize, e2: usize) -> bool {
+    e1 > e2
+}
+
 pub fn bitvector_length<const N: usize>(_e: BitVector<N>) -> usize {
     N
 }
@@ -91,6 +95,11 @@ pub fn print_reg(register: String) {
     print!("{}", register)
 }
 
+pub fn sys_pmp_grain() -> usize {
+    // TODO: What is this function doing?
+    1
+}
+
 pub fn bitvector_access<const N: usize>(vec: BitVector<N>, idx: usize) -> bool {
     (vec.bits() & (1 << idx)) > 0
 }
@@ -132,11 +141,11 @@ pub fn cancel_reservation() {
 }
 
 // TODO: This is enough for the risc-v transpilation, but not enought for full sail-to-rust
-pub fn subrange_bits(vec: BitVector<64>, end: usize, start: usize) -> BitVector<64> {
+pub fn subrange_bits(vec: BitVector<64>, _end: usize, _start: usize) -> BitVector<64> {
     vec
 }
 
-pub fn update_subrange_bits<const N: usize>(bits: u64, from: u64, to: u64, value: BitVector<N>) -> u64 {
+pub fn update_subrange_bits<const N: usize>(bits: u64, from: u64, to: u64, value: &mut BitVector<N>) -> u64 {
     assert!(from - to + 1 == N as u64, "size don't match");
 
     // Generate the 111111 mask

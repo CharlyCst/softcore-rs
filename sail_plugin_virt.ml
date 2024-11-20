@@ -69,6 +69,7 @@ let virt_target _ _ out_file ast effect_info env =
   let ctx = {
     defs = defs;
     call_set = call_set;
+    ret_type = RsTypUnit;
   } in
 
   (* Build list of registers *)

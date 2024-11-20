@@ -3,6 +3,7 @@ open Rust_gen
 type context = {
     defs: Fun_defs.defs;
     call_set: Call_set.SSet.t;
+    mutable ret_type: rs_type;
 }
 
 let ctx_fun_is_used (fun_id: string) (ctx: context) : bool =
