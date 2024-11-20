@@ -79,6 +79,27 @@ struct My_struct = {
   field3 : string,
 }
 
+val exceptionType_to_bits : ExceptionType -> bitvector(8)
+function exceptionType_to_bits(e) =
+  match (e) {
+    E_Fetch_Addr_Align()   => 0x00,
+    E_Fetch_Access_Fault() => 0x01,
+    E_Illegal_Instr()      => 0x02,
+    E_Breakpoint()         => 0x03,
+    E_Load_Addr_Align()    => 0x04,
+    E_Load_Access_Fault()  => 0x05,
+    E_SAMO_Addr_Align()    => 0x06,
+    E_SAMO_Access_Fault()  => 0x07,
+    E_U_EnvCall()          => 0x08,
+    E_S_EnvCall()          => 0x09,
+    E_Reserved_10()        => 0x0a,
+    E_M_EnvCall()          => 0x0b,
+    E_Fetch_Page_Fault()   => 0x0c,
+    E_Load_Page_Fault()    => 0x0d,
+    E_Reserved_14()        => 0x0e,
+    E_SAMO_Page_Fault()    => 0x0f,
+  }
+
 function clause execute TEST() = {
     handle_empty();
     handle_bool(true);
@@ -100,4 +121,6 @@ function clause execute TEST() = {
         field2 = 5,
         field3 = "test",
     };
+
+    let value = exceptionType_to_bits(E_Fetch_Addr_Align());
 }

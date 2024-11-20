@@ -188,7 +188,9 @@ let rec string_of_rs_pat (pat: rs_pat) : string =
         | RsPatWildcard -> "_"
         | RsPatTuple pats ->
             Printf.sprintf "(%s)" (String.concat ", " (List.map string_of_rs_pat pats))
-        | RsPatApp (name, arg) -> Printf.sprintf "%s(%s)" (string_of_rs_pat name)  "arguments"
+        | RsPatApp (name, args) -> 
+            Printf.sprintf "%s(%s)" (string_of_rs_pat name)  
+            (String.concat ", " (List.map string_of_rs_pat args))
         | RsPatTodo text -> Printf.sprintf "%s" text
 
 let string_of_rs_binop (binop: rs_binop) : string =

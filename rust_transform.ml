@@ -7,7 +7,7 @@ module StringSet = Set.Make(String)
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"; "__exit"])
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -597,30 +597,34 @@ let rec enum_prefix_inserter (key : string) (lst : (string * string) list) : str
         if k = key then v ^ "::" ^ k
         else enum_prefix_inserter key rest
   
-  let enum_binder_exp (enum_list: (string * string) list) (exp: rs_exp) : rs_exp = 
-    match exp with
-      | RsId id -> RsId (enum_prefix_inserter id enum_list)
-      | RsApp (RsId id, args) -> RsApp (RsId (enum_prefix_inserter id enum_list), args)
-      | _ -> exp
-   
-  let enum_binder_lexp (enum_list: (string * string) list) (lexp: rs_lexp) : rs_lexp = 
-    match lexp with
-      | RsLexpId id -> RsLexpId (enum_prefix_inserter id enum_list)
-      | _ -> lexp
-  
-  let enum_binder_pexp (enum_list: (string * string) list) (pexp: rs_pexp) : rs_pexp = 
-    match pexp with
-      | RsPexp (RsPatId id, second) -> RsPexp  ((RsPatId (enum_prefix_inserter id enum_list)), second)
-      | _ -> pexp
-  
-  let enum_binder_type (typ: rs_type) : rs_type = typ
-  
-  let enum_binder_generator (enum_list: (string * string) list) : expr_type_transform = {
-      exp = enum_binder_exp enum_list;
-      pexp = enum_binder_pexp enum_list;
-      lexp = enum_binder_lexp enum_list;
-      typ = enum_binder_type;
-  }
+let enum_binder_exp (enum_list: (string * string) list) (exp: rs_exp) : rs_exp = 
+  match exp with
+    | RsId id -> RsId (enum_prefix_inserter id enum_list)
+    | RsApp (RsId id, args) -> RsApp (RsId (enum_prefix_inserter id enum_list), args)
+    | _ -> exp
+ 
+let enum_binder_lexp (enum_list: (string * string) list) (lexp: rs_lexp) : rs_lexp = 
+  match lexp with
+    | RsLexpId id -> RsLexpId (enum_prefix_inserter id enum_list)
+    | _ -> lexp
+ 
+(*TODO: Maybe we should match RsPatId directly?*)
+let enum_binder_pexp (enum_list: (string * string) list) (pexp: rs_pexp) : rs_pexp = 
+  match pexp with
+    | RsPexp (RsPatId id, second) -> RsPexp  (RsPatId (enum_prefix_inserter id enum_list), second)
+    | RsPexp (RsPatApp (RsPatId id, arg), arg2) -> RsPexp(RsPatApp(RsPatId (enum_prefix_inserter id enum_list), arg), arg2)
+    | RsPexpWhen (RsPatId id, e1, e2) -> RsPexpWhen (RsPatId (enum_prefix_inserter id enum_list), e1, e2)
+    | RsPexpWhen (RsPatApp (RsPatId id, arg), e1, e2) -> RsPexpWhen(RsPatApp(RsPatId (enum_prefix_inserter id enum_list), arg), e1, e2)
+    | _ -> pexp
+ 
+let enum_binder_type (typ: rs_type) : rs_type = typ
+ 
+let enum_binder_generator (enum_list: (string * string) list) : expr_type_transform = {
+    exp = enum_binder_exp enum_list;
+    pexp = enum_binder_pexp enum_list;
+    lexp = enum_binder_lexp enum_list;
+    typ = enum_binder_type;
+}
   
 
 (* ———————————————————————— Operator rewriter function side  ————————————————————————— *)
