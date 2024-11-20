@@ -1,15 +1,7 @@
 [package]
-name = "sail-model"
+name = "main"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-
-[workspace]
-members = [
-    # Rust libraries
-    "sail_prelude",
-
-    # Generated architectures
-    "rust_arch/mret"
-]
+sail_prelude = { path = "sail_prelude" }

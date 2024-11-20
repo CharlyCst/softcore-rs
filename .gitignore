@@ -6,3 +6,4 @@ out.rs
 # Added by cargo
 
 /target
+/src
