@@ -39,8 +39,8 @@ let virt_rewrites =
     ("vector_string_pats_to_bit_list", []);
     ("remove_not_pats", []);
     ("remove_vector_concat", []);
-    (* ("remove_bitvector_pats", []); *)
-    (* ("pattern_literals", [Literal_arg "all"]); *)
+    ("remove_bitvector_pats", []); 
+    (*("pattern_literals", [Literal_arg "all"]); *)
     ("tuple_assignments", []);
     ("vector_concat_assignments", []);
     (* ("simple_struct_assignments", []); (1* TODO: investigate the impact of this one on vector assignments *1) *)
