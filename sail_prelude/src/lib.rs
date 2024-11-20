@@ -1,5 +1,60 @@
+#![allow(incomplete_features)]
+#![feature(generic_const_exprs)]
 use core::ops;
 use std::{cmp::min, process, usize};
+
+use rand::Rng;
+
+#[allow(non_upper_case_globals)]
+pub const zero_reg: BitVector<64> = BitVector::new(0x0);
+
+pub fn sail_branch_announce(_value: usize, _pc: BitVector<64>) {}
+
+pub fn signed<const N: usize>(e: BitVector<N>) -> BitVector<64> {
+    // TODO: Is this function correct?
+    BitVector::<64>::new(e.bits())
+}
+
+pub fn lteq_int(e1: usize, e2: usize) -> bool {
+    e1 <= e2
+} 
+
+pub fn bitvector_length<const N: usize>(_e: BitVector<N>) -> usize {
+    N
+}
+
+pub fn bitvector_concat<const N: usize, const M: usize>(
+    e1: BitVector<N>, 
+    e2: BitVector<M>
+) -> BitVector<{ N + M }> {
+    BitVector::<{ N + M }>::new( (e1.bits() << M) | e2.bits() )
+}
+
+
+pub fn sys_enable_writable_misa() -> bool {
+    true
+}
+
+pub fn sys_enable_rvc() -> bool {
+    true
+}
+
+pub fn sys_enable_fdext() -> bool {
+    true
+}
+
+pub fn  sys_enable_zfinx() -> bool {
+    true
+}
+
+pub fn sys_enable_writable_fiom() -> bool {
+    true
+}
+
+pub fn get_16_random_bits() -> BitVector<16> {
+    let number: u64 = rand::thread_rng().gen();
+    BitVector::<16>::new(number & ((1 << 17) - 1))
+}
 
 pub fn not_implemented() -> ! {
     panic!("Feature not implemented yet");
@@ -10,7 +65,11 @@ pub fn __exit() -> ! {
     process::exit(1)
 }
 
-pub fn print_output(text: &str) {
+pub fn print_output(text: String) {
+    println!("{}", text)
+}
+
+pub fn print_platform(text: String) {
     println!("{}", text)
 }
 
@@ -24,19 +83,43 @@ pub fn hex_str(val: usize) -> String {
     format!("{:x}", val) 
 }
 
+pub fn bits_str<const N: usize>(val: BitVector<N>) -> String {
+    String::from(format!("{:b}", val.bits()))
+}
+
+pub fn print_reg(register: String) {
+    print!("{}", register)
+}
+
 pub fn bitvector_access<const N: usize>(vec: BitVector<N>, idx: usize) -> bool {
     (vec.bits() & (1 << idx)) > 0
 }
 
-pub fn zero_extend<const M: usize>(input: BitVector<M>) -> BitVector<64> {
+pub fn plat_mtval_has_illegal_inst_bits() -> bool {
+    // TODO: Implement this function
+    false
+}
+
+pub fn truncate(v: BitVector<64>, _size: usize) -> BitVector<64> {
+    // TODO: What should we do in this function?
+    v
+}
+
+pub fn sys_pmp_count() -> usize {
+    16
+}
+
+pub fn zero_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVector<64> {
+    assert!(value == 64, "handle the case where zero_extend has value not equal 64"); 
     BitVector::<64>::new(input.bits())
 }
 
-pub fn sign_extend<const M: usize>(input: BitVector<M>) -> BitVector<64> {
+pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVector<64> {
+    assert!(value == 64, "handle the case where sign_extend has value not equal 64");
     BitVector::<64>::new(input.bits())
 }
 
-pub fn sail_ones<const N: usize>(n: usize) -> BitVector<N> {
+pub fn sail_ones<const N: usize>(_n: usize) -> BitVector<N> {
     !BitVector::<N>::new(0)
 }
 
@@ -44,8 +127,17 @@ pub fn min_int(v1: usize, v2: usize) -> usize {
     min(v1, v2)
 }
 
-pub fn update_subrange_bits<const N: usize>(bits: usize, from: usize, to: usize, value: BitVector<N>) -> usize {
-    assert!(from - to + 1 == N, "size don't match");
+pub fn cancel_reservation() {
+    // In the future, extend this function
+}
+
+// TODO: This is enough for the risc-v transpilation, but not enought for full sail-to-rust
+pub fn subrange_bits(vec: BitVector<64>, end: usize, start: usize) -> BitVector<64> {
+    vec
+}
+
+pub fn update_subrange_bits<const N: usize>(bits: u64, from: u64, to: u64, value: BitVector<N>) -> u64 {
+    assert!(from - to + 1 == N as u64, "size don't match");
 
     // Generate the 111111 mask
     let mut mask = (1 << (N+1)) - 1;
@@ -53,7 +145,7 @@ pub fn update_subrange_bits<const N: usize>(bits: usize, from: usize, to: usize,
     mask = !(mask << from);
     
     // Now we can update and return the updated value
-    return (bits & mask) | (value.bits() << from) as usize
+    return (bits & mask) | (value.bits() << from)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]

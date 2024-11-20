@@ -102,13 +102,40 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_prelude_func_filter rust_program in
   let rust_program = insert_annotation_imports rust_program in
   let rust_program = rust_transform_func parametric_rewriter rust_program in
+  let rust_program = rust_transform_expr transform_basic_types rust_program in
 
   (* Last stage : Transform into a borrow checker friendly code *)
   let rust_program = rust_transform_expr sail_context_binder rust_program in
   let rust_program = rust_transform_expr sail_context_arg_inserter rust_program in
 
+  let rust_program_string = string_of_rs_prog rust_program in
+
+  (* Post processing stage: replace illegals # and ' in rust *)
+  (* TODO: Rewrite in the future, as the code is a bit hugly *)
+  let replace_hashtags input =
+    let regex = Str.regexp "#" in
+    let regex2 = Str.regexp "_hashtag_\\[" in
+    let regex3 = Str.regexp "_hashtag_\\!" in
+    let input = Str.global_replace regex "_hashtag_" input in
+    let input = Str.global_replace regex2 "#[" input in
+    let input = Str.global_replace regex3 "#!" input in  
+    input 
+  in 
+  let replace_ticks input =
+    let regex = Str.regexp "'" in
+    Str.global_replace regex "_tick_" input
+  in 
+  let replace_atom input =
+    let regex = Str.regexp "atom<N>" in
+    Str.global_replace regex "usize" input
+  in 
+
+  let rust_program_string = replace_hashtags rust_program_string in
+  let rust_program_string = replace_ticks rust_program_string in
+  let rust_program_string = replace_atom rust_program_string in
+
   let out_chan = open_out out_file in
-  output_string out_chan (string_of_rs_prog rust_program);
+  output_string out_chan rust_program_string;
   flush out_chan;
   close_out out_chan;
   print_endline (string_of_rs_prog rust_program)

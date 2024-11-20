@@ -176,7 +176,7 @@ let string_of_rs_lit (lit: rs_lit) : string =
         | RsLitNum n -> Printf.sprintf "%Li" n
         | RsLitBin n -> n
         | RsLitHex n -> n
-        | RsLitStr s -> Printf.sprintf "\"%s\"" s
+        | RsLitStr s -> Printf.sprintf "String::from(\"%s\")" s
         | RsLitTodo -> "LIT_TODO"
 
 let rec string_of_rs_pat (pat: rs_pat) : string =
@@ -349,11 +349,11 @@ and string_of_rs_lexp (n: int) (lexp: rs_lexp) : string =
 and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
     match pexp with
         | RsPexp (pat, exp) ->
-            Printf.sprintf "%s => %s,\n"
+            Printf.sprintf "%s => {%s}\n"
                 (string_of_rs_pat pat)
                 (string_of_rs_exp n exp)
         | RsPexpWhen (pat, cond_exp, exp) ->
-            Printf.sprintf "%s if %s => %s,\n"
+            Printf.sprintf "%s if %s => {%s}\n"
                 (string_of_rs_pat pat)
                 (string_of_rs_exp n cond_exp)
                 (string_of_rs_exp n exp)

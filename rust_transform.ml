@@ -7,7 +7,7 @@ module StringSet = Set.Make(String)
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"; "__exit"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"])
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -178,7 +178,8 @@ and transform_type (ct: expr_type_transform) (typ: rs_type) : rs_type =
         | RsTypTodo e -> RsTypTodo e
         | RsTypTuple types -> RsTypTuple (List.map (transform_type ct) types)
         | RsTypGeneric typ -> RsTypGeneric typ
-        | RsTypGenericParam (typ, e::params) when typ = "option" -> RsTypOption e
+        (* TODO: Maybe there is a bug here *)
+        | RsTypGenericParam (typ, e::params) when typ = "option" -> RsTypOption (transform_type_param ct e)
         | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, (List.map (transform_type_param ct) params))
         | RsTypArray (typ, size) -> RsTypArray (transform_type_param ct typ, transform_type_param ct size)
         | RsTypOption param -> RsTypOption (transform_type_param ct param)
@@ -206,6 +207,8 @@ let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj =
     match obj with
         | RsFn fn -> RsFn (transform_fn ct fn)
         | RsAlias alias -> RsAlias (transform_alias ct alias)
+        | RsStruct {name; fields} -> RsStruct { name = name; fields = (List.map (fun (a,b) -> (a, transform_type ct b)) fields)}
+        | RsTypedEnum {name; fields} -> RsTypedEnum{ name = name; fields = (List.map (fun (a,b) -> (a, transform_type ct b)) fields)}
         | _ -> obj
 
 let rust_transform_expr (ct: expr_type_transform) (RsProg objs) : rs_program =
@@ -730,6 +733,27 @@ let parametric_rewriter_func (func: rs_fn): rs_fn = {
 
 let parametric_rewriter = {
   func = parametric_rewriter_func
+}
+
+(* ———————————————————————— BasicTypes rewriter  ————————————————————————— *)
+
+let transform_basic_types_exp (exp: rs_exp) : rs_exp = exp
+  
+let transform_basic_types_lexp (lexp: rs_lexp) : rs_lexp = lexp
+
+let transform_basic_types_pexp (pexp: rs_pexp) : rs_pexp = pexp
+
+let transform_basic_types_type (typ: rs_type) : rs_type = 
+  match typ with
+    | RsTypId "string" -> RsTypId "String"
+    | RsTypId "int" -> RsTypId "usize"
+    | _ -> typ
+
+let transform_basic_types: expr_type_transform = {
+    exp = transform_basic_types_exp;
+    lexp = transform_basic_types_lexp;
+    pexp = transform_basic_types_pexp;
+    typ = transform_basic_types_type;
 }
 
 (* ———————————————————————— VirtContext binder ————————————————————————— *)
