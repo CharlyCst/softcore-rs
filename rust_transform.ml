@@ -11,14 +11,26 @@ let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implem
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
+let id_exp (exp: rs_exp) : rs_exp = exp
+
+let id_lexp (lexp: rs_lexp) : rs_lexp = lexp
+
+let id_pexp (pexp: rs_pexp) : rs_pexp = pexp
+
+let id_typ (typ: rs_type) : rs_type = typ
+
+let id_pat (pat: rs_pat) : rs_pat = pat
+
 type expr_type_transform = {
     exp : rs_exp -> rs_exp;
     lexp : rs_lexp -> rs_lexp;
     pexp : rs_pexp -> rs_pexp;
     typ : rs_type -> rs_type;
+    pat: rs_pat -> rs_pat;
 }
 
 let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat = 
+    let pat = ct.pat pat in 
     match pat with 
         | RsPatType (typ, pat) -> RsPatType(transform_type ct typ, transform_pat ct pat)
         | RsPatTuple (pat_list) -> RsPatTuple(List.map (transform_pat ct) pat_list)
@@ -193,7 +205,7 @@ let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
     let ret = transform_type ct ret in
     {
         name = fn.name;
-        args = fn.args;
+        args = (List.map ct.exp fn.args);
         signature = (args, ret);
         body = transform_exp ct fn.body;
     }
@@ -331,6 +343,7 @@ let bitvec_transform = {
     lexp = bitvec_transform_lexp;
     pexp = bitvec_transform_pexp;
     typ = bitvec_transform_type;
+    pat = id_pat;
 }
 
 (* ——————————————————————————— Nested Blocks remover ———————————————————————————— *)
@@ -355,6 +368,7 @@ let nested_block_remover = {
     lexp = nested_block_remover_lexp;
     pexp = nested_block_remover_pexp;
     typ = nested_block_remover_type;
+    pat = id_pat;
 }
 
 (* ——————————————————————————— Native functions transformation ———————————————————————————— *)
@@ -465,6 +479,7 @@ let native_func_transform = {
     lexp = native_func_transform_lexp;
     pexp = native_func_transform_pexp;
     typ = native_func_transform_type;
+    pat = id_pat;
 }
 
 (* ———————————————————————— Hoisting rewriting  ————————————————————————— *)
@@ -518,17 +533,14 @@ let expr_type_hoister = {
     lexp = lexpr_hoister;
     pexp = pexpr_hoister;
     typ = type_hoister;
+    pat = id_pat;
 }
-
-
-
-
 
 (* ———————————————————————— VirtContext transformer ————————————————————————— *)
 
 let sail_context_inserter (func: rs_fn): rs_fn = { 
   func with 
-    args = "sail_ctx" :: func.args;
+    args = RsId "sail_ctx" :: func.args;
     signature = (RsTypId "&mut SailVirtCtx" :: (fst func.signature), snd func.signature)
 }
 
@@ -539,10 +551,9 @@ let virt_context_transform = {
 
 (* ———————————————————————— Remove last unit transformer ————————————————————————— *)
 
-
 let unit_filter (typ: rs_type) = typ != RsTypUnit
 
-let filter_units (names: string list) (types: rs_type list) =
+let filter_units (names: rs_exp list) (types: rs_type list) =
   let filtered_indices = 
     List.mapi (fun i x -> if unit_filter x then Some i else None) types
     |> List.filter_map Fun.id 
@@ -567,7 +578,6 @@ let unit_remove_transform = {
 
 (* ———————————————————————— FuncArgument remove last unit  ————————————————————————— *)
 
-
 let remove_last_unit_func_arg_exp (exp: rs_exp) : rs_exp = 
   match exp with 
     | RsApp (app, args) -> let args_no_unit = List.filter (
@@ -588,6 +598,7 @@ let remove_last_unit_func_arg: expr_type_transform = {
     lexp = remove_last_unit_func_arg_lexp;
     pexp = remove_last_unit_func_arg_pexp;
     typ = remove_last_unit_func_arg_type;
+    pat = id_pat;
 }
 
 
@@ -612,21 +623,19 @@ let enum_binder_lexp (enum_list: (string * string) list) (lexp: rs_lexp) : rs_le
     | _ -> lexp
  
 (*TODO: Maybe we should match RsPatId directly?*)
-let enum_binder_pexp (enum_list: (string * string) list) (pexp: rs_pexp) : rs_pexp = 
-  match pexp with
-    | RsPexp (RsPatId id, second) -> RsPexp  (RsPatId (enum_prefix_inserter id enum_list), second)
-    | RsPexp (RsPatApp (RsPatId id, arg), arg2) -> RsPexp(RsPatApp(RsPatId (enum_prefix_inserter id enum_list), arg), arg2)
-    | RsPexpWhen (RsPatId id, e1, e2) -> RsPexpWhen (RsPatId (enum_prefix_inserter id enum_list), e1, e2)
-    | RsPexpWhen (RsPatApp (RsPatId id, arg), e1, e2) -> RsPexpWhen(RsPatApp(RsPatId (enum_prefix_inserter id enum_list), arg), e1, e2)
-    | _ -> pexp
+let enum_binder_pat (enum_list: (string * string) list) (pat: rs_pat) : rs_pat = 
+  match pat with
+    | RsPatId id -> RsPatId (enum_prefix_inserter id enum_list)
+    | _ -> pat
  
 let enum_binder_type (typ: rs_type) : rs_type = typ
  
 let enum_binder_generator (enum_list: (string * string) list) : expr_type_transform = {
     exp = enum_binder_exp enum_list;
-    pexp = enum_binder_pexp enum_list;
+    pexp = id_pexp;
     lexp = enum_binder_lexp enum_list;
     typ = enum_binder_type;
+    pat = enum_binder_pat enum_list;
 }
   
 
@@ -673,6 +682,7 @@ let expr_type_operator_rewriter = {
     lexp = lexpr_operator_rewriter;
     pexp = pexpr_operator_rewriter;
     typ = type_operator_rewriter;
+    pat = id_pat;
 }
 
 
@@ -700,7 +710,7 @@ let rust_prelude_func_filter (RsProg objs) : rs_program =  merge_rs_prog_list (L
 (* ———————————————————————— Annotations and imports inserter  ————————————————————————— *)
 
 (* todo: Is a static function good enough here? *)
-let insert_annotation_imports_aux () : rs_program = RsProg[RsAttribute "allow(unused, non_snake_case, non_upper_case_globals, non_camel_case_types, bindings_with_variant_name)"; RsImport "crate::SailVirtContext"; RsImport "sail_prelude::*"]
+let insert_annotation_imports_aux () : rs_program = RsProg[RsAttribute "allow(unused, non_snake_case, non_upper_case_globals, non_camel_case_types, bindings_with_variant_name)"; RsImport "sail_prelude::*"]
 
 let insert_annotation_imports (RsProg objs) : rs_program =  merge_rs_prog_list[insert_annotation_imports_aux();RsProg(objs)]
 
@@ -737,9 +747,20 @@ let parametric_rewriter = {
 
 (* ———————————————————————— BasicTypes rewriter  ————————————————————————— *)
 
-let transform_basic_types_exp (exp: rs_exp) : rs_exp = exp
-  
-let transform_basic_types_lexp (lexp: rs_lexp) : rs_lexp = lexp
+let transform_basic_types_exp (exp: rs_exp) : rs_exp = 
+    match exp with
+        (* Reserved keywords in rust *)
+        | RsId "priv" -> RsId "_priv_"
+        | RsId "super" -> RsId "_super_"
+        | _ -> exp
+
+(* TODO: Should we apply the same logic in lexp here? *)
+let transform_basic_types_lexp (lexp: rs_lexp) : rs_lexp = 
+    match lexp with 
+        | RsLexpId "priv" -> RsLexpId "_priv_"
+        | RsLexpId "super" -> RsLexpId "_super_"
+        | _ -> lexp
+
 
 let transform_basic_types_pexp (pexp: rs_pexp) : rs_pexp = pexp
 
@@ -747,13 +768,23 @@ let transform_basic_types_type (typ: rs_type) : rs_type =
   match typ with
     | RsTypId "string" -> RsTypId "String"
     | RsTypId "int" -> RsTypId "usize"
+    | RsTypId "bit" -> RsTypId "bool" 
+    (* TODO: Is this transformation legal? Should we add an assertion at some place in the code? *)
+    | RsTypGenericParam ("range",rest) -> RsTypId "usize" 
     | _ -> typ
+
+let transform_basic_types_pat (pat: rs_pat) : rs_pat =
+    match pat with
+        | RsPatId "priv" -> RsPatId "_priv_"
+        | RsPatId "super" -> RsPatId "_super_"
+        | _ -> pat
 
 let transform_basic_types: expr_type_transform = {
     exp = transform_basic_types_exp;
     lexp = transform_basic_types_lexp;
     pexp = transform_basic_types_pexp;
     typ = transform_basic_types_type;
+    pat = transform_basic_types_pat;
 }
 
 (* ———————————————————————— VirtContext binder ————————————————————————— *)
@@ -782,6 +813,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
     lexp = sail_context_binder_lexp register_list;
     pexp = sail_context_binder_pexp register_list;
     typ = sail_context_binder_type;
+    pat = id_pat;
 }
 
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
@@ -804,4 +836,5 @@ let sail_context_arg_inserter: expr_type_transform = {
     lexp = sail_context_arg_inserter_lexp;
     pexp = sail_context_arg_inserter_pexp;
     typ = sail_context_arg_inserter_type;
+    pat = id_pat;
 }

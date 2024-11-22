@@ -96,7 +96,7 @@ type rs_block = rs_exp list
 type rs_fn = {
     name: string;
     signature: rs_fn_type;
-    args: string list;
+    args: rs_exp list;
     body: rs_exp;
 }
 
@@ -359,11 +359,11 @@ and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
                 (string_of_rs_exp n exp)
 
 let string_of_rs_fn_args (fn: rs_fn) : string =
-    let string_of_arg_and_type (arg: string) (typ: rs_type) : string =
+    let string_of_arg_and_type (arg: rs_exp) (typ: rs_type) : string =
         match typ with
             | RsTypUnit -> ""
             | _ -> Printf.sprintf "%s: %s"
-                arg
+                (string_of_rs_exp 0 arg)
                 (string_of_rs_type typ)
     in
     let (arg_types, _) = fn.signature in

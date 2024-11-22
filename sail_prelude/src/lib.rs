@@ -145,22 +145,56 @@ pub fn subrange_bits(vec: BitVector<64>, _end: usize, _start: usize) -> BitVecto
     vec
 }
 
-pub fn update_subrange_bits<const N: usize>(bits: u64, from: u64, to: u64, value: &mut BitVector<N>) -> u64 {
-    assert!(from - to + 1 == N as u64, "size don't match");
+pub fn update_subrange_bits<const N: usize, const M: usize>(bits: BitVector<N>, from: u64, to: u64, value: BitVector<M>) -> BitVector<N> {
+    assert!(from - to + 1 == M as u64, "size don't match");
 
     // Generate the 111111 mask
-    let mut mask = (1 << (N+1)) - 1;
+    let mut mask = (1 << (M+1)) - 1;
     // Shit and invert it
     mask = !(mask << from);
     
     // Now we can update and return the updated value
-    return (bits & mask) | (value.bits() << from)
+    return  BitVector::<N>::new((bits.bits & mask) | (value.bits() << from))
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitVector<const N: usize> {
     pub bits: u64,
 }
+
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct BitField<const T: usize> {
+    pub bits: BitVector<T>
+}
+
+impl<const N: usize> BitField<N> {
+    pub const fn subrange<const A: usize, const B: usize, const C: usize>(self) -> BitVector<C> {
+        assert!(B - A == C, "Invalid subrange parameters");
+        assert!(B <= N, "Invalid subrange");
+
+        let mut val = self.bits; // The current value
+        val.bits &= BitVector::<B>::bit_mask(); // Remove top bits
+        val.bits >>= A; // Shift all the bits
+        BitVector::new(val.bits)
+    }
+
+    pub const fn set_subrange<const A: usize, const B: usize, const C: usize>(
+        self,
+        _bits: BitVector<C>,
+    ) -> Self {
+        assert!(B - A == C, "Invalid subrange parameters");
+        assert!(B <= N, "Invalid subrange");
+
+        let mut val = self.bits; // The current value
+        val.bits &= BitVector::<B>::bit_mask(); // Remove top bits
+        val.bits >>= A; // Shift all the bits
+        BitField {
+            bits: val,
+        }
+    }
+}
+
 
 impl<const N: usize> BitVector<N> {
     pub const fn new(val: u64) -> Self {

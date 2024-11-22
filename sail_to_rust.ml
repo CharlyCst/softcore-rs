@@ -117,8 +117,8 @@ let rec process_exp (ctx: context) (E_aux (exp, aux)) : rs_exp =
         | E_list (exp_list) -> RsTodo "E_list"
         | E_cons (exp1, exp2) -> RsTodo "E_cons"
         | E_struct fexp_list -> RsStruct (ctx.ret_type, process_fexp_entries ctx fexp_list)
-        | E_struct_update (exp, fexp_list) ->
-            RsInstrList (List.map (fun (field_name, exp_arg) -> RsStructAssign (process_exp ctx exp, field_name, exp_arg)) (process_fexp_entries ctx fexp_list))
+        (* todo: This is enough for the risc-v translation, but must be refactored for a more general transpiler *)
+        | E_struct_update (exp, fexp_list) -> assert(List.length fexp_list = 1); RsStruct (RsTypId "BitField", (process_fexp_entries ctx fexp_list))
         | E_field (exp, id) -> RsField ((process_exp ctx exp), (string_of_id id))
         | E_match (exp, pexp_list)
             -> (RsMatch (
@@ -219,7 +219,7 @@ and process_vector (ctx: context) (items: 'a exp list) : rs_exp =
     else 
         let init_type = RsId (Printf.sprintf "BitVector::<%d>::new_empty()" vector_length) in
         let init_expr = RsInstrList ((parse_arguments 0 items) @ [ RsId "__generated_vector"]) in
-        RsBlock[RsLet (RsPatType (RsTypGenericParam ("vector", [RsTypParamNum vector_length]), RsPatId "__generated_vector"), init_type, init_expr)]
+        RsBlock[RsLet (RsPatType (RsTypGenericParam ("vector", [RsTypParamNum vector_length]), RsPatId "mut __generated_vector"), init_type, init_expr)]
 and process_fexp_entries (ctx: context) (fexps: 'a Libsail.Ast.fexp list) : (string * rs_exp) list =
     match fexps with
     | (FE_aux (FE_fexp (id, exp), _)) :: r -> (string_of_id id, process_exp ctx exp) :: process_fexp_entries ctx r
@@ -306,6 +306,7 @@ let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a e
     in
     let (arg_types, _) = signature in
     let arg_names = add_missing_args arg_names arg_types [] in
+    let arg_names = List.map (fun e -> RsId e) arg_names in
     ctx.ret_type <- snd signature;
     let rs_exp = process_exp ctx exp in
     {
@@ -429,11 +430,18 @@ let extract_first_item_type (items: (Libsail.Ast.typ * Libsail.Ast.id) list) : r
     match items with 
         | x :: _ -> extract_type (fst x)
         | _ -> RsTypTodo "type_extract_first_item_type"
-    
+
+let parse_bitfield_size (items: (Libsail.Ast.typ * Libsail.Ast.id) list) = 
+    let item = extract_first_item_type items in 
+    match item with 
+        | RsTypGenericParam (e, [RsTypParamNum n]) -> RsTypGenericParam ("BitField", [RsTypParamNum n]) ;
+        | _ -> item
+
 let process_type_name_type (TD_aux (typ, _)) : (rs_obj * bool) =
     match typ with
         | TD_abbrev (id, typquant, typ_arg) -> process_sub_type (string_of_id id) typ_arg
-        | TD_record (id, typquant, items, _) -> (RsAlias {new_typ = (string_of_id id); old_type = extract_first_item_type items}, true)
+        (* TODO: Solve the case where record has multiple types *)
+        | TD_record (id, typquant, items, _) -> (RsAlias {new_typ = string_of_id id; old_type = parse_bitfield_size items}, true) 
         | _ -> (RsConst {name = "dummy"; value = "dummy"}, false)
  
 let process_if_abbrev  (DEF_aux (def, annot)) : (rs_obj * bool) =
