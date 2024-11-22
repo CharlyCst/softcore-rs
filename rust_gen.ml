@@ -34,6 +34,8 @@ type rs_pat =
     | RsPatTuple of rs_pat list
     | RsPatApp of rs_pat * rs_pat list
     | RsPatTodo of string
+    | RsPatSome of rs_pat
+    | RsPatNone
 
 type rs_binop =
     | RsBinopEq
@@ -191,6 +193,8 @@ let rec string_of_rs_pat (pat: rs_pat) : string =
         | RsPatApp (name, args) -> 
             Printf.sprintf "%s(%s)" (string_of_rs_pat name)  
             (String.concat ", " (List.map string_of_rs_pat args))
+        | RsPatSome pat -> Printf.sprintf "Some(%s)" (string_of_rs_pat pat)
+        | RsPatNone -> "None"
         | RsPatTodo text -> Printf.sprintf "%s" text
 
 let string_of_rs_binop (binop: rs_binop) : string =

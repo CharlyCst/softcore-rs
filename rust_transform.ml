@@ -32,12 +32,21 @@ type expr_type_transform = {
 let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat = 
     let pat = ct.pat pat in 
     match pat with 
+        | RsPatId "None" -> RsPatNone
+        | RsPatApp (RsPatId "Some", args) -> (
+            match args with
+                | arg :: [] -> RsPatSome(transform_pat ct arg) 
+                | _ -> failwith "This case should be unreachable, revise assumption"
+        )
         | RsPatType (typ, pat) -> RsPatType(transform_type ct typ, transform_pat ct pat)
         | RsPatTuple (pat_list) -> RsPatTuple(List.map (transform_pat ct) pat_list)
         | RsPatWildcard -> RsPatWildcard
         | RsPatLit l -> RsPatLit l
         | RsPatId id -> RsPatId id
+        | RsPatApp (RsPatId "None", args) -> RsPatNone
         | RsPatApp (name, args) -> RsPatApp(transform_pat ct name, List.map (fun p -> transform_pat ct p) args)
+        | RsPatSome pat -> RsPatSome (transform_pat ct pat) 
+        | RsPatNone -> RsPatNone
         | RsPatTodo text -> RsPatTodo text
 
 and transform_lexp (ct: expr_type_transform) (lexp: rs_lexp): rs_lexp =
