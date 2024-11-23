@@ -301,13 +301,15 @@ let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a e
             | Some typ -> (match typ with
                 | RsTypTuple types -> (types, process_union_ret_type name)
                 | RsTypId id -> ([RsTypId id], process_union_ret_type name)
-                | _ -> ([RsTypId "TodoUnsupportedUnionSignature"], RsTypUnit))
+                | RsTypUnit -> ([], process_union_ret_type name)
+                | _ -> ([RsTypId "todo_signature"], RsTypId "todo_signature"))
             | None -> ([RsTypId "TodoNoUnionSignature"], RsTypUnit)
     in
     let (arg_types, _) = signature in
     let arg_names = add_missing_args arg_names arg_types [] in
     let arg_names = List.map (fun e -> RsId e) arg_names in
     ctx.ret_type <- snd signature;
+    assert (List.length arg_names = List.length (fst signature));
     let rs_exp = process_exp ctx exp in
     {
         name = name;
@@ -415,13 +417,13 @@ let extract_type_nexp (Nexp_aux (nexp, _)): string =
         | Nexp_constant n -> string_of_int (Nat_big_num.to_int n)
         | _ -> "TodoNumExpr"
 
-let extract_type_no_unit typ = match extract_type typ with
+let extract_type_alias typ = match extract_type typ with
     | RsTypUnit -> RsTypId "()"
     | e -> e
                 
 let process_sub_type (id: string) (A_aux (typ, _)) : rs_obj * bool =
     match typ with
-        | A_typ typ -> (RsAlias {new_typ = id; old_type = extract_type_no_unit typ }, true)
+        | A_typ typ -> (RsAlias {new_typ = id; old_type = extract_type_alias typ }, true)
         | A_bool b -> (RsConst {name = "todo"; value = "todo"}, true)
         | A_nexp exp -> (RsConst {name = id; value = extract_type_nexp exp}, true)
         

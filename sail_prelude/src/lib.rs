@@ -1,9 +1,17 @@
-#![allow(incomplete_features)]
+#![allow(incomplete_features, non_camel_case_types)]
 #![feature(generic_const_exprs)]
 use core::ops;
-use std::{cmp::min, process, usize};
+use std::{cmp::min, process::{self, exit}, usize};
 
 use rand::Rng;
+
+// TODO: What should we do with this? This is not clear how we should transpile it
+pub type _tick_arch_ak = ();
+pub type _tick_a = ();
+pub type _tick_b = ();
+pub type _tick_paddr = ();
+pub type _tick_failure = ();
+pub type nat = ();
 
 #[allow(non_upper_case_globals)]
 pub const zero_reg: BitVector<64> = BitVector::new(0x0);
@@ -35,32 +43,32 @@ pub fn bitvector_concat<const N: usize, const M: usize>(
 }
 
 
-pub fn sys_enable_writable_misa() -> bool {
+pub fn sys_enable_writable_misa(_unit: ()) -> bool {
     true
 }
 
-pub fn sys_enable_rvc() -> bool {
+pub fn sys_enable_rvc(_unit: ()) -> bool {
     true
 }
 
-pub fn sys_enable_fdext() -> bool {
+pub fn sys_enable_fdext(_unit: ()) -> bool {
     true
 }
 
-pub fn  sys_enable_zfinx() -> bool {
+pub fn  sys_enable_zfinx(_unit: ()) -> bool {
     true
 }
 
-pub fn sys_enable_writable_fiom() -> bool {
+pub fn sys_enable_writable_fiom(_unit: ()) -> bool {
     true
 }
 
-pub fn get_16_random_bits() -> BitVector<16> {
+pub fn get_16_random_bits(_unit: ()) -> BitVector<16> {
     let number: u64 = rand::thread_rng().gen();
     BitVector::<16>::new(number & ((1 << 17) - 1))
 }
 
-pub fn not_implemented() -> ! {
+pub fn not_implemented(_unit: ()) -> ! {
     panic!("Feature not implemented yet");
 }
 
@@ -69,7 +77,12 @@ pub fn __exit() -> ! {
     process::exit(1)
 }
 
-pub fn print_output(text: String) {
+pub fn internal_error(_file: String, _line: usize, _s: String) -> ! {
+    assert!(false, "todo_process_message_internal_error");
+    exit(0);
+}
+
+pub fn print_output(text: String, _csr: BitVector::<12>) {
     println!("{}", text)
 }
 
@@ -95,7 +108,7 @@ pub fn print_reg(register: String) {
     print!("{}", register)
 }
 
-pub fn sys_pmp_grain() -> usize {
+pub fn sys_pmp_grain(_unit: ()) -> usize {
     // TODO: What is this function doing?
     1
 }
@@ -104,7 +117,7 @@ pub fn bitvector_access<const N: usize>(vec: BitVector<N>, idx: usize) -> bool {
     (vec.bits() & (1 << idx)) > 0
 }
 
-pub fn plat_mtval_has_illegal_inst_bits() -> bool {
+pub fn plat_mtval_has_illegal_inst_bits(_unit: ()) -> bool {
     // TODO: Implement this function
     false
 }
@@ -114,7 +127,7 @@ pub fn truncate(v: BitVector<64>, _size: usize) -> BitVector<64> {
     v
 }
 
-pub fn sys_pmp_count() -> usize {
+pub fn sys_pmp_count(_unit: ()) -> usize {
     16
 }
 
@@ -136,10 +149,10 @@ pub fn min_int(v1: usize, v2: usize) -> usize {
     min(v1, v2)
 }
 
-pub fn cancel_reservation() {
+pub fn cancel_reservation(_unit: ()) {
     // In the future, extend this function
 }
-
+ 
 // TODO: This is enough for the risc-v transpilation, but not enought for full sail-to-rust
 pub fn subrange_bits(vec: BitVector<64>, _end: usize, _start: usize) -> BitVector<64> {
     vec
@@ -157,11 +170,16 @@ pub fn update_subrange_bits<const N: usize, const M: usize>(bits: BitVector<N>, 
     return  BitVector::<N>::new((bits.bits & mask) | (value.bits() << from))
 }
 
+// TODO: Make this function more generic in the future.
+pub fn bitvector_update(v: BitVector<64>, pos: usize, value: usize) -> BitVector<64>  {
+    let mask = 1 << pos;
+    BitVector::<64>::new((v.bits() & !mask) | ((value & 0x1) << pos) as u64)
+}
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitVector<const N: usize> {
     pub bits: u64,
 }
-
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitField<const T: usize> {

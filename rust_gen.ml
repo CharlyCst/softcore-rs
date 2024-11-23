@@ -156,7 +156,7 @@ let rec string_of_rs_type (typ: rs_type) : string =
         | RsTypTuple types ->
             Printf.sprintf "(%s)"
                 (String.concat ", " (List.map string_of_rs_type types))
-        | RsTypUnit -> ""
+        | RsTypUnit -> "()"
         | RsTypGeneric t -> t
         | RsTypGenericParam (id, params) ->
             Printf.sprintf "%s<%s>"
@@ -172,7 +172,7 @@ and string_of_rs_type_param (typ: rs_type_param) : string =
 
 let string_of_rs_lit (lit: rs_lit) : string =
     match lit  with
-        | RsLitUnit -> ""
+        | RsLitUnit -> "()"
         | RsLitTrue -> "true"
         | RsLitFalse -> "false"
         | RsLitNum n -> Printf.sprintf "%Li" n
@@ -365,7 +365,7 @@ and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
 let string_of_rs_fn_args (fn: rs_fn) : string =
     let string_of_arg_and_type (arg: rs_exp) (typ: rs_type) : string =
         match typ with
-            | RsTypUnit -> ""
+            | RsTypUnit -> "unit_arg: ()"
             | _ -> Printf.sprintf "%s: %s"
                 (string_of_rs_exp 0 arg)
                 (string_of_rs_type typ)

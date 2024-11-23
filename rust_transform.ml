@@ -7,7 +7,7 @@ module StringSet = Set.Make(String)
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"])
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -558,59 +558,6 @@ let virt_context_transform = {
   func = sail_context_inserter;
 }
 
-(* ———————————————————————— Remove last unit transformer ————————————————————————— *)
-
-let unit_filter (typ: rs_type) = typ != RsTypUnit
-
-let filter_units (names: rs_exp list) (types: rs_type list) =
-  let filtered_indices = 
-    List.mapi (fun i x -> if unit_filter x then Some i else None) types
-    |> List.filter_map Fun.id 
-  in
-
-  let filtered_names = List.filteri (fun i _ -> List.mem i filtered_indices) names in
-  let filtered_types = List.filter unit_filter types in
-
-  (filtered_names, filtered_types)
-
-let unit_remover (func: rs_fn): rs_fn = 
-  let (arg_names, arg_types) = filter_units func.args (fst func.signature) in  
-  {
-    func with 
-    args = arg_names;
-    signature = (arg_types, snd func.signature)
-  }
-
-let unit_remove_transform = {
-  func = unit_remover;
-}
-
-(* ———————————————————————— FuncArgument remove last unit  ————————————————————————— *)
-
-let remove_last_unit_func_arg_exp (exp: rs_exp) : rs_exp = 
-  match exp with 
-    | RsApp (app, args) -> let args_no_unit = List.filter (
-      function 
-        | RsLit RsLitUnit -> false 
-        | _ -> true 
-    ) args in RsApp(app, args_no_unit)
-    | _ -> exp
-
-let remove_last_unit_func_arg_lexp (lexp: rs_lexp) : rs_lexp = lexp
-
-let remove_last_unit_func_arg_pexp (pexp: rs_pexp) : rs_pexp = pexp
-
-let remove_last_unit_func_arg_type (typ: rs_type) : rs_type = typ
-
-let remove_last_unit_func_arg: expr_type_transform = {
-    exp = remove_last_unit_func_arg_exp;
-    lexp = remove_last_unit_func_arg_lexp;
-    pexp = remove_last_unit_func_arg_pexp;
-    typ = remove_last_unit_func_arg_type;
-    pat = id_pat;
-}
-
-
 (* ———————————————————————— Enumeration binder ————————————————————————— *)
 
 let rec enum_prefix_inserter (key : string) (lst : (string * string) list) : string =
@@ -624,6 +571,7 @@ let enum_binder_exp (enum_list: (string * string) list) (exp: rs_exp) : rs_exp =
   match exp with
     | RsId id -> RsId (enum_prefix_inserter id enum_list)
     | RsApp (RsId id, args) -> RsApp (RsId (enum_prefix_inserter id enum_list), args)
+    | RsMethodApp (RsId id, method_name, args) -> RsMethodApp (RsId (enum_prefix_inserter id enum_list),method_name,args)
     | _ -> exp
  
 let enum_binder_lexp (enum_list: (string * string) list) (lexp: rs_lexp) : rs_lexp = 
@@ -706,7 +654,7 @@ let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List
 
 (* ———————————————————————— prelude_func_filter  ————————————————————————— *)
 
-let prelude_func: StringSet.t = StringSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"])
+let prelude_func: StringSet.t = StringSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"])
 
 let rust_prelude_func_filter_alias (obj: rs_obj) : rs_program = 
     match obj with
@@ -737,6 +685,7 @@ let rec is_parametric (type_list: rs_type list) : bool =
         | e :: list -> (is_rs_typ_param_typ e) || (is_parametric list)
         | [] -> false
 
+(* TODO: This is not enough, make it more general*)
 let generate_func_name(func: rs_fn) : string = 
     if is_parametric (fst func.signature) then
         Printf.sprintf "%s<const N: usize>" func.name

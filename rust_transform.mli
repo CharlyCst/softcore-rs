@@ -32,8 +32,6 @@ val nested_block_remover: expr_type_transform
 val native_func_transform: expr_type_transform
 val expr_type_hoister: expr_type_transform
 val virt_context_transform: func_transform
-val unit_remove_transform: func_transform
-val remove_last_unit_func_arg: expr_type_transform
 val enum_binder_generator: (string * string) list -> expr_type_transform
 val operator_rewriter: func_transform
 val expr_type_operator_rewriter: expr_type_transform
