@@ -215,7 +215,8 @@ and process_vector (ctx: context) (items: 'a exp list) : rs_exp =
         | [] -> []
     in 
     if is_literral then
-        RsLit(RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items))))
+        (* Generate a bitvector *)
+        RsStaticApp(RsTypGenericParam ("BitVector::", [RsTypParamNum vector_length]), "new", [RsLit(RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items))))])
     else 
         let init_type = RsId (Printf.sprintf "BitVector::<%d>::new_empty()" vector_length) in
         let init_expr = RsInstrList ((parse_arguments 0 items) @ [ RsId "__generated_vector"]) in

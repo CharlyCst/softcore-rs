@@ -63,6 +63,7 @@ type rs_exp =
     | RsLet of rs_pat * rs_exp * rs_exp
     | RsApp of rs_exp * rs_exp list
     | RsMethodApp of rs_exp * string * rs_exp list
+    | RsStaticApp of rs_type * string * rs_exp list
     | RsId of string
     | RsLit of rs_lit
     | RsField of rs_exp * string
@@ -244,6 +245,11 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
         | RsApp (fn, args)->
             Printf.sprintf "%s(%s)"
                 (string_of_rs_exp n fn)
+                (String.concat ", " (List.map (string_of_rs_exp n) args))
+        | RsStaticApp(typ, func, args) ->
+            Printf.sprintf "%s::%s(%s)" 
+                (string_of_rs_type typ)
+                func
                 (String.concat ", " (List.map (string_of_rs_exp n) args))
         | RsMethodApp (exp, id, args)->
             Printf.sprintf "%s.%s(%s)"

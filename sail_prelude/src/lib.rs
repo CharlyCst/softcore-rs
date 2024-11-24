@@ -131,10 +131,21 @@ pub fn sys_pmp_count(_unit: ()) -> usize {
     16
 }
 
-pub fn zero_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVector<64> {
-    assert!(value == 64, "handle the case where zero_extend has value not equal 64"); 
-    BitVector::<64>::new(input.bits())
+macro_rules! create_zero_extend_fn {
+    ($($number:ident => $value:expr),* $(,)?) => {
+        $(
+            pub fn $number<const M: usize>(input: BitVector<M>) -> BitVector<$value> {
+                BitVector::<$value>::new(input.bits())
+            }
+        )*
+    };
 }
+
+create_zero_extend_fn!(
+    zero_extend_16 => 16,
+    zero_extend_63 => 63,
+    zero_extend_64 => 64,
+);
 
 pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVector<64> {
     assert!(value == 64, "handle the case where sign_extend has value not equal 64");
@@ -213,6 +224,11 @@ impl<const N: usize> BitField<N> {
     }
 }
 
+impl<const N: usize> PartialOrd for BitVector<N> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.bits.partial_cmp(&other.bits)
+    }
+}
 
 impl<const N: usize> BitVector<N> {
     pub const fn new(val: u64) -> Self {

@@ -7,7 +7,7 @@ module StringSet = Set.Make(String)
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend"; "sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"])
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -77,6 +77,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
                 (transform_exp ct exp),
                 (transform_exp ct next)))
         | RsApp (app, args) -> transform_app ct app args
+        | RsStaticApp (app, method_name, args) -> RsStaticApp(transform_type ct app, method_name, (List.map (transform_exp ct) args))
         | RsMethodApp (exp, id, args) ->
             (RsMethodApp (
                 (transform_exp ct exp),
@@ -290,7 +291,7 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                     r_end
                     (Int64.sub r_end r_start)
             in
-            RsApp (RsField (bitvec, subrange_call), [])
+            RsMethodApp(bitvec, subrange_call, [])
         | RsApp (RsId "subrange_bits", [RsId id; RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
             let subrange_call =
@@ -299,7 +300,7 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                     r_end
                     (Int64.sub r_end r_start)
             in
-            RsApp (RsField (RsId id, subrange_call), [])
+            RsMethodApp (RsId id, subrange_call, [])
         | RsAssign (RsLexpIndexRange (RsLexpField (lexp, "bits"), RsLit RsLitNum r_end, RsLit RsLitNum r_start), exp) ->
             let r_end = Int64.add r_end Int64.one in
             let set_subrange =
@@ -309,12 +310,8 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                     (Int64.sub r_end r_start)
             in
             RsAssign (lexp, RsMethodApp (lexp_to_exp lexp, set_subrange, [exp]))
-        | RsLit (RsLitBin n) ->
-            let bitvec = Printf.sprintf "BitVector::new(%s)" n in
-            RsId bitvec
-        | RsLit (RsLitHex n) ->
-            let bitvec = Printf.sprintf "BitVector::new(%s)" n in
-            RsId bitvec
+        | RsApp (RsId "zero_extend", RsLit RsLitNum size :: e ) ->  
+            RsApp (RsId (Printf.sprintf "zero_extend_%Lu" size), e)
         | RsMatch (exp, pat::pats) when is_bitvec_lit pat ->
             RsMatch (RsMethodApp (exp, "bits", []), pat::pats)
         | RsMatch (RsTuple exp_tuple, patterns) -> RsMatch (bitvec_transform_match_tuple exp_tuple (parse_first_tuple_entry patterns), patterns)
@@ -776,9 +773,18 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
 
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
+
+(* TODO: Is it correct like that? It might not be... *)
+let is_enum (value: string) : bool = 
+    let re = Str.regexp_string "::" in
+    try
+        ignore (Str.search_forward re value 0);
+        true
+    with Not_found -> false 
+
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
-    | RsApp (RsId app_id, args) when not(StringSet.mem app_id external_func)-> 
+    | RsApp (RsId app_id, args) when not(StringSet.mem app_id external_func) && not(is_enum app_id) -> 
       let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, args)
     | _ -> exp
     
