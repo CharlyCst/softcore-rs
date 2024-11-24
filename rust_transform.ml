@@ -498,12 +498,17 @@ let create_variable_generator () =
   
 let variable_generator = create_variable_generator ();;
 
-let rec contains_func (exp: rs_exp list) : bool =
+
+(* TODO: This is enough for our use case, but we might need to refactor this condition for the full sail transpilation *)
+let rec should_hoistise (exp: rs_exp list) : bool = 
     match exp with
         | [] -> false
         | RsApp _ :: _ -> true  
+        | RsMethodApp _ :: _ -> true
         | RsIf (_,_,_) :: _ -> true
-        | _ :: tail -> contains_func tail
+        | RsField (e,e2) :: _ -> true
+        | RsBinop (e1, op, e2) :: _ -> true
+        | _ :: tail -> should_hoistise tail 
     
 let rec hoistise (exp: rs_exp list) : rs_exp list * rs_exp list = 
     match exp with
@@ -522,9 +527,9 @@ let rec generate_hoistised_block (exp: rs_exp list) (app) : rs_exp =
 let expr_hoister (exp: rs_exp) : rs_exp = 
     match exp with
         (* We dont need to hoistise external functions & some macro might not work with hoisting (for example: format!)*)
-        | RsApp (RsId name, args) when contains_func args && not(StringSet.mem name external_func) -> let ret = hoistise args in 
+        | RsApp (RsId name, args) when should_hoistise args && not(StringSet.mem name external_func) -> let ret = hoistise args in 
             RsBlock[generate_hoistised_block (fst ret) (RsApp (RsId name, snd ret))]
-        | RsMethodApp (name,met, args) when contains_func args -> let ret = hoistise args in 
+        | RsMethodApp (name,met, args) when should_hoistise args -> let ret = hoistise args in 
             RsBlock[generate_hoistised_block (fst ret) (RsMethodApp (name,met, snd ret))]
         | _ -> exp
 
