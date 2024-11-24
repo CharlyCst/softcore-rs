@@ -807,3 +807,35 @@ let sail_context_arg_inserter: expr_type_transform = {
     typ = sail_context_arg_inserter_type;
     pat = id_pat;
 }
+
+(* TODO: This is a very (almost useless) basic dead code remover only for our use case. Extend it in the future *)
+(* ———————————————————————— Dead code remover  ————————————————————————— *)
+
+let filter_different_litterals (lit: int64) (pexp: rs_pexp) : bool =
+    match pexp with 
+        | RsPexp (RsPatTuple [e; RsPatLit(RsLitNum n)],e2) when n <>lit -> false
+        | RsPexpWhen (RsPatTuple [e; RsPatLit(RsLitNum n)],e2, e3) when n <> lit -> false
+        | _ -> true
+
+
+let dead_code_remover_exp (exp: rs_exp) : rs_exp = 
+    match exp with
+        | RsMatch (RsTuple [e; RsLit(RsLitNum n)], pexps) -> 
+            RsMatch (RsTuple [e; RsLit(RsLitNum n)], List.filter (filter_different_litterals n) pexps)
+        | RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), then_exp, else_exp) when n1 <> n2 ->
+            RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), RsApp(RsId "panic!", [RsId "\"unreachable code\""]), else_exp) 
+        | _ -> exp
+    
+let dead_code_remover_lexp (lexp: rs_lexp) : rs_lexp = lexp
+
+let dead_code_remover_pexp (pexp: rs_pexp) : rs_pexp = pexp
+
+let dead_code_remover_type (typ: rs_type) : rs_type = typ
+
+let dead_code_remover: expr_type_transform = {
+    exp = dead_code_remover_exp;
+    lexp = dead_code_remover_lexp;
+    pexp = dead_code_remover_pexp;
+    typ = dead_code_remover_type;
+    pat = id_pat;
+}

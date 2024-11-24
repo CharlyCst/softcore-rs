@@ -44,3 +44,6 @@ val transform_basic_types: expr_type_transform
 (* Stage 4 *)
 val sail_context_binder_generator : StringSet.t -> expr_type_transform
 val sail_context_arg_inserter: expr_type_transform
+
+(* Optimizer *)
+val dead_code_remover : expr_type_transform

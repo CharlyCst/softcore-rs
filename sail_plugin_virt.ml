@@ -107,6 +107,9 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_transform_expr sail_context_binder rust_program in
   let rust_program = rust_transform_expr sail_context_arg_inserter rust_program in
 
+  (* Optimizer: Dead code elimination *)
+  let rust_program = rust_transform_expr dead_code_remover rust_program in
+
   let rust_program_string = string_of_rs_prog rust_program in
 
   (* Post processing stage: replace illegals # and ' in rust *)
