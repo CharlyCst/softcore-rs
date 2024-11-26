@@ -275,7 +275,7 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                     (Printf.sprintf ";\n%s" (indent (n)))
                     (List.map (string_of_rs_exp (n)) exps))
         | RsIf (cond, then_exp, else_exp) ->
-            Printf.sprintf "if %s {\n%s%s\n%s} else %s"
+            Printf.sprintf "if {%s} {\n%s%s\n%s} else %s"
                 (string_of_rs_exp n cond)
                 (indent (n + 1))
                 (string_of_rs_exp (n + 1) then_exp)
@@ -363,7 +363,7 @@ and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
                 (string_of_rs_pat pat)
                 (string_of_rs_exp n exp)
         | RsPexpWhen (pat, cond_exp, exp) ->
-            Printf.sprintf "%s if %s => {%s}\n"
+            Printf.sprintf "%s if {%s} => {%s}\n"
                 (string_of_rs_pat pat)
                 (string_of_rs_exp n cond_exp)
                 (string_of_rs_exp n exp)
@@ -426,7 +426,7 @@ let parse_struct_fields (entries: (string * rs_type)  list) : string =
     remove_last_char merged_fields (* Removes last '\n'*)
 
 let string_of_rs_struct (struc: rs_struct) : string = 
-    Printf.sprintf "struct %s {\n%s\n}" struc.name (parse_struct_fields struc.fields)
+    Printf.sprintf "#[derive(Eq, PartialEq, Clone, Copy, Debug)]\nstruct %s {\n%s\n}" struc.name (parse_struct_fields struc.fields)
 
 let string_of_rs_obj (obj: rs_obj) : string =
     match obj with

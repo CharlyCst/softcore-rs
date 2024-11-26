@@ -7,7 +7,7 @@ module StringSet = Set.Make(String)
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"])
+let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"; "hex_bits_12_forwards"])
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -108,6 +108,10 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
             (RsIndex (
                 (transform_exp ct exp1),
                 (transform_exp ct exp2)))
+        | RsBinop (exp1, inop, RsLet (e1,e2,e3)) -> failwith "todo: fix this case"
+        (* todo: Temporary work around, fix this*)
+        | RsBinop (RsLet (RsPatType (typ, pat),e2,e3), inop, exp2) -> 
+            RsBlock [RsLet(RsPatType (typ, pat), e2, e3); RsBinop(RsId(string_of_rs_pat pat),inop, exp2)]
         | RsBinop (exp1, binop, exp2) ->
             (RsBinop (
                 (transform_exp ct exp1),
@@ -730,7 +734,8 @@ let transform_basic_types_type (typ: rs_type) : rs_type =
     | RsTypId "int" -> RsTypId "usize"
     | RsTypId "bit" -> RsTypId "bool" 
     (* TODO: Is this transformation legal? Should we add an assertion at some place in the code? *)
-    | RsTypGenericParam ("range",rest) -> RsTypId "usize" 
+    | RsTypGenericParam ("range", _) -> RsTypId "usize" 
+    | RsTypGenericParam ("implicit", _) -> RsTypId "usize"
     | _ -> typ
 
 let transform_basic_types_pat (pat: rs_pat) : rs_pat =

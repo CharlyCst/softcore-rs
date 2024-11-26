@@ -159,7 +159,7 @@ generate: build
 	./virt-sail sail_arch/mret.sail -o ./rust_arch/mret/src/sail.rs
 
 generate-riscv: build
-	./virt-sail $(RISCV_SAIL_SRCS) ../sail-riscv/model/main.sail -o ./src/main.rs
+	./virt-sail $(RISCV_SAIL_SRCS) ../sail-riscv/model/main.sail -o ./src/lib.rs
 
 riscv-c:  
 	sail -c $(RISCV_SAIL_SRCS) 1> riscv_c.c 

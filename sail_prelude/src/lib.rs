@@ -163,10 +163,19 @@ pub fn min_int(v1: usize, v2: usize) -> usize {
 pub fn cancel_reservation(_unit: ()) {
     // In the future, extend this function
 }
+
+pub fn hex_bits_12_forwards(_reg: BitVector<12>) -> ! {
+    // TODO: Implement this function
+    panic!("Implement this function")
+}
  
 // TODO: This is enough for the risc-v transpilation, but not enought for full sail-to-rust
 pub fn subrange_bits(vec: BitVector<64>, _end: usize, _start: usize) -> BitVector<64> {
     vec
+}
+
+pub fn subrange_bits_8(_vec: BitVector<64>, _end: usize, _start: usize) -> BitVector<8> {
+    panic!("todo")
 }
 
 pub fn update_subrange_bits<const N: usize, const M: usize>(bits: BitVector<N>, from: u64, to: u64, value: BitVector<M>) -> BitVector<N> {
@@ -182,9 +191,9 @@ pub fn update_subrange_bits<const N: usize, const M: usize>(bits: BitVector<N>, 
 }
 
 // TODO: Make this function more generic in the future.
-pub fn bitvector_update(v: BitVector<64>, pos: usize, value: usize) -> BitVector<64>  {
+pub fn bitvector_update(v: BitVector<64>, pos: usize, value: bool) -> BitVector<64>  {
     let mask = 1 << pos;
-    BitVector::<64>::new((v.bits() & !mask) | ((value & 0x1) << pos) as u64)
+    BitVector::<64>::new((v.bits() & !mask) | ((value as u64) << pos) as u64)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -330,6 +339,27 @@ impl<const N: usize> ops::BitXor for BitVector<N> {
         }
     }
 }
+
+impl<const N: usize> ops::Shl<usize> for BitVector<N> {
+    type Output = Self;
+
+    fn shl(self, rhs: usize) -> Self::Output {
+        Self {
+            bits: self.bits << rhs,
+        }
+    }
+}
+
+impl<const N: usize> ops::Shr<usize> for BitVector<N> {
+    type Output = Self;
+
+    fn shr(self, rhs: usize) -> Self::Output {
+        Self {
+            bits: self.bits >> rhs,
+        }
+    }
+}
+
 
 impl<const N: usize> ops::Not for BitVector<N> {
     type Output = Self;

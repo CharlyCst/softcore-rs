@@ -55,8 +55,8 @@ let process_vector_pat (items: 'a pat list) : rs_lit =
 let process_lit (L_aux (lit, _)) : rs_lit =
     match lit with
         | L_unit -> RsLitUnit
-        | L_zero -> RsLitNum Int64.zero
-        | L_one -> RsLitNum Int64.one
+        | L_zero -> RsLitFalse
+        | L_one -> RsLitTrue
         | L_true -> RsLitTrue
         | L_false -> RsLitFalse
         | L_num n -> RsLitNum (Big_int.to_int64 n)
@@ -429,22 +429,33 @@ let process_sub_type (id: string) (A_aux (typ, _)) : rs_obj * bool =
         | A_nexp exp -> (RsConst {name = id; value = extract_type_nexp exp}, true)
         
 let extract_first_item_type (items: (Libsail.Ast.typ * Libsail.Ast.id) list) : rs_type =   
-    (*assert(List.length items = 1) TODO: Why it fails? *)
+    assert(List.length items = 1); 
     match items with 
         | x :: _ -> extract_type (fst x)
         | _ -> RsTypTodo "type_extract_first_item_type"
 
-let parse_bitfield_size (items: (Libsail.Ast.typ * Libsail.Ast.id) list) = 
+let parse_bitfield_single (items: (Libsail.Ast.typ * Libsail.Ast.id) list) = 
     let item = extract_first_item_type items in 
     match item with 
         | RsTypGenericParam (e, [RsTypParamNum n]) -> RsTypGenericParam ("BitField", [RsTypParamNum n]) ;
         | _ -> item
 
+let process_record_type (id) (items: (Libsail.Ast.typ * Libsail.Ast.id) list) : (rs_obj * bool) =
+    if List.length items <> 1 then
+        let arg_value = List.map (fun (typ, id) -> (string_of_id id, extract_type typ)) items in
+       (RsStruct { name = string_of_id id; fields = arg_value }, true)
+    else
+        (RsAlias { new_typ = string_of_id id; old_type = parse_bitfield_single items }, true)
+        
 let process_type_name_type (TD_aux (typ, _)) : (rs_obj * bool) =
     match typ with
         | TD_abbrev (id, typquant, typ_arg) -> process_sub_type (string_of_id id) typ_arg
-        (* TODO: Solve the case where record has multiple types *)
-        | TD_record (id, typquant, items, _) -> (RsAlias {new_typ = string_of_id id; old_type = parse_bitfield_size items}, true) 
+        (* Fix this in the future *)
+        | TD_record (id, typquant, items, _) 
+            when string_of_id id = "Mem_write_request" || 
+                string_of_id id = "Mem_read_request" ->
+                    (RsConst {name = "dummy"; value = "dummy"}, false)
+        | TD_record (id, typquant, items, _) -> process_record_type id items
         | _ -> (RsConst {name = "dummy"; value = "dummy"}, false)
  
 let process_if_abbrev  (DEF_aux (def, annot)) : (rs_obj * bool) =
