@@ -1,7 +1,9 @@
 #![allow(incomplete_features, non_camel_case_types)]
 #![feature(generic_const_exprs)]
 use core::ops;
-use std::{cmp::min, process::{self, exit}, usize};
+use std::cmp::min;
+use std::process::{self, exit};
+use std::usize;
 
 use rand::Rng;
 
@@ -25,7 +27,7 @@ pub fn signed<const N: usize>(e: BitVector<N>) -> BitVector<64> {
 
 pub fn lteq_int(e1: usize, e2: usize) -> bool {
     e1 <= e2
-} 
+}
 
 pub fn gt_int(e1: usize, e2: usize) -> bool {
     e1 > e2
@@ -36,12 +38,11 @@ pub fn bitvector_length<const N: usize>(_e: BitVector<N>) -> usize {
 }
 
 pub fn bitvector_concat<const N: usize, const M: usize>(
-    e1: BitVector<N>, 
-    e2: BitVector<M>
+    e1: BitVector<N>,
+    e2: BitVector<M>,
 ) -> BitVector<{ N + M }> {
-    BitVector::<{ N + M }>::new( (e1.bits() << M) | e2.bits() )
+    BitVector::<{ N + M }>::new((e1.bits() << M) | e2.bits())
 }
-
 
 pub fn sys_enable_writable_misa(_unit: ()) -> bool {
     true
@@ -55,7 +56,7 @@ pub fn sys_enable_fdext(_unit: ()) -> bool {
     true
 }
 
-pub fn  sys_enable_zfinx(_unit: ()) -> bool {
+pub fn sys_enable_zfinx(_unit: ()) -> bool {
     true
 }
 
@@ -82,7 +83,7 @@ pub fn internal_error(_file: String, _line: usize, _s: String) -> ! {
     exit(0);
 }
 
-pub fn print_output(text: String, _csr: BitVector::<12>) {
+pub fn print_output(text: String, _csr: BitVector<12>) {
     println!("{}", text)
 }
 
@@ -92,12 +93,12 @@ pub fn print_platform(text: String) {
 
 pub fn dec_str(val: usize) -> String {
     // Format into a normal decimal string
-    format!("{}", val) 
+    format!("{}", val)
 }
 
 pub fn hex_str(val: usize) -> String {
     // Format into a hexadecimal string
-    format!("{:x}", val) 
+    format!("{:x}", val)
 }
 
 pub fn bits_str<const N: usize>(val: BitVector<N>) -> String {
@@ -148,7 +149,10 @@ create_zero_extend_fn!(
 );
 
 pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVector<64> {
-    assert!(value == 64, "handle the case where sign_extend has value not equal 64");
+    assert!(
+        value == 64,
+        "handle the case where sign_extend has value not equal 64"
+    );
     BitVector::<64>::new(input.bits())
 }
 
@@ -168,7 +172,7 @@ pub fn hex_bits_12_forwards(_reg: BitVector<12>) -> ! {
     // TODO: Implement this function
     panic!("Implement this function")
 }
- 
+
 // TODO: This is enough for the risc-v transpilation, but not enought for full sail-to-rust
 pub fn subrange_bits(vec: BitVector<64>, _end: usize, _start: usize) -> BitVector<64> {
     vec
@@ -178,20 +182,25 @@ pub fn subrange_bits_8(_vec: BitVector<64>, _end: usize, _start: usize) -> BitVe
     panic!("todo")
 }
 
-pub fn update_subrange_bits<const N: usize, const M: usize>(bits: BitVector<N>, from: u64, to: u64, value: BitVector<M>) -> BitVector<N> {
+pub fn update_subrange_bits<const N: usize, const M: usize>(
+    bits: BitVector<N>,
+    from: u64,
+    to: u64,
+    value: BitVector<M>,
+) -> BitVector<N> {
     assert!(from - to + 1 == M as u64, "size don't match");
 
     // Generate the 111111 mask
-    let mut mask = (1 << (M+1)) - 1;
+    let mut mask = (1 << (M + 1)) - 1;
     // Shit and invert it
     mask = !(mask << from);
-    
+
     // Now we can update and return the updated value
-    return  BitVector::<N>::new((bits.bits & mask) | (value.bits() << from))
+    return BitVector::<N>::new((bits.bits & mask) | (value.bits() << from));
 }
 
 // TODO: Make this function more generic in the future.
-pub fn bitvector_update(v: BitVector<64>, pos: usize, value: bool) -> BitVector<64>  {
+pub fn bitvector_update(v: BitVector<64>, pos: usize, value: bool) -> BitVector<64> {
     let mask = 1 << pos;
     BitVector::<64>::new((v.bits() & !mask) | ((value as u64) << pos) as u64)
 }
@@ -203,7 +212,7 @@ pub struct BitVector<const N: usize> {
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitField<const T: usize> {
-    pub bits: BitVector<T>
+    pub bits: BitVector<T>,
 }
 
 impl<const N: usize> BitField<N> {
@@ -219,16 +228,16 @@ impl<const N: usize> BitField<N> {
 
     pub const fn set_subrange<const A: usize, const B: usize, const C: usize>(
         self,
-        _bits: BitVector<C>,
+        bitvector: BitVector<C>,
     ) -> Self {
         assert!(B - A == C, "Invalid subrange parameters");
-        assert!(B <= N, "Invalid subrange");
+        assert!(A <= B && B <= N, "Invalid subrange");
 
-        let mut val = self.bits; // The current value
-        val.bits &= BitVector::<B>::bit_mask(); // Remove top bits
-        val.bits >>= A; // Shift all the bits
-        BitField {
-            bits: val,
+        let mask = !(BitVector::<C>::bit_mask() << A);
+
+        let new_bits = bitvector.bits() << A;
+        BitField::<N> {
+            bits: BitVector::<N>::new((self.bits.bits & mask) | new_bits)
         }
     }
 }
@@ -252,7 +261,7 @@ impl<const N: usize> BitVector<N> {
     }
 
     pub const fn new_empty() -> Self {
-        Self { bits: 0}
+        Self { bits: 0 }
     }
 
     pub const fn bits(self) -> u64 {
@@ -359,7 +368,6 @@ impl<const N: usize> ops::Shr<usize> for BitVector<N> {
         }
     }
 }
-
 
 impl<const N: usize> ops::Not for BitVector<N> {
     type Output = Self;
