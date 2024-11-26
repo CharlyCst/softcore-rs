@@ -351,10 +351,10 @@ and string_of_rs_lexp (n: int) (lexp: rs_lexp) : string =
                 (string_of_rs_lexp n lexp)
                 (string_of_rs_exp n idx)
         | RsLexpIndexRange (lexp, range_start, range_end) ->
-            Printf.sprintf "%s[(%s)..=(%s)]"
-                (string_of_rs_lexp n lexp)
-                (string_of_rs_exp n range_start)
-                (string_of_rs_exp n range_end)
+            (* Implement support for this case if the assertion fails *)
+            assert ((string_of_rs_exp n range_start) = "(64 - 1)"); 
+            assert ((string_of_rs_exp n range_end) = "0"); 
+            string_of_rs_lexp n lexp
         | RsLexpTodo ->  "LEXP_TODO"
 and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
     match pexp with

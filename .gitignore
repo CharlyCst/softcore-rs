@@ -5,3 +5,6 @@ out.rs
 /src
 # Added by cargo
 /target
+
+/sail_prelude/target
+/sail_prelude/cargo.lock
