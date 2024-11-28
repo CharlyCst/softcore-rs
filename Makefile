@@ -111,6 +111,9 @@ include ../sail-riscv/Makefile
 
 RISCV_SAIL_SRCS      = $(addprefix ../sail-riscv/,$(SAIL_SRCS))
 
+
+# git checkout 17113857 --> commit used for risc-v
+
 .PHONY: test test2 clean
 
 install: 

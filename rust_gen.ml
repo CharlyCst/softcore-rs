@@ -387,7 +387,7 @@ let string_of_rs_fn (fn: rs_fn) : string =
         | RsTypUnit -> ""
         | _ -> Printf.sprintf " -> %s" (string_of_rs_type ret_type)
     in
-    let signature = Printf.sprintf "fn %s(%s)%s {\n%s" fn.name args ret_type (indent 1) in
+    let signature = Printf.sprintf "pub fn %s(%s)%s {\n%s" fn.name args ret_type (indent 1) in
     let stmts = (match fn.body with
         | RsBlock exps
             -> String.concat
@@ -410,7 +410,7 @@ let parse_enum_fields (entries: string list) : string =
 let get_enum_guards () : string = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]"
 
 let string_of_rs_enum (enum: rs_enum) : string = 
-    Printf.sprintf "%s\nenum %s {\n%s\n}" (get_enum_guards()) enum.name (parse_enum_fields enum.fields)
+    Printf.sprintf "%s\npub enum %s {\n%s\n}" (get_enum_guards()) enum.name (parse_enum_fields enum.fields)
 
 let parse_typed_enum_fields (entries: (string * rs_type) list) : string = 
     let prefixed_entries = List.map (fun s -> "    " ^ (fst s) ^ "(" ^ (string_of_rs_type (snd s)) ^ "),\n") entries in
@@ -418,15 +418,15 @@ let parse_typed_enum_fields (entries: (string * rs_type) list) : string =
     remove_last_char merged_fields (* Removes last '\n'*)
 
 let string_of_rs_typed_enum (enum: rs_typed_enum) : string = 
-    Printf.sprintf "%s\nenum %s {\n%s\n}" (get_enum_guards()) enum.name (parse_typed_enum_fields enum.fields)
+    Printf.sprintf "%s\npub enum %s {\n%s\n}" (get_enum_guards()) enum.name (parse_typed_enum_fields enum.fields)
 
 let parse_struct_fields (entries: (string * rs_type)  list) : string = 
-    let prefixed_entries = List.map (fun s -> "    " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
+    let prefixed_entries = List.map (fun s -> "    pub " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
     let merged_fields = String.concat "" prefixed_entries in
     remove_last_char merged_fields (* Removes last '\n'*)
 
 let string_of_rs_struct (struc: rs_struct) : string = 
-    Printf.sprintf "#[derive(Eq, PartialEq, Clone, Copy, Debug)]\nstruct %s {\n%s\n}" struc.name (parse_struct_fields struc.fields)
+    Printf.sprintf "#[derive(Eq, PartialEq, Clone, Copy, Debug)]\npub struct %s {\n%s\n}" struc.name (parse_struct_fields struc.fields)
 
 let string_of_rs_obj (obj: rs_obj) : string =
     match obj with
@@ -434,8 +434,8 @@ let string_of_rs_obj (obj: rs_obj) : string =
         | RsEnum enum -> string_of_rs_enum enum 
         | RsTypedEnum typed_enum -> string_of_rs_typed_enum typed_enum
         | RsStruct struc -> string_of_rs_struct struc
-        | RsAlias alias -> Printf.sprintf "type %s = %s;" alias.new_typ (string_of_rs_type alias.old_type)
-        | RsConst const -> Printf.sprintf "const %s: usize = %s;" const.name const.value
+        | RsAlias alias -> Printf.sprintf "pub type %s = %s;" alias.new_typ (string_of_rs_type alias.old_type)
+        | RsConst const -> Printf.sprintf "pub const %s: usize = %s;" const.name const.value
         | RsAttribute value -> Printf.sprintf "#![%s]" value
         | RsImport value -> Printf.sprintf "use %s;" value
 
