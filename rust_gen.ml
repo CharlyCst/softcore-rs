@@ -321,7 +321,7 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
             Printf.sprintf "Some(%s)" (string_of_rs_exp n exp)
         | RsNone -> "None"
         | RsPathSeparator (t1, t2) -> Printf.sprintf "%s::%s" (string_of_rs_type t1) (string_of_rs_type t2)
-        | RsFor (var, start, until, body) -> Printf.sprintf "for %s in %s..%s {\n%s%s\n%s}"
+        | RsFor (var, start, until, body) -> Printf.sprintf "for %s in %s..=%s {\n%s%s\n%s}"
             (string_of_rs_type var)
             (string_of_rs_lit start)
             (string_of_rs_lit until)
