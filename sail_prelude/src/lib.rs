@@ -5,8 +5,6 @@ use std::cmp::min;
 use std::process::{self, exit};
 use std::usize;
 
-use rand::Rng;
-
 // TODO: What should we do with this? This is not clear how we should transpile it
 pub type _tick_arch_ak = ();
 pub type _tick_a = ();
@@ -156,8 +154,8 @@ pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVect
         value == 64,
         "handle the case where sign_extend has value not equal 64"
     );
-    assert!(false, "Implement this function !");
-    BitVector::<64>::new(input.bits())
+    let extension = ((1 << (64 - M)) - 1) << M;
+    BitVector::<64>::new(extension | input.bits)
 }
 
 pub fn sail_ones<const N: usize>(_n: usize) -> BitVector<N> {

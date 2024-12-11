@@ -109,7 +109,9 @@
 
 include ../sail-riscv/Makefile
 
-RISCV_SAIL_SRCS      = $(addprefix ../sail-riscv/,$(SAIL_SRCS))
+# IMPORTANT: Don't forget to checkout to miralis branch
+
+RISCV_SAIL_SRCS      = $(addprefix ../miralis-sail-riscv/,$(SAIL_SRCS))
 
 
 # git checkout 17113857 --> commit used for risc-v
@@ -163,6 +165,7 @@ generate: build
 
 generate-riscv: build
 	./virt-sail $(RISCV_SAIL_SRCS) ../sail-riscv/model/main.sail -o ./src/lib.rs
+	python3 manual_fixes.py
 
 riscv-c:  
 	sail -c $(RISCV_SAIL_SRCS) 1> riscv_c.c 
