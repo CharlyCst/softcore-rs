@@ -15,6 +15,7 @@ type expr_type_transform = {
     pexp: rs_pexp -> rs_pexp;
     typ : rs_type -> rs_type;
     pat : rs_pat -> rs_pat;
+    obj : rs_obj -> rs_obj;
 }
 
 type func_transform = {

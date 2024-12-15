@@ -21,12 +21,15 @@ let id_typ (typ: rs_type) : rs_type = typ
 
 let id_pat (pat: rs_pat) : rs_pat = pat
 
+let id_obj (obj: rs_obj) : rs_obj = obj
+
 type expr_type_transform = {
     exp : rs_exp -> rs_exp;
     lexp : rs_lexp -> rs_lexp;
     pexp : rs_pexp -> rs_pexp;
     typ : rs_type -> rs_type;
     pat: rs_pat -> rs_pat;
+    obj: rs_obj -> rs_obj;
 }
 
 let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat = 
@@ -230,6 +233,7 @@ let transform_alias (ct: expr_type_transform) (alias: rs_alias) : rs_alias = {
     }
 
 let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj = 
+    let obj = ct.obj obj in
     match obj with
         | RsFn fn -> RsFn (transform_fn ct fn)
         | RsAlias alias -> RsAlias (transform_alias ct alias)
@@ -354,6 +358,7 @@ let bitvec_transform = {
     pexp = bitvec_transform_pexp;
     typ = bitvec_transform_type;
     pat = id_pat;
+    obj = id_obj;
 }
 
 (* ——————————————————————————— Nested Blocks remover ———————————————————————————— *)
@@ -379,6 +384,7 @@ let nested_block_remover = {
     pexp = nested_block_remover_pexp;
     typ = nested_block_remover_type;
     pat = id_pat;
+    obj = id_obj;
 }
 
 (* ——————————————————————————— Native functions transformation ———————————————————————————— *)
@@ -490,6 +496,7 @@ let native_func_transform = {
     pexp = native_func_transform_pexp;
     typ = native_func_transform_type;
     pat = id_pat;
+    obj = id_obj;
 }
 
 (* ———————————————————————— Hoisting rewriting  ————————————————————————— *)
@@ -500,8 +507,10 @@ let create_variable_generator () =
       counter := !counter + 1;
       Printf.sprintf "var_%d" !counter
   
-let variable_generator = create_variable_generator ();;
+let variable_generator = ref (create_variable_generator ())
 
+let reset_variable_generator () =
+    variable_generator := (create_variable_generator ())
 
 (* TODO: This is enough for our use case, but we might need to refactor this condition for the full sail transpilation *)
 let rec should_hoistise (exp: rs_exp list) : bool = 
@@ -517,7 +526,7 @@ let rec should_hoistise (exp: rs_exp list) : bool =
 let rec hoistise (exp: rs_exp list) : rs_exp list * rs_exp list = 
     match exp with
     | e :: arr -> 
-        let ident = variable_generator () in 
+        let ident = !variable_generator () in
         let (l1, l2) = hoistise arr in
         (RsLet (RsPatId ident, e, RsTodo "hoistise") :: l1, RsId ident :: l2)
     | [] -> ([], [])
@@ -537,18 +546,20 @@ let expr_hoister (exp: rs_exp) : rs_exp =
             RsBlock[generate_hoistised_block (fst ret) (RsMethodApp (name,met, snd ret))]
         | _ -> exp
 
-let lexpr_hoister (lexp: rs_lexp) : rs_lexp = lexp
-
-let pexpr_hoister (pexp: rs_pexp) : rs_pexp = pexp 
-
-let type_hoister (typ: rs_type) : rs_type = typ 
+let obj_hoister (obj: rs_obj) : rs_obj =
+    (* For each rust object we reset the counter
+       This makes the IDs of variables more stable, as a change in a function
+       doesn't rename variables in another *)
+    reset_variable_generator ();
+    obj
 
 let expr_type_hoister = {
     exp = expr_hoister;
-    lexp = lexpr_hoister;
-    pexp = pexpr_hoister;
-    typ = type_hoister;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
     pat = id_pat;
+    obj = obj_hoister;
 }
 
 (* ———————————————————————— VirtContext transformer ————————————————————————— *)
@@ -599,6 +610,7 @@ let enum_binder_generator (enum_list: (string * string) list) : expr_type_transf
     lexp = enum_binder_lexp enum_list;
     typ = enum_binder_type;
     pat = enum_binder_pat enum_list;
+    obj = id_obj;
 }
   
 
@@ -646,6 +658,7 @@ let expr_type_operator_rewriter = {
     pexp = pexpr_operator_rewriter;
     typ = type_operator_rewriter;
     pat = id_pat;
+    obj = id_obj;
 }
 
 
@@ -750,6 +763,7 @@ let transform_basic_types: expr_type_transform = {
     pexp = transform_basic_types_pexp;
     typ = transform_basic_types_type;
     pat = transform_basic_types_pat;
+    obj = id_obj;
 }
 
 (* ———————————————————————— VirtContext binder ————————————————————————— *)
@@ -779,6 +793,7 @@ let sail_context_binder_generator (register_list: StringSet.t): expr_type_transf
     pexp = sail_context_binder_pexp register_list;
     typ = sail_context_binder_type;
     pat = id_pat;
+    obj = id_obj;
 }
 
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
@@ -811,6 +826,7 @@ let sail_context_arg_inserter: expr_type_transform = {
     pexp = sail_context_arg_inserter_pexp;
     typ = sail_context_arg_inserter_type;
     pat = id_pat;
+    obj = id_obj;
 }
 
 (* TODO: This is a very (almost useless) basic dead code remover only for our use case. Extend it in the future *)
@@ -843,4 +859,5 @@ let dead_code_remover: expr_type_transform = {
     pexp = dead_code_remover_pexp;
     typ = dead_code_remover_type;
     pat = id_pat;
+    obj = id_obj;
 }
