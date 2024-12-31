@@ -102,6 +102,7 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = insert_annotation_imports rust_program in
   let rust_program = rust_transform_func parametric_rewriter rust_program in
   let rust_program = rust_transform_expr transform_basic_types rust_program in
+  let rust_program = rust_transform_expr add_wildcard_match rust_program in
 
   (* Last stage : Transform into a borrow checker friendly code *)
   let rust_program = rust_transform_expr sail_context_binder rust_program in

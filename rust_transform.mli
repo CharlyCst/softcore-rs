@@ -41,6 +41,7 @@ val rust_prelude_func_filter: rs_program -> rs_program
 val insert_annotation_imports: rs_program -> rs_program
 val parametric_rewriter: func_transform
 val transform_basic_types: expr_type_transform
+val add_wildcard_match: expr_type_transform
 
 (* Stage 4 *)
 val sail_context_binder_generator : StringSet.t -> expr_type_transform

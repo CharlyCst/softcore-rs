@@ -767,6 +767,22 @@ let transform_basic_types: expr_type_transform = {
     obj = id_obj;
 }
 
+(* ———————————————————————— Wildcard inserter  ————————————————————————— *)
+
+let add_wildcard_match_expr (exp: rs_exp) : rs_exp = 
+    match exp with 
+        | RsMatch (exp, pexps) -> RsMatch(exp, pexps @ [RsPexp(RsPatWildcard, RsApp(RsId "panic!", [RsId "\"Unreachable code\""]))]) 
+        | _ -> exp
+
+let add_wildcard_match: expr_type_transform = {
+    exp = add_wildcard_match_expr;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
+    pat = id_pat;
+    obj = id_obj;
+}
+
 (* ———————————————————————— VirtContext binder ————————————————————————— *)
 
 
