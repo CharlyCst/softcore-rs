@@ -121,12 +121,17 @@ let rec get_call_set (ast: 'a ast) : SSet.t =
     let set = SSet.empty in
     let set = SSet.add "CSR" set in
     let set = SSet.add "MRET" set in
+    let set = SSet.add "SRET" set in
     let set = SSet.add "ITYPE" set in
     let set = SSet.add "TEST" set in
     let set = SSet.add "WFI" set in
+    let set = SSet.add "EBREAK" set in
     let set = SSet.add "trap_handler" set in
     let set = SSet.add "pmpCheck" set in
     let set = SSet.add "dispatchInterrupt" set in 
     (*let set = SSet.add "encdec_backwards" set in*) (* Uncomment to generate the decoder *) 
     let set = SSet.add "step_interrupts_only" set in
+    let set = SSet.add "SFENCE_VMA" set in
+    let set = SSet.add "HFENCE_VVMA" set in
+    let set = SSet.add "HFENCE_GVMA" set in
     get_call_set_rec ast set
