@@ -107,10 +107,10 @@
 
 # SAIL_SRCS      = $(addprefix ../sail-riscv/model/,$(SAIL_ARCH_SRCS) $(SAIL_SEQ_INST_SRCS)  $(SAIL_OTHER_SRCS))
 
-include ../sail-riscv/Makefile
 
 # IMPORTANT: Don't forget to checkout to miralis branch
 
+include ../miralis-sail-riscv/Makefile
 RISCV_SAIL_SRCS      = $(addprefix ../miralis-sail-riscv/,$(SAIL_SRCS))
 
 
@@ -158,13 +158,13 @@ wfi: build
 	./virt-sail sail_arch/wfi.sail -o out.rs
 
 riscv: build
-	./virt-sail $(RISCV_SAIL_SRCS) ../sail-riscv/model/main.sail -o out.rs
+	./virt-sail $(RISCV_SAIL_SRCS) ../miralis-sail-riscv/model/main.sail -o out.rs
 
 generate: build
 	./virt-sail sail_arch/mret.sail -o ./rust_arch/mret/src/sail.rs
 
 generate-riscv: build
-	./virt-sail $(RISCV_SAIL_SRCS) ../sail-riscv/model/main.sail -o ./src/lib.rs
+	./virt-sail $(RISCV_SAIL_SRCS) ../miralis-sail-riscv/model/main.sail -o ./src/lib.rs
 	python3 manual_fixes.py
 
 riscv-c:  
