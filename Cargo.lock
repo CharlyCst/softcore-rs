@@ -26,3 +26,10 @@ dependencies = [
 [[package]]
 name = "sail_prelude"
 version = "0.1.0"
+
+[[package]]
+name = "trap"
+version = "0.1.0"
+dependencies = [
+ "sail_prelude",
+]
