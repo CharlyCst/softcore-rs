@@ -1,7 +1,13 @@
-[package]
-name = "main"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+resolver = "2"
+members = [
+    # The Rust prelude, shared by all generated models
+    "sail_prelude",
 
-[dependencies]
-sail_prelude = { path = "sail_prelude" }
+    # The RISC-V Sail model
+    "riscv",
+
+    # Our tests
+    "tests/basic",
+    "tests/basic_alt",
+]
