@@ -78,6 +78,7 @@ let virt_target _ _ out_file ast effect_info env =
 
   (* Process enumerations *)
   let enum_entries = process_enum_entries ast.defs in
+  let enum_args_filter = enum_in_args_remover_generator enum_entries in
   let enum_binder = enum_binder_generator enum_entries in
 
   (*List.map (fun e -> print_endline(Printf.sprintf "%s %s" (fst e) (snd e))) enum_entries;
@@ -94,6 +95,7 @@ let virt_target _ _ out_file ast effect_info env =
   let rust_program = rust_transform_expr native_func_transform rust_program in
   let rust_program = rust_transform_expr expr_type_hoister rust_program in 
   let rust_program = rust_transform_func virt_context_transform rust_program in
+  let rust_program = rust_transform_func enum_args_filter rust_program in
   let rust_program = rust_transform_expr enum_binder rust_program in
   let rust_program = rust_transform_func operator_rewriter rust_program in
   let rust_program = rust_transform_expr expr_type_operator_rewriter rust_program in

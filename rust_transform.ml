@@ -564,6 +564,8 @@ let expr_type_hoister = {
 }
 
 (* ———————————————————————— VirtContext transformer ————————————————————————— *)
+(* Adds a virtual context as first argument to all functions.                 *)
+(* —————————————————————————————————————————————————————————————————————————— *)
 
 let sail_context_inserter (func: rs_fn): rs_fn = { 
   func with 
@@ -571,9 +573,47 @@ let sail_context_inserter (func: rs_fn): rs_fn = {
     signature = (RsTypId "&mut SailVirtCtx" :: (fst func.signature), snd func.signature)
 }
 
-
 let virt_context_transform = {
   func = sail_context_inserter;
+}
+
+(* —————————————————————————— Enum In Args Remover —————————————————————————— *)
+(* A common pattern is to use enums as argument in scattered function.        *)
+(* This allows pattern matching on one of the arguments.                      *)
+(*                                                                            *)
+(* This transformation must be executed _before_ the enum binder, otherwise   *)
+(* enums in argument positions will not be detected properly.                 *)
+(* —————————————————————————————————————————————————————————————————————————— *)
+
+let rec is_enum (enum_list: (string * string) list) (enum: string) : bool = 
+    match enum_list with
+    | (k, v) :: tail ->
+        if k = enum then true
+        else is_enum tail enum
+    | [] -> false
+
+let arg_is_not_enum (enum_list: (string * string) list) (arg: rs_exp * rs_type) : bool =
+    match fst arg with
+    | RsId id -> 
+        not (is_enum enum_list id)
+    | _ -> true
+
+let sail_context_inserter (enum_list: (string * string) list) (func: rs_fn): rs_fn = 
+  (* Locate and remove all enums from the arguments *)
+  let args_exp = func.args in
+  let args_type = fst func.signature in
+  let args = List.combine args_exp args_type in
+  let args = List.filter (arg_is_not_enum enum_list) args in
+  let (args_exp, args_type) = List.split args in
+
+  (* Update the function with the new argument list *)
+  { func with 
+    args = args_exp;
+    signature = (args_type, snd func.signature)
+  }
+
+let enum_in_args_remover_generator (enum_list: (string * string) list) : func_transform = {
+  func = sail_context_inserter enum_list;
 }
 
 (* ———————————————————————— Enumeration binder ————————————————————————— *)
