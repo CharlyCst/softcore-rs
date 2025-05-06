@@ -116,7 +116,10 @@ RISCV_SAIL_SRCS      = $(addprefix ../miralis-sail-riscv/,$(SAIL_SRCS))
 
 # git checkout 17113857 --> commit used for risc-v
 
-.PHONY: test test2 clean
+TEST_ARCHS = basic basic_alt
+TEST_ARCH_RUST = $(addsuffix /src/arch.rs, $(addprefix tests/, $(TEST_ARCHS)))
+
+.PHONY: tests test test2 clean
 
 install: 
 	sudo apt-get install opam
@@ -131,16 +134,17 @@ install:
 	
 all: build
 
+tests: $(TEST_ARCH_RUST)
+
 build:
 	dune build --release
 	cp _build/default/sail_plugin_virt.cmxs plugin.cmxs
-	chmod +rwx plugin.cmxs
+	chmod +x plugin.cmxs
 
-basic: build
-	./virt-sail sail_arch/basic.sail -o out.rs
-
-basic-alt: build
-	./virt-sail sail_arch/basic_alt.sail -o out.rs
+# Translate the test Sail architectures to Rust
+tests/%/src/arch.rs: sail_arch/%.sail build
+	@echo "Processing $< to $@"
+	./virt-sail $< -o $@
 
 csr: build
 	./virt-sail sail_arch/csr.sail -o out.rs

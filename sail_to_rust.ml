@@ -281,7 +281,8 @@ let contains_execute str =
 
 let process_union_ret_type (name: string) : rs_type = 
     match contains_execute name with 
-        | true -> RsTypId "Retired"
+        (* TODO: Here we need to infer the return type. For the RISC-V Sail model it should be `RsTypId "Retired"` *)
+        | true -> RsTypUnit
         | false -> RsTypUnit
 
 let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
