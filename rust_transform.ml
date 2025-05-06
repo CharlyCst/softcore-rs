@@ -157,12 +157,13 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
 
         (* Custom RISC-V bit extension functions *)
         | (RsId "EXTZ", (RsLit (RsLitNum n))::value::[]) ->
-            (match n with
-                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 8]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 16]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 32]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 64]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | _ -> RsAs (value, RsTypId "InvalidUSigned")
+            (* TODO: we can improve the zero extend by defining a method on bitvetors in the prelude. *)
+            (* For now, we simply create a new bitvector with the appropriate width. *)
+            if n <= 64L then
+                RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (Int64.to_int n)]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+            else (
+                Printf.printf "Warning: unsupported EXTZ bit width (%d)\n" (Int64.to_int n);
+                RsAs (value, RsTypId "InvalidUSigned")
             )
         | (RsId "EXTS", (RsLit (RsLitNum n))::value::[]) ->
             (match n with
@@ -170,7 +171,9 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
                 | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 16]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
                 | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 32]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
                 | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 64]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | _ -> RsAs (value, RsTypId "InvalidUSigned")
+                | _ -> 
+                    Printf.printf "Warning: unsupported EXTS bit width (%d)\n" (Int64.to_int n);
+                    RsAs (value, RsTypId "InvalidUSigned")
             )
 
         (* Unsigned is used for array indexing *)

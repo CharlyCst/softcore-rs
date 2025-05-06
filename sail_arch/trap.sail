@@ -71,7 +71,7 @@ function haveNExt()    -> bool = false
 
 /* model-internal exceptions */
 union exception = {
-  Error_not_implemented : string,
+  // Error_not_implemented : string,
   Error_internal_error  : unit
 }
 

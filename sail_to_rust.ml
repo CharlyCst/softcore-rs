@@ -270,20 +270,7 @@ let rec process_args_pat (P_aux (pat_aux, annot)) : string list =
 
 type function_kind =
     | FunKindFunc
-    | FunKindUnion of string
-
-let contains_execute str =
-    let re = Str.regexp_string "execute" in
-    try
-        ignore (Str.search_forward re str 0);
-        true
-    with Not_found -> false
-
-let process_union_ret_type (name: string) : rs_type = 
-    match contains_execute name with 
-        (* TODO: Here we need to infer the return type. For the RISC-V Sail model it should be `RsTypId "Retired"` *)
-        | true -> RsTypUnit
-        | false -> RsTypUnit
+    | FunKindUnion of string * string
 
 let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
     (* This function balances the lenghts of the argument and argument type list by adding more arguments if neccesary *)
@@ -299,11 +286,18 @@ let build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a e
         | FunKindFunc -> (match ctx_fun_type name ctx with
             | Some signature -> signature
             | None -> ([RsTypId "TodoNoSignature"], RsTypUnit))
-        | FunKindUnion union -> match ctx_union_type union ctx with
+        | FunKindUnion (func, union) ->
+            (* We look up the function definition to get the return type *)
+            let ret_type = match SMap.find_opt func ctx.defs.funs with
+                | Some func_t -> snd func_t
+                | None -> RsTypUnit
+            in
+            
+            match ctx_union_type union ctx with
             | Some typ -> (match typ with
-                | RsTypTuple types -> (types, process_union_ret_type name)
-                | RsTypId id -> ([RsTypId id], process_union_ret_type name)
-                | RsTypUnit -> ([], process_union_ret_type name)
+                | RsTypTuple types -> (types, ret_type)
+                | RsTypId id -> ([RsTypId id], ret_type)
+                | RsTypUnit -> ([], ret_type)
                 | _ -> ([RsTypId "todo_signature"], RsTypId "todo_signature"))
             | None -> ([RsTypId "TodoNoUnionSignature"], RsTypUnit)
     in
@@ -332,7 +326,7 @@ let process_func (FCL_aux (func, annot)) (ctx: context) : rs_program =
                 let pat_name = pat_app_name pat in
                 let fun_name = Printf.sprintf "%s_%s" name pat_name in
                 if ctx_fun_is_used pat_name ctx then
-                    RsProg [RsFn(build_function (FunKindUnion pat_name) fun_name pat exp ctx)]
+                    RsProg [RsFn(build_function (FunKindUnion (name, pat_name)) fun_name pat exp ctx)]
                 else RsProg []
         | _ -> RsProg []
 

@@ -180,7 +180,7 @@ let string_of_rs_lit (lit: rs_lit) : string =
         | RsLitNum n -> Printf.sprintf "%Li" n
         | RsLitBin n -> n
         | RsLitHex n -> n
-        | RsLitStr s -> Printf.sprintf "String::from(\"%s\")" s
+        | RsLitStr s -> Printf.sprintf "\"%s\"" s
         | RsLitTodo -> "LIT_TODO"
 
 let rec string_of_rs_pat (pat: rs_pat) : string =
