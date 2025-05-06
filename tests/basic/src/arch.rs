@@ -50,7 +50,6 @@ pub enum ast {
 }
 
 pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: BitVector<5>, rd: BitVector<5>) {
-    let iop = iop::RISCV_ADDI;
     let rs1_val = rX(sail_ctx, rs1);
     let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
     let result = rs1_val.wrapped_add(imm_ext);
