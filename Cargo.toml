@@ -11,4 +11,8 @@ members = [
     "tests/basic",
     "tests/basic_alt",
     "tests/trap",
+    "tests/types",
+    "tests/mret",
+    "tests/csr",
+    "tests/wfi",
 ]

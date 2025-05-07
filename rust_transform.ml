@@ -787,7 +787,7 @@ let transform_basic_types_pexp (pexp: rs_pexp) : rs_pexp = pexp
 
 let transform_basic_types_type (typ: rs_type) : rs_type = 
   match typ with
-    | RsTypId "string" -> RsTypId "String"
+    | RsTypId "string" -> RsTypId "&\'static str"
     | RsTypId "int" -> RsTypId "usize"
     | RsTypId "bit" -> RsTypId "bool" 
     (* TODO: Is this transformation legal? Should we add an assertion at some place in the code? *)

@@ -68,7 +68,7 @@ pub fn get_16_random_bits(_unit: ()) -> BitVector<16> {
     BitVector::<16>::new(0)
 }
 
-pub fn not_implemented(_unit: ()) -> ! {
+pub fn not_implemented<T>(_any: T) -> ! {
     panic!("Feature not implemented yet");
 }
 

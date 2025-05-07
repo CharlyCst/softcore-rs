@@ -116,7 +116,7 @@ RISCV_SAIL_SRCS      = $(addprefix ../miralis-sail-riscv/,$(SAIL_SRCS))
 
 # git checkout 17113857 --> commit used for risc-v
 
-TEST_ARCHS = basic basic_alt trap
+TEST_ARCHS = basic basic_alt trap types mret csr wfi
 TEST_ARCH_RUST = $(addsuffix /src/arch.rs, $(addprefix tests/, $(TEST_ARCHS)))
 
 .PHONY: tests test test2 clean
