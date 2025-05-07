@@ -50,7 +50,7 @@ pub fn privLevel_to_bits(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<
 
 pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
     match r {
-        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<64>::new(BitVector::<4>::new(0b0000).bits())}
+        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
         _ => {sail_ctx.Xs[r.as_usize()]}
         _ => {panic!("Unreachable code")}
     }
@@ -136,7 +136,7 @@ pub fn readCSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<64> 
     let res: xlenbits = match (csr, 64) {
         (b__0, _) if {(b__0 == BitVector::<12>::new(0b001101000000))} => {sail_ctx.mscratch}
         (b__1, _) if {(b__1 == BitVector::<12>::new(0b000101000000))} => {sail_ctx.sscratch}
-        _ => {BitVector::<64>::new(BitVector::<4>::new(0b0000).bits())}
+        _ => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
         _ => {panic!("Unreachable code")}
     };
     res
@@ -168,7 +168,7 @@ pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: regidx
 
 pub fn execute_CSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>, rs1: regidx, rd: regidx, is_imm: bool, op: csrop) -> Retired {
     let rs1_val: xlenbits = if {is_imm} {
-        BitVector::<64>::new(rs1.bits())
+        rs1.zero_extend::<64>()
     } else {
         rX(sail_ctx, rs1)
     };

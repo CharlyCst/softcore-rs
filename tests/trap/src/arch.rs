@@ -132,7 +132,7 @@ pub fn _get_Mstatus_UIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> 
 
 pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
     match r {
-        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<64>::new(BitVector::<4>::new(0b0000).bits())}
+        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
         _ => {sail_ctx.Xs[r.as_usize()]}
         _ => {panic!("Unreachable code")}
     }
@@ -229,7 +229,7 @@ pub fn set_next_pc(sail_ctx: &mut SailVirtCtx, pc: BitVector<64>) {
 pub fn tval(sail_ctx: &mut SailVirtCtx, excinfo: Option<BitVector<64>>) -> BitVector<64> {
     match excinfo {
         Some(e) => {e}
-        None => {BitVector::<64>::new(BitVector::<1>::new(0b0).bits())}
+        None => {BitVector::<1>::new(0b0).zero_extend::<64>()}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -242,7 +242,7 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
                 sail_ctx.mcause.set_subrange::<63, 64, 1>(var_1)
             };
             sail_ctx.mcause = {
-                let var_2 = BitVector::<63>::new(c.bits());
+                let var_2 = c.zero_extend::<63>();
                 sail_ctx.mcause.set_subrange::<0, 63, 63>(var_2)
             };
             sail_ctx.mstatus = {
@@ -264,7 +264,7 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
                 sail_ctx.scause.set_subrange::<63, 64, 1>(var_5)
             };
             sail_ctx.scause = {
-                let var_6 = BitVector::<63>::new(c.bits());
+                let var_6 = c.zero_extend::<63>();
                 sail_ctx.scause.set_subrange::<0, 63, 63>(var_6)
             };
             sail_ctx.mstatus = {
@@ -286,7 +286,7 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
                 sail_ctx.ucause.set_subrange::<63, 64, 1>(var_8)
             };
             sail_ctx.ucause = {
-                let var_9 = BitVector::<63>::new(c.bits());
+                let var_9 = c.zero_extend::<63>();
                 sail_ctx.ucause.set_subrange::<0, 63, 63>(var_9)
             };
             sail_ctx.mstatus = {
@@ -433,7 +433,7 @@ pub fn readCSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<64> 
     let res: xlenbits = match (csr, 64) {
         (b__0, _) if {(b__0 == BitVector::<12>::new(0b001101000000))} => {sail_ctx.mscratch}
         (b__1, _) if {(b__1 == BitVector::<12>::new(0b000101000000))} => {sail_ctx.sscratch}
-        _ => {BitVector::<64>::new(BitVector::<4>::new(0b0000).bits())}
+        _ => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
         _ => {panic!("Unreachable code")}
     };
     res
@@ -465,7 +465,7 @@ pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: regidx
 
 pub fn execute_CSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>, rs1: regidx, rd: regidx, is_imm: bool, op: csrop) -> Retired {
     let rs1_val: xlenbits = if {is_imm} {
-        BitVector::<64>::new(rs1.bits())
+        rs1.zero_extend::<64>()
     } else {
         rX(sail_ctx, rs1)
     };

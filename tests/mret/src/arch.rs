@@ -61,7 +61,7 @@ pub fn privLevel_of_bits(sail_ctx: &mut SailVirtCtx, p: BitVector<2>) -> Privile
 }
 
 pub fn pc_alignment_mask(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> BitVector<64> {
-    !(BitVector::<64>::new(BitVector::<2>::new(0b10).bits()))
+    !(BitVector::<2>::new(0b10).zero_extend::<64>())
 }
 
 pub fn _get_Mstatus_MPIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
