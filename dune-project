@@ -5,8 +5,7 @@
 (wrapped_executables false)
 
 (package
-  (name sail_virt_backend)
-  (synopsis "Sail virtualizability checker")
+  (name sail_rust_backend)
+  (synopsis "Sail to Rust translation")
   (depends
-    (libsail (= :version))
-    (base64 (>= 3.1.0))))
+    (libsail (= 0.19))))

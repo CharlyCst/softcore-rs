@@ -37,19 +37,6 @@ pub enum Privilege {
     Machine,
 }
 
-pub fn haveUsrMode(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> bool {
-    true
-}
-
-pub fn privLevel_to_bits(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<2> {
-    match p {
-        Privilege::User => {BitVector::<2>::new(0b00)}
-        Privilege::Supervisor => {BitVector::<2>::new(0b01)}
-        Privilege::Machine => {BitVector::<2>::new(0b11)}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
 pub fn privLevel_of_bits(sail_ctx: &mut SailVirtCtx, p: BitVector<2>) -> Privilege {
     match p {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {Privilege::User}
@@ -62,10 +49,6 @@ pub fn privLevel_of_bits(sail_ctx: &mut SailVirtCtx, p: BitVector<2>) -> Privile
 
 pub fn pc_alignment_mask(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> BitVector<64> {
     !(BitVector::<2>::new(0b10).zero_extend::<64>())
-}
-
-pub fn _get_Mstatus_MPIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
-    v.subrange::<7, 8, 1>()
 }
 
 pub fn _get_Mstatus_MPP(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<2> {
@@ -95,28 +78,30 @@ pub fn prepare_xret_target(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVecto
 
 pub fn exception_handler(sail_ctx: &mut SailVirtCtx, cur_priv: Privilege, pc: BitVector<64>) -> BitVector<64> {
     let prev_priv = sail_ctx.cur_privilege;
-    sail_ctx.mstatus = {
-        let var_1 = _get_Mstatus_MPIE(sail_ctx, sail_ctx.mstatus);
-        sail_ctx.mstatus.set_subrange::<3, 4, 1>(var_1)
+    sail_ctx.mstatus = BitField {
+        bits: update_subrange_bits(sail_ctx.mstatus.bits, 3, 3, _get_Mstatus_MPIE(sail_ctx, sail_ctx.mstatus))
     };
-    sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<7, 8, 1>(BitVector::<1>::new(0b1));
+    sail_ctx.mstatus = BitField {
+        bits: update_subrange_bits(sail_ctx.mstatus.bits, 7, 7, BitVector::<1>::new(0b1))
+    };
     sail_ctx.cur_privilege = {
-        let var_2 = _get_Mstatus_MPP(sail_ctx, sail_ctx.mstatus);
-        privLevel_of_bits(sail_ctx, var_2)
+        let var_1 = _get_Mstatus_MPP(sail_ctx, sail_ctx.mstatus);
+        privLevel_of_bits(sail_ctx, var_1)
     };
-    sail_ctx.mstatus = {
-        let var_3 = {
-            let var_4 = if {haveUsrMode(sail_ctx, ())} {
+    sail_ctx.mstatus = BitField {
+        bits: update_subrange_bits(sail_ctx.mstatus.bits, 12, 11, {
+            let var_2 = if {haveUsrMode(sail_ctx, ())} {
                 Privilege::User
             } else {
                 Privilege::Machine
             };
-            privLevel_to_bits(sail_ctx, var_4)
-        };
-        sail_ctx.mstatus.set_subrange::<11, 13, 2>(var_3)
+            privLevel_to_bits(sail_ctx, var_2)
+        })
     };
     if {(sail_ctx.cur_privilege != Privilege::Machine)} {
-        sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<17, 18, 1>(BitVector::<1>::new(0b0))
+        sail_ctx.mstatus = BitField {
+            bits: update_subrange_bits(sail_ctx.mstatus.bits, 17, 17, BitVector::<1>::new(0b0))
+        }
     } else {
         ()
     };

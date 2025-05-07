@@ -63,24 +63,6 @@ pub fn bit_to_bool(sail_ctx: &mut SailVirtCtx, b: bool) -> bool {
     }
 }
 
-pub fn bool_to_bit(sail_ctx: &mut SailVirtCtx, x: bool) -> bool {
-    if {x} {
-        true
-    } else {
-        false
-    }
-}
-
-pub fn bool_to_bits(sail_ctx: &mut SailVirtCtx, x: bool) -> BitVector<1> {
-    let mut __generated_vector: BitVector<1> = BitVector::<1>::new_empty();
-    {
-        let var_1 = 0;
-        let var_2 = bool_to_bit(sail_ctx, x);
-        __generated_vector.set_vector_entry(var_1, var_2)
-    };
-    __generated_vector
-}
-
 pub fn _operator_biggerequal_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.as_usize() >= y.as_usize())
 }
@@ -118,18 +100,6 @@ pub enum exception {
     Error_internal_error(()),
 }
 
-pub fn _get_Mstatus_MIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
-    v.subrange::<3, 4, 1>()
-}
-
-pub fn _get_Mstatus_SIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
-    v.subrange::<1, 2, 1>()
-}
-
-pub fn _get_Mstatus_UIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
-    v.subrange::<0, 1, 1>()
-}
-
 pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
     match r {
         b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
@@ -140,7 +110,12 @@ pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
 
 pub fn wX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>, v: BitVector<64>) {
     if {(r != BitVector::<5>::new(0b00000))} {
-        sail_ctx.Xs[r.as_usize()] = v
+        sail_ctx.Xs = {
+            let var_1 = sail_ctx.Xs;
+            let var_2 = r.as_usize();
+            let var_3 = v;
+            plain_vector_update(sail_ctx, var_1, var_2, var_3)
+        }
     } else {
         ()
     }
@@ -237,63 +212,61 @@ pub fn tval(sail_ctx: &mut SailVirtCtx, excinfo: Option<BitVector<64>>) -> BitVe
 pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool, c: BitVector<8>, pc: BitVector<64>, info: Option<BitVector<64>>) -> BitVector<64> {
     match del_priv {
         Privilege::Machine => {{
-            sail_ctx.mcause = {
-                let var_1 = bool_to_bits(sail_ctx, intr);
-                sail_ctx.mcause.set_subrange::<63, 64, 1>(var_1)
+            sail_ctx.mcause = BitField {
+                bits: update_subrange_bits(sail_ctx.mcause.bits, 63, 63, bool_to_bits(sail_ctx, intr))
             };
-            sail_ctx.mcause = {
-                let var_2 = c.zero_extend::<63>();
-                sail_ctx.mcause.set_subrange::<0, 63, 63>(var_2)
+            sail_ctx.mcause = BitField {
+                bits: update_subrange_bits(sail_ctx.mcause.bits, 62, 0, c.zero_extend::<63>())
             };
-            sail_ctx.mstatus = {
-                let var_3 = _get_Mstatus_MIE(sail_ctx, sail_ctx.mstatus);
-                sail_ctx.mstatus.set_subrange::<7, 8, 1>(var_3)
+            sail_ctx.mstatus = BitField {
+                bits: update_subrange_bits(sail_ctx.mstatus.bits, 7, 7, _get_Mstatus_MIE(sail_ctx, sail_ctx.mstatus))
             };
-            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<3, 4, 1>(BitVector::<1>::new(0b0));
-            sail_ctx.mstatus = {
-                let var_4 = privLevel_to_bits(sail_ctx, sail_ctx.cur_privilege);
-                sail_ctx.mstatus.set_subrange::<11, 13, 2>(var_4)
+            sail_ctx.mstatus = BitField {
+                bits: update_subrange_bits(sail_ctx.mstatus.bits, 3, 3, BitVector::<1>::new(0b0))
+            };
+            sail_ctx.mstatus = BitField {
+                bits: update_subrange_bits(sail_ctx.mstatus.bits, 12, 11, privLevel_to_bits(sail_ctx, sail_ctx.cur_privilege))
             };
             sail_ctx.mtval = tval(sail_ctx, info);
             todo!("E_var")
         }}
         Privilege::Supervisor => {{
             assert!(haveSupMode(sail_ctx, ()), "Process message");
-            sail_ctx.scause = {
-                let var_5 = bool_to_bits(sail_ctx, intr);
-                sail_ctx.scause.set_subrange::<63, 64, 1>(var_5)
+            sail_ctx.scause = BitField {
+                bits: update_subrange_bits(sail_ctx.scause.bits, 63, 63, bool_to_bits(sail_ctx, intr))
             };
-            sail_ctx.scause = {
-                let var_6 = c.zero_extend::<63>();
-                sail_ctx.scause.set_subrange::<0, 63, 63>(var_6)
+            sail_ctx.scause = BitField {
+                bits: update_subrange_bits(sail_ctx.scause.bits, 62, 0, c.zero_extend::<63>())
             };
-            sail_ctx.mstatus = {
-                let var_7 = _get_Mstatus_SIE(sail_ctx, sail_ctx.mstatus);
-                sail_ctx.mstatus.set_subrange::<5, 6, 1>(var_7)
+            sail_ctx.mstatus = BitField {
+                bits: update_subrange_bits(sail_ctx.mstatus.bits, 5, 5, _get_Mstatus_SIE(sail_ctx, sail_ctx.mstatus))
             };
-            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<1, 2, 1>(BitVector::<1>::new(0b0));
-            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<8, 9, 1>(match sail_ctx.cur_privilege {
-                Privilege::User => {BitVector::<1>::new(0b0)}
-                Privilege::Supervisor => {BitVector::<1>::new(0b1)}
-                Privilege::Machine => {panic!("todo_process_panic_type")}
-                _ => {panic!("Unreachable code")}
-            });
+            sail_ctx.mstatus = BitField {
+                bits: update_subrange_bits(sail_ctx.mstatus.bits, 1, 1, BitVector::<1>::new(0b0))
+            };
+            sail_ctx.mstatus = BitField {
+                bits: update_subrange_bits(sail_ctx.mstatus.bits, 8, 8, match sail_ctx.cur_privilege {
+                    Privilege::User => {BitVector::<1>::new(0b0)}
+                    Privilege::Supervisor => {BitVector::<1>::new(0b1)}
+                    Privilege::Machine => {panic!("todo_process_panic_type")}
+                    _ => {panic!("Unreachable code")}
+                })
+            };
             todo!("E_var")
         }}
         Privilege::User => {{
-            sail_ctx.ucause = {
-                let var_8 = bool_to_bits(sail_ctx, intr);
-                sail_ctx.ucause.set_subrange::<63, 64, 1>(var_8)
+            sail_ctx.ucause = BitField {
+                bits: update_subrange_bits(sail_ctx.ucause.bits, 63, 63, bool_to_bits(sail_ctx, intr))
             };
-            sail_ctx.ucause = {
-                let var_9 = c.zero_extend::<63>();
-                sail_ctx.ucause.set_subrange::<0, 63, 63>(var_9)
+            sail_ctx.ucause = BitField {
+                bits: update_subrange_bits(sail_ctx.ucause.bits, 62, 0, c.zero_extend::<63>())
             };
-            sail_ctx.mstatus = {
-                let var_10 = _get_Mstatus_UIE(sail_ctx, sail_ctx.mstatus);
-                sail_ctx.mstatus.set_subrange::<4, 5, 1>(var_10)
+            sail_ctx.mstatus = BitField {
+                bits: update_subrange_bits(sail_ctx.mstatus.bits, 4, 4, _get_Mstatus_UIE(sail_ctx, sail_ctx.mstatus))
             };
-            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<0, 1, 1>(BitVector::<1>::new(0b0));
+            sail_ctx.mstatus = BitField {
+                bits: update_subrange_bits(sail_ctx.mstatus.bits, 0, 0, BitVector::<1>::new(0b0))
+            };
             todo!("E_var")
         }}
         _ => {panic!("Unreachable code")}

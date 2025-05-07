@@ -1,0 +1,8 @@
+lib: [
+  "_build/install/default/lib/sail_rust_backend/META"
+  "_build/install/default/lib/sail_rust_backend/dune-package"
+]
+share_root: [
+  "_build/install/default/share/libsail/plugins/sail_plugin_rust.cma" {"libsail/plugins/sail_plugin_rust.cma"}
+  "_build/install/default/share/libsail/plugins/sail_plugin_rust.cmxs" {"libsail/plugins/sail_plugin_rust.cmxs"}
+]
