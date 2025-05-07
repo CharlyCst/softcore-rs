@@ -1,6 +1,5 @@
 (** Rust generation module **)
 
-
 type rs_type =
     | RsTypId of string
     | RsTypTuple of rs_type list
@@ -10,13 +9,14 @@ type rs_type =
     | RsTypArray of rs_type_param * rs_type_param
     | RsTypOption of rs_type_param
     | RsTypTodo of string
+
 and  rs_type_param =
     | RsTypParamTyp of rs_type
-    | RsTypParamNum of int
+    | RsTypParamNum of rs_exp
 
-type rs_fn_type = rs_type list * rs_type
+and rs_fn_type = rs_type list * rs_type
 
-type rs_lit =
+and rs_lit =
     | RsLitUnit
     | RsLitTrue
     | RsLitFalse
@@ -26,7 +26,7 @@ type rs_lit =
     | RsLitStr of string
     | RsLitTodo
 
-type rs_pat =
+and rs_pat =
     | RsPatLit of rs_lit
     | RsPatId of string
     | RsPatType of rs_type * rs_pat
@@ -37,7 +37,7 @@ type rs_pat =
     | RsPatSome of rs_pat
     | RsPatNone
 
-type rs_binop =
+and rs_binop =
     | RsBinopEq
     | RsBinopNeq
     | RsBinopGt
@@ -56,10 +56,10 @@ type rs_binop =
     | RsBinopShiftRight
     | RsBinopMod
 
-type rs_unop = 
+and rs_unop = 
     | RsUnopNeg
 
-type rs_exp =
+and rs_exp =
     | RsLet of rs_pat * rs_exp * rs_exp
     | RsApp of rs_exp * rs_exp list
     | RsMethodApp of rs_exp * string * rs_exp list
@@ -68,6 +68,7 @@ type rs_exp =
     | RsLit of rs_lit
     | RsField of rs_exp * string
     | RsBlock of rs_exp list
+    | RsConstBlock of rs_exp list
     | RsInstrList of rs_exp list
     | RsIf of rs_exp * rs_exp * rs_exp
     | RsMatch of rs_exp * rs_pexp list
@@ -126,7 +127,7 @@ type rs_alias = {
 
 type rs_const = {
     name: string;
-    value: string;
+    value: rs_exp;
 }
 
 type rs_obj = 
@@ -138,6 +139,7 @@ type rs_obj =
     | RsConst of rs_const
     | RsImport of string 
     | RsAttribute of string
+    | RsObjTodo of string
 
 type rs_program =
     | RsProg of rs_obj list
@@ -151,6 +153,8 @@ let rec merge_rs_prog_list (programs: rs_program list): rs_program =
     match programs with
         | h :: t -> merge_rs_prog h (merge_rs_prog_list t)
         | _ -> RsProg []
+
+(* ————————————————————————————— Rust to String ————————————————————————————— *)
 
 let rec string_of_rs_type (typ: rs_type) : string =
     match typ with
@@ -170,9 +174,9 @@ let rec string_of_rs_type (typ: rs_type) : string =
 and string_of_rs_type_param (typ: rs_type_param) : string =
     match typ with
         | RsTypParamTyp typ -> string_of_rs_type typ
-        | RsTypParamNum n -> Printf.sprintf "%d" n
+        | RsTypParamNum n -> string_of_rs_exp 0 n
 
-let string_of_rs_lit (lit: rs_lit) : string =
+and string_of_rs_lit (lit: rs_lit) : string =
     match lit  with
         | RsLitUnit -> "()"
         | RsLitTrue -> "true"
@@ -183,11 +187,11 @@ let string_of_rs_lit (lit: rs_lit) : string =
         | RsLitStr s -> Printf.sprintf "\"%s\"" s
         | RsLitTodo -> "LIT_TODO"
 
-let rec string_of_rs_pat (pat: rs_pat) : string =
+and string_of_rs_pat (pat: rs_pat) : string =
     match pat with
         | RsPatLit lit -> string_of_rs_lit lit
         | RsPatId id-> id
-        | RsPatType (typ, RsPatWildcard) -> "_"
+        | RsPatType (_typ, RsPatWildcard) -> "_"
         | RsPatType (typ, pat) -> Printf.sprintf "%s: %s" (string_of_rs_pat pat) (string_of_rs_type typ)
         | RsPatWildcard -> "_"
         | RsPatTuple pats ->
@@ -199,7 +203,7 @@ let rec string_of_rs_pat (pat: rs_pat) : string =
         | RsPatNone -> "None"
         | RsPatTodo text -> Printf.sprintf "%s" text
 
-let string_of_rs_binop (binop: rs_binop) : string =
+and string_of_rs_binop (binop: rs_binop) : string =
     match binop with
         | RsBinopEq -> "=="
         | RsBinopNeq -> "!="
@@ -219,14 +223,14 @@ let string_of_rs_binop (binop: rs_binop) : string =
         | RsBinopShiftRight -> ">>"
         | RsBinopMod -> "%"
 
-let string_of_rs_unop (unop: rs_unop) : string =
+and string_of_rs_unop (unop: rs_unop) : string =
     match unop with
         | RsUnopNeg -> "!"
 
-let indent (n: int) : string =
+and indent (n: int) : string =
     String.make (n * 4) ' '
 
-let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
+and string_of_rs_exp (n: int) (exp: rs_exp) : string =
     match exp with
         (* The block indentation if not nedded after a  let, remove it to pretify*)
         | RsLet (pat, exp, RsBlock exps) ->
@@ -265,6 +269,13 @@ let rec string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 field
         | RsBlock exps ->
             Printf.sprintf "{\n%s%s\n%s}"
+                (indent (n + 1))
+                (String.concat
+                    (Printf.sprintf ";\n%s" (indent (n + 1)))
+                    (List.map (string_of_rs_exp (n + 1)) exps))
+                (indent n)
+        | RsConstBlock exps ->
+            Printf.sprintf "const {\n%s%s\n%s}"
                 (indent (n + 1))
                 (String.concat
                     (Printf.sprintf ";\n%s" (indent (n + 1)))
@@ -354,9 +365,10 @@ and string_of_rs_lexp (n: int) (lexp: rs_lexp) : string =
                 (string_of_rs_exp n idx)
         | RsLexpIndexRange (lexp, range_start, range_end) ->
             (* Implement support for this case if the assertion fails *)
-            assert ((string_of_rs_exp n range_start) = "(64 - 1)"); 
-            assert ((string_of_rs_exp n range_end) = "0"); 
-            string_of_rs_lexp n lexp
+            (* assert ((string_of_rs_exp n range_start) = "(64 - 1)"); *) 
+            (* assert ((string_of_rs_exp n range_end) = "0"); *) 
+            Printf.sprintf "%s[%s..%s]" (string_of_rs_lexp n lexp) (string_of_rs_exp 0 range_start) (string_of_rs_exp 0 range_end)
+            (* string_of_rs_lexp n lexp *)
         | RsLexpTodo ->  "LEXP_TODO"
 and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
     match pexp with
@@ -382,7 +394,7 @@ let string_of_rs_fn_args (fn: rs_fn) : string =
     String.concat ", " (List.map2 string_of_arg_and_type fn.args arg_types)
 
 let string_of_rs_fn (fn: rs_fn) : string =
-    let (args, ret) = fn.signature in 
+    let (_args, _ret) = fn.signature in 
     let args = string_of_rs_fn_args fn in
     let (_, ret_type) = fn.signature in
     let ret_type = match ret_type with
@@ -437,9 +449,10 @@ let string_of_rs_obj (obj: rs_obj) : string =
         | RsTypedEnum typed_enum -> string_of_rs_typed_enum typed_enum
         | RsStruct struc -> string_of_rs_struct struc
         | RsAlias alias -> Printf.sprintf "pub type %s = %s;" alias.new_typ (string_of_rs_type alias.old_type)
-        | RsConst const -> Printf.sprintf "pub const %s: usize = %s;" const.name const.value
+        | RsConst const -> Printf.sprintf "pub const %s: usize = %s;" const.name (string_of_rs_exp 0 const.value)
         | RsAttribute value -> Printf.sprintf "#![%s]" value
         | RsImport value -> Printf.sprintf "use %s;" value
+        | RsObjTodo s -> s
 
 let string_of_rs_prog (prog: rs_program) : string =
     let RsProg (funs) = prog in

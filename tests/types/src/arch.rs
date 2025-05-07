@@ -44,7 +44,7 @@ pub fn handle_int_int(sail_ctx: &mut SailVirtCtx, a1: usize, a2: usize) -> bool 
 }
 
 pub fn handle_int_int_bool_int(sail_ctx: &mut SailVirtCtx, a1: usize, a2: usize, a3: bool, a4: usize) -> usize {
-    ((123 + 4) + 4)
+    (127 + 4)
 }
 
 pub fn handle_bool(sail_ctx: &mut SailVirtCtx, factor_bool: bool) {

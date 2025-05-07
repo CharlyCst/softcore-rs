@@ -63,6 +63,7 @@ let rec exp_call_set (exp: 'a exp) (s: SSet.t) : SSet.t =
         | E_internal_value value -> s
         | E_internal_assume (n_constraint, exp) -> s
         | E_constraint n_constraint -> s
+        | E_config cfgs -> s
 and pexp_call_set (Pat_aux (pexp, annot)) (s: SSet.t) : SSet.t =
     match pexp with
         | Pat_exp (pat, exp) -> exp_call_set exp s
@@ -105,19 +106,19 @@ let node_call_set (DEF_aux (def, annot)) (s: SSet.t) : SSet.t =
         | DEF_impl funcl -> func_call_set funcl s
         | _ -> s
 
-let rec defs_call_set (defs: 'a def list) (s: SSet.t) : SSet.t =
+let rec defs_call_set (defs: ('a, 'b) def list) (s: SSet.t) : SSet.t =
     match defs with
         | h :: t -> SSet.union (node_call_set h s) (defs_call_set t s)
         | [] -> s
 
-let rec get_call_set_rec (ast: 'a ast) (s: SSet.t) : SSet.t =
+let rec get_call_set_rec (ast: ('a, 'b) ast) (s: SSet.t) : SSet.t =
     let new_s = defs_call_set ast.defs s in
     if SSet.equal new_s s then
         s
     else get_call_set_rec ast new_s
 
 
-let rec get_call_set (ast: 'a ast) : SSet.t =
+let rec get_call_set (ast: ('a, 'b) ast) : SSet.t =
     let set = SSet.empty in
     let set = SSet.add "CSR" set in
     let set = SSet.add "MRET" set in

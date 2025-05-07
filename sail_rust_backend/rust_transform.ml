@@ -1,5 +1,5 @@
 (** Rust Transformations **)
-(** This module transforms raw Tust code generated from Sail into a valid Rust module. **)
+(** This module transforms raw Rust code generated from Sail into a valid Rust module. **)
 
 open Rust_gen
 
@@ -163,10 +163,10 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
             RsMethodApp(value, Printf.sprintf "zero_extend::<%d>" (Int64.to_int n), [])
         | (RsId "EXTS", (RsLit (RsLitNum n))::value::[]) ->
             (match n with
-                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 8]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 16]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 32]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 64]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 8L))]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 16L))]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 32L))]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 64L))]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
                 | _ -> 
                     Printf.printf "Warning: unsupported EXTS bit width (%d)\n" (Int64.to_int n);
                     RsAs (value, RsTypId "InvalidUSigned")
@@ -271,8 +271,6 @@ let is_bitvec_lit (pexp: rs_pexp) : bool =
         | RsPexp (RsPatLit RsLitBin _, _) -> true
         | _ -> false
 
-let bitvec_transform_lexp (lexp: rs_lexp) : rs_lexp = lexp
-
 let bitvec_transform_match_tuple (exp: rs_exp list) (patterns: rs_pat list) : rs_exp =
     assert(List.length exp = List.length patterns);
     RsTuple (List.map2 (fun e p ->
@@ -337,26 +335,47 @@ and uint_to_bitvector (n: int) : rs_type =
     else
         RsTypId "InvalidBitVectorSize"
 
-let rec bitvec_transform_pexp (pexp: rs_pexp) : rs_pexp = pexp
-
 let rec bitvec_transform_type (typ: rs_type) : rs_type =
     match typ with
         | RsTypGenericParam ("bitvector", t) -> RsTypGenericParam ("BitVector", t)
         | RsTypGenericParam ("bits", t) -> RsTypGenericParam ("BitVector", t)
-        (* todo: This violate the fact that vector or bits != bitvector. Change it in the future *)
+        (* TODO: This violate the fact that vector or bits != bitvector. Change it in the future *)
         | RsTypGenericParam ("vector", t) -> RsTypGenericParam ("BitVector", t)
         
         (* TODO: once we resolve type aliasing we can remove those manual conversions *)
-        | RsTypId "regbits" -> RsTypGenericParam ("BitVector", [RsTypParamNum 5])
+        | RsTypId "regbits" -> RsTypGenericParam ("BitVector", [RsTypParamNum (RsLit (RsLitNum 5L))])
 
         (* Otherwise keep as is *)
         | _ -> typ
 
 let bitvec_transform = {
     exp = bitvec_transform_exp;
-    lexp = bitvec_transform_lexp;
-    pexp = bitvec_transform_pexp;
+    lexp = id_lexp;
+    pexp = id_pexp;
     typ = bitvec_transform_type;
+    pat = id_pat;
+    obj = id_obj;
+}
+
+(* —————————————————————————— Expression Optimizer —————————————————————————— *)
+
+(** Simplifies rust expression by applying basic optimisations.
+
+ For now, this mostly includes arithmetic operators.**)
+let rec simplify_rs_exp (rs_exp: rs_exp) : rs_exp =
+    match rs_exp with
+        | RsBinop (RsLit (RsLitNum a), RsBinopAdd, RsLit (RsLitNum b)) -> 
+            RsLit (RsLitNum (Int64.add a b))
+        | RsBinop (RsLit (RsLitNum a), RsBinopSub, RsLit (RsLitNum b)) -> 
+            RsLit (RsLitNum (Int64.sub a b))
+        | _ -> rs_exp
+
+
+let expression_optimizer = {
+    exp = simplify_rs_exp;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
     pat = id_pat;
     obj = id_obj;
 }
@@ -364,8 +383,8 @@ let bitvec_transform = {
 (* ——————————————————————————— Nested Blocks remover ———————————————————————————— *)
 
 
-let nested_block_remover_lexp (lexp: rs_lexp) : rs_lexp = lexp
-
+(** Sail often generates blocks in constructs such as if statements, for which
+    we already have blocks. This transformation removes the nested blocks. **)
 let nested_block_remover_exp (exp: rs_exp) : rs_exp = 
     match exp with
         | RsIf (c, RsBlock e1, RsBlock e2) -> RsIf (c, RsInstrList e1, RsInstrList e2)
@@ -374,15 +393,11 @@ let nested_block_remover_exp (exp: rs_exp) : rs_exp =
         | RsFor (var, start, until, RsBlock b) -> RsFor(var, start, until, RsInstrList b)
         | _ -> exp 
 
-let rec nested_block_remover_pexp (pexp: rs_pexp) : rs_pexp = pexp
-
-let rec nested_block_remover_type (typ: rs_type) : rs_type = typ
-
 let nested_block_remover = {
     exp = nested_block_remover_exp;
-    lexp = nested_block_remover_lexp;
-    pexp = nested_block_remover_pexp;
-    typ = nested_block_remover_type;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ =  id_typ;
     pat = id_pat;
     obj = id_obj;
 }
@@ -917,3 +932,44 @@ let dead_code_remover: expr_type_transform = {
     pat = id_pat;
     obj = id_obj;
 }
+
+let transform (rust_program: rs_program) (register_list: StringSet.t) (enum_entries: (string * string) list) : rs_program =
+  (* Build list of registers *)
+  let sail_context_binder = sail_context_binder_generator register_list in
+
+  (* Process enumerations *)
+  let enum_args_filter = enum_in_args_remover_generator enum_entries in
+  let enum_binder = enum_binder_generator enum_entries in
+
+  (* Second stage: bitvector transformations
+
+     We must first replace the Sail native function and perform a basic pass of optimization
+     to detect some bitvec patterns properly *)
+  let rust_program = rust_transform_expr nested_block_remover rust_program in
+  let rust_program = rust_transform_expr native_func_transform rust_program in
+  let rust_program = rust_transform_expr expression_optimizer rust_program in
+  let rust_program = rust_transform_expr bitvec_transform rust_program in
+
+  (* Third stage: general valid rust code*)
+  let rust_program = rust_transform_expr expr_type_hoister rust_program in 
+  let rust_program = rust_transform_func virt_context_transform rust_program in
+  let rust_program = rust_transform_func enum_args_filter rust_program in
+  let rust_program = rust_transform_expr enum_binder rust_program in
+  let rust_program = rust_transform_func operator_rewriter rust_program in
+  let rust_program = rust_transform_expr expr_type_operator_rewriter rust_program in
+  let rust_program = rust_remove_type_bits rust_program in
+  let rust_program = rust_prelude_func_filter rust_program in
+  let rust_program = insert_annotation_imports rust_program in
+  let rust_program = rust_transform_func parametric_rewriter rust_program in
+  let rust_program = rust_transform_expr transform_basic_types rust_program in
+  let rust_program = rust_transform_expr add_wildcard_match rust_program in
+
+  (* Last stage : Transform into a borrow checker friendly code *)
+  let rust_program = rust_transform_expr sail_context_binder rust_program in
+  let rust_program = rust_transform_expr sail_context_arg_inserter rust_program in
+
+  (* Optimizer: Dead code elimination *)
+  let rust_program = rust_transform_expr dead_code_remover rust_program in
+  rust_program
+
+

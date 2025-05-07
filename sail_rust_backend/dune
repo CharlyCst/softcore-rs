@@ -1,0 +1,13 @@
+(executable
+ (name sail_plugin_rust)
+ (modes
+  (native plugin)
+  (byte plugin))
+ (libraries libsail))
+
+(install
+ (section
+  (site
+   (libsail plugins)))
+ (package sail_rust_backend)
+ (files sail_plugin_rust.cmxs sail_plugin_rust.cma))

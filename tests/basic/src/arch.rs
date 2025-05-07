@@ -27,7 +27,12 @@ pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
 
 pub fn wX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>, v: BitVector<64>) {
     if {(r != BitVector::<5>::new(0b00000))} {
-        sail_ctx.Xs[r.as_usize()] = v
+        sail_ctx.Xs = {
+            let var_1 = sail_ctx.Xs;
+            let var_2 = r.as_usize();
+            let var_3 = v;
+            plain_vector_update(sail_ctx, var_1, var_2, var_3)
+        }
     } else {
         ()
     }

@@ -6,4 +6,4 @@ if [ $1 == "-v" ]; then
   shift
   verbose="-verbose"
 fi
-exec sail -plugin "$DIR/_build/default/sail_plugin_virt.cmxs" -virt $verbose $*
+exec sail -plugin "$DIR/_build/default/sail_rust_backend/sail_plugin_rust.cmxs" -rust $verbose $*
