@@ -17,6 +17,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "csr"
+version = "0.1.0"
+dependencies = [
+ "sail_prelude",
+]
+
+[[package]]
+name = "mret"
+version = "0.1.0"
+dependencies = [
+ "sail_prelude",
+]
+
+[[package]]
 name = "riscv"
 version = "0.1.0"
 dependencies = [
@@ -29,6 +43,20 @@ version = "0.1.0"
 
 [[package]]
 name = "trap"
+version = "0.1.0"
+dependencies = [
+ "sail_prelude",
+]
+
+[[package]]
+name = "types"
+version = "0.1.0"
+dependencies = [
+ "sail_prelude",
+]
+
+[[package]]
+name = "wfi"
 version = "0.1.0"
 dependencies = [
  "sail_prelude",

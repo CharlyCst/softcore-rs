@@ -126,17 +126,12 @@ let virt_target _ _ out_file ast effect_info env =
     let input = Str.global_replace regex3 "#!" input in  
     input 
   in 
-  let replace_ticks input =
-    let regex = Str.regexp "'" in
-    Str.global_replace regex "_tick_" input
-  in 
   let replace_atom input =
     let regex = Str.regexp "atom<N>" in
     Str.global_replace regex "usize" input
   in 
 
   let rust_program_string = replace_hashtags rust_program_string in
-  let rust_program_string = replace_ticks rust_program_string in
   let rust_program_string = replace_atom rust_program_string in
 
   let out_chan = open_out out_file in
