@@ -157,14 +157,10 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
 
         (* Custom RISC-V bit extension functions *)
         | (RsId "EXTZ", (RsLit (RsLitNum n))::value::[]) ->
-            (* TODO: we can improve the zero extend by defining a method on bitvetors in the prelude. *)
-            (* For now, we simply create a new bitvector with the appropriate width. *)
-            if n <= 64L then
-                RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (Int64.to_int n)]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-            else (
+            (* The zero_extend method is defined for bitvectors in the Rust prelude *)
+            if n > 64L then
                 Printf.printf "Warning: unsupported EXTZ bit width (%d)\n" (Int64.to_int n);
-                RsAs (value, RsTypId "InvalidUSigned")
-            )
+            RsMethodApp(value, Printf.sprintf "zero_extend::<%d>" (Int64.to_int n), [])
         | (RsId "EXTS", (RsLit (RsLitNum n))::value::[]) ->
             (match n with
                 | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum 8]), RsTypId "new"), [RsMethodApp(value, "bits", [])])

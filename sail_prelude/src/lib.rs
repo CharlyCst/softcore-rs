@@ -4,7 +4,6 @@
 use core::ops;
 use std::cmp::min;
 use std::process::{self, exit};
-use std::usize;
 
 // TODO: What should we do with this? This is not clear how we should transpile it
 pub type _tick_arch_ak = ();
@@ -131,22 +130,6 @@ pub fn truncate(v: BitVector<64>, size: usize) -> BitVector<64> {
 pub fn sys_pmp_count(_unit: ()) -> usize {
     16
 }
-
-macro_rules! create_zero_extend_fn {
-    ($($number:ident => $value:expr),* $(,)?) => {
-        $(
-            pub fn $number<const M: usize>(input: BitVector<M>) -> BitVector<$value> {
-                BitVector::<$value>::new(input.bits())
-            }
-        )*
-    };
-}
-
-create_zero_extend_fn!(
-    zero_extend_16 => 16,
-    zero_extend_63 => 63,
-    zero_extend_64 => 64,
-);
 
 pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVector<64> {
     assert!(
@@ -278,6 +261,14 @@ impl<const N: usize> BitVector<N> {
         self.bits as usize
     }
 
+    pub const fn zero_extend<const M: usize>(self) -> BitVector<M> {
+        assert!(M >= N, "Can not zero-extend to a smaller size!");
+        assert!(M <= 64, "Maximum zero-extend supported size if 64");
+
+        // Here we have nothing to do, we already use 64 bits with zeroes for MSBs
+        BitVector { bits: self.bits }
+    }
+
     pub fn set_vector_entry(&mut self, idx: usize, value: bool) {
         assert!(idx < N, "Out of bounds array check");
         if value {
@@ -382,7 +373,6 @@ impl<const N: usize> ops::Not for BitVector<N> {
         BitVector::new((!self.bits) & Self::bit_mask())
     }
 }
-
 
 impl<const N: usize> std::ops::Add<i64> for BitVector<N> {
     type Output = Self;
@@ -649,9 +639,9 @@ mod tests {
     fn test_zero_extend() {
         let v = BitVector::<8>::new(0b1010);
 
-        assert_eq!(v.bits, zero_extend_16(v).bits);
-        assert_eq!(v.bits, zero_extend_63(v).bits);
-        assert_eq!(v.bits, zero_extend_64(v).bits);
+        assert_eq!(v.bits, v.zero_extend::<16>().bits);
+        assert_eq!(v.bits, v.zero_extend::<63>().bits);
+        assert_eq!(v.bits, v.zero_extend::<64>().bits);
     }
 
     #[test]

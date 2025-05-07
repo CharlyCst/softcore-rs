@@ -19,7 +19,7 @@ pub struct SailVirtCtx {
 
 pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
     match r {
-        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<64>::new(BitVector::<4>::new(0b0000).bits())}
+        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
         _ => {sail_ctx.Xs[r.as_usize()]}
         _ => {panic!("Unreachable code")}
     }
@@ -60,11 +60,11 @@ pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: BitVec
     };
     {
         let var_1 = rd;
-        let var_2 = BitVector::<64>::new(BitVector::<1>::new(0b0).bits());
+        let var_2 = BitVector::<1>::new(0b0).zero_extend::<64>();
         wX(sail_ctx, var_1, var_2)
     };
     if {(result != result)} {
-        let z: xlenbits = BitVector::<64>::new(BitVector::<1>::new(0b0).bits());
+        let z: xlenbits = BitVector::<1>::new(0b0).zero_extend::<64>();
         wX(sail_ctx, rd, z)
     } else {
         wX(sail_ctx, rd, result)

@@ -19,7 +19,7 @@ pub struct SailVirtCtx {
 
 pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
     match r {
-        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<64>::new(BitVector::<4>::new(0b0000).bits())}
+        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
         _ => {sail_ctx.Xs[r.as_usize()]}
         _ => {panic!("Unreachable code")}
     }
