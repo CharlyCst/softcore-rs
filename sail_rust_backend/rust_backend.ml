@@ -706,8 +706,8 @@ module Codegen () = struct
     try
       (* Compute call set *)
       let call_set = get_call_set ast in
-      (* SSet.iter (Printf.printf "%s ") call_set; *)
-      (* print_endline ""; *)
+      SSet.iter (Printf.printf "%s ") call_set;
+      print_endline "";
 
       (* Collect definitions *)
       let defs = get_defs ast in

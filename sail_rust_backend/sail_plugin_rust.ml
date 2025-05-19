@@ -99,7 +99,7 @@ let virt_rewrites =
     ("recheck_defs", [If_mono_arg]);
     ("undefined", [Bool_arg false]);
     ("vector_string_pats_to_bit_list", []);
-    ("simple_assignments", []);
+    (* ("simple_assignments", []); *)
     ("remove_not_pats", []);
     ("remove_vector_concat", []);
     ("remove_bitvector_pats", []); 

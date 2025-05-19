@@ -81,6 +81,8 @@ pub type satp_mode = BitVector<4>;
 
 pub type csrRW = BitVector<2>;
 
+pub const is_sv_mode: usize = todo!("TodoNConstraint");
+
 pub type level_range = usize;
 
 pub type pte_bits = BitVector<TodoNexpOther>;
@@ -3185,12 +3187,20 @@ pub fn _get_Mstatus_MIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> 
     v.subrange::<3, 4, 1>()
 }
 
+pub fn _get_Mstatus_MPIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
+    v.subrange::<7, 8, 1>()
+}
+
 pub fn _get_Mstatus_MPP(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<2> {
     v.subrange::<11, 13, 2>()
 }
 
 pub fn _get_Mstatus_SIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
     v.subrange::<1, 2, 1>()
+}
+
+pub fn _get_Mstatus_SPIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
+    v.subrange::<5, 6, 1>()
 }
 
 pub fn _get_Mstatus_SPP(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
@@ -3743,20 +3753,16 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
     };
     match del_priv {
         Privilege::Machine => {{
-            sail_ctx.mcause = BitField {
-                bits: update_subrange_bits(sail_ctx.mcause.bits, ((BUILTIN_pow2_TODO * 8) - 1), ((BUILTIN_pow2_TODO * 8) - 1), bool_to_bits(sail_ctx, intr))
+            sail_ctx.mcause.bits[((BUILTIN_pow2_TODO * 8) - 1)..((BUILTIN_pow2_TODO * 8) - 1)] = bool_to_bits(sail_ctx, intr);
+            sail_ctx.mcause.bits[((BUILTIN_pow2_TODO * 8) - 2)..0] = zero_extend_63(c);
+            sail_ctx.mstatus = {
+                let var_1 = _get_Mstatus_MIE(sail_ctx, sail_ctx.mstatus);
+                sail_ctx.mstatus.set_subrange::<7, 8, 1>(var_1)
             };
-            sail_ctx.mcause = BitField {
-                bits: update_subrange_bits(sail_ctx.mcause.bits, ((BUILTIN_pow2_TODO * 8) - 2), 0, zero_extend_63(c))
-            };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 7, 7, _get_Mstatus_MIE(sail_ctx, sail_ctx.mstatus))
-            };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 3, 3, BitVector::<1>::new(0b0))
-            };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 12, 11, privLevel_to_bits(sail_ctx, sail_ctx.cur_privilege))
+            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<3, 4, 1>(BitVector::<1>::new(0b0));
+            sail_ctx.mstatus = {
+                let var_2 = privLevel_to_bits(sail_ctx, sail_ctx.cur_privilege);
+                sail_ctx.mstatus.set_subrange::<11, 13, 2>(var_2)
             };
             sail_ctx.mtval = tval(sail_ctx, info);
             sail_ctx.mepc = pc;
@@ -3767,26 +3773,19 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
         }}
         Privilege::Supervisor => {{
             assert!(currentlyEnabled(sail_ctx, extension::Ext_S), "Process message");
-            sail_ctx.scause = BitField {
-                bits: update_subrange_bits(sail_ctx.scause.bits, ((BUILTIN_pow2_TODO * 8) - 1), ((BUILTIN_pow2_TODO * 8) - 1), bool_to_bits(sail_ctx, intr))
+            sail_ctx.scause.bits[((BUILTIN_pow2_TODO * 8) - 1)..((BUILTIN_pow2_TODO * 8) - 1)] = bool_to_bits(sail_ctx, intr);
+            sail_ctx.scause.bits[((BUILTIN_pow2_TODO * 8) - 2)..0] = zero_extend_63(c);
+            sail_ctx.mstatus = {
+                let var_3 = _get_Mstatus_SIE(sail_ctx, sail_ctx.mstatus);
+                sail_ctx.mstatus.set_subrange::<5, 6, 1>(var_3)
             };
-            sail_ctx.scause = BitField {
-                bits: update_subrange_bits(sail_ctx.scause.bits, ((BUILTIN_pow2_TODO * 8) - 2), 0, zero_extend_63(c))
-            };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 5, 5, _get_Mstatus_SIE(sail_ctx, sail_ctx.mstatus))
-            };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 1, 1, BitVector::<1>::new(0b0))
-            };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 8, 8, match sail_ctx.cur_privilege {
-                    Privilege::User => {BitVector::<1>::new(0b0)}
-                    Privilege::Supervisor => {BitVector::<1>::new(0b1)}
-                    Privilege::Machine => {internal_error("riscv_sys_control.sail", 260, "invalid privilege for s-mode trap")}
-                    _ => {panic!("Unreachable code")}
-                })
-            };
+            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<1, 2, 1>(BitVector::<1>::new(0b0));
+            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<8, 9, 1>(match sail_ctx.cur_privilege {
+                Privilege::User => {BitVector::<1>::new(0b0)}
+                Privilege::Supervisor => {BitVector::<1>::new(0b1)}
+                Privilege::Machine => {internal_error("riscv_sys_control.sail", 260, "invalid privilege for s-mode trap")}
+                _ => {panic!("Unreachable code")}
+            });
             sail_ctx.stval = tval(sail_ctx, info);
             sail_ctx.sepc = pc;
             sail_ctx.cur_privilege = del_priv;
@@ -3834,38 +3833,36 @@ pub fn exception_handler(sail_ctx: &mut SailVirtCtx, cur_priv: Privilege, ctl: c
         }}
         (_, ctl_result::CTL_MRET(())) => {{
             let prev_priv = sail_ctx.cur_privilege;
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 3, 3, _get_Mstatus_MPIE(sail_ctx, sail_ctx.mstatus))
+            sail_ctx.mstatus = {
+                let var_11 = _get_Mstatus_MPIE(sail_ctx, sail_ctx.mstatus);
+                sail_ctx.mstatus.set_subrange::<3, 4, 1>(var_11)
             };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 7, 7, BitVector::<1>::new(0b1))
-            };
+            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<7, 8, 1>(BitVector::<1>::new(0b1));
             sail_ctx.cur_privilege = {
-                let var_11 = _get_Mstatus_MPP(sail_ctx, sail_ctx.mstatus);
-                privLevel_of_bits(sail_ctx, var_11)
+                let var_12 = _get_Mstatus_MPP(sail_ctx, sail_ctx.mstatus);
+                privLevel_of_bits(sail_ctx, var_12)
             };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 12, 11, {
-                    let var_12 = if {currentlyEnabled(sail_ctx, extension::Ext_U)} {
+            sail_ctx.mstatus = {
+                let var_13 = {
+                    let var_14 = if {currentlyEnabled(sail_ctx, extension::Ext_U)} {
                         Privilege::User
                     } else {
                         Privilege::Machine
                     };
-                    privLevel_to_bits(sail_ctx, var_12)
-                })
+                    privLevel_to_bits(sail_ctx, var_14)
+                };
+                sail_ctx.mstatus.set_subrange::<11, 13, 2>(var_13)
             };
             if {(sail_ctx.cur_privilege != Privilege::Machine)} {
-                sail_ctx.mstatus = BitField {
-                    bits: update_subrange_bits(sail_ctx.mstatus.bits, 17, 17, BitVector::<1>::new(0b0))
-                }
+                sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<17, 18, 1>(BitVector::<1>::new(0b0))
             } else {
                 ()
             };
             {
-                let var_13 = "mstatus";
-                let var_14 = "mstatush";
-                let var_15 = sail_ctx.mstatus.bits;
-                long_csr_write_callback(sail_ctx, var_13, var_14, var_15)
+                let var_15 = "mstatus";
+                let var_16 = "mstatush";
+                let var_17 = sail_ctx.mstatus.bits;
+                long_csr_write_callback(sail_ctx, var_15, var_16, var_17)
             };
             if {get_config_print_platform(sail_ctx, ())} {
                 print_platform(format!("{}{}", "ret-ing from ", format!("{}{}", privLevel_to_str(sail_ctx, prev_priv), format!("{}{}", " to ", privLevel_to_str(sail_ctx, sail_ctx.cur_privilege)))))
@@ -3876,32 +3873,27 @@ pub fn exception_handler(sail_ctx: &mut SailVirtCtx, cur_priv: Privilege, ctl: c
         }}
         (_, ctl_result::CTL_SRET(())) => {{
             let prev_priv = sail_ctx.cur_privilege;
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 1, 1, _get_Mstatus_SPIE(sail_ctx, sail_ctx.mstatus))
+            sail_ctx.mstatus = {
+                let var_18 = _get_Mstatus_SPIE(sail_ctx, sail_ctx.mstatus);
+                sail_ctx.mstatus.set_subrange::<1, 2, 1>(var_18)
             };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 5, 5, BitVector::<1>::new(0b1))
-            };
+            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<5, 6, 1>(BitVector::<1>::new(0b1));
             sail_ctx.cur_privilege = if {(_get_Mstatus_SPP(sail_ctx, sail_ctx.mstatus) == BitVector::<1>::new(0b1))} {
                 Privilege::Supervisor
             } else {
                 Privilege::User
             };
-            sail_ctx.mstatus = BitField {
-                bits: update_subrange_bits(sail_ctx.mstatus.bits, 8, 8, BitVector::<1>::new(0b0))
-            };
+            sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<8, 9, 1>(BitVector::<1>::new(0b0));
             if {(sail_ctx.cur_privilege != Privilege::Machine)} {
-                sail_ctx.mstatus = BitField {
-                    bits: update_subrange_bits(sail_ctx.mstatus.bits, 17, 17, BitVector::<1>::new(0b0))
-                }
+                sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<17, 18, 1>(BitVector::<1>::new(0b0))
             } else {
                 ()
             };
             {
-                let var_16 = "mstatus";
-                let var_17 = "mstatush";
-                let var_18 = sail_ctx.mstatus.bits;
-                long_csr_write_callback(sail_ctx, var_16, var_17, var_18)
+                let var_19 = "mstatus";
+                let var_20 = "mstatush";
+                let var_21 = sail_ctx.mstatus.bits;
+                long_csr_write_callback(sail_ctx, var_19, var_20, var_21)
             };
             if {get_config_print_platform(sail_ctx, ())} {
                 print_platform(format!("{}{}", "ret-ing from ", format!("{}{}", privLevel_to_str(sail_ctx, prev_priv), format!("{}{}", " to ", privLevel_to_str(sail_ctx, sail_ctx.cur_privilege)))))
