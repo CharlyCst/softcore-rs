@@ -738,7 +738,7 @@ module Codegen () = struct
         input 
       in 
       let replace_atom input =
-        let regex = Str.regexp "atom<N>" in
+          let regex = Str.regexp "atom<[A-Za-z0-9]*>" in
         Str.global_replace regex "usize" input
       in 
 

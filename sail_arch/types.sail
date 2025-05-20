@@ -25,7 +25,7 @@ union ExceptionType = {
  E_Extension          : int
 }
 
-// ———————————————————————————————— Function having int and bool in the signature ————————————————————————————————— //
+// —————————————————————————————— Simple Types —————————————————————————————— //
 
 function handle_int(a1: int): int -> int = {
     a1 + 4
@@ -57,7 +57,17 @@ scattered union ast
 val encdec : ast <-> bits(32)
 scattered mapping encdec
 
-// —————————————————————————————————— Test function  —————————————————————————————————— //
+// ————————————————————————————— Advanced Types ————————————————————————————— //
+
+val zeros : forall 'n, 'n >= 0 . implicit('n) -> bits('n)
+function zeros (n) = sail_zeros(n)
+
+val parse_hex_bits : forall 'n, 'n > 0. (int('n), string) -> bits('n)
+function parse_hex_bits(n, s) = {
+    zeros(n)
+}
+
+// ————————————————————————————— Test Function —————————————————————————————— //
 
 val execute : ast -> unit
 union clause ast = TEST : unit
@@ -108,6 +118,11 @@ function clause execute TEST() = {
     let c = handle_int_int_bool_int(1234, 12345, false, 2);
     let d = handle_retired();
     let e = handle_union();
+    let f = parse_hex_bits(8, "00");
+
+    if f != 0b00000000 then {
+        assert(false, "failed to parse hex)");
+    };
 
     assert(true, "works");
     throw Error_internal_error();

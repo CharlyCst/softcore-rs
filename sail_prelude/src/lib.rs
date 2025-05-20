@@ -161,6 +161,11 @@ pub fn hex_bits_12_forwards(_reg: BitVector<12>) -> ! {
     panic!("Implement this function")
 }
 
+pub fn hex_bits_12_backwards(_: &'static str) -> BitVector<12> {
+    // TODO: Implement this function
+    panic!("Implement this function")
+}
+
 // TODO: This is enough for the risc-v transpilation, but not enought for full sail-to-rust
 pub fn subrange_bits(vec: BitVector<64>, end: usize, start: usize) -> BitVector<64> {
     assert!(end - start + 1 == 64); // todo: In the future, we should improve the subrange bits function
