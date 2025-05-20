@@ -19,37 +19,6 @@ let rust_options =
     (Flag.create ~prefix:["rust"] "debug", Arg.Set opt_debug, "enable debug logging");
   ]
 
-let rust_rewrites =
-  let open Rewrites in
-  [
-    ("instantiate_outcomes", [String_arg "c"]);
-    ("realize_mappings", []);
-    ("remove_vector_subrange_pats", []);
-    ("toplevel_string_append", []);
-    ("pat_string_append", []);
-    ("mapping_patterns", []);
-    ("truncate_hex_literals", []);
-    ("mono_rewrites", [If_flag opt_mono_rewrites]);
-    ("recheck_defs", [If_flag opt_mono_rewrites]);
-    ("toplevel_nexps", [If_mono_arg]);
-    ("monomorphise", [String_arg "c"; If_mono_arg]);
-    ("atoms_to_singletons", [String_arg "c"; If_mono_arg]);
-    ("recheck_defs", [If_mono_arg]);
-    ("undefined", [Bool_arg false]);
-    ("vector_string_pats_to_bit_list", []);
-    ("remove_not_pats", []);
-    ("remove_vector_concat", []);
-    ("remove_bitvector_pats", []);
-    ("pattern_literals", [Literal_arg "all"]);
-    ("tuple_assignments", []);
-    ("vector_concat_assignments", []);
-    ("simple_struct_assignments", []);
-    ("exp_lift_assign", []);
-    ("merge_function_clauses", []);
-    ("recheck_defs", []);
-    ("constant_fold", [String_arg "c"]);
-  ]
-
 let collect_rust_name_info ast =
   let open Ast in
   let open Ast_defs in
@@ -81,7 +50,7 @@ let collect_rust_name_info ast =
 
 (* Sail comes with some built-in passes, here we select the ones we want to apply*)
 (* see https://github.com/rems-project/sail/blob/284c4795a25723139443dedee1d178f68ddb304e/src/lib/rewrites.ml#L4422 *)
-let virt_rewrites =
+let rust_rewrites =
   let open Rewrites in
   [
     ("instantiate_outcomes", [String_arg "c"]);
@@ -130,5 +99,5 @@ let rust_target out_file { ast; effect_info; env; _ } =
   Util.close_output_with_check impl_out
 
 let _ =
-  Target.register ~name:"rust" ~options:rust_options ~rewrites:virt_rewrites ~supports_abstract_types:true
+  Target.register ~name:"rust" ~options:rust_options ~rewrites:rust_rewrites ~supports_abstract_types:true
     ~supports_runtime_config:true rust_target

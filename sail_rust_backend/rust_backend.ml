@@ -426,12 +426,17 @@ module Codegen () = struct
             | [] -> [] 
 
     and typequant_to_generics (TypQ_aux (_, l) as typq: typquant) : string list =
+        (* We discard all non-trivial quantifiers *)
+        let is_simple = function
+            | QI_aux (QI_id kopt, _) -> true
+            | _ -> false
+        in
         let extract_generics = function
             | QI_aux (QI_id kopt, _) -> string_of_kid (kopt_kid kopt)
             | QI_aux (QI_constraint _, _) ->
             raise (Reporting.err_general l "Rust: type quantifiers should no longer contain constraints")
         in
-        List.map extract_generics (quant_items typq)
+        quant_items typq |> List.filter is_simple |> List.map extract_generics
 
     and variant_to_rust (id: id) (typq: typquant) (members: type_union list): rs_enum =
         {
