@@ -2,20 +2,6 @@
 
 use sail_prelude::*;
 
-pub const xlen: usize = 64;
-
-pub type xlenbits = BitVector<xlen>;
-
-pub type priv_level = BitVector<2>;
-
-pub type regidx = BitVector<5>;
-
-pub type cregidx = BitVector<3>;
-
-pub type csreg = BitVector<12>;
-
-pub type Mstatus = BitField<64>;
-
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SailVirtCtx {
     pub mepc: xlenbits,
@@ -32,12 +18,24 @@ pub fn _operator_smaller_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVe
     (x.as_usize() < y.as_usize())
 }
 
+pub const xlen: usize = 64;
+
+pub type xlenbits = BitVector<xlen>;
+
+pub type priv_level = BitVector<2>;
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
     User,
     Supervisor,
     Machine
 }
+
+pub type regidx = BitVector<5>;
+
+pub type cregidx = BitVector<3>;
+
+pub type csreg = BitVector<12>;
 
 pub fn _get_Mstatus_TW(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
     v.subrange::<21, 22, 1>()

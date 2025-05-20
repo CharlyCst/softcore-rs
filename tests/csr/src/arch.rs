@@ -2,22 +2,6 @@
 
 use sail_prelude::*;
 
-pub const xlen: usize = 64;
-
-pub const xlen_bytes: usize = 8;
-
-pub type xlenbits = BitVector<xlen>;
-
-pub type priv_level = BitVector<2>;
-
-pub type regidx = BitVector<5>;
-
-pub type cregidx = BitVector<3>;
-
-pub type csreg = BitVector<12>;
-
-pub type csrRW = BitVector<2>;
-
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SailVirtCtx {
     pub PC: xlenbits,
@@ -31,6 +15,14 @@ pub struct SailVirtCtx {
 pub fn _operator_biggerequal_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.as_usize() >= y.as_usize())
 }
+
+pub const xlen: usize = 64;
+
+pub const xlen_bytes: usize = 8;
+
+pub type xlenbits = BitVector<xlen>;
+
+pub type priv_level = BitVector<2>;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
@@ -47,6 +39,12 @@ pub fn privLevel_to_bits(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<
         _ => {panic!("Unreachable code")}
     }
 }
+
+pub type regidx = BitVector<5>;
+
+pub type cregidx = BitVector<3>;
+
+pub type csreg = BitVector<12>;
 
 pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
     match r {
@@ -96,6 +94,8 @@ pub enum ast {
     ITYPE((BitVector<12>, regidx, regidx, iop)),
     CSR((BitVector<12>, regidx, regidx, bool, csrop))
 }
+
+pub type csrRW = BitVector<2>;
 
 pub fn csrAccess(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<2> {
     csr.subrange::<10, 12, 2>()

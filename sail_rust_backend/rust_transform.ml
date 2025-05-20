@@ -230,6 +230,7 @@ let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
 
 let transform_alias (ct: expr_type_transform) (alias: rs_alias) : rs_alias = {
         new_typ = alias.new_typ; 
+        generics = alias.generics;
         old_type = transform_type ct alias.old_type
     }
 
