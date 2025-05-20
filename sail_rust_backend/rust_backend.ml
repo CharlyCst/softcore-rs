@@ -282,7 +282,12 @@ module Codegen () = struct
         let vector_length = List.length items in
         let vector_length_exp = RsLit (RsLitNum (Int64.of_int vector_length)) in
         let rec parse_arguments (idx: int) (elements: 'a exp list) : rs_exp list = match elements with
-            | e1 :: e -> RsMethodApp(RsId "__generated_vector", "set_vector_entry", [RsLit(RsLitNum (Int64.of_int idx)); process_exp ctx e1]) :: parse_arguments (idx+1) (e)
+            | e1 :: e -> RsMethodApp {
+                    exp = RsId "__generated_vector";
+                    name ="set_vector_entry";
+                    generics = [];
+                    args = [RsLit(RsLitNum (Int64.of_int idx)); process_exp ctx e1]
+                } :: parse_arguments (idx+1) (e)
             | [] -> []
         in 
         if is_literral then

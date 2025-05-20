@@ -59,10 +59,17 @@ and rs_binop =
 and rs_unop = 
     | RsUnopNeg
 
+and rs_method_app = {
+    exp: rs_exp;
+    name: string;
+    generics: string list;
+    args: rs_exp list;
+}
+
 and rs_exp =
     | RsLet of rs_pat * rs_exp * rs_exp
     | RsApp of rs_exp * rs_exp list
-    | RsMethodApp of rs_exp * string * rs_exp list
+    | RsMethodApp of rs_method_app
     | RsStaticApp of rs_type * string * rs_exp list
     | RsId of string
     | RsLit of rs_lit
@@ -150,7 +157,25 @@ let rec merge_rs_prog_list (programs: rs_program list): rs_program =
         | h :: t -> merge_rs_prog h (merge_rs_prog_list t)
         | _ -> RsProg []
 
+let mk_method_app (exp: rs_exp) (name: string) (args: rs_exp list) : rs_exp =
+    RsMethodApp {
+        exp = exp;
+        name = name;
+        generics = [];
+        args = args;
+    }
+
 (* ————————————————————————————— Rust to String ————————————————————————————— *)
+
+let string_of_generics (generics: string list) : string =
+    match generics with
+    | [] -> ""
+    | _ -> Printf.sprintf "<%s>" (String.concat ", " generics)
+
+let string_of_generics_turbofish (generics: string list) : string =
+    match generics with
+    | [] -> ""
+    | _ -> Printf.sprintf "::<%s>" (String.concat ", " generics)
 
 let rec string_of_rs_type (typ: rs_type) : string =
     match typ with
@@ -252,10 +277,11 @@ and string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (string_of_rs_type typ)
                 func
                 (String.concat ", " (List.map (string_of_rs_exp n) args))
-        | RsMethodApp (exp, id, args)->
-            Printf.sprintf "%s.%s(%s)"
+        | RsMethodApp {exp; name; generics; args}->
+            Printf.sprintf "%s.%s%s(%s)"
                 (string_of_rs_exp n exp)
-                id 
+                name 
+                (string_of_generics_turbofish generics)
                 (String.concat ", " (List.map (string_of_rs_exp n) args))
         | RsId id -> id
         | RsLit lit  -> string_of_rs_lit lit
@@ -422,11 +448,6 @@ let parse_enum_fields (entries: (string * rs_type option) list) : string =
     in
     let prefixed_entries = List.map (fun (name, typ) -> "    " ^ name ^ field_typ typ) entries in
     String.concat ",\n" prefixed_entries
-
-let string_of_generics (generics: string list) : string =
-    match generics with
-    | [] -> ""
-    | _ -> Printf.sprintf "<%s>" (String.concat ", " generics)
 
 let string_of_rs_enum (enum: rs_enum) : string = 
     Printf.sprintf "%s\npub enum %s%s {\n%s\n}" (enum_attribute ()) enum.name (string_of_generics enum.generics) (parse_enum_fields enum.fields)

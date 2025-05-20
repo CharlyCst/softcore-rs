@@ -81,11 +81,13 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
                 (transform_exp ct next)))
         | RsApp (app, args) -> transform_app ct app args
         | RsStaticApp (app, method_name, args) -> RsStaticApp(transform_type ct app, method_name, (List.map (transform_exp ct) args))
-        | RsMethodApp (exp, id, args) ->
-            (RsMethodApp (
-                (transform_exp ct exp),
-                id,
-                (List.map (transform_exp ct) args)))
+        | RsMethodApp {exp; name; generics; args} ->
+            (RsMethodApp {
+                exp = transform_exp ct exp;
+                name = name;
+                generics = generics;
+                args = List.map (transform_exp ct) args
+            })
         | RsId id -> RsId id
         | RsLit lit -> RsLit lit
         | RsField (exp, field) -> RsField ((transform_exp ct exp), field)
@@ -150,7 +152,7 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
         | (RsId "or_vec", [left; right]) -> (RsBinop (left, RsBinopOr, right))
         | (RsId "and_vec", [left; right]) -> (RsBinop (left, RsBinopAnd, right))
         | (RsId "xor_vec", [left; right]) -> (RsBinop (left, RsBinopXor, right))
-        | (RsId "add_bits", [left; right]) -> (RsMethodApp (left, "wrapped_add", [right]))
+        | (RsId "add_bits", [left; right]) -> (mk_method_app left "wrapped_add" [right])
         | (RsId "and_bool", [left; right]) -> (RsBinop (left, RsBinopLAnd, right))
         | (RsId "or_bool", [left; right]) -> (RsBinop (left, RsBinopLOr, right))
         | (RsId "Some", [exp]) -> RsSome(exp)
@@ -161,20 +163,25 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
             (* The zero_extend method is defined for bitvectors in the Rust prelude *)
             if n > 64L then
                 Printf.printf "Warning: unsupported EXTZ bit width (%d)\n" (Int64.to_int n);
-            RsMethodApp(value, Printf.sprintf "zero_extend::<%d>" (Int64.to_int n), [])
+            RsMethodApp {
+                exp = value;
+                name = "zero_extend";
+                generics = [Int64.to_string n];
+                args = [];
+            }
         | (RsId "EXTS", (RsLit (RsLitNum n))::value::[]) ->
             (match n with
-                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 8L))]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 16L))]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 32L))]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
-                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 64L))]), RsTypId "new"), [RsMethodApp(value, "bits", [])])
+                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 8L))]), RsTypId "new"), [mk_method_app value "bits" []])
+                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 16L))]), RsTypId "new"), [mk_method_app value "bits" []])
+                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 32L))]), RsTypId "new"), [mk_method_app value "bits" []])
+                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 64L))]), RsTypId "new"), [mk_method_app value "bits" []])
                 | _ -> 
                     Printf.printf "Warning: unsupported EXTS bit width (%d)\n" (Int64.to_int n);
                     RsAs (value, RsTypId "InvalidUSigned")
             )
 
         (* Unsigned is used for array indexing *)
-        | (RsId "unsigned", value::[]) -> RsMethodApp (value, "as_usize",[])
+        | (RsId "unsigned", value::[]) -> mk_method_app value "as_usize" []
 
         (* Otherwise keep as is *)
         | _ -> (RsApp (fn, args))
@@ -284,8 +291,8 @@ let bitvec_transform_match_tuple (exp: rs_exp list) (patterns: rs_pat list) : rs
     assert(List.length exp = List.length patterns);
     RsTuple (List.map2 (fun e p ->
       match p with
-      | RsPatLit (RsLitHex _) -> RsMethodApp (e, "bits", [])
-      | RsPatLit (RsLitBin _) -> RsMethodApp (e, "bits", [])
+      | RsPatLit (RsLitHex _) -> mk_method_app e "bits" []
+      | RsPatLit (RsLitBin _) -> mk_method_app e "bits" []
       | _ -> e
     ) exp patterns)
      
@@ -300,35 +307,42 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
     match exp with
         | RsApp (RsId "subrange_bits", [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
-            let subrange_call =
-                Printf.sprintf "subrange::<%Lu, %Lu, %Lu>"
-                    r_start
-                    r_end
-                    (Int64.sub r_end r_start)
-            in
-            RsMethodApp(RsField (bitvec, "bits"), subrange_call, [])
+            let r_size = Int64.sub r_end r_start in
+            RsMethodApp {
+                exp = RsField (bitvec, "bits");
+                name = "subrange";
+                generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
+                args = [];
+            }
         | RsApp (RsId "subrange_bits", [RsId id; RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
-            let subrange_call =
-                Printf.sprintf "subrange::<%Lu, %Lu, %Lu>"
-                    r_start
-                    r_end
-                    (Int64.sub r_end r_start)
-            in
-            RsMethodApp (RsId id, subrange_call, [])
+            let r_size = Int64.sub r_end r_start in
+            RsMethodApp {
+                exp = RsId id;
+                name = "subrange";
+                generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
+                args = [];
+            }
         | RsAssign (RsLexpIndexRange (RsLexpField (lexp, "bits"), RsLit RsLitNum r_end, RsLit RsLitNum r_start), exp) ->
             let r_end = Int64.add r_end Int64.one in
-            let set_subrange =
-                Printf.sprintf "set_subrange::<%Lu, %Lu, %Lu>"
-                    r_start
-                    r_end
-                    (Int64.sub r_end r_start)
-            in
-            RsAssign (RsLexpField (lexp, "bits"), RsMethodApp (RsField (lexp_to_exp lexp, "bits"), set_subrange, [exp]))
+            let r_size = Int64.sub r_end r_start in
+            let method_app = {
+                exp = RsField (lexp_to_exp lexp, "bits");
+                name = "set_subrange";
+                generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
+                args = [exp];
+            } in
+            RsAssign (RsLexpField (lexp, "bits"), RsMethodApp method_app)
         | RsApp (RsId "zero_extend", RsLit RsLitNum size :: e ) ->  
             RsApp (RsId (Printf.sprintf "zero_extend_%Lu" size), e)
         | RsMatch (exp, pat::pats) when is_bitvec_lit pat ->
-            RsMatch (RsMethodApp (exp, "bits", []), pat::pats)
+            let method_app = {
+                exp = exp;
+                name = "bits";
+                generics = [];
+                args = [];
+            } in
+            RsMatch (RsMethodApp method_app, pat::pats)
         | RsMatch (RsTuple exp_tuple, patterns) -> RsMatch (bitvec_transform_match_tuple exp_tuple (parse_first_tuple_entry patterns), patterns)
         | _ -> exp
 
@@ -547,12 +561,12 @@ let rec should_hoistise (exp: rs_exp list) : bool =
         | RsBinop (e1, op, e2) :: _ -> true
         | _ :: tail -> should_hoistise tail 
     
-let rec hoistise (exp: rs_exp list) : rs_exp list * rs_exp list = 
+let rec hoist (exp: rs_exp list) : rs_exp list * rs_exp list = 
     match exp with
     | e :: arr -> 
         let ident = !variable_generator () in
-        let (l1, l2) = hoistise arr in
-        (RsLet (RsPatId ident, e, RsTodo "hoistise") :: l1, RsId ident :: l2)
+        let (l1, l2) = hoist arr in
+        (RsLet (RsPatId ident, e, RsTodo "hoist") :: l1, RsId ident :: l2)
     | [] -> ([], [])
 
 let rec generate_hoistised_block (exp: rs_exp list) (app) : rs_exp = 
@@ -564,10 +578,15 @@ let rec generate_hoistised_block (exp: rs_exp list) (app) : rs_exp =
 let expr_hoister (exp: rs_exp) : rs_exp = 
     match exp with
         (* We dont need to hoistise external functions & some macro might not work with hoisting (for example: format!)*)
-        | RsApp (RsId name, args) when should_hoistise args && not(StringSet.mem name external_func) -> let ret = hoistise args in 
+        | RsApp (RsId name, args) when should_hoistise args && not(StringSet.mem name external_func) -> let ret = hoist args in 
             RsBlock[generate_hoistised_block (fst ret) (RsApp (RsId name, snd ret))]
-        | RsMethodApp (name,met, args) when should_hoistise args -> let ret = hoistise args in 
-            RsBlock[generate_hoistised_block (fst ret) (RsMethodApp (name,met, snd ret))]
+        | RsMethodApp {exp; name; generics; args} when should_hoistise args -> let ret = hoist args in 
+        RsBlock[generate_hoistised_block (fst ret) (RsMethodApp {
+            exp = exp;
+            name = name;
+            generics = generics;
+            args = snd ret
+        })]
         | _ -> exp
 
 let obj_hoister (obj: rs_obj) : rs_obj =
@@ -691,7 +710,12 @@ let enum_binder_exp (enum_list: (string * string) list) (exp: rs_exp) : rs_exp =
   match exp with
     | RsId id -> RsId (enum_prefix_inserter id enum_list)
     | RsApp (RsId id, args) -> RsApp (RsId (enum_prefix_inserter id enum_list), args)
-    | RsMethodApp (RsId id, method_name, args) -> RsMethodApp (RsId (enum_prefix_inserter id enum_list),method_name,args)
+    | RsMethodApp {exp = RsId id; name; generics; args} -> RsMethodApp {
+            exp = RsId (enum_prefix_inserter id enum_list);
+            name = name;
+            generics = generics;
+            args = args;
+        }
     | _ -> exp
  
 let enum_binder_lexp (enum_list: (string * string) list) (lexp: rs_lexp) : rs_lexp = 
