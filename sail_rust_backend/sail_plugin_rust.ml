@@ -60,12 +60,6 @@ let rust_rewrites =
     ("pat_string_append", []);
     ("mapping_patterns", []);
     ("truncate_hex_literals", []);
-    ("mono_rewrites", [If_flag opt_mono_rewrites]);
-    ("recheck_defs", [If_flag opt_mono_rewrites]);
-    ("toplevel_nexps", [If_mono_arg]);
-    ("monomorphise", [String_arg "c"; If_mono_arg]);
-    ("atoms_to_singletons", [String_arg "c"; If_mono_arg]);
-    ("recheck_defs", [If_mono_arg]);
     ("undefined", [Bool_arg false]);
     ("vector_string_pats_to_bit_list", []);
     (* ("simple_assignments", []); *)
