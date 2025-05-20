@@ -406,41 +406,55 @@ module Codegen () = struct
     and process_fundef (FD_function (rec_opt, tannot_opt, funcl)) (s: context) : rs_program =
         process_funcl funcl s
     
-    and process_enum (id: Ast.id) (members: Ast.id list) : rs_enum =
+    and enum_to_rust (id: Ast.id) (members: Ast.id list) : rs_enum =
             let enum_name = string_of_id id in
             let enum_fields = List.map string_of_id members in 
             {
                 name = enum_name;
-                fields = enum_fields; 
+                generics = [];
+                fields =  List.map (fun id -> (id, None)) enum_fields; 
             }
-    
-    and process_unions (members: Ast.type_union list) : (string * rs_type) list = 
+
+    and process_unions (members: Ast.type_union list) : (string * (rs_type option)) list = 
         match members with 
-            | (Tu_aux (Tu_ty_id (typ, id), annot)) :: v -> (string_of_id id, extract_type typ) :: process_unions v
+            | (Tu_aux (Tu_ty_id (typ, id), annot)) :: v -> (string_of_id id, Some (extract_type typ)) :: process_unions v
             | [] -> [] 
+
+    and typequant_to_generics (TypQ_aux (_, l) as typq: typquant) : string list =
+        let extract_generics = function
+            | QI_aux (QI_id kopt, _) -> string_of_kid (kopt_kid kopt)
+            | QI_aux (QI_constraint _, _) ->
+            raise (Reporting.err_general l "Rust: type quantifiers should no longer contain constraints")
+        in
+        List.map extract_generics (quant_items typq)
+
+    and variant_to_rust (id: Ast.id) (typq: typquant) (members: type_union list): rs_enum =
+        {
+            name = string_of_id id;
+            generics = typequant_to_generics typq;
+            fields = process_unions members;
+        }
                  
-    and process_def (TD_aux (typ, _)) : rs_program = 
+    and typdef_to_rust (TD_aux (typ, (l, _))) : rs_program = 
             match typ with
-            | TD_enum (id, member, _) -> RsProg [RsEnum(process_enum id member)] 
-            | TD_variant (id, typquant, members, _) when string_of_id id = "option" -> RsProg [] (* Special semantics in rust *)
-            | TD_variant (id, typquant, members, _) -> RsProg[RsTypedEnum({ 
-                name = string_of_id id;
-                fields = process_unions members;
-            })]
+            | TD_enum (id, members, _) -> RsProg [RsEnum(enum_to_rust id members)] 
+            | TD_variant (id, typq, members, _) when string_of_id id = "option" -> RsProg [] (* Special semantics in rust *)
+            | TD_variant (id, typq, members, _) -> RsProg [RsEnum (variant_to_rust id typq members)]
+            | TD_abstract _ -> Reporting.unreachable l __POS__ "Abstract type not supported in Rust backend"
             | _ -> RsProg []
         
-    and process_node (DEF_aux (def, annot)) (s: context) : rs_program =
+    and def_to_rust (DEF_aux (def, annot)) (s: context) : rs_program =
         match def with
             | DEF_register (DEC_aux (dec_spec, annot)) -> process_register dec_spec
             | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
             | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef s
             | DEF_impl funcl -> process_func funcl s
-            | DEF_type typ -> process_def typ
+            | DEF_type typ -> typdef_to_rust typ
             | _ -> RsProg []
     
-    and process_defs defs (ctx: context): rs_program =
+    and defs_to_rust defs (ctx: context): rs_program =
         match defs with
-            | h :: t -> merge_rs_prog (process_node h ctx) (process_defs t ctx)
+            | h :: t -> merge_rs_prog (def_to_rust h ctx) (defs_to_rust t ctx)
             | [] -> RsProg []
     
     
@@ -700,7 +714,7 @@ module Codegen () = struct
     (* ———————————————————————— Translation function  ————————————————————————— *)
     
     let sail_to_rust (ast: ('a, 'b) ast) (ctx: context) : rs_program =
-        merge_rs_prog_list [generate_sail_abbrev ast.defs; generate_sail_virt_ctx ast.defs ctx; process_defs ast.defs ctx]
+        merge_rs_prog_list [generate_sail_abbrev ast.defs; generate_sail_virt_ctx ast.defs ctx; defs_to_rust ast.defs ctx]
     
   let compile_ast env effect_info ast =
     try

@@ -90,6 +90,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
         | RsLit lit -> RsLit lit
         | RsField (exp, field) -> RsField ((transform_exp ct exp), field)
         | RsBlock exps -> RsBlock (List.map (transform_exp ct) exps)
+        | RsConstBlock exps -> RsConstBlock (List.map (transform_exp ct) exps)
         | RsInstrList exps -> RsInstrList (List.map (transform_exp ct) exps)
         | RsIf (cond, exp_true, exp_false) ->
             (RsIf (
@@ -238,7 +239,14 @@ let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj =
         | RsFn fn -> RsFn (transform_fn ct fn)
         | RsAlias alias -> RsAlias (transform_alias ct alias)
         | RsStruct {name; fields} -> RsStruct { name = name; fields = (List.map (fun (a,b) -> (a, transform_type ct b)) fields)}
-        | RsTypedEnum {name; fields} -> RsTypedEnum{ name = name; fields = (List.map (fun (a,b) -> (a, transform_type ct b)) fields)}
+        | RsEnum {name; generics; fields} -> RsEnum {
+            name = name;
+            generics;
+            fields = (List.map (fun (name, typ) -> match typ with
+                | None -> (name, None) 
+                | Some typ -> (name, Some (transform_type ct typ)))
+            fields)
+        }
         | _ -> obj
 
 let rust_transform_expr (ct: expr_type_transform) (RsProg objs) : rs_program =
@@ -575,6 +583,45 @@ let expr_type_hoister = {
     typ = id_typ;
     pat = id_pat;
     obj = obj_hoister;
+}
+
+(* ——————————————————————————— Generic Rewriting ———————————————————————————— *)
+(* Sail uses apostrophes in generic names, which are parsed as lifetimes in   *)
+(* Rust. This transformation removes the apostrophes and format the generic   *)
+(* names.                                                                     *)
+(* —————————————————————————————————————————————————————————————————————————— *)
+
+(** Sail uses apostrophe (') in generic parameters, which appears as lifetime in Rust.
+    This function removes the apostrophe from the generic identifier.**)
+let serialize_generics (id: string) : string =
+    if String.get id 0 = '\'' then
+        let n = (String.length id) - 1 in
+        String.capitalize_ascii (String.sub id 1 n)
+    else
+        id
+
+let rewrite_generics (typ: rs_type) : rs_type =
+    match (typ : rs_type) with
+        | RsTypId id -> RsTypId (serialize_generics id)
+        | RsTypGeneric id -> RsTypGeneric (serialize_generics id)
+        | _ -> typ
+
+let rewrite_generics_obj (obj: rs_obj) : rs_obj =
+    match (obj : rs_obj) with
+        | RsEnum enum -> RsEnum {
+            enum with
+            generics = List.map serialize_generics enum.generics;
+        }
+        | _ -> obj
+
+
+let normalize_generics = {
+    exp = id_exp;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = rewrite_generics;
+    pat = id_pat;
+    obj = rewrite_generics_obj;
 }
 
 (* ———————————————————————— VirtContext transformer ————————————————————————— *)
@@ -953,6 +1000,7 @@ let transform (rust_program: rs_program) (register_list: StringSet.t) (enum_entr
   (* Third stage: general valid rust code*)
   let rust_program = rust_transform_expr expr_type_hoister rust_program in 
   let rust_program = rust_transform_func virt_context_transform rust_program in
+  let rust_program = rust_transform_expr normalize_generics rust_program in
   let rust_program = rust_transform_func enum_args_filter rust_program in
   let rust_program = rust_transform_expr enum_binder rust_program in
   let rust_program = rust_transform_func operator_rewriter rust_program in

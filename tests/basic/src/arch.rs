@@ -40,13 +40,13 @@ pub enum iop {
     RISCV_SLTIU,
     RISCV_XORI,
     RISCV_ORI,
-    RISCV_ANDI,
+    RISCV_ANDI
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     ITYPE((BitVector<12>, BitVector<5>, BitVector<5>, iop)),
-    LOAD((BitVector<12>, BitVector<5>, BitVector<5>)),
+    LOAD((BitVector<12>, BitVector<5>, BitVector<5>))
 }
 
 pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: BitVector<5>, rd: BitVector<5>) {

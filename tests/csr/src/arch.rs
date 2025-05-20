@@ -36,7 +36,7 @@ pub fn _operator_biggerequal_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: B
 pub enum Privilege {
     User,
     Supervisor,
-    Machine,
+    Machine
 }
 
 pub fn privLevel_to_bits(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<2> {
@@ -75,26 +75,26 @@ pub enum iop {
     RISCV_SLTIU,
     RISCV_XORI,
     RISCV_ORI,
-    RISCV_ANDI,
+    RISCV_ANDI
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum csrop {
     CSRRW,
     CSRRS,
-    CSRRC,
+    CSRRC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
-    RETIRE_FAIL,
+    RETIRE_FAIL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     ITYPE((BitVector<12>, regidx, regidx, iop)),
-    CSR((BitVector<12>, regidx, regidx, bool, csrop)),
+    CSR((BitVector<12>, regidx, regidx, bool, csrop))
 }
 
 pub fn csrAccess(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<2> {

@@ -34,7 +34,7 @@ pub struct SailVirtCtx {
 pub enum Privilege {
     User,
     Supervisor,
-    Machine,
+    Machine
 }
 
 pub fn haveUsrMode(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> bool {
@@ -126,12 +126,12 @@ pub fn exception_handler(sail_ctx: &mut SailVirtCtx, cur_priv: Privilege, pc: Bi
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
-    RETIRE_FAIL,
+    RETIRE_FAIL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    MRET(()),
+    MRET(())
 }
 
 pub fn ext_check_xret_priv(sail_ctx: &mut SailVirtCtx, p: Privilege) -> bool {
