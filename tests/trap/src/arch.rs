@@ -2,40 +2,6 @@
 
 use sail_prelude::*;
 
-pub const xlen: usize = 64;
-
-pub const xlen_bytes: usize = 8;
-
-pub type xlenbits = BitVector<xlen>;
-
-pub type priv_level = BitVector<2>;
-
-pub type regidx = BitVector<5>;
-
-pub type cregidx = BitVector<3>;
-
-pub type csreg = BitVector<12>;
-
-pub type Medeleg = BitField<64>;
-
-pub type Mcause = BitField<64>;
-
-pub type Mstatus = BitField<64>;
-
-pub type Mtvec = BitField<64>;
-
-pub type exc_code = BitVector<8>;
-
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct sync_exception {
-    pub trap: ExceptionType,
-    pub excinfo: Option<xlenbits>,
-}
-
-pub type tv_mode = BitVector<2>;
-
-pub type csrRW = BitVector<2>;
-
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SailVirtCtx {
     pub PC: xlenbits,
@@ -89,6 +55,14 @@ pub fn _operator_smaller_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVe
     (x.as_usize() < y.as_usize())
 }
 
+pub const xlen: usize = 64;
+
+pub const xlen_bytes: usize = 8;
+
+pub type xlenbits = BitVector<xlen>;
+
+pub type priv_level = BitVector<2>;
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
     User,
@@ -117,6 +91,12 @@ pub fn haveUsrMode(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> bool {
 pub enum exception {
     Error_internal_error(())
 }
+
+pub type regidx = BitVector<5>;
+
+pub type cregidx = BitVector<3>;
+
+pub type csreg = BitVector<12>;
 
 pub fn _get_Mstatus_MIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
     v.subrange::<3, 4, 1>()
@@ -166,6 +146,8 @@ pub enum ExceptionType {
     E_SAMO_Page_Fault(())
 }
 
+pub type exc_code = BitVector<8>;
+
 pub fn num_of_ExceptionType(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> usize {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {0}
@@ -214,6 +196,8 @@ pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> Bi
 pub enum ctl_result {
     CTL_TRAP(sync_exception)
 }
+
+pub type tv_mode = BitVector<2>;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TrapVectorMode {
@@ -393,6 +377,8 @@ pub enum ast {
     ITYPE((BitVector<12>, regidx, regidx, iop)),
     CSR((BitVector<12>, regidx, regidx, bool, csrop))
 }
+
+pub type csrRW = BitVector<2>;
 
 pub fn csrAccess(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<2> {
     csr.subrange::<10, 12, 2>()

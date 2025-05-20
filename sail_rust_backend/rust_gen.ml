@@ -118,6 +118,7 @@ type rs_struct = {
 
 type rs_alias = {
     new_typ: string;
+    generics: string list;
     old_type: rs_type;
 }
 
@@ -443,7 +444,7 @@ let string_of_rs_obj (obj: rs_obj) : string =
         | RsFn fn -> string_of_rs_fn fn
         | RsEnum enum -> string_of_rs_enum enum
         | RsStruct struc -> string_of_rs_struct struc
-        | RsAlias alias -> Printf.sprintf "pub type %s = %s;" alias.new_typ (string_of_rs_type alias.old_type)
+        | RsAlias alias -> Printf.sprintf "pub type %s%s = %s;" alias.new_typ (string_of_generics alias.generics) (string_of_rs_type alias.old_type)
         | RsConst const -> Printf.sprintf "pub const %s: usize = %s;" const.name (string_of_rs_exp 0 const.value)
         | RsAttribute value -> Printf.sprintf "#![%s]" value
         | RsImport value -> Printf.sprintf "use %s;" value

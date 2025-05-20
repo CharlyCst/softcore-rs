@@ -3,13 +3,6 @@
 use sail_prelude::*;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct My_struct {
-    pub field1: BitVector<5>,
-    pub field2: usize,
-    pub field3: &'static str,
-}
-
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SailVirtCtx {
 
 }

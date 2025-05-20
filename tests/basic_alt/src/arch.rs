@@ -2,6 +2,13 @@
 
 use sail_prelude::*;
 
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct SailVirtCtx {
+    pub PC: xlenbits,
+    pub nextPC: xlenbits,
+    pub Xs: [xlenbits;32],
+}
+
 pub const xlen: usize = 64;
 
 pub const xlen_bytes: usize = 8;
@@ -9,13 +16,6 @@ pub const xlen_bytes: usize = 8;
 pub type xlenbits = BitVector<xlen>;
 
 pub type regbits = BitVector<5>;
-
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailVirtCtx {
-    pub PC: xlenbits,
-    pub nextPC: xlenbits,
-    pub Xs: [xlenbits;32],
-}
 
 pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
     match r {

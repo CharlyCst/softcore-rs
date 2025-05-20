@@ -143,7 +143,7 @@ module Codegen () = struct
         match pat with
             | P_lit lit -> RsPatLit (process_lit lit)
             | P_id id -> RsPatId (string_of_id id)
-            | P_typ (typ, pat) -> RsPatType ((extract_type typ), (process_pat pat))
+            | P_typ (typ, pat) -> RsPatType ((typ_to_rust typ), (process_pat pat))
             | P_wild -> RsPatWildcard
             | P_tuple pats -> RsPatTuple (List.map process_pat pats)
             | P_vector pats -> RsPatLit (process_vector_pat pats)
@@ -167,7 +167,7 @@ module Codegen () = struct
             | E_block exp_list -> RsBlock (List.map (process_exp ctx) exp_list)
             | E_id id -> RsId (string_of_id id)
             | E_lit lit -> RsLit (process_lit lit)
-            | E_typ (typ, exp) -> RsAs(process_exp ctx exp, extract_type typ)
+            | E_typ (typ, exp) -> RsAs(process_exp ctx exp, typ_to_rust typ)
             | E_app (id, exp_list) -> RsApp (RsId (string_of_id id), (List.map (process_exp ctx) exp_list))
             | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
             | E_tuple (exp_list) -> RsTuple (List.map (process_exp ctx) exp_list)
@@ -417,7 +417,7 @@ module Codegen () = struct
 
     and process_unions (members: Ast.type_union list) : (string * (rs_type option)) list = 
         match members with 
-            | (Tu_aux (Tu_ty_id (typ, id), annot)) :: v -> (string_of_id id, Some (extract_type typ)) :: process_unions v
+            | (Tu_aux (Tu_ty_id (typ, id), annot)) :: v -> (string_of_id id, Some (typ_to_rust typ)) :: process_unions v
             | [] -> [] 
 
     and typequant_to_generics (TypQ_aux (_, l) as typq: typquant) : string list =
@@ -441,6 +441,20 @@ module Codegen () = struct
             | TD_variant (id, typq, members, _) when string_of_id id = "option" -> RsProg [] (* Special semantics in rust *)
             | TD_variant (id, typq, members, _) -> RsProg [RsEnum (variant_to_rust id typq members)]
             | TD_abstract _ -> Reporting.unreachable l __POS__ "Abstract type not supported in Rust backend"
+            | TD_abbrev (id, typq, A_aux (A_typ typ, _)) ->
+                let alias = {
+                    new_typ = string_of_id id;
+                    generics = typequant_to_generics typq;
+                    old_type = typ_to_rust typ;
+                } in
+                RsProg [RsAlias (alias)] (* TODO *)
+            | TD_abbrev (id, typq, A_aux (A_nexp nexp, _)) ->
+                let const = {
+                    name = string_of_id id;
+                    value = nexp_to_rs_exp nexp
+                } in
+                RsProg [RsConst const]
+            | TD_abbrev _ -> RsProg [] (* Ignore all other abbreviations *)
             | _ -> RsProg []
         
     and def_to_rust (DEF_aux (def, annot)) (s: context) : rs_program =
@@ -462,7 +476,7 @@ module Codegen () = struct
     
     and process_reg_name_type reg : (string * rs_type) =
         let (typ, id, exp) = match reg with 
-            | DEC_reg (typ, id, exp) -> (typ, id, exp) in (string_of_id id, extract_type typ)
+            | DEC_reg (typ, id, exp) -> (typ, id, exp) in (string_of_id id, typ_to_rust typ)
     
     and process_if_register  (DEF_aux (def, annot)) : string * rs_type * bool = 
         match def with 
@@ -476,6 +490,7 @@ module Codegen () = struct
                 if is_register then  (value, typ) :: gather_registers t
                 else gather_registers t
             | [] -> []
+
     and generate_sail_virt_ctx defs (ctx: context): rs_program = RsProg[
         RsStruct({
             name = "SailVirtCtx";
@@ -514,12 +529,12 @@ module Codegen () = struct
         | first :: second :: _ -> (first, second)
         | _ -> failwith "List does not have enough elements"
       
-    and extract_type (Typ_aux (typ, _)): rs_type =
+    and typ_to_rust (Typ_aux (typ, _)): rs_type =
         match typ with
             | Typ_id id when string_of_id id = "unit" -> RsTypUnit
             | Typ_id id -> RsTypId (string_of_id id)
             | Typ_var (Kid_aux (Var x, _)) -> RsTypGeneric x
-            | Typ_tuple types -> RsTypTuple (List.map extract_type types)
+            | Typ_tuple types -> RsTypTuple (List.map typ_to_rust types)
             | Typ_fn _ -> RsTypId "TodoFnType"
             | Typ_app (id, params) -> if (string_of_id id) = "vector" then 
                     let (size, typ) = get_first_two_elements (List.map extract_type_arg params) in
@@ -528,11 +543,11 @@ module Codegen () = struct
                     RsTypGenericParam ((string_of_id id), (List.map extract_type_arg params))
             | Typ_internal_unknown -> RsTypId "TodoUnknownType"
             | Typ_bidir (_, _) -> RsTypId "TodoBidirType"
-            | Typ_exist (_, _, typ) -> extract_type typ
+            | Typ_exist (_, _, typ) -> typ_to_rust typ
     and extract_type_arg (A_aux (typ, _)): rs_type_param =
         match typ with
             | A_nexp exp -> extract_type_nexp exp
-            | A_typ typ -> RsTypParamTyp (extract_type typ)
+            | A_typ typ -> RsTypParamTyp (typ_to_rust typ)
             | A_bool b -> RsTypParamTyp (RsTypId "TodoBoolType")
     and extract_type_nexp (Nexp_aux (nexp, l)): rs_type_param =
         match nexp with
@@ -554,7 +569,7 @@ module Codegen () = struct
         let TypSchm_ts (type_quant, typ) = typeschm in
         let Typ_aux (typ, _) = typ in
         match typ with 
-            | Typ_fn (args, ret) -> ((List.map extract_type args), extract_type ret)
+            | Typ_fn (args, ret) -> ((List.map typ_to_rust args), typ_to_rust ret)
             | _ -> ([RsTypTodo "todo_extract_types"], RsTypTodo "todo_extract_types")
     
     let val_fun_def (val_spec: val_spec_aux) : defmap =
@@ -569,7 +584,7 @@ module Codegen () = struct
     
     let type_union_def (Tu_aux (union, _)) : unionmap = 
         let Tu_ty_id (typ, id) = union in
-        SMap.add (string_of_id id) (extract_type typ) SMap.empty 
+        SMap.add (string_of_id id) (typ_to_rust typ) SMap.empty 
     
     let rec type_union_defs (members: type_union list) : unionmap =
         match members with
@@ -606,66 +621,7 @@ module Codegen () = struct
     
     let get_defs (ast: ('a, 'b) ast) : defs =
         collect_defs ast.defs
-    
-    let extract_type_alias typ = match extract_type typ with
-        | RsTypUnit -> RsTypId "()"
-        | e -> e
-                    
-    let process_sub_type (id: string) (A_aux (typ, _)) : rs_obj * bool =
-        match typ with
-            | A_typ typ -> (RsAlias {new_typ = id; old_type = extract_type_alias typ }, true)
-            | A_bool b -> (RsConst {name = id; value = nconstraint_to_rs_exp b}, true)
-            | A_nexp exp -> (RsConst {name = id; value = nexp_to_rs_exp exp}, true)
-            
-    let extract_first_item_type (items: (Libsail.Ast.typ * Libsail.Ast.id) list) : rs_type =   
-        assert(List.length items = 1); 
-        match items with 
-            | x :: _ -> extract_type (fst x)
-            | _ -> RsTypTodo "type_extract_first_item_type"
-    
-    let parse_bitfield_single (items: (Libsail.Ast.typ * Libsail.Ast.id) list) = 
-        let item = extract_first_item_type items in 
-        match item with 
-            | RsTypGenericParam (e, [RsTypParamNum n]) -> RsTypGenericParam ("BitField", [RsTypParamNum n]) ;
-            | _ -> item
-    
-    let process_record_type (id) (items: (Libsail.Ast.typ * Libsail.Ast.id) list) : (rs_obj * bool) =
-        if List.length items <> 1 then
-            let arg_value = List.map (fun (typ, id) -> (string_of_id id, extract_type typ)) items in
-           (RsStruct { name = string_of_id id; fields = arg_value }, true)
-        else
-            (RsAlias { new_typ = string_of_id id; old_type = parse_bitfield_single items }, true)
-            
-    let process_type_name_type (TD_aux (typ, _)) : (rs_obj * bool) =
-        match typ with
-            | TD_abbrev (id, typquant, typ_arg) -> process_sub_type (string_of_id id) typ_arg
-            (* Fix this in the future *)
-            | TD_record (id, typquant, items, _) 
-                when string_of_id id = "Mem_write_request" || 
-                    string_of_id id = "Mem_read_request" ->
-                        (RsConst {name = "dummy"; value = RsTodo "Tododummy"}, false)
-            | TD_record (id, typquant, items, _) -> process_record_type id items
-            | _ -> (RsConst {name = "dummy"; value = RsTodo "TodoDummy"}, false)
-     
-    let process_if_abbrev  (DEF_aux (def, annot)) : (rs_obj * bool) =
-        match def with
-            | DEF_type typ -> process_type_name_type typ
-            | _ -> (RsConst {name = "dummy"; value = RsTodo "Tododummy"}, false)
-    
-    let rec gather_abbrev defs : (rs_obj list) =
-        match defs with
-            | h :: t -> let (obj, is_register) = process_if_abbrev h in
-                if is_register then  obj :: gather_abbrev t
-                else gather_abbrev t
-            | [] -> []
-    
-    let generate_sail_abbrev_list defs : rs_program list =
-        List.map (fun obj -> RsProg [obj]) (gather_abbrev defs)
-            
-    let generate_sail_abbrev defs : rs_program =
-        merge_rs_prog_list (generate_sail_abbrev_list defs)
-    
-    
+   
     (* ———————————————————————— Generate the enumeration context  ————————————————————————— *)
       
     let gen_enum_list (id: Ast.id) (enum_fields: string list) : (string * string) list =
@@ -714,7 +670,7 @@ module Codegen () = struct
     (* ———————————————————————— Translation function  ————————————————————————— *)
     
     let sail_to_rust (ast: ('a, 'b) ast) (ctx: context) : rs_program =
-        merge_rs_prog_list [generate_sail_abbrev ast.defs; generate_sail_virt_ctx ast.defs ctx; defs_to_rust ast.defs ctx]
+        merge_rs_prog_list [generate_sail_virt_ctx ast.defs ctx; defs_to_rust ast.defs ctx]
     
   let compile_ast env effect_info ast =
     try

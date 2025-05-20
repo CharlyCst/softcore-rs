@@ -2,22 +2,6 @@
 
 use sail_prelude::*;
 
-pub const xlen: usize = 64;
-
-pub const xlen_bytes: usize = 8;
-
-pub type xlenbits = BitVector<xlen>;
-
-pub type priv_level = BitVector<2>;
-
-pub type regidx = BitVector<5>;
-
-pub type cregidx = BitVector<3>;
-
-pub type csreg = BitVector<12>;
-
-pub type Mstatus = BitField<64>;
-
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SailVirtCtx {
     pub PC: xlenbits,
@@ -29,6 +13,14 @@ pub struct SailVirtCtx {
     pub cur_privilege: Privilege,
     pub Xs: [xlenbits;32],
 }
+
+pub const xlen: usize = 64;
+
+pub const xlen_bytes: usize = 8;
+
+pub type xlenbits = BitVector<xlen>;
+
+pub type priv_level = BitVector<2>;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
@@ -63,6 +55,12 @@ pub fn privLevel_of_bits(sail_ctx: &mut SailVirtCtx, p: BitVector<2>) -> Privile
 pub fn pc_alignment_mask(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> BitVector<64> {
     !(BitVector::<2>::new(0b10).zero_extend::<64>())
 }
+
+pub type regidx = BitVector<5>;
+
+pub type cregidx = BitVector<3>;
+
+pub type csreg = BitVector<12>;
 
 pub fn _get_Mstatus_MPIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
     v.subrange::<7, 8, 1>()
