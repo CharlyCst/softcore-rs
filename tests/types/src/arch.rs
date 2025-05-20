@@ -32,7 +32,7 @@ pub enum ExceptionType {
     E_Load_Page_Fault(()),
     E_Reserved_14(()),
     E_SAMO_Page_Fault(()),
-    E_Extension(usize),
+    E_Extension(usize)
 }
 
 pub fn handle_int(sail_ctx: &mut SailVirtCtx, a1: usize) -> usize {
@@ -61,13 +61,13 @@ pub fn handle_empty(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    TEST(()),
+    TEST(())
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
-    RETIRE_FAIL,
+    RETIRE_FAIL
 }
 
 pub fn handle_retired(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> Retired {
@@ -77,7 +77,7 @@ pub fn handle_retired(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> Retired {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
     Error_not_implemented(&'static str),
-    Error_internal_error(()),
+    Error_internal_error(())
 }
 
 pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> BitVector<8> {

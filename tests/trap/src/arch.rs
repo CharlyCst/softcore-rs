@@ -93,7 +93,7 @@ pub fn _operator_smaller_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVe
 pub enum Privilege {
     User,
     Supervisor,
-    Machine,
+    Machine
 }
 
 pub fn privLevel_to_bits(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<2> {
@@ -115,7 +115,7 @@ pub fn haveUsrMode(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> bool {
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
-    Error_internal_error(()),
+    Error_internal_error(())
 }
 
 pub fn _get_Mstatus_MIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
@@ -163,7 +163,7 @@ pub enum ExceptionType {
     E_Fetch_Page_Fault(()),
     E_Load_Page_Fault(()),
     E_Reserved_14(()),
-    E_SAMO_Page_Fault(()),
+    E_SAMO_Page_Fault(())
 }
 
 pub fn num_of_ExceptionType(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> usize {
@@ -212,14 +212,14 @@ pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> Bi
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ctl_result {
-    CTL_TRAP(sync_exception),
+    CTL_TRAP(sync_exception)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TrapVectorMode {
     TV_Direct,
     TV_Vector,
-    TV_Reserved,
+    TV_Reserved
 }
 
 pub fn set_next_pc(sail_ctx: &mut SailVirtCtx, pc: BitVector<64>) {
@@ -372,26 +372,26 @@ pub enum iop {
     RISCV_SLTIU,
     RISCV_XORI,
     RISCV_ORI,
-    RISCV_ANDI,
+    RISCV_ANDI
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum csrop {
     CSRRW,
     CSRRS,
-    CSRRC,
+    CSRRC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
-    RETIRE_FAIL,
+    RETIRE_FAIL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     ITYPE((BitVector<12>, regidx, regidx, iop)),
-    CSR((BitVector<12>, regidx, regidx, bool, csrop)),
+    CSR((BitVector<12>, regidx, regidx, bool, csrop))
 }
 
 pub fn csrAccess(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<2> {

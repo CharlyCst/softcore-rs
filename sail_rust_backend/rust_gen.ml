@@ -107,12 +107,8 @@ type rs_fn = {
 
 type rs_enum = {
     name: string;
-    fields: string list;
-}
-
-type rs_typed_enum = {
-    name: string;
-    fields: (string * rs_type) list;
+    generics: string list;
+    fields: (string * rs_type option) list;
 }
 
 type rs_struct = {
@@ -133,7 +129,6 @@ type rs_const = {
 type rs_obj = 
     | RsFn of rs_fn
     | RsEnum of rs_enum
-    | RsTypedEnum of rs_typed_enum
     | RsStruct of rs_struct
     | RsAlias of rs_alias
     | RsConst of rs_const
@@ -416,23 +411,24 @@ let remove_last_char (s: string) : string =
     else
         String.sub s 0 (String.length s - 1)
 
-let parse_enum_fields (entries: string list) : string = 
-    let prefixed_entries = List.map (fun s -> "    " ^ s ^ ",\n") entries in
-    let merged_fields = String.concat "" prefixed_entries in
-    remove_last_char merged_fields (* Removes last '\n'*)
- 
-let get_enum_guards () : string = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]"
+let enum_attribute () : string = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]"
+
+let parse_enum_fields (entries: (string * rs_type option) list) : string = 
+    let field_typ (typ : rs_type option) : string =
+        match typ with
+        | None -> ""
+        | Some typ -> "(" ^ string_of_rs_type typ ^ ")"
+    in
+    let prefixed_entries = List.map (fun (name, typ) -> "    " ^ name ^ field_typ typ) entries in
+    String.concat ",\n" prefixed_entries
+
+let string_of_generics (generics: string list) : string =
+    match generics with
+    | [] -> ""
+    | _ -> Printf.sprintf "<%s>" (String.concat ", " generics)
 
 let string_of_rs_enum (enum: rs_enum) : string = 
-    Printf.sprintf "%s\npub enum %s {\n%s\n}" (get_enum_guards()) enum.name (parse_enum_fields enum.fields)
-
-let parse_typed_enum_fields (entries: (string * rs_type) list) : string = 
-    let prefixed_entries = List.map (fun s -> "    " ^ (fst s) ^ "(" ^ (string_of_rs_type (snd s)) ^ "),\n") entries in
-    let merged_fields = String.concat "" prefixed_entries in
-    remove_last_char merged_fields (* Removes last '\n'*)
-
-let string_of_rs_typed_enum (enum: rs_typed_enum) : string = 
-    Printf.sprintf "%s\npub enum %s {\n%s\n}" (get_enum_guards()) enum.name (parse_typed_enum_fields enum.fields)
+    Printf.sprintf "%s\npub enum %s%s {\n%s\n}" (enum_attribute ()) enum.name (string_of_generics enum.generics) (parse_enum_fields enum.fields)
 
 let parse_struct_fields (entries: (string * rs_type)  list) : string = 
     let prefixed_entries = List.map (fun s -> "    pub " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
@@ -445,8 +441,7 @@ let string_of_rs_struct (struc: rs_struct) : string =
 let string_of_rs_obj (obj: rs_obj) : string =
     match obj with
         | RsFn fn -> string_of_rs_fn fn
-        | RsEnum enum -> string_of_rs_enum enum 
-        | RsTypedEnum typed_enum -> string_of_rs_typed_enum typed_enum
+        | RsEnum enum -> string_of_rs_enum enum
         | RsStruct struc -> string_of_rs_struct struc
         | RsAlias alias -> Printf.sprintf "pub type %s = %s;" alias.new_typ (string_of_rs_type alias.old_type)
         | RsConst const -> Printf.sprintf "pub const %s: usize = %s;" const.name (string_of_rs_exp 0 const.value)

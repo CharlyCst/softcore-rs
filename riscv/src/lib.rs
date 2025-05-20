@@ -198,7 +198,7 @@ pub type bits_L = BitVector<64>;
 
 pub type bits_LU = BitVector<64>;
 
-pub type MemoryOpResult = result<'a, ExceptionType>;
+pub type MemoryOpResult = result<A, ExceptionType>;
 
 pub type pte_flags_bits = BitVector<8>;
 
@@ -401,7 +401,7 @@ pub struct SailVirtCtx {
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum virtaddr {
-    Virtaddr(xlenbits),
+    Virtaddr(xlenbits)
 }
 
 pub fn hex_bits_backwards(sail_ctx: &mut SailVirtCtx, n: (usize, &'static str)) -> BitVector<N> {
@@ -474,18 +474,18 @@ pub fn _operator_biggerequal_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: B
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
     Error_not_implemented(&'static str),
-    Error_internal_error(()),
+    Error_internal_error(())
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum physaddr {
-    Physaddr(physaddrbits),
+    Physaddr(physaddrbits)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub enum result {
-    Ok('a),
-    Err('b),
+pub enum result<A, B> {
+    Ok(A),
+    Err(B)
 }
 
 pub fn sail_branch_announce<const N: usize>(sail_ctx: &mut SailVirtCtx, _: atom<ADDRSIZE>, _: BitVector<ADDRSIZE>) {
@@ -496,22 +496,22 @@ pub fn sail_branch_announce<const N: usize>(sail_ctx: &mut SailVirtCtx, _: atom<
 pub enum Access_variety {
     AV_plain,
     AV_exclusive,
-    AV_atomic_rmw,
+    AV_atomic_rmw
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_strength {
     AS_normal,
     AS_rel_or_acq,
-    AS_acq_rcpc,
+    AS_acq_rcpc
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub enum Access_kind {
+pub enum Access_kind<Arch_ak> {
     AK_explicit(Explicit_access_kind),
     AK_ifetch(()),
     AK_ttw(()),
-    AK_arch('arch_ak),
+    AK_arch(Arch_ak)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -521,7 +521,7 @@ pub enum write_kind {
     Write_RISCV_strong_release,
     Write_RISCV_conditional,
     Write_RISCV_conditional_release,
-    Write_RISCV_conditional_strong_release,
+    Write_RISCV_conditional_strong_release
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -532,7 +532,7 @@ pub enum read_kind {
     Read_RISCV_strong_acquire,
     Read_RISCV_reserved,
     Read_RISCV_reserved_acquire,
-    Read_RISCV_reserved_strong_acquire,
+    Read_RISCV_reserved_strong_acquire
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -547,7 +547,7 @@ pub enum barrier_kind {
     Barrier_RISCV_r_w,
     Barrier_RISCV_w_r,
     Barrier_RISCV_tso,
-    Barrier_RISCV_i,
+    Barrier_RISCV_i
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -612,7 +612,7 @@ pub enum extension {
     Ext_Sv39,
     Ext_Sv48,
     Ext_Sv57,
-    Ext_Smcntrpmf,
+    Ext_Smcntrpmf
 }
 
 pub fn hartSupports(sail_ctx: &mut SailVirtCtx) -> bool {
@@ -873,17 +873,17 @@ pub fn ext_exc_type_to_str(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> &'static
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum regidx {
-    Regidx(BitVector<5>),
+    Regidx(BitVector<5>)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum cregidx {
-    Cregidx(BitVector<3>),
+    Cregidx(BitVector<3>)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum regno {
-    Regno(usize),
+    Regno(usize)
 }
 
 pub fn regidx_to_regno(sail_ctx: &mut SailVirtCtx, TodoArgsApp: regidx) -> regno {
@@ -900,14 +900,14 @@ pub fn regno_to_regidx(sail_ctx: &mut SailVirtCtx, TodoArgsApp: regno) -> regidx
 pub enum Architecture {
     RV32,
     RV64,
-    RV128,
+    RV128
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
     User,
     Supervisor,
-    Machine,
+    Machine
 }
 
 pub fn privLevel_bits_forwards(sail_ctx: &mut SailVirtCtx, arg_hashtag_: Privilege) -> BitVector<2> {
@@ -947,11 +947,11 @@ pub fn privLevel_to_str(sail_ctx: &mut SailVirtCtx, p: Privilege) -> &'static st
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub enum AccessType {
-    Read('a),
-    Write('a),
-    ReadWrite(('a, 'a)),
-    InstructionFetch(()),
+pub enum AccessType<A> {
+    Read(A),
+    Write(A),
+    ReadWrite((A, A)),
+    InstructionFetch(())
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -972,7 +972,7 @@ pub enum ExceptionType {
     E_Load_Page_Fault(()),
     E_Reserved_14(()),
     E_SAMO_Page_Fault(()),
-    E_Extension(ext_exc_type),
+    E_Extension(ext_exc_type)
 }
 
 pub fn exceptionType_to_str(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> &'static str {
@@ -1008,7 +1008,7 @@ pub enum amoop {
     AMOMIN,
     AMOMAX,
     AMOMINU,
-    AMOMAXU,
+    AMOMAXU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1018,21 +1018,21 @@ pub enum bop {
     BLT,
     BGE,
     BLTU,
-    BGEU,
+    BGEU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum cbop_zicbom {
     CBO_CLEAN,
     CBO_FLUSH,
-    CBO_INVAL,
+    CBO_INVAL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum csrop {
     CSRRW,
     CSRRS,
-    CSRRC,
+    CSRRC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1041,7 +1041,7 @@ pub enum f_bin_f_op_D {
     FSGNJN_D,
     FSGNJX_D,
     FMIN_D,
-    FMAX_D,
+    FMAX_D
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1050,7 +1050,7 @@ pub enum f_bin_f_op_H {
     FSGNJN_H,
     FSGNJX_H,
     FMIN_H,
-    FMAX_H,
+    FMAX_H
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1058,7 +1058,7 @@ pub enum f_bin_rm_op_D {
     FADD_D,
     FSUB_D,
     FMUL_D,
-    FDIV_D,
+    FDIV_D
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1066,7 +1066,7 @@ pub enum f_bin_rm_op_H {
     FADD_H,
     FSUB_H,
     FMUL_H,
-    FDIV_H,
+    FDIV_H
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1074,7 +1074,7 @@ pub enum f_bin_rm_op_S {
     FADD_S,
     FSUB_S,
     FMUL_S,
-    FDIV_S,
+    FDIV_S
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1083,28 +1083,28 @@ pub enum f_bin_op_f_S {
     FSGNJN_S,
     FSGNJX_S,
     FMIN_S,
-    FMAX_S,
+    FMAX_S
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_op_x_S {
     FEQ_S,
     FLT_S,
-    FLE_S,
+    FLE_S
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_x_op_D {
     FEQ_D,
     FLT_D,
-    FLE_D,
+    FLE_D
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_x_op_H {
     FEQ_H,
     FLT_H,
-    FLE_H,
+    FLE_H
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1112,7 +1112,7 @@ pub enum f_madd_op_D {
     FMADD_D,
     FMSUB_D,
     FNMSUB_D,
-    FNMADD_D,
+    FNMADD_D
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1120,7 +1120,7 @@ pub enum f_madd_op_H {
     FMADD_H,
     FMSUB_H,
     FNMSUB_H,
-    FNMADD_H,
+    FNMADD_H
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1128,24 +1128,24 @@ pub enum f_madd_op_S {
     FMADD_S,
     FMSUB_S,
     FNMSUB_S,
-    FNMADD_S,
+    FNMADD_S
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_f_op_D {
-    FMV_D_X,
+    FMV_D_X
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_f_op_H {
-    FMV_H_X,
+    FMV_H_X
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_ff_op_D {
     FSQRT_D,
     FCVT_S_D,
-    FCVT_D_S,
+    FCVT_D_S
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1154,7 +1154,7 @@ pub enum f_un_rm_ff_op_H {
     FCVT_H_S,
     FCVT_H_D,
     FCVT_S_H,
-    FCVT_D_H,
+    FCVT_D_H
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1162,7 +1162,7 @@ pub enum f_un_rm_fx_op_D {
     FCVT_W_D,
     FCVT_WU_D,
     FCVT_L_D,
-    FCVT_LU_D,
+    FCVT_LU_D
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1170,7 +1170,7 @@ pub enum f_un_rm_fx_op_H {
     FCVT_W_H,
     FCVT_WU_H,
     FCVT_L_H,
-    FCVT_LU_H,
+    FCVT_LU_H
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1178,7 +1178,7 @@ pub enum f_un_rm_fx_op_S {
     FCVT_W_S,
     FCVT_WU_S,
     FCVT_L_S,
-    FCVT_LU_S,
+    FCVT_LU_S
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1186,7 +1186,7 @@ pub enum f_un_rm_xf_op_D {
     FCVT_D_W,
     FCVT_D_WU,
     FCVT_D_L,
-    FCVT_D_LU,
+    FCVT_D_LU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1194,7 +1194,7 @@ pub enum f_un_rm_xf_op_H {
     FCVT_H_W,
     FCVT_H_WU,
     FCVT_H_L,
-    FCVT_H_LU,
+    FCVT_H_LU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1202,35 +1202,35 @@ pub enum f_un_rm_xf_op_S {
     FCVT_S_W,
     FCVT_S_WU,
     FCVT_S_L,
-    FCVT_S_LU,
+    FCVT_S_LU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_op_f_S {
-    FMV_W_X,
+    FMV_W_X
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_op_x_S {
     FCLASS_S,
-    FMV_X_W,
+    FMV_X_W
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_x_op_D {
     FCLASS_D,
-    FMV_X_D,
+    FMV_X_D
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_x_op_H {
     FCLASS_H,
-    FMV_X_H,
+    FMV_X_H
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fregidx {
-    Fregidx(BitVector<5>),
+    Fregidx(BitVector<5>)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1240,7 +1240,7 @@ pub enum rounding_mode {
     RM_RDN,
     RM_RUP,
     RM_RMM,
-    RM_DYN,
+    RM_DYN
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1252,7 +1252,7 @@ pub enum fvfmafunct6 {
     VF_VMACC,
     VF_VNMACC,
     VF_VMSAC,
-    VF_VNMSAC,
+    VF_VNMSAC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1262,7 +1262,7 @@ pub enum fvfmfunct6 {
     VFM_VMFLT,
     VFM_VMFNE,
     VFM_VMFGT,
-    VFM_VMFGE,
+    VFM_VMFGE
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1279,7 +1279,7 @@ pub enum fvffunct6 {
     VF_VMUL,
     VF_VRSUB,
     VF_VSLIDE1UP,
-    VF_VSLIDE1DOWN,
+    VF_VSLIDE1DOWN
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1291,7 +1291,7 @@ pub enum fvvmafunct6 {
     FVV_VMACC,
     FVV_VNMACC,
     FVV_VMSAC,
-    FVV_VNMSAC,
+    FVV_VNMSAC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1299,7 +1299,7 @@ pub enum fvvmfunct6 {
     FVVM_VMFEQ,
     FVVM_VMFLE,
     FVVM_VMFLT,
-    FVVM_VMFNE,
+    FVVM_VMFNE
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1312,13 +1312,13 @@ pub enum fvvfunct6 {
     FVV_VSGNJN,
     FVV_VSGNJX,
     FVV_VDIV,
-    FVV_VMUL,
+    FVV_VMUL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwffunct6 {
     FWF_VADD,
-    FWF_VSUB,
+    FWF_VSUB
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1326,20 +1326,20 @@ pub enum fwvfmafunct6 {
     FWVF_VMACC,
     FWVF_VNMACC,
     FWVF_VMSAC,
-    FWVF_VNMSAC,
+    FWVF_VNMSAC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwvffunct6 {
     FWVF_VADD,
     FWVF_VSUB,
-    FWVF_VMUL,
+    FWVF_VMUL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwvfunct6 {
     FWV_VADD,
-    FWV_VSUB,
+    FWV_VSUB
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1347,14 +1347,14 @@ pub enum fwvvmafunct6 {
     FWVV_VMACC,
     FWVV_VNMACC,
     FWVV_VMSAC,
-    FWVV_VNMSAC,
+    FWVV_VNMSAC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwvvfunct6 {
     FWVV_VADD,
     FWVV_VSUB,
-    FWVV_VMUL,
+    FWVV_VMUL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1364,7 +1364,7 @@ pub enum iop {
     SLTIU,
     XORI,
     ORI,
-    ANDI,
+    ANDI
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1376,7 +1376,7 @@ pub enum mmfunct6 {
     MM_VMOR,
     MM_VMNOR,
     MM_VMORN,
-    MM_VMXNOR,
+    MM_VMXNOR
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1384,7 +1384,7 @@ pub enum mvvmafunct6 {
     MVV_VMACC,
     MVV_VNMSAC,
     MVV_VMADD,
-    MVV_VNMSUB,
+    MVV_VNMSUB
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1400,7 +1400,7 @@ pub enum mvvfunct6 {
     MVV_VDIVU,
     MVV_VDIV,
     MVV_VREMU,
-    MVV_VREM,
+    MVV_VREM
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1408,7 +1408,7 @@ pub enum mvxmafunct6 {
     MVX_VMACC,
     MVX_VNMSAC,
     MVX_VMADD,
-    MVX_VNMSUB,
+    MVX_VNMSUB
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1426,43 +1426,43 @@ pub enum mvxfunct6 {
     MVX_VDIVU,
     MVX_VDIV,
     MVX_VREMU,
-    MVX_VREM,
+    MVX_VREM
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nisfunct6 {
     NIS_VNSRL,
-    NIS_VNSRA,
+    NIS_VNSRA
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nifunct6 {
     NI_VNCLIPU,
-    NI_VNCLIP,
+    NI_VNCLIP
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nvsfunct6 {
     NVS_VNSRL,
-    NVS_VNSRA,
+    NVS_VNSRA
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nvfunct6 {
     NV_VNCLIPU,
-    NV_VNCLIP,
+    NV_VNCLIP
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nxsfunct6 {
     NXS_VNSRL,
-    NXS_VNSRA,
+    NXS_VNSRA
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nxfunct6 {
     NX_VNCLIPU,
-    NX_VNCLIP,
+    NX_VNCLIP
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1472,13 +1472,13 @@ pub enum rfvvfunct6 {
     FVV_VFREDMAX,
     FVV_VFREDMIN,
     FVV_VFWREDOSUM,
-    FVV_VFWREDUSUM,
+    FVV_VFWREDUSUM
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum rivvfunct6 {
     IVV_VWREDSUMU,
-    IVV_VWREDSUM,
+    IVV_VWREDSUM
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1490,7 +1490,7 @@ pub enum rmvvfunct6 {
     MVV_VREDMINU,
     MVV_VREDMIN,
     MVV_VREDMAXU,
-    MVV_VREDMAX,
+    MVV_VREDMAX
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1504,7 +1504,7 @@ pub enum rop {
     SRL,
     SRA,
     OR,
-    AND,
+    AND
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1513,21 +1513,21 @@ pub enum ropw {
     SUBW,
     SLLW,
     SRLW,
-    SRAW,
+    SRAW
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum sop {
     SLLI,
     SRLI,
-    SRAI,
+    SRAI
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum sopw {
     SLLIW,
     SRLIW,
-    SRAIW,
+    SRAIW
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1535,31 +1535,31 @@ pub enum word_width {
     BYTE,
     HALF,
     WORD,
-    DOUBLE,
+    DOUBLE
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum uop {
     LUI,
-    AUIPC,
+    AUIPC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vext2funct6 {
     VEXT2_ZVF2,
-    VEXT2_SVF2,
+    VEXT2_SVF2
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vext4funct6 {
     VEXT4_ZVF4,
-    VEXT4_SVF4,
+    VEXT4_SVF4
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vext8funct6 {
     VEXT8_ZVF8,
-    VEXT8_SVF8,
+    VEXT8_SVF8
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1571,7 +1571,7 @@ pub enum vfnunary0 {
     FNV_CVT_F_F,
     FNV_CVT_ROD_F_F,
     FNV_CVT_RTZ_XU_F,
-    FNV_CVT_RTZ_X_F,
+    FNV_CVT_RTZ_X_F
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1581,7 +1581,7 @@ pub enum vfunary0 {
     FV_CVT_F_XU,
     FV_CVT_F_X,
     FV_CVT_RTZ_XU_F,
-    FV_CVT_RTZ_X_F,
+    FV_CVT_RTZ_X_F
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1589,7 +1589,7 @@ pub enum vfunary1 {
     FVV_VSQRT,
     FVV_VRSQRT7,
     FVV_VREC7,
-    FVV_VCLASS,
+    FVV_VCLASS
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1600,7 +1600,7 @@ pub enum vfwunary0 {
     FWV_CVT_F_X,
     FWV_CVT_F_F,
     FWV_CVT_RTZ_XU_F,
-    FWV_CVT_RTZ_X_F,
+    FWV_CVT_RTZ_X_F
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1610,29 +1610,29 @@ pub enum vicmpfunct6 {
     VICMP_VMSLEU,
     VICMP_VMSLE,
     VICMP_VMSGTU,
-    VICMP_VMSGT,
+    VICMP_VMSGT
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vimcfunct6 {
-    VIMC_VMADC,
+    VIMC_VMADC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vimsfunct6 {
-    VIMS_VADC,
+    VIMS_VADC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vimfunct6 {
-    VIM_VMADC,
+    VIM_VMADC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum visgfunct6 {
     VI_VSLIDEUP,
     VI_VSLIDEDOWN,
-    VI_VRGATHER,
+    VI_VRGATHER
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1648,7 +1648,7 @@ pub enum vifunct6 {
     VI_VSRL,
     VI_VSRA,
     VI_VSSRL,
-    VI_VSSRA,
+    VI_VSSRA
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1656,24 +1656,24 @@ pub enum vlewidth {
     VLE8,
     VLE16,
     VLE32,
-    VLE64,
+    VLE64
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vmlsop {
     VLM,
-    VSM,
+    VSM
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregidx {
-    Vregidx(BitVector<5>),
+    Vregidx(BitVector<5>)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum zvkfunct6 {
     ZVK_VSHA2CH,
-    ZVK_VSHA2CL,
+    ZVK_VSHA2CL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1683,25 +1683,25 @@ pub enum vvcmpfunct6 {
     VVCMP_VMSLTU,
     VVCMP_VMSLT,
     VVCMP_VMSLEU,
-    VVCMP_VMSLE,
+    VVCMP_VMSLE
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vvmcfunct6 {
     VVMC_VMADC,
-    VVMC_VMSBC,
+    VVMC_VMSBC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vvmsfunct6 {
     VVMS_VADC,
-    VVMS_VSBC,
+    VVMS_VSBC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vvmfunct6 {
     VVM_VMADC,
-    VVM_VMSBC,
+    VVM_VMSBC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1726,7 +1726,7 @@ pub enum vvfunct6 {
     VV_VSRL,
     VV_VSRA,
     VV_VSSRL,
-    VV_VSSRA,
+    VV_VSSRA
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1738,32 +1738,32 @@ pub enum vxcmpfunct6 {
     VXCMP_VMSLEU,
     VXCMP_VMSLE,
     VXCMP_VMSGTU,
-    VXCMP_VMSGT,
+    VXCMP_VMSGT
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxmcfunct6 {
     VXMC_VMADC,
-    VXMC_VMSBC,
+    VXMC_VMSBC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxmsfunct6 {
     VXMS_VADC,
-    VXMS_VSBC,
+    VXMS_VSBC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxmfunct6 {
     VXM_VMADC,
-    VXM_VMSBC,
+    VXM_VMSBC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxsgfunct6 {
     VX_VSLIDEUP,
     VX_VSLIDEDOWN,
-    VX_VRGATHER,
+    VX_VRGATHER
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1787,14 +1787,14 @@ pub enum vxfunct6 {
     VX_VSRL,
     VX_VSRA,
     VX_VSSRL,
-    VX_VSSRA,
+    VX_VSSRA
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum wmvvfunct6 {
     WMVV_VWMACCU,
     WMVV_VWMACC,
-    WMVV_VWMACCSU,
+    WMVV_VWMACCSU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1802,7 +1802,7 @@ pub enum wmvxfunct6 {
     WMVX_VWMACCU,
     WMVX_VWMACC,
     WMVX_VWMACCUS,
-    WMVX_VWMACCSU,
+    WMVX_VWMACCSU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1810,7 +1810,7 @@ pub enum wvfunct6 {
     WV_VADD,
     WV_VSUB,
     WV_VADDU,
-    WV_VSUBU,
+    WV_VSUBU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1821,7 +1821,7 @@ pub enum wvvfunct6 {
     WVV_VSUBU,
     WVV_VWMUL,
     WVV_VWMULU,
-    WVV_VWMULSU,
+    WVV_VWMULSU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1832,7 +1832,7 @@ pub enum wvxfunct6 {
     WVX_VSUBU,
     WVX_VWMUL,
     WVX_VWMULU,
-    WVX_VWMULSU,
+    WVX_VWMULSU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1840,14 +1840,14 @@ pub enum wxfunct6 {
     WX_VADD,
     WX_VSUB,
     WX_VADDU,
-    WX_VSUBU,
+    WX_VSUBU
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum brop_zba {
     SH1ADD,
     SH2ADD,
-    SH3ADD,
+    SH3ADD
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1855,14 +1855,14 @@ pub enum bropw_zba {
     ADDUW,
     SH1ADDUW,
     SH2ADDUW,
-    SH3ADDUW,
+    SH3ADDUW
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum extop_zbb {
     SEXTB,
     SEXTH,
-    ZEXTH,
+    ZEXTH
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1875,19 +1875,19 @@ pub enum brop_zbb {
     MIN,
     MINU,
     ROL,
-    ROR,
+    ROR
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum bropw_zbb {
     ROLW,
-    RORW,
+    RORW
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum brop_zbkb {
     PACK,
-    PACKH,
+    PACKH
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1895,7 +1895,7 @@ pub enum biop_zbs {
     BCLRI,
     BEXTI,
     BINVI,
-    BSETI,
+    BSETI
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -1903,18 +1903,18 @@ pub enum brop_zbs {
     BCLR,
     BEXT,
     BINV,
-    BSET,
+    BSET
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum zicondop {
     CZERO_EQZ,
-    CZERO_NEZ,
+    CZERO_NEZ
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_ff_op_S {
-    FSQRT_S,
+    FSQRT_S
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -2252,7 +2252,7 @@ pub enum ast {
     VSM3C_VI((vregidx, BitVector<5>, vregidx)),
     ZIMOP_MOP_R((BitVector<5>, regidx, regidx)),
     ZIMOP_MOP_RR((BitVector<3>, regidx, regidx, regidx)),
-    ZCMOP(BitVector<3>),
+    ZCMOP(BitVector<3>)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -2263,7 +2263,7 @@ pub enum PTW_Error {
     PTW_No_Permission(()),
     PTW_Misaligned(()),
     PTW_PTE_Update(()),
-    PTW_Ext_Error(ext_ptw_error),
+    PTW_Ext_Error(ext_ptw_error)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -2276,7 +2276,7 @@ pub enum InterruptType {
     I_M_Timer,
     I_U_External,
     I_S_External,
-    I_M_External,
+    I_M_External
 }
 
 pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> BitVector<8> {
@@ -2329,7 +2329,7 @@ pub fn num_of_ExceptionType(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> usi
 pub enum TrapVectorMode {
     TV_Direct,
     TV_Vector,
-    TV_Reserved,
+    TV_Reserved
 }
 
 pub fn trapVectorMode_of_bits(sail_ctx: &mut SailVirtCtx, m: BitVector<2>) -> TrapVectorMode {
@@ -2346,7 +2346,7 @@ pub enum ExtStatus {
     Off,
     Initial,
     Clean,
-    Dirty,
+    Dirty
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -2355,7 +2355,7 @@ pub enum SATPMode {
     Sv32,
     Sv39,
     Sv48,
-    Sv57,
+    Sv57
 }
 
 pub fn xreg_write_callback(sail_ctx: &mut SailVirtCtx, _: regidx, TodoMissingArg: BitVector<{
@@ -3306,7 +3306,7 @@ pub fn align_pc(sail_ctx: &mut SailVirtCtx, addr: BitVector<{
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum agtype {
     UNDISTURBED,
-    AGNOSTIC,
+    AGNOSTIC
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -3314,7 +3314,7 @@ pub enum PmpAddrMatchType {
     OFF,
     TOR,
     NA4,
-    NAPOT,
+    NAPOT
 }
 
 pub fn pmpAddrMatchType_of_bits(sail_ctx: &mut SailVirtCtx, bs: BitVector<2>) -> PmpAddrMatchType {
@@ -3379,7 +3379,7 @@ pub fn pmpCheckRWX<const N: usize>(sail_ctx: &mut SailVirtCtx, ent: Pmpcfg_ent, 
 pub enum pmpAddrMatch {
     PMP_NoMatch,
     PMP_PartialMatch,
-    PMP_Match,
+    PMP_Match
 }
 
 pub fn pmpRangeMatch(sail_ctx: &mut SailVirtCtx, begin: nat, end_: nat, addr: nat, width: nat) -> pmpAddrMatch {
@@ -3450,7 +3450,7 @@ pub fn pmpMatchAddr(sail_ctx: &mut SailVirtCtx, Physaddr(addr): physaddr, width:
 pub enum pmpMatch {
     PMP_Success,
     PMP_Continue,
-    PMP_Fail,
+    PMP_Fail
 }
 
 pub fn pmpMatchEntry<const N: usize>(sail_ctx: &mut SailVirtCtx, addr: physaddr, width: BitVector<{
@@ -3521,39 +3521,39 @@ pub fn pmpCheck<const N: usize>(sail_ctx: &mut SailVirtCtx, addr: physaddr, widt
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub enum Ext_FetchAddr_Check {
+pub enum Ext_FetchAddr_Check<A> {
     Ext_FetchAddr_OK(virtaddr),
-    Ext_FetchAddr_Error('a),
+    Ext_FetchAddr_Error(A)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub enum Ext_ControlAddr_Check {
+pub enum Ext_ControlAddr_Check<A> {
     Ext_ControlAddr_OK(virtaddr),
-    Ext_ControlAddr_Error('a),
+    Ext_ControlAddr_Error(A)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub enum Ext_DataAddr_Check {
+pub enum Ext_DataAddr_Check<A> {
     Ext_DataAddr_OK(virtaddr),
-    Ext_DataAddr_Error('a),
+    Ext_DataAddr_Error(A)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Ext_PhysAddr_Check {
     Ext_PhysAddr_OK(()),
-    Ext_PhysAddr_Error(ExceptionType),
+    Ext_PhysAddr_Error(ExceptionType)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum maskfunct3 {
     VV_VMERGE,
     VI_VMERGE,
-    VX_VMERGE,
+    VX_VMERGE
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregno {
-    Vregno(usize),
+    Vregno(usize)
 }
 
 pub fn ext_check_xret_priv(sail_ctx: &mut SailVirtCtx, p: Privilege) -> bool {
@@ -3604,12 +3604,12 @@ pub enum seed_opst {
     BIST,
     ES16,
     WAIT,
-    DEAD,
+    DEAD
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fregno {
-    Fregno(usize),
+    Fregno(usize)
 }
 
 pub fn exception_delegatee(sail_ctx: &mut SailVirtCtx, e: ExceptionType, p: Privilege) -> Privilege {
@@ -3688,7 +3688,7 @@ pub fn dispatchInterrupt(sail_ctx: &mut SailVirtCtx, _priv_: Privilege) -> Optio
 pub enum ctl_result {
     CTL_TRAP(sync_exception),
     CTL_SRET(()),
-    CTL_MRET(()),
+    CTL_MRET(())
 }
 
 pub fn tval(sail_ctx: &mut SailVirtCtx, excinfo: Option<BitVector<{
@@ -3916,13 +3916,13 @@ pub enum ExecutionResult {
     Ext_CSR_Check_Failure(()),
     Ext_ControlAddr_Check_Failure(ext_control_addr_error),
     Ext_DataAddr_Check_Failure(ext_data_addr_error),
-    Ext_XRET_Priv_Failure(()),
+    Ext_XRET_Priv_Failure(())
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PTE_Check {
     PTE_Check_Success(ext_ptw),
-    PTE_Check_Failure((ext_ptw, ext_ptw_fail)),
+    PTE_Check_Failure((ext_ptw, ext_ptw_fail))
 }
 
 pub fn flush_TLB_Entry(sail_ctx: &mut SailVirtCtx, ent: TLB_Entry, asid: Option<BitVector<16>>, vaddr: Option<BitVector<{
@@ -3951,16 +3951,16 @@ pub fn flush_TLB(sail_ctx: &mut SailVirtCtx, asid: Option<BitVector<16>>, addr: 
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub enum TR_Result {
-    TR_Address(('paddr, ext_ptw)),
-    TR_Failure(('failure, ext_ptw)),
+pub enum TR_Result<Paddr, Failure> {
+    TR_Address((Paddr, ext_ptw)),
+    TR_Failure((Failure, ext_ptw))
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum cbie {
     CBIE_ILLEGAL,
     CBIE_EXEC_FLUSH,
-    CBIE_EXEC_INVAL,
+    CBIE_EXEC_INVAL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -3968,7 +3968,7 @@ pub enum checked_cbop {
     CBOP_ILLEGAL,
     CBOP_ILLEGAL_VIRTUAL,
     CBOP_INVAL_FLUSH,
-    CBOP_INVAL_INVAL,
+    CBOP_INVAL_INVAL
 }
 
 pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: regidx, rd: regidx, op: iop) -> ExecutionResult {
@@ -4100,7 +4100,7 @@ pub fn execute_SFENCE_VMA(sail_ctx: &mut SailVirtCtx, rs1: regidx, rs2: regidx) 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum HartState {
     HART_ACTIVE(()),
-    HART_WAITING(instbits),
+    HART_WAITING(instbits)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -4108,7 +4108,7 @@ pub enum FetchResult {
     F_Ext_Error(ext_fetch_addr_error),
     F_Base(word),
     F_RVC(half),
-    F_Error((ExceptionType, xlenbits)),
+    F_Error((ExceptionType, xlenbits))
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -4117,5 +4117,5 @@ pub enum Step {
     Step_Ext_Fetch_Failure(ext_fetch_addr_error),
     Step_Fetch_Failure((virtaddr, ExceptionType)),
     Step_Execute((ExecutionResult, instbits)),
-    Step_Waiting(()),
+    Step_Waiting(())
 }

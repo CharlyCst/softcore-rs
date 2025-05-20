@@ -36,7 +36,7 @@ pub fn _operator_smaller_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVe
 pub enum Privilege {
     User,
     Supervisor,
-    Machine,
+    Machine
 }
 
 pub fn _get_Mstatus_TW(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
@@ -59,12 +59,12 @@ pub fn platform_wfi(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
-    RETIRE_FAIL,
+    RETIRE_FAIL
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    WFI(()),
+    WFI(())
 }
 
 pub fn execute_WFI(sail_ctx: &mut SailVirtCtx) -> Retired {
