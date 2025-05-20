@@ -73,6 +73,13 @@ pub enum exception {
     Error_internal_error(())
 }
 
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct My_struct {
+    pub field1: BitVector<5>,
+    pub field2: usize,
+    pub field3: &'static str,
+}
+
 pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> BitVector<8> {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::<8>::new(0b00000000)}

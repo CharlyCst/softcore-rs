@@ -428,12 +428,21 @@ module Codegen () = struct
         in
         List.map extract_generics (quant_items typq)
 
-    and variant_to_rust (id: Ast.id) (typq: typquant) (members: type_union list): rs_enum =
+    and variant_to_rust (id: id) (typq: typquant) (members: type_union list): rs_enum =
         {
             name = string_of_id id;
             generics = typequant_to_generics typq;
             fields = process_unions members;
         }
+
+    and record_to_rust (id: id) (typeq: typquant) (fields: (typ * id) list) : rs_obj =
+        let to_rs_fields ((typ, id) : (typ  * id)) =
+            (string_of_id id, typ_to_rust typ)
+        in
+        RsStruct ({
+            name = string_of_id id;
+            fields = List.map to_rs_fields fields
+        })
                  
     and typdef_to_rust (TD_aux (typ, (l, _))) : rs_program = 
             match typ with
@@ -441,6 +450,7 @@ module Codegen () = struct
             | TD_variant (id, typq, members, _) when string_of_id id = "option" -> RsProg [] (* Special semantics in rust *)
             | TD_variant (id, typq, members, _) -> RsProg [RsEnum (variant_to_rust id typq members)]
             | TD_abstract _ -> Reporting.unreachable l __POS__ "Abstract type not supported in Rust backend"
+            | TD_record (id, typq, fields, _) -> RsProg [record_to_rust id typq fields]
             | TD_abbrev (id, typq, A_aux (A_typ typ, _)) ->
                 let alias = {
                     new_typ = string_of_id id;

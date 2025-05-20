@@ -62,12 +62,17 @@ pub type cregidx = BitVector<3>;
 
 pub type csreg = BitVector<12>;
 
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct Mstatus {
+    pub bits: BitVector<64>,
+}
+
 pub fn _get_Mstatus_MPIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
-    v.subrange::<7, 8, 1>()
+    v.bits.subrange::<7, 8, 1>()
 }
 
 pub fn _get_Mstatus_MPP(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<2> {
-    v.subrange::<11, 13, 2>()
+    v.bits.subrange::<11, 13, 2>()
 }
 
 pub fn set_next_pc(sail_ctx: &mut SailVirtCtx, pc: BitVector<64>) {
@@ -93,16 +98,16 @@ pub fn prepare_xret_target(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVecto
 
 pub fn exception_handler(sail_ctx: &mut SailVirtCtx, cur_priv: Privilege, pc: BitVector<64>) -> BitVector<64> {
     let prev_priv = sail_ctx.cur_privilege;
-    sail_ctx.mstatus = {
+    sail_ctx.mstatus.bits = {
         let var_1 = _get_Mstatus_MPIE(sail_ctx, sail_ctx.mstatus);
-        sail_ctx.mstatus.set_subrange::<3, 4, 1>(var_1)
+        sail_ctx.mstatus.bits.set_subrange::<3, 4, 1>(var_1)
     };
-    sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<7, 8, 1>(BitVector::<1>::new(0b1));
+    sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<7, 8, 1>(BitVector::<1>::new(0b1));
     sail_ctx.cur_privilege = {
         let var_2 = _get_Mstatus_MPP(sail_ctx, sail_ctx.mstatus);
         privLevel_of_bits(sail_ctx, var_2)
     };
-    sail_ctx.mstatus = {
+    sail_ctx.mstatus.bits = {
         let var_3 = {
             let var_4 = if {haveUsrMode(sail_ctx, ())} {
                 Privilege::User
@@ -111,10 +116,10 @@ pub fn exception_handler(sail_ctx: &mut SailVirtCtx, cur_priv: Privilege, pc: Bi
             };
             privLevel_to_bits(sail_ctx, var_4)
         };
-        sail_ctx.mstatus.set_subrange::<11, 13, 2>(var_3)
+        sail_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_3)
     };
     if {(sail_ctx.cur_privilege != Privilege::Machine)} {
-        sail_ctx.mstatus = sail_ctx.mstatus.set_subrange::<17, 18, 1>(BitVector::<1>::new(0b0))
+        sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<17, 18, 1>(BitVector::<1>::new(0b0))
     } else {
         ()
     };

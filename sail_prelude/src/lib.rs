@@ -197,7 +197,7 @@ pub fn bitvector_update(v: BitVector<64>, pos: usize, value: bool) -> BitVector<
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
 pub struct BitVector<const N: usize> {
-    pub bits: u64,
+    bits: u64,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
