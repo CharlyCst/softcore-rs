@@ -306,7 +306,7 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                     r_end
                     (Int64.sub r_end r_start)
             in
-            RsMethodApp(bitvec, subrange_call, [])
+            RsMethodApp(RsField (bitvec, "bits"), subrange_call, [])
         | RsApp (RsId "subrange_bits", [RsId id; RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
             let subrange_call =
@@ -324,7 +324,7 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                     r_end
                     (Int64.sub r_end r_start)
             in
-            RsAssign (lexp, RsMethodApp (lexp_to_exp lexp, set_subrange, [exp]))
+            RsAssign (RsLexpField (lexp, "bits"), RsMethodApp (RsField (lexp_to_exp lexp, "bits"), set_subrange, [exp]))
         | RsApp (RsId "zero_extend", RsLit RsLitNum size :: e ) ->  
             RsApp (RsId (Printf.sprintf "zero_extend_%Lu" size), e)
         | RsMatch (exp, pat::pats) when is_bitvec_lit pat ->

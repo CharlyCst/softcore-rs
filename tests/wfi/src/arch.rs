@@ -37,8 +37,13 @@ pub type cregidx = BitVector<3>;
 
 pub type csreg = BitVector<12>;
 
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct Mstatus {
+    pub bits: BitVector<64>,
+}
+
 pub fn _get_Mstatus_TW(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
-    v.subrange::<21, 22, 1>()
+    v.bits.subrange::<21, 22, 1>()
 }
 
 pub fn handle_illegal(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
