@@ -35,6 +35,10 @@ pub fn bitvector_length<const N: usize>(_e: BitVector<N>) -> usize {
     N
 }
 
+pub fn parse_hex_bits<const N: usize>(_n: usize, _hex_str: &str) -> BitVector<N> {
+    todo!("'parse_hex_bits' is not yet implemented");
+}
+
 pub fn bitvector_concat<const N: usize, const M: usize>(
     e1: BitVector<N>,
     e2: BitVector<M>,

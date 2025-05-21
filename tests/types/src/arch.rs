@@ -61,8 +61,8 @@ pub fn zeros<const N: usize>(sail_ctx: &mut SailVirtCtx, n: usize) -> BitVector<
     sail_zeros(n)
 }
 
-pub fn parse_hex_bits<const N: usize>(sail_ctx: &mut SailVirtCtx, n: usize, s: &'static str) -> BitVector<N> {
-    zeros(sail_ctx, n)
+pub fn hex_bits_backwards<const N: usize>(sail_ctx: &mut SailVirtCtx, n: usize, str: &'static str) -> BitVector<N> {
+    parse_hex_bits(n, str)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -118,7 +118,7 @@ pub fn execute_TEST(sail_ctx: &mut SailVirtCtx) {
     let c = handle_int_int_bool_int(sail_ctx, 1234, 12345, false, 2);
     let d = handle_retired(sail_ctx, ());
     let e = handle_union(sail_ctx, ());
-    let f = parse_hex_bits(sail_ctx, 8, "00");
+    let f = hex_bits_backwards(sail_ctx, 8, "00");
     if {(f != BitVector::<8>::new(0b00000000))} {
         assert!(false, "Process message")
     } else {

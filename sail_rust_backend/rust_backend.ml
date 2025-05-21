@@ -589,6 +589,9 @@ module Codegen () = struct
         let TypSchm_ts (type_quant, typ) = typeschm in
         let Typ_aux (typ, _) = typ in
         match typ with 
+            (* When Sail infers type, it sometimes uses a single tuple as argument.
+               In such cases, we flatten the tuple. *)
+            | Typ_fn ([Typ_aux (Typ_tuple args, _)], ret) 
             | Typ_fn (args, ret) -> ((List.map typ_to_rust args), typ_to_rust ret)
             | _ -> ([RsTypTodo "todo_extract_types"], RsTypTodo "todo_extract_types")
     
@@ -598,6 +601,9 @@ module Codegen () = struct
         (* print_string (string_of_id id); *)
         (* print_string " - "; *)
         (* print_endline (string_of_typschm typeschm); *)
+        (* print_string (string_of_id id); *)
+        (* print_string " - "; *)
+        (* print_endline (String.concat ", " (List.map string_of_rs_type (fst (extract_types typeschm)))); *)
         SMap.add (string_of_id id) (extract_types typeschm) map
     
     (* ————————————————————————————————— Union —————————————————————————————————— *)
