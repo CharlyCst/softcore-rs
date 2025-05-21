@@ -62,10 +62,13 @@ scattered mapping encdec
 val zeros : forall 'n, 'n >= 0 . implicit('n) -> bits('n)
 function zeros (n) = sail_zeros(n)
 
-val parse_hex_bits : forall 'n, 'n > 0. (int('n), string) -> bits('n)
+val "parse_hex_bits" : forall 'n, 'n > 0. (int('n), string) -> bits('n)
 function parse_hex_bits(n, s) = {
     zeros(n)
 }
+
+val hex_bits_backwards : forall 'n, 'n > 0. (int('n), string) -> bits('n)
+function hex_bits_backwards(n, str) = parse_hex_bits(n, str)
 
 // ————————————————————————————— Test Function —————————————————————————————— //
 
@@ -118,7 +121,7 @@ function clause execute TEST() = {
     let c = handle_int_int_bool_int(1234, 12345, false, 2);
     let d = handle_retired();
     let e = handle_union();
-    let f = parse_hex_bits(8, "00");
+    let f = hex_bits_backwards(8, "00");
 
     if f != 0b00000000 then {
         assert(false, "failed to parse hex)");
