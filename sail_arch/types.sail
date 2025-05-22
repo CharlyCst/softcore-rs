@@ -70,6 +70,19 @@ function parse_hex_bits(n, s) = {
 val hex_bits_backwards : forall 'm, 'm > 0. (int('m), string) -> bits('m)
 function hex_bits_backwards(m, str) = parse_hex_bits(m, str)
 
+union Access_kind('arch_ak : Type) = {
+  AK_ttw : unit, // Translation table walk
+  AK_arch : 'arch_ak // Architecture specific type of access.
+}
+
+struct Mem_read_request('n : Int, 'vasize : Int, 'pa : Type, 'arch_ak: Type), 'n > 0 = {
+  access_kind : Access_kind('arch_ak),
+  va : option(bits('vasize)),
+  pa : 'pa,
+  size : int('n),
+  tag : bool
+}
+
 // ————————————————————————————— Test Function —————————————————————————————— //
 
 val execute : ast -> unit

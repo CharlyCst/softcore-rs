@@ -66,6 +66,21 @@ pub fn hex_bits_backwards<const M: usize>(sail_ctx: &mut SailVirtCtx, m: usize, 
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub enum Access_kind<ARCH_AK> {
+    AK_ttw(()),
+    AK_arch(ARCH_AK)
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct Mem_read_request<const N: usize, const VASIZE: usize, PA, ARCH_AK> {
+    pub access_kind: Access_kind<ARCH_AK>,
+    pub va: Option<BitVector<VASIZE>>,
+    pub pa: PA,
+    pub size: usize,
+    pub tag: bool,
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
     RETIRE_FAIL

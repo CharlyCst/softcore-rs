@@ -613,30 +613,43 @@ let expr_type_hoister = {
 
 (** Sail uses apostrophe (') in generic parameters, which appears as lifetime in Rust.
     This function removes the apostrophe from the generic identifier.**)
-let serialize_generics (id: string) : string =
+let serialize_generic_id (id: string) : string = 
     if String.get id 0 = '\'' then
         let n = (String.length id) - 1 in
         String.uppercase_ascii (String.sub id 1 n)
     else
         id
 
+let serialize_generic (generic: rs_generic) : rs_generic =
+    let id = match generic with
+        | RsGenTyp s -> s
+        | RsGenNum s -> s
+        | RsGenBool s -> s
+    in
+    let new_id = serialize_generic_id id in
+    match generic with
+        | RsGenTyp _ -> RsGenTyp new_id
+        | RsGenNum _ -> RsGenNum new_id
+        | RsGenBool _ -> RsGenBool new_id
+
+
 let rewrite_generics (typ: rs_type) : rs_type =
     match (typ : rs_type) with
-        | RsTypId id -> RsTypId (serialize_generics id)
-        | RsTypGeneric id -> RsTypGeneric (serialize_generics id)
+        | RsTypId id -> RsTypId (serialize_generic_id id)
+        | RsTypGeneric id -> RsTypGeneric (serialize_generic_id id)
         | _ -> typ
 
 let rewrite_generics_obj (obj: rs_obj) : rs_obj =
     match (obj : rs_obj) with
         | RsEnum enum -> RsEnum {
             enum with
-            generics = List.map serialize_generics enum.generics;
+            generics = List.map serialize_generic enum.generics;
         }
         | RsStruct s -> RsStruct {
             s with
-            generics = List.map serialize_generics s.generics;
+            generics = List.map serialize_generic s.generics;
         }
-        | RsFn fn -> let generics = List.map serialize_generics fn.signature.generics in
+        | RsFn fn -> let generics = List.map serialize_generic fn.signature.generics in
             RsFn {fn with signature = {fn.signature with generics = generics}}
         | _ -> obj
 

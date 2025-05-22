@@ -1,5 +1,6 @@
 (** Rust generation module **)
 
+
 type rs_type =
     | RsTypId of string
     | RsTypTuple of rs_type list
@@ -14,11 +15,10 @@ and  rs_type_param =
     | RsTypParamTyp of rs_type
     | RsTypParamNum of rs_exp
 
-and rs_fn_type = {
-    generics: string list;
-    args: rs_type list;
-    ret: rs_type
-}
+and rs_generic =
+    | RsGenTyp of string
+    | RsGenNum of string
+    | RsGenBool of string
 
 and rs_lit =
     | RsLitUnit
@@ -109,6 +109,12 @@ and rs_pexp =
 
 type rs_block = rs_exp list
 
+type rs_fn_type = {
+    generics: rs_generic list;
+    args: rs_type list;
+    ret: rs_type
+}
+
 type rs_fn = {
     name: string;
     signature: rs_fn_type;
@@ -118,19 +124,19 @@ type rs_fn = {
 
 type rs_enum = {
     name: string;
-    generics: string list;
+    generics: rs_generic list;
     fields: (string * rs_type option) list;
 }
 
 type rs_struct = {
     name: string;
-    generics: string list;
+    generics: rs_generic list;
     fields: (string * rs_type) list;
 }
 
 type rs_alias = {
     new_typ: string;
-    generics: string list;
+    generics: rs_generic list;
     old_type: rs_type;
 }
 
@@ -188,6 +194,17 @@ let string_of_generics_turbofish (generics: string list) : string =
     match generics with
     | [] -> ""
     | _ -> Printf.sprintf "::<%s>" (String.concat ", " generics)
+
+let string_of_generics_parameters(generics: rs_generic list) : string =
+    let string_of_generic generic = match generic with
+        | RsGenTyp s -> s
+        | RsGenNum s -> Printf.sprintf "const %s: usize" s
+        | RsGenBool s -> Printf.sprintf "const %s: bool" s
+    in
+    let generics = List.map string_of_generic generics in
+    match generics with
+    | [] -> ""
+    | _ -> Printf.sprintf "<%s>" (String.concat ", " generics)
 
 let rec string_of_rs_type (typ: rs_type) : string =
     match typ with
@@ -434,7 +451,7 @@ let string_of_rs_fn (fn: rs_fn) : string =
         | ret_type -> Printf.sprintf " -> %s" (string_of_rs_type ret_type)
     in
     (* For now we assume all generics are const usize *)
-    let generics = string_of_generics (List.map (Printf.sprintf "const %s: usize") fn.signature.generics) in
+    let generics = string_of_generics_parameters fn.signature.generics in
     let signature = Printf.sprintf "pub fn %s%s(%s)%s {\n%s" fn.name generics args ret_type (indent 1) in
     let stmts = (match fn.body with
         | RsBlock exps
@@ -462,7 +479,7 @@ let parse_enum_fields (entries: (string * rs_type option) list) : string =
     String.concat ",\n" prefixed_entries
 
 let string_of_rs_enum (enum: rs_enum) : string = 
-    Printf.sprintf "%s\npub enum %s%s {\n%s\n}" (enum_attribute ()) enum.name (string_of_generics enum.generics) (parse_enum_fields enum.fields)
+    Printf.sprintf "%s\npub enum %s%s {\n%s\n}" (enum_attribute ()) enum.name (string_of_generics_parameters enum.generics) (parse_enum_fields enum.fields)
 
 let parse_struct_fields (entries: (string * rs_type)  list) : string = 
     let prefixed_entries = List.map (fun s -> "    pub " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
@@ -470,7 +487,7 @@ let parse_struct_fields (entries: (string * rs_type)  list) : string =
     remove_last_char merged_fields (* Removes last '\n'*)
 
 let string_of_rs_struct (struc: rs_struct) : string = 
-    let generics = string_of_generics (List.map (Printf.sprintf "const %s: usize") struc.generics) in
+    let generics = string_of_generics_parameters struc.generics in
     Printf.sprintf "#[derive(Eq, PartialEq, Clone, Copy, Debug)]\npub struct %s%s {\n%s\n}" struc.name generics (parse_struct_fields struc.fields)
 
 let string_of_rs_obj (obj: rs_obj) : string =
@@ -478,7 +495,7 @@ let string_of_rs_obj (obj: rs_obj) : string =
         | RsFn fn -> string_of_rs_fn fn
         | RsEnum enum -> string_of_rs_enum enum
         | RsStruct struc -> string_of_rs_struct struc
-        | RsAlias alias -> Printf.sprintf "pub type %s%s = %s;" alias.new_typ (string_of_generics alias.generics) (string_of_rs_type alias.old_type)
+        | RsAlias alias -> Printf.sprintf "pub type %s%s = %s;" alias.new_typ (string_of_generics_parameters alias.generics) (string_of_rs_type alias.old_type)
         | RsConst const -> Printf.sprintf "pub const %s: usize = %s;" const.name (string_of_rs_exp 0 const.value)
         | RsAttribute value -> Printf.sprintf "#![%s]" value
         | RsImport value -> Printf.sprintf "use %s;" value
