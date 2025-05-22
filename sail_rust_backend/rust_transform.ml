@@ -246,7 +246,7 @@ let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj =
     match obj with
         | RsFn fn -> RsFn (transform_fn ct fn)
         | RsAlias alias -> RsAlias (transform_alias ct alias)
-        | RsStruct {name; fields} -> RsStruct { name = name; fields = (List.map (fun (a,b) -> (a, transform_type ct b)) fields)}
+        | RsStruct {name; generics; fields} -> RsStruct { name = name; generics = generics; fields = (List.map (fun (a,b) -> (a, transform_type ct b)) fields)}
         | RsEnum {name; generics; fields} -> RsEnum {
             name = name;
             generics;
@@ -631,6 +631,10 @@ let rewrite_generics_obj (obj: rs_obj) : rs_obj =
         | RsEnum enum -> RsEnum {
             enum with
             generics = List.map serialize_generics enum.generics;
+        }
+        | RsStruct s -> RsStruct {
+            s with
+            generics = List.map serialize_generics s.generics;
         }
         | RsFn fn -> let generics = List.map serialize_generics fn.signature.generics in
             RsFn {fn with signature = {fn.signature with generics = generics}}
