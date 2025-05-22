@@ -425,17 +425,11 @@ module Codegen () = struct
             | [] -> [] 
 
     and typequant_to_generics (TypQ_aux (_, l) as typq: typquant) : string list =
-        (* We discard all non-trivial quantifiers *)
-        let is_simple = function
-            | QI_aux (QI_id kopt, _) -> true
-            | _ -> false
-        in
-        let extract_generics = function
-            | QI_aux (QI_id kopt, _) -> string_of_kid (kopt_kid kopt)
-            | QI_aux (QI_constraint _, _) ->
-            raise (Reporting.err_general l "Rust: type quantifiers should no longer contain constraints")
-        in
-        quant_items typq |> List.filter is_simple |> List.map extract_generics
+        quant_items typq
+            |> List.map tyvars_of_quant_item
+            |> List.fold_left KidSet.union KidSet.empty
+            |> KidSet.to_list
+            |> List.map string_of_kid
 
     and variant_to_rust (id: id) (typq: typquant) (members: type_union list): rs_enum =
         {
@@ -450,6 +444,7 @@ module Codegen () = struct
         in
         RsStruct ({
             name = string_of_id id;
+            generics = typequant_to_generics typeq;
             fields = List.map to_rs_fields fields
         })
                  
@@ -513,6 +508,7 @@ module Codegen () = struct
     and generate_sail_virt_ctx defs (ctx: context): rs_program = RsProg[
         RsStruct({
             name = "SailVirtCtx";
+            generics = [];
             fields =  gather_registers defs;
         })
     ]

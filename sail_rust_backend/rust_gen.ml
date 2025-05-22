@@ -124,6 +124,7 @@ type rs_enum = {
 
 type rs_struct = {
     name: string;
+    generics: string list;
     fields: (string * rs_type) list;
 }
 
@@ -469,7 +470,8 @@ let parse_struct_fields (entries: (string * rs_type)  list) : string =
     remove_last_char merged_fields (* Removes last '\n'*)
 
 let string_of_rs_struct (struc: rs_struct) : string = 
-    Printf.sprintf "#[derive(Eq, PartialEq, Clone, Copy, Debug)]\npub struct %s {\n%s\n}" struc.name (parse_struct_fields struc.fields)
+    let generics = string_of_generics (List.map (Printf.sprintf "const %s: usize") struc.generics) in
+    Printf.sprintf "#[derive(Eq, PartialEq, Clone, Copy, Debug)]\npub struct %s%s {\n%s\n}" struc.name generics (parse_struct_fields struc.fields)
 
 let string_of_rs_obj (obj: rs_obj) : string =
     match obj with
