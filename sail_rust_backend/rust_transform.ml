@@ -225,13 +225,13 @@ and transform_type (ct: expr_type_transform) (typ: rs_type) : rs_type =
 (* ———————————————————————— Expression and Type transformer ————————————————————————— *)
 
 let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
-    let (args, ret) = fn.signature in
+    let {generics; args; ret} = fn.signature in
     let args = List.map (transform_type ct) args in
     let ret = transform_type ct ret in
     {
         name = fn.name;
         args = (List.map ct.exp fn.args);
-        signature = (args, ret);
+        signature = {generics; args; ret};
         body = transform_exp ct fn.body;
     }
 
@@ -616,7 +616,7 @@ let expr_type_hoister = {
 let serialize_generics (id: string) : string =
     if String.get id 0 = '\'' then
         let n = (String.length id) - 1 in
-        String.capitalize_ascii (String.sub id 1 n)
+        String.uppercase_ascii (String.sub id 1 n)
     else
         id
 
@@ -632,6 +632,8 @@ let rewrite_generics_obj (obj: rs_obj) : rs_obj =
             enum with
             generics = List.map serialize_generics enum.generics;
         }
+        | RsFn fn -> let generics = List.map serialize_generics fn.signature.generics in
+            RsFn {fn with signature = {fn.signature with generics = generics}}
         | _ -> obj
 
 
@@ -651,7 +653,7 @@ let normalize_generics = {
 let sail_context_inserter (func: rs_fn): rs_fn = { 
   func with 
     args = RsId "sail_ctx" :: func.args;
-    signature = (RsTypId "&mut SailVirtCtx" :: (fst func.signature), snd func.signature)
+    signature = { func.signature with args = RsTypId "&mut SailVirtCtx" :: func.signature.args }
 }
 
 let virt_context_transform = {
@@ -682,7 +684,7 @@ let arg_is_not_enum (enum_list: (string * string) list) (arg: rs_exp * rs_type) 
 let sail_context_inserter (enum_list: (string * string) list) (func: rs_fn): rs_fn = 
   (* Locate and remove all enums from the arguments *)
   let args_exp = func.args in
-  let args_type = fst func.signature in
+  let args_type = func.signature.args in
   let args = List.combine args_exp args_type in
   let args = List.filter (arg_is_not_enum enum_list) args in
   let (args_exp, args_type) = List.split args in
@@ -690,7 +692,7 @@ let sail_context_inserter (enum_list: (string * string) list) (func: rs_fn): rs_
   (* Update the function with the new argument list *)
   { func with 
     args = args_exp;
-    signature = (args_type, snd func.signature)
+    signature = {func.signature with args = args_type }
   }
 
 let enum_in_args_remover_generator (enum_list: (string * string) list) : func_transform = {
@@ -816,38 +818,6 @@ let rust_prelude_func_filter (RsProg objs) : rs_program =  merge_rs_prog_list (L
 let insert_annotation_imports_aux () : rs_program = RsProg[RsAttribute "allow(unused, non_snake_case, non_upper_case_globals, non_camel_case_types, bindings_with_variant_name)"; RsImport "sail_prelude::*"]
 
 let insert_annotation_imports (RsProg objs) : rs_program =  merge_rs_prog_list[insert_annotation_imports_aux();RsProg(objs)]
-
-
-
-(* ———————————————————————— Parametric functions rewriter  ————————————————————————— *)
-
-let is_rs_typ_param_typ (typ: rs_type) : bool = 
-    match typ with
-        | RsTypGenericParam (name, RsTypParamTyp t1::other) -> true
-        | _ -> false
-
-let rec is_parametric (type_list: rs_type list) : bool = 
-    match type_list with
-        | e :: list -> (is_rs_typ_param_typ e) || (is_parametric list)
-        | [] -> false
-
-(* TODO: This is not enough, make it more general*)
-let generate_func_name(func: rs_fn) : string = 
-    if is_parametric (fst func.signature) then
-        Printf.sprintf "%s<const N: usize>" func.name
-    else 
-        func.name
-
-let parametric_rewriter_func (func: rs_fn): rs_fn = {
-  name = generate_func_name func; 
-  args = func.args;
-  signature = func.signature;
-  body = func.body;
-}
-
-let parametric_rewriter = {
-  func = parametric_rewriter_func
-}
 
 (* ———————————————————————— BasicTypes rewriter  ————————————————————————— *)
 
@@ -1033,7 +1003,6 @@ let transform (rust_program: rs_program) (register_list: StringSet.t) (enum_entr
   let rust_program = rust_remove_type_bits rust_program in
   let rust_program = rust_prelude_func_filter rust_program in
   let rust_program = insert_annotation_imports rust_program in
-  let rust_program = rust_transform_func parametric_rewriter rust_program in
   let rust_program = rust_transform_expr transform_basic_types rust_program in
   let rust_program = rust_transform_expr add_wildcard_match rust_program in
 
