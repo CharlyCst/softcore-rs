@@ -424,12 +424,30 @@ module Codegen () = struct
             | (Tu_aux (Tu_ty_id (typ, id), annot)) :: v -> (string_of_id id, Some (typ_to_rust typ)) :: process_unions v
             | [] -> [] 
 
-    and typequant_to_generics (TypQ_aux (_, l) as typq: typquant) : string list =
-        quant_items typq
-            |> List.map tyvars_of_quant_item
-            |> List.fold_left KidSet.union KidSet.empty
-            |> KidSet.to_list
-            |> List.map string_of_kid
+    and typequant_to_generics (TypQ_aux (_, l) as typq: typquant) : rs_generic list =
+        let kset = ref KidSet.empty in
+        let tyvars_of_quant_item (QI_aux (qi, _)) : (kind * kid) option =
+            match qi with
+            | QI_id (KOpt_aux (KOpt_kind (kind, kid), _)) -> Some (kind, kid)
+            | QI_constraint _ -> None
+        in
+        let into_generic (K_aux (kind, _)) id = match kind with 
+            | K_type -> RsGenTyp id
+            | K_int -> RsGenNum id
+            | K_bool -> RsGenBool id
+        in
+        let rec add_generic rest = match rest with
+            | head :: tail -> (match tyvars_of_quant_item head with
+                | Some (kind, kid) ->
+                    if not (KidSet.mem kid !kset) then
+                        (kset := KidSet.add kid !kset;
+                        [into_generic kind (string_of_kid kid)] @ add_generic tail)
+                    else
+                        add_generic tail
+                | None -> add_generic tail)
+            | [] -> []
+        in
+        add_generic (quant_items typq)
 
     and variant_to_rust (id: id) (typq: typquant) (members: type_union list): rs_enum =
         {
@@ -581,8 +599,8 @@ module Codegen () = struct
     
     let extract_types (TypSchm_aux (typeschm, _)) : rs_fn_type =
         (* We ignore the type quantifier for now, there is no `forall` on most types of interest *)
-        let TypSchm_ts (type_quant, typ) = typeschm in
-        let generics = List.map string_of_kid (KidSet.to_list (tyvars_of_typ typ)) in
+        let TypSchm_ts (typq, typ) = typeschm in
+        let generics = typequant_to_generics typq in
         let Typ_aux (typ, _) = typ in
         match typ with 
             (* When Sail infers type, it sometimes uses a single tuple as argument.
