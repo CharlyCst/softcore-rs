@@ -14,7 +14,11 @@ and  rs_type_param =
     | RsTypParamTyp of rs_type
     | RsTypParamNum of rs_exp
 
-and rs_fn_type = rs_type list * rs_type
+and rs_fn_type = {
+    generics: string list;
+    args: rs_type list;
+    ret: rs_type
+}
 
 and rs_lit =
     | RsLitUnit
@@ -156,6 +160,13 @@ let rec merge_rs_prog_list (programs: rs_program list): rs_program =
     match programs with
         | h :: t -> merge_rs_prog h (merge_rs_prog_list t)
         | _ -> RsProg []
+
+let mk_fn_typ (args: rs_type list) (ret: rs_type) : rs_fn_type =
+    {
+        generics = [];
+        args = args;
+        ret = ret;
+    }
 
 let mk_method_app (exp: rs_exp) (name: string) (args: rs_exp list) : rs_exp =
     RsMethodApp {
@@ -412,18 +423,18 @@ let string_of_rs_fn_args (fn: rs_fn) : string =
                 (string_of_rs_exp 0 arg)
                 (string_of_rs_type typ)
     in
-    let (arg_types, _) = fn.signature in
+    let arg_types = fn.signature.args in
     String.concat ", " (List.map2 string_of_arg_and_type fn.args arg_types)
 
 let string_of_rs_fn (fn: rs_fn) : string =
-    let (_args, _ret) = fn.signature in 
     let args = string_of_rs_fn_args fn in
-    let (_, ret_type) = fn.signature in
-    let ret_type = match ret_type with
+    let ret_type = match fn.signature.ret with
         | RsTypUnit -> ""
-        | _ -> Printf.sprintf " -> %s" (string_of_rs_type ret_type)
+        | ret_type -> Printf.sprintf " -> %s" (string_of_rs_type ret_type)
     in
-    let signature = Printf.sprintf "pub fn %s(%s)%s {\n%s" fn.name args ret_type (indent 1) in
+    (* For now we assume all generics are const usize *)
+    let generics = string_of_generics (List.map (Printf.sprintf "const %s: usize") fn.signature.generics) in
+    let signature = Printf.sprintf "pub fn %s%s(%s)%s {\n%s" fn.name generics args ret_type (indent 1) in
     let stmts = (match fn.body with
         | RsBlock exps
             -> String.concat

@@ -67,8 +67,8 @@ function parse_hex_bits(n, s) = {
     zeros(n)
 }
 
-val hex_bits_backwards : forall 'n, 'n > 0. (int('n), string) -> bits('n)
-function hex_bits_backwards(n, str) = parse_hex_bits(n, str)
+val hex_bits_backwards : forall 'm, 'm > 0. (int('m), string) -> bits('m)
+function hex_bits_backwards(m, str) = parse_hex_bits(m, str)
 
 // ————————————————————————————— Test Function —————————————————————————————— //
 

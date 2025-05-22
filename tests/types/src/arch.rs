@@ -61,8 +61,8 @@ pub fn zeros<const N: usize>(sail_ctx: &mut SailVirtCtx, n: usize) -> BitVector<
     sail_zeros(n)
 }
 
-pub fn hex_bits_backwards<const N: usize>(sail_ctx: &mut SailVirtCtx, n: usize, str: &'static str) -> BitVector<N> {
-    parse_hex_bits(n, str)
+pub fn hex_bits_backwards<const M: usize>(sail_ctx: &mut SailVirtCtx, m: usize, str: &'static str) -> BitVector<M> {
+    parse_hex_bits(m, str)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]

@@ -358,27 +358,26 @@ module Codegen () = struct
         let signature = match kind with
             | FunKindFunc -> (match ctx_fun_type name ctx with
                 | Some signature -> signature
-                | None -> ([RsTypId "TodoNoSignature"], RsTypUnit))
+                | None -> {generics = []; args = [RsTypId "TodoNoSignature"]; ret = RsTypUnit})
             | FunKindUnion (func, union) ->
                 (* We look up the function definition to get the return type *)
                 let ret_type = match SMap.find_opt func ctx.defs.funs with
-                    | Some func_t -> snd func_t
+                    | Some func_t -> func_t.ret
                     | None -> RsTypUnit
                 in
                 
                 match ctx_union_type union ctx with
                 | Some typ -> (match typ with
-                    | RsTypTuple types -> (types, ret_type)
-                    | RsTypId id -> ([RsTypId id], ret_type)
-                    | RsTypUnit -> ([], ret_type)
-                    | _ -> ([RsTypId "todo_signature"], RsTypId "todo_signature"))
-                | None -> ([RsTypId "TodoNoUnionSignature"], RsTypUnit)
+                    | RsTypTuple types -> mk_fn_typ types ret_type
+                    | RsTypId id -> mk_fn_typ [RsTypId id] ret_type
+                    | RsTypUnit -> mk_fn_typ [] ret_type
+                    | _ -> mk_fn_typ [RsTypId "todo_signature"] (RsTypId "todo_signature"))
+                | None -> mk_fn_typ [RsTypId "TodoNoUnionSignature"] RsTypUnit
         in
-        let (arg_types, _) = signature in
-        let arg_names = add_missing_args arg_names arg_types [] in
+        let arg_names = add_missing_args arg_names signature.args [] in
         let arg_names = List.map (fun e -> RsId e) arg_names in
-        ctx.ret_type <- snd signature;
-        assert (List.length arg_names = List.length (fst signature));
+        ctx.ret_type <- signature.ret;
+        assert (List.length arg_names = List.length signature.args);
         let rs_exp = process_exp ctx exp in
         {
             name = name;
@@ -587,13 +586,18 @@ module Codegen () = struct
     let extract_types (TypSchm_aux (typeschm, _)) : rs_fn_type =
         (* We ignore the type quantifier for now, there is no `forall` on most types of interest *)
         let TypSchm_ts (type_quant, typ) = typeschm in
+        let generics = List.map string_of_kid (KidSet.to_list (tyvars_of_typ typ)) in
         let Typ_aux (typ, _) = typ in
         match typ with 
             (* When Sail infers type, it sometimes uses a single tuple as argument.
                In such cases, we flatten the tuple. *)
             | Typ_fn ([Typ_aux (Typ_tuple args, _)], ret) 
-            | Typ_fn (args, ret) -> ((List.map typ_to_rust args), typ_to_rust ret)
-            | _ -> ([RsTypTodo "todo_extract_types"], RsTypTodo "todo_extract_types")
+            | Typ_fn (args, ret) ->  {
+                    generics = generics;
+                    args = List.map typ_to_rust args;
+                    ret = typ_to_rust ret
+                }
+            | _ -> mk_fn_typ [RsTypTodo "todo_extract_types"] (RsTypTodo "todo_extract_types")
     
     let val_fun_def (val_spec: val_spec_aux) : defmap =
         let map = SMap.empty in
@@ -676,7 +680,7 @@ module Codegen () = struct
     (* ————————————————————————————————— Utils —————————————————————————————————— *)
     
     let print_all_defs (defs: defs) =
-        let print_one_fun key (args, ret) =
+        let print_one_fun key {generics; args; ret} =
             Printf.printf "  %s(%s) -> %s\n"
                 key
                 (String.concat ", " (List.map string_of_rs_type args))
