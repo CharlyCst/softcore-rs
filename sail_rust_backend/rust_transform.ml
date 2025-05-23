@@ -611,15 +611,6 @@ let expr_type_hoister = {
 (* names.                                                                     *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-(** Sail uses apostrophe (') in generic parameters, which appears as lifetime in Rust.
-    This function removes the apostrophe from the generic identifier.**)
-let sanitize_generic_id (id: string) : string = 
-    if String.get id 0 = '\'' then
-        let n = (String.length id) - 1 in
-        String.uppercase_ascii (String.sub id 1 n)
-    else
-        id
-
 let sanitize_generic (generic: rs_generic) : rs_generic =
     let id = match generic with
         | RsGenTyp s -> s
@@ -632,12 +623,21 @@ let sanitize_generic (generic: rs_generic) : rs_generic =
         | RsGenNum _ -> RsGenNum new_id
         | RsGenBool _ -> RsGenBool new_id
 
-
-let rewrite_generics (typ: rs_type) : rs_type =
+let rec rewrite_generics (typ: rs_type) : rs_type =
     match (typ : rs_type) with
         | RsTypId id -> RsTypId (sanitize_generic_id id)
         | RsTypGeneric id -> RsTypGeneric (sanitize_generic_id id)
-        | _ -> typ
+        | RsTypTuple typs -> RsTypTuple (List.map rewrite_generics typs)
+        | RsTypUnit -> RsTypUnit
+        | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, List.map rewrite_generic_params params)
+        | RsTypArray (n, m) -> RsTypArray (rewrite_generic_params n, rewrite_generic_params m)
+        | RsTypOption typ -> RsTypOption (rewrite_generic_params typ)
+        | RsTypTodo s -> RsTypTodo s
+
+and rewrite_generic_params (param: rs_type_param) : rs_type_param =
+    match param with 
+        | RsTypParamTyp typ -> RsTypParamTyp (rewrite_generics typ)
+        | RsTypParamNum num -> param
 
 let rewrite_generics_obj (obj: rs_obj) : rs_obj =
     match (obj : rs_obj) with

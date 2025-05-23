@@ -183,6 +183,17 @@ let mk_method_app (exp: rs_exp) (name: string) (args: rs_exp list) : rs_exp =
         args = args;
     }
 
+(** In Sail type variables start with an apostrophe ('), which appears as
+    lifetime in Rust.
+    This function removes the apostrophe from the generic identifier, and
+    leaves all other types as is.**)
+let sanitize_generic_id (id: string) : string = 
+    if String.get id 0 = '\'' then
+        let n = (String.length id) - 1 in
+        String.uppercase_ascii (String.sub id 1 n)
+    else
+        id
+
 (* ————————————————————————————— Rust to String ————————————————————————————— *)
 
 let string_of_generics (generics: string list) : string =
