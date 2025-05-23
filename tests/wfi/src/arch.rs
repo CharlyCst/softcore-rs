@@ -12,6 +12,12 @@ pub struct SailVirtCtx {
     pub mcycle: BitVector<64>,
     pub mstatus: Mstatus,
     pub cur_privilege: Privilege,
+    pub config: SailConfig,
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct SailConfig {
+
 }
 
 pub fn _operator_smaller_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVector<N>, y: BitVector<N>) -> bool {
@@ -70,7 +76,7 @@ pub enum ast {
     WFI(())
 }
 
-pub fn execute_WFI(sail_ctx: &mut SailVirtCtx) -> Retired {
+pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) -> Retired {
     match sail_ctx.cur_privilege {
         Privilege::Machine => {{
             platform_wfi(sail_ctx, ());

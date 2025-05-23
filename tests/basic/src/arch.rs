@@ -7,6 +7,12 @@ pub struct SailVirtCtx {
     pub PC: xlenbits,
     pub nextPC: xlenbits,
     pub Xs: [xlenbits;32],
+    pub config: SailConfig,
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct SailConfig {
+
 }
 
 pub const xlen: usize = 64;
@@ -49,9 +55,18 @@ pub enum ast {
     LOAD((BitVector<12>, BitVector<5>, BitVector<5>))
 }
 
-pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: BitVector<5>, rd: BitVector<5>) {
-    let rs1_val = rX(sail_ctx, rs1);
-    let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
-    let result = rs1_val.wrapped_add(imm_ext);
-    wX(sail_ctx, rd, result)
+pub fn execute(sail_ctx: &mut SailVirtCtx, merge_hashtag_var: ast) {
+    match merge_hashtag_var {
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {let rs1_val = rX(sail_ctx, rs1);
+        let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
+        let result = rs1_val.wrapped_add(imm_ext);
+        wX(sail_ctx, rd, result)}
+        ast::LOAD((imm, rs1, rd)) => {let addr: xlenbits = {
+            let var_1 = BitVector::<64>::new(imm.bits());
+            rX(sail_ctx, rs1).wrapped_add(var_1)
+        };
+        let result: xlenbits = BitVector::<64>::new(BitVector::<1>::new(0b0).bits());
+        wX(sail_ctx, rd, result)}
+        _ => {panic!("Unreachable code")}
+    }
 }

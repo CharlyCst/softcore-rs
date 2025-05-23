@@ -19,6 +19,12 @@ pub struct SailVirtCtx {
     pub utvec: Mtvec,
     pub cur_privilege: Privilege,
     pub Xs: [xlenbits;32],
+    pub config: SailConfig,
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct SailConfig {
+
 }
 
 pub fn bit_to_bool(sail_ctx: &mut SailVirtCtx, b: bool) -> bool {
@@ -467,46 +473,50 @@ pub fn writeCSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>, value: BitVector
     ()
 }
 
-pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: regidx, rd: regidx) -> Retired {
-    let rs1_val = rX(sail_ctx, rs1);
-    let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
-    let result = rs1_val.wrapped_add(imm_ext);
-    wX(sail_ctx, rd, result);
-    Retired::RETIRE_SUCCESS
-}
-
-pub fn execute_CSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>, rs1: regidx, rd: regidx, is_imm: bool, op: csrop) -> Retired {
-    let rs1_val: xlenbits = if {is_imm} {
-        rs1.zero_extend::<64>()
-    } else {
-        rX(sail_ctx, rs1)
-    };
-    let isWrite: bool = match op {
-        csrop::CSRRW => {true}
-        _ => {if {is_imm} {
-            (rs1_val.as_usize() != 0)
-        } else {
-            (rs1.as_usize() != 0)
+pub fn execute(sail_ctx: &mut SailVirtCtx, merge_hashtag_var: ast) -> Retired {
+    match merge_hashtag_var {
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {{
+            let rs1_val = rX(sail_ctx, rs1);
+            let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
+            let result = rs1_val.wrapped_add(imm_ext);
+            wX(sail_ctx, rd, result);
+            Retired::RETIRE_SUCCESS
         }}
-        _ => {panic!("Unreachable code")}
-    };
-    if {!(check_CSR(sail_ctx, csr, sail_ctx.cur_privilege, isWrite))} {
-        handle_illegal(sail_ctx, ());
-        Retired::RETIRE_FAIL
-    } else {
-        let csr_val = readCSR(sail_ctx, csr);
-        if {isWrite} {
-            let new_val: xlenbits = match op {
-                csrop::CSRRW => {rs1_val}
-                csrop::CSRRS => {(csr_val | rs1_val)}
-                csrop::CSRRC => {(csr_val & !(rs1_val))}
+        ast::CSR((csr, rs1, rd, is_imm, op)) => {{
+            let rs1_val: xlenbits = if {is_imm} {
+                rs1.zero_extend::<64>()
+            } else {
+                rX(sail_ctx, rs1)
+            };
+            let isWrite: bool = match op {
+                csrop::CSRRW => {true}
+                _ => {if {is_imm} {
+                    (rs1_val.as_usize() != 0)
+                } else {
+                    (rs1.as_usize() != 0)
+                }}
                 _ => {panic!("Unreachable code")}
             };
-            writeCSR(sail_ctx, csr, new_val)
-        } else {
-            ()
-        };
-        wX(sail_ctx, rd, csr_val);
-        Retired::RETIRE_SUCCESS
+            if {!(check_CSR(sail_ctx, csr, sail_ctx.cur_privilege, isWrite))} {
+                handle_illegal(sail_ctx, ());
+                Retired::RETIRE_FAIL
+            } else {
+                let csr_val = readCSR(sail_ctx, csr);
+                if {isWrite} {
+                    let new_val: xlenbits = match op {
+                        csrop::CSRRW => {rs1_val}
+                        csrop::CSRRS => {(csr_val | rs1_val)}
+                        csrop::CSRRC => {(csr_val & !(rs1_val))}
+                        _ => {panic!("Unreachable code")}
+                    };
+                    writeCSR(sail_ctx, csr, new_val)
+                } else {
+                    ()
+                };
+                wX(sail_ctx, rd, csr_val);
+                Retired::RETIRE_SUCCESS
+            }
+        }}
+        _ => {panic!("Unreachable code")}
     }
 }

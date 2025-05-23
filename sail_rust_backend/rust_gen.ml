@@ -183,6 +183,13 @@ let mk_method_app (exp: rs_exp) (name: string) (args: rs_exp list) : rs_exp =
         args = args;
     }
 
+let mk_struct (name: string) (fields: (string * rs_type) list) : rs_obj =
+    RsStruct {
+        name = name;
+        generics = [];
+        fields = fields
+    }
+
 (** In Sail type variables start with an apostrophe ('), which appears as
     lifetime in Rust.
     This function removes the apostrophe from the generic identifier, and
