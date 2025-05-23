@@ -1,4 +1,4 @@
-TEST_ARCHS = basic basic_alt trap types mret csr wfi
+TEST_ARCHS = basic basic_alt trap types mret csr wfi config
 TEST_ARCH_RUST = $(addsuffix /src/arch.rs, $(addprefix tests/, $(TEST_ARCHS)))
 
 .PHONY: tests test test2 clean

@@ -7,6 +7,12 @@ pub struct SailVirtCtx {
     pub PC: xlenbits,
     pub nextPC: xlenbits,
     pub Xs: [xlenbits;32],
+    pub config: SailConfig,
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct SailConfig {
+
 }
 
 pub const xlen: usize = 64;
@@ -49,24 +55,37 @@ pub enum ast {
     LOAD((BitVector<12>, BitVector<5>, BitVector<5>))
 }
 
-pub fn execute_ITYPE(sail_ctx: &mut SailVirtCtx, imm: BitVector<12>, rs1: BitVector<5>, rd: BitVector<5>) {
-    let rs1_val = rX(sail_ctx, rs1);
-    let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
-    let result = rs1_val.wrapped_add(imm_ext);
-    let test: bool = match true {
-        true => {true}
-        _ => {false}
+pub fn execute(sail_ctx: &mut SailVirtCtx, merge_hashtag_var: ast) {
+    match merge_hashtag_var {
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {{
+            let rs1_val = rX(sail_ctx, rs1);
+            let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
+            let result = rs1_val.wrapped_add(imm_ext);
+            let test: bool = match true {
+                true => {true}
+                _ => {false}
+                _ => {panic!("Unreachable code")}
+            };
+            {
+                let var_1 = rd;
+                let var_2 = BitVector::<1>::new(0b0).zero_extend::<64>();
+                wX(sail_ctx, var_1, var_2)
+            };
+            if {(result != result)} {
+                let z: xlenbits = BitVector::<1>::new(0b0).zero_extend::<64>();
+                wX(sail_ctx, rd, z)
+            } else {
+                wX(sail_ctx, rd, result)
+            }
+        }}
+        ast::LOAD((imm, rs1, rd)) => {{
+            let addr: xlenbits = {
+                let var_3 = BitVector::<64>::new(imm.bits());
+                rX(sail_ctx, rs1).wrapped_add(var_3)
+            };
+            let result: xlenbits = BitVector::<64>::new(BitVector::<1>::new(0b0).bits());
+            wX(sail_ctx, rd, result)
+        }}
         _ => {panic!("Unreachable code")}
-    };
-    {
-        let var_1 = rd;
-        let var_2 = BitVector::<1>::new(0b0).zero_extend::<64>();
-        wX(sail_ctx, var_1, var_2)
-    };
-    if {(result != result)} {
-        let z: xlenbits = BitVector::<1>::new(0b0).zero_extend::<64>();
-        wX(sail_ctx, rd, z)
-    } else {
-        wX(sail_ctx, rd, result)
     }
 }

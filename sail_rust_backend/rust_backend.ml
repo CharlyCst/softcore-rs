@@ -35,6 +35,10 @@ module Codegen () = struct
         | FunKindFunc
         | FunKindUnion of string * string
 
+    type field_kind =
+        | FieldKindStruct of field_kind SMap.t
+        | FieldKindLeaf of rs_type
+
     (* ——————————————————————————————— Type Utils ——————————————————————————————— *)
     
     let map_union (a: 'a SMap.t) (b: 'a SMap.t) : 'a SMap.t =
@@ -226,7 +230,12 @@ module Codegen () = struct
             | E_internal_value value -> RsTodo "E_internal_value"
             | E_internal_assume (n_constraint, exp) -> RsTodo "E_internal_assume"
             | E_constraint n_constraint -> RsTodo "E_constraint"
-            | E_config cfgs -> RsTodo "E_config"
+            | E_config cfgs ->
+                let rec construct_fields (expr: rs_exp) (fields: string list) : rs_exp = match fields with
+                    | head :: tail -> construct_fields (RsField (expr, head)) tail
+                    | [] -> expr
+                in
+                construct_fields (RsField (RsId "sail_ctx", "config")) cfgs
     and process_lexp (ctx: context) (LE_aux (lexp, annot)) : rs_lexp =
         match lexp with
             | LE_id id -> RsLexpId (string_of_id id)
@@ -319,7 +328,7 @@ module Codegen () = struct
             | RsPatId id-> id
             | RsPatType (typ, pat) -> (string_of_rs_pat pat) 
             | RsPatWildcard -> "_"
-            | _ -> failwith "Implement this part"
+            | _ -> Reporting.simple_warn "`extaract_pat_name`: pattern not implemented"; "TodoPat"
     
     and process_args_pat_list value : string = (extract_pat_name (process_pat value))
             
@@ -523,13 +532,64 @@ module Codegen () = struct
                 else gather_registers t
             | [] -> []
 
-    and generate_sail_virt_ctx defs (ctx: context): rs_program = RsProg[
-        RsStruct({
-            name = "SailVirtCtx";
-            generics = [];
-            fields =  gather_registers defs;
-        })
-    ]
+    (** We decompose the configuration into multiple Rust struct to stay close
+        to the JSon-like structure.
+
+        This functionc reates all the necessary structs and keep the fields
+        names compatible with the `E_config` Sail expression.
+    **)
+    and build_config_structs (config_map: config_map) : rs_obj list =
+        let rec build_struct (fields: string list) (typ: rs_type) (s: field_kind SMap.t) : field_kind SMap.t =
+            match fields with
+                | [] -> s
+                | head :: [] -> SMap.add head (FieldKindLeaf typ) s
+                | head :: tail ->
+                    let s' = match SMap.find_opt head s with
+                        | Some (FieldKindStruct s') -> s'
+                        | Some (FieldKindLeaf _) ->
+                            Reporting.simple_warn
+                                (Printf.sprintf "Invalid config: %s used as both a struct and a leaf" head);
+                            SMap.empty (* Go on, but there is a bug somewhere! *)
+                        | None -> SMap.empty
+                    in
+                    let child_struct = build_struct tail typ s' in
+                    SMap.add head (FieldKindStruct child_struct) s
+        in
+        let cfg_struct =
+            List.fold_left
+                (fun s  (fields, typ) -> build_struct (String.split_on_char '.' fields) (typ_to_rust typ) s)
+                SMap.empty
+                (SMap.to_list config_map)
+        in
+        let rec cfg_struct_to_rust (s: field_kind SMap.t) (name_suffix: string) : rs_obj list =
+            let fold_acc ((fields, structs): (string * rs_type) list * rs_obj list) ((field_name, field_kind): string * field_kind) : (string * rs_type) list * rs_obj list =
+                match field_kind with
+                    | FieldKindLeaf typ -> (fields @ [(field_name, typ)], structs)
+                    | FieldKindStruct s ->
+                        let struct_typ = RsTypId ("SailConfig" ^ (String.capitalize_ascii field_name)) in
+                        (fields @ [(field_name, struct_typ)], structs @ (cfg_struct_to_rust s field_name))
+            in
+            let (fields, structs) = List.fold_left fold_acc ([], []) (SMap.to_list s) in
+            let struct_name = "SailConfig" ^ (String.capitalize_ascii name_suffix) in
+            [mk_struct struct_name fields] @ structs
+        in
+        cfg_struct_to_rust cfg_struct ""
+
+    and generate_sail_virt_ctx defs (ctx: context): rs_program =
+        let config_structs = build_config_structs ctx.config_map in
+        let config_field = if List.length config_structs = 0 then
+            []
+        else
+            ["config", RsTypId "SailConfig"]
+        in
+        RsProg ([
+            RsStruct({
+                name = "SailVirtCtx";
+                generics = [];
+                fields = (gather_registers defs) @ config_field;
+            })
+            ] @ config_structs
+        )
     
     and gather_registers_list (ast: ('a, 'b) ast) : string list =
         List.map (fun (x, _) -> x) (gather_registers ast.defs)
@@ -719,9 +779,10 @@ module Codegen () = struct
   let compile_ast env effect_info ast =
     try
       (* Compute call set *)
-      let call_set = get_call_set ast in
-      SSet.iter (Printf.printf "%s ") call_set;
+      let sail_ctx = get_call_set ast in
+      SSet.iter (Printf.printf "%s ") sail_ctx.call_set;
       print_endline "";
+      SMap.iter (fun cfg typ ->Printf.printf "%s : %s\n" cfg (string_of_typ typ)) sail_ctx.config_map;
 
       (* Collect definitions *)
       let defs = get_defs ast in
@@ -730,13 +791,10 @@ module Codegen () = struct
       (* Build the context *)
       let ctx = {
         defs = defs;
-        call_set = call_set;
+        call_set = sail_ctx.call_set;
+        config_map = sail_ctx.config_map;
         ret_type = RsTypUnit;
       } in
-
-      (*List.map (fun e -> print_endline(Printf.sprintf "%s %s" (fst e) (snd e))) enum_entries;
-      print_endline ""; *)
-
 
       (* Build list of registers *)
       let register_list = Util.StringSet.of_list (gather_registers_list ast) in

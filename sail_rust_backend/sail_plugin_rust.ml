@@ -73,7 +73,7 @@ let rust_rewrites =
     (* ("simple_struct_assignments", []); (1* TODO: investigate the impact of this one on vector assignments *1) *)
     ("exp_lift_assign", []);
     ("top_sort_defs", []);
-    (* ("merge_function_clauses", []); *)
+    ("merge_function_clauses", []);
     ("recheck_defs", []);
     ("constant_fold", [String_arg "c"]);
     (* ("simple_types", []); (1* This one seems to remove the generic types which we also use, maybe it should be put earlier? *1) *)

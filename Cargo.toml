@@ -10,6 +10,7 @@ members = [
     # Our tests
     "tests/basic",
     "tests/basic_alt",
+    "tests/config",
     "tests/trap",
     "tests/types",
     "tests/mret",

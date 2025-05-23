@@ -4,6 +4,11 @@ use sail_prelude::*;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SailVirtCtx {
+    pub config: SailConfig,
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct SailConfig {
 
 }
 
@@ -125,7 +130,7 @@ pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> Bi
     }
 }
 
-pub fn execute_TEST(sail_ctx: &mut SailVirtCtx) {
+pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) {
     handle_empty(sail_ctx, ());
     handle_bool(sail_ctx, true);
     let a = handle_int(sail_ctx, 1234);

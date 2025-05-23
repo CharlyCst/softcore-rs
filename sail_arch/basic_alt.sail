@@ -97,7 +97,9 @@ function clause decode imm : bits(12) @ rs1 : regbits @ 0b011 @ rd : regbits @ 0
 
 function clause execute(LOAD(imm, rs1, rd)) = {
     let addr : xlenbits = X(rs1) + EXTS(imm);
-    let result : xlenbits = read_mem(addr, sizeof(xlen_bytes));
+    // Unsupported for now
+    //let result : xlenbits = read_mem(addr, sizeof(xlen_bytes));
+    let result : xlenbits = EXTS(0b0);
     X(rd) = result
 }
 

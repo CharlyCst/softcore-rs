@@ -12,6 +12,12 @@ pub struct SailVirtCtx {
     pub mstatus: Mstatus,
     pub cur_privilege: Privilege,
     pub Xs: [xlenbits;32],
+    pub config: SailConfig,
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct SailConfig {
+
 }
 
 pub const xlen: usize = 64;
@@ -145,7 +151,7 @@ pub fn ext_fail_xret_priv(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
     ()
 }
 
-pub fn execute_MRET(sail_ctx: &mut SailVirtCtx) -> Retired {
+pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) -> Retired {
     if {(sail_ctx.cur_privilege != Privilege::Machine)} {
         handle_illegal(sail_ctx, ());
         Retired::RETIRE_FAIL

@@ -17,6 +17,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "0.1.0"
+dependencies = [
+ "sail_prelude",
+]
+
+[[package]]
 name = "csr"
 version = "0.1.0"
 dependencies = [
