@@ -996,6 +996,23 @@ let dead_code_remover: expr_type_transform = {
     obj = id_obj;
 }
 
+(* ——————————————————————————— Remove Unsupported ——————————————————————————— *)
+(* We do not yet support all sail features, so for now we allow ourselves     *)
+(* to selectively drop parts of the Sail model. We hope to support all of     *)
+(* those in the future.                                                       *)
+(* —————————————————————————————————————————————————————————————————————————— *)
+
+let unsupported_obj: StringSet.t = StringSet.of_list ([
+    "Mem_write_request"; (* Depends on const generic exprs, would require monomorphisation. *)
+])
+
+let is_supported_obj (obj: rs_obj) : bool =
+    match obj with
+        | RsStruct s when StringSet.mem s.name unsupported_obj -> false
+        | _ -> true
+
+(* ————————————————————————————— Rust Transform ————————————————————————————— *)
+
 let transform (rust_program: rs_program) (register_list: StringSet.t) (enum_entries: (string * string) list) : rs_program =
   (* Build list of registers *)
   let sail_context_binder = sail_context_binder_generator register_list in
@@ -1033,6 +1050,10 @@ let transform (rust_program: rs_program) (register_list: StringSet.t) (enum_entr
 
   (* Optimizer: Dead code elimination *)
   let rust_program = rust_transform_expr dead_code_remover rust_program in
+
+  (* Filter unsupported items *)
+  let rust_program = match rust_program with RsProg objs -> RsProg (List.filter is_supported_obj objs) in
+
   rust_program
 
 
