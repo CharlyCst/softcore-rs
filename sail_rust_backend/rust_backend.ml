@@ -552,7 +552,7 @@ module Codegen () = struct
             | Nexp_exp n ->  RsStaticApp (RsTypId "usize", "pow", [nexp_to_rs_exp n; RsLit (RsLitNum (Int64.of_int 2))])  (* exponential, it seems it is always 2 ^ n *)
             | Nexp_neg n -> RsUnop (RsUnopNeg, nexp_to_rs_exp n)
             | Nexp_id id -> RsId (string_of_id id)
-            | Nexp_var kid  -> RsTodo "TodoVarExpr" (* variable *)
+            | Nexp_var kid  -> RsId (sanitize_generic_id (string_of_kid kid)) (* variable *)
             | Nexp_app (fn, args) -> RsTodo "TodoAppExpr" (* app *)
             | Nexp_if (cond, if_block, else_block) -> RsTodo "TodoIfExpr" (* if-then-else *)
      
