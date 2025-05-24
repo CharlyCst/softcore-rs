@@ -1,25 +1,13 @@
 default Order dec
 $include <prelude.sail>
 
-// ———————————————————————————————— Union type to make sure we generate correctly ————————————————————————————————— //
+// ——————————————————————————————— Union Type ——————————————————————————————— //
 
 union ExceptionType = {
  E_Fetch_Addr_Align   : unit,
  E_Fetch_Access_Fault : unit,
  E_Illegal_Instr      : unit,
  E_Breakpoint         : unit,
- E_Load_Addr_Align    : unit,
- E_Load_Access_Fault  : unit,
- E_SAMO_Addr_Align    : unit,
- E_SAMO_Access_Fault  : unit,
- E_U_EnvCall          : unit,
- E_S_EnvCall          : unit,
- E_Reserved_10        : unit,
- E_M_EnvCall          : unit,
- E_Fetch_Page_Fault   : unit,
- E_Load_Page_Fault    : unit,
- E_Reserved_14        : unit,
- E_SAMO_Page_Fault    : unit,
 
  /* extensions */
  E_Extension          : int
@@ -45,7 +33,7 @@ function handle_bool(factor_bool: bool): bool -> unit = {
 }
 
 function handle_union(): unit -> ExceptionType = {
-    E_Fetch_Page_Fault()
+    E_Illegal_Instr()
 }
 
 function handle_empty() -> unit = {
@@ -105,6 +93,10 @@ struct My_struct = {
   field3 : string,
 }
 
+struct My_struct_generic('n) = {
+  foo : bits('n),
+}
+
 val exceptionType_to_bits : ExceptionType -> bitvector(8)
 function exceptionType_to_bits(e) =
   match (e) {
@@ -112,18 +104,6 @@ function exceptionType_to_bits(e) =
     E_Fetch_Access_Fault() => 0x01,
     E_Illegal_Instr()      => 0x02,
     E_Breakpoint()         => 0x03,
-    E_Load_Addr_Align()    => 0x04,
-    E_Load_Access_Fault()  => 0x05,
-    E_SAMO_Addr_Align()    => 0x06,
-    E_SAMO_Access_Fault()  => 0x07,
-    E_U_EnvCall()          => 0x08,
-    E_S_EnvCall()          => 0x09,
-    E_Reserved_10()        => 0x0a,
-    E_M_EnvCall()          => 0x0b,
-    E_Fetch_Page_Fault()   => 0x0c,
-    E_Load_Page_Fault()    => 0x0d,
-    E_Reserved_14()        => 0x0e,
-    E_SAMO_Page_Fault()    => 0x0f,
   }
 
 function clause execute TEST() = {
@@ -151,6 +131,10 @@ function clause execute TEST() = {
         field1 = 0b11111,
         field2 = 5,
         field3 = "test",
+    };
+
+    let s2 : My_struct_generic(4) = struct {
+        foo = 0b1010,
     };
 
     let value = exceptionType_to_bits(E_Fetch_Addr_Align());

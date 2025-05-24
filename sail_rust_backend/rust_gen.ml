@@ -158,6 +158,8 @@ type rs_obj =
 type rs_program =
     | RsProg of rs_obj list
 
+(* ————————————————————————————————— Utils —————————————————————————————————— *)
+
 let merge_rs_prog (prog1: rs_program) (prog2: rs_program) : rs_program =
     let RsProg (fn1) = prog1 in
     let RsProg (fn2) = prog2 in
@@ -189,6 +191,22 @@ let mk_struct (name: string) (fields: (string * rs_type) list) : rs_obj =
         generics = [];
         fields = fields
     }
+
+(** Removes the generic parameters from a type
+
+    For instance, transforms `Foo<N>` into `Foo`.
+**)
+let rec strip_generic_parameters (typ: rs_type) : rs_type =
+    let strip_typ_params params = match params with
+        | RsTypParamTyp typ -> RsTypParamTyp (strip_generic_parameters typ)
+        | RsTypParamNum n ->  RsTypParamNum n
+    in
+    match typ with
+        | RsTypTuple typs -> RsTypTuple (List.map strip_generic_parameters typs)
+        | RsTypGenericParam (name, gen_params) -> RsTypId name
+        | RsTypArray (typ, size) -> RsTypArray (strip_typ_params typ, strip_typ_params size)
+        | RsTypOption typ -> RsTypOption (strip_typ_params typ)
+        | _ -> typ
 
 (** In Sail type variables start with an apostrophe ('), which appears as
     lifetime in Rust.
