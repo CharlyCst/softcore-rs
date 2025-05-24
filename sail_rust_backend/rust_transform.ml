@@ -114,7 +114,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
             (RsIndex (
                 (transform_exp ct exp1),
                 (transform_exp ct exp2)))
-        | RsBinop (exp1, inop, RsLet (e1,e2,e3)) -> failwith "todo: fix this case"
+        | RsBinop (exp1, inop, RsLet (e1,e2,e3)) -> RsTodo "RsBinopLet"
         (* todo: Temporary work around, fix this*)
         | RsBinop (RsLet (RsPatType (typ, pat),e2,e3), inop, exp2) -> 
             RsBlock [RsLet(RsPatType (typ, pat), e2, e3); RsBinop(RsId(string_of_rs_pat pat),inop, exp2)]

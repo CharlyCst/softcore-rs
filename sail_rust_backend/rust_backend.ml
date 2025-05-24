@@ -188,7 +188,9 @@ module Codegen () = struct
             | E_vector_append (exp1 ,exp2) -> RsTodo "E_vector_append"
             | E_list (exp_list) -> RsTodo "E_list"
             | E_cons (exp1, exp2) -> RsTodo "E_cons"
-            | E_struct fexp_list -> RsStruct (ctx.ret_type, process_fexp_entries ctx fexp_list)
+            | E_struct fexp_list ->
+                let typ = typ_to_rust (typ_of (E_aux (exp, aux))) in
+                RsStruct (strip_generic_parameters typ, process_fexp_entries ctx fexp_list)
             (* todo: This is enough for the risc-v translation, but must be refactored for a more general transpiler *)
             | E_struct_update (exp, fexp_list) -> assert(List.length fexp_list = 1); RsStruct (RsTypId "BitField", (process_fexp_entries ctx fexp_list))
             | E_field (exp, id) -> RsField ((process_exp ctx exp), (string_of_id id))

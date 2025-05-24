@@ -18,18 +18,6 @@ pub enum ExceptionType {
     E_Fetch_Access_Fault(()),
     E_Illegal_Instr(()),
     E_Breakpoint(()),
-    E_Load_Addr_Align(()),
-    E_Load_Access_Fault(()),
-    E_SAMO_Addr_Align(()),
-    E_SAMO_Access_Fault(()),
-    E_U_EnvCall(()),
-    E_S_EnvCall(()),
-    E_Reserved_10(()),
-    E_M_EnvCall(()),
-    E_Fetch_Page_Fault(()),
-    E_Load_Page_Fault(()),
-    E_Reserved_14(()),
-    E_SAMO_Page_Fault(()),
     E_Extension(usize)
 }
 
@@ -50,7 +38,7 @@ pub fn handle_bool(sail_ctx: &mut SailVirtCtx, factor_bool: bool) {
 }
 
 pub fn handle_union(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> ExceptionType {
-    ExceptionType::E_Fetch_Page_Fault(())
+    ExceptionType::E_Illegal_Instr(())
 }
 
 pub fn handle_empty(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
@@ -108,24 +96,17 @@ pub struct My_struct {
     pub field3: &'static str,
 }
 
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub struct My_struct_generic<const N: usize> {
+    pub foo: BitVector<N>,
+}
+
 pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> BitVector<8> {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::<8>::new(0b00000000)}
         ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::<8>::new(0b00000001)}
         ExceptionType::E_Illegal_Instr(()) => {BitVector::<8>::new(0b00000010)}
         ExceptionType::E_Breakpoint(()) => {BitVector::<8>::new(0b00000011)}
-        ExceptionType::E_Load_Addr_Align(()) => {BitVector::<8>::new(0b00000100)}
-        ExceptionType::E_Load_Access_Fault(()) => {BitVector::<8>::new(0b00000101)}
-        ExceptionType::E_SAMO_Addr_Align(()) => {BitVector::<8>::new(0b00000110)}
-        ExceptionType::E_SAMO_Access_Fault(()) => {BitVector::<8>::new(0b00000111)}
-        ExceptionType::E_U_EnvCall(()) => {BitVector::<8>::new(0b00001000)}
-        ExceptionType::E_S_EnvCall(()) => {BitVector::<8>::new(0b00001001)}
-        ExceptionType::E_Reserved_10(()) => {BitVector::<8>::new(0b00001010)}
-        ExceptionType::E_M_EnvCall(()) => {BitVector::<8>::new(0b00001011)}
-        ExceptionType::E_Fetch_Page_Fault(()) => {BitVector::<8>::new(0b00001100)}
-        ExceptionType::E_Load_Page_Fault(()) => {BitVector::<8>::new(0b00001101)}
-        ExceptionType::E_Reserved_14(()) => {BitVector::<8>::new(0b00001110)}
-        ExceptionType::E_SAMO_Page_Fault(()) => {BitVector::<8>::new(0b00001111)}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -154,6 +135,9 @@ pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) {
         field1: BitVector::<5>::new(0b11111),
         field2: 5,
         field3: "test"
+    };
+    let s2: My_struct_generic<4> = My_struct_generic {
+        foo: BitVector::<4>::new(0b1010)
     };
     let value = {
         let var_1 = ExceptionType::E_Fetch_Addr_Align(());
