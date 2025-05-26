@@ -380,6 +380,16 @@ let bitvec_transform = {
 
 (* —————————————————————————— Expression Optimizer —————————————————————————— *)
 
+let rec int_pow (n: int64) (m: int64) : int64 =
+    match m with
+    | 0L -> 1L
+    | 1L -> n
+    | _ ->
+        let x = int_pow n (Int64.div m 2L) in
+        let xx = Int64.mul x x in
+        let reminder =if (Int64.rem m 2L) = 0L then 1L else n in 
+        Int64.mul xx reminder
+
 (** Simplifies rust expression by applying basic optimisations.
 
  For now, this mostly includes arithmetic operators.**)
@@ -389,6 +399,10 @@ let rec simplify_rs_exp (rs_exp: rs_exp) : rs_exp =
             RsLit (RsLitNum (Int64.add a b))
         | RsBinop (RsLit (RsLitNum a), RsBinopSub, RsLit (RsLitNum b)) -> 
             RsLit (RsLitNum (Int64.sub a b))
+        | RsBinop (RsLit (RsLitNum a), RsBinopMult, RsLit (RsLitNum b)) -> 
+            RsLit (RsLitNum (Int64.mul a b))
+        | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [RsLit (RsLitNum n); RsLit (RsLitNum m)]) ->
+            RsLit (RsLitNum (int_pow n m))
         | _ -> rs_exp
 
 
@@ -1196,6 +1210,14 @@ let is_supported_obj (obj: rs_obj) : bool =
 
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
 
+(** Computes the fix point of a function. **)
+let rec fix_point fn args limit =
+    let new_args = fn args in
+    if new_args = args || limit = 0 then
+        new_args
+    else
+        fix_point fn new_args (limit - 1)
+
 let transform (rust_program: rs_program) (register_list: SSet.t) (enum_entries: (string * string) list) : rs_program =
   (* Build list of registers *)
   let sail_context_binder = sail_context_binder_generator register_list in
@@ -1210,7 +1232,7 @@ let transform (rust_program: rs_program) (register_list: SSet.t) (enum_entries: 
      to detect some bitvec patterns properly *)
   let rust_program = rust_transform_expr nested_block_remover rust_program in
   let rust_program = rust_transform_expr native_func_transform rust_program in
-  let rust_program = rust_transform_expr expression_optimizer rust_program in
+  let rust_program = fix_point (rust_transform_expr expression_optimizer) rust_program 10 in
   let rust_program = rust_transform_expr bitvec_transform rust_program in
 
   (* Third stage: general valid rust code*)
