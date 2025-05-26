@@ -2,12 +2,14 @@
 (** This module transforms raw Rust code generated from Sail into a valid Rust module. **)
 
 open Rust_gen
+open Libsail
 
-module StringSet = Set.Make(String)
+module SSet = Call_set.SSet
+module SMap = Call_set.SMap
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
-let external_func: StringSet.t = StringSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"; "hex_bits_12_forwards"; "hex_bits_12_backwards" ; "sail_zeros"; "parse_hex_bits"])
+let external_func: SSet.t = SSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"; "hex_bits_12_forwards"; "hex_bits_12_backwards" ; "sail_zeros"; "parse_hex_bits"])
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -114,10 +116,6 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
             (RsIndex (
                 (transform_exp ct exp1),
                 (transform_exp ct exp2)))
-        | RsBinop (exp1, inop, RsLet (e1,e2,e3)) -> RsTodo "RsBinopLet"
-        (* todo: Temporary work around, fix this*)
-        | RsBinop (RsLet (RsPatType (typ, pat),e2,e3), inop, exp2) -> 
-            RsBlock [RsLet(RsPatType (typ, pat), e2, e3); RsBinop(RsId(string_of_rs_pat pat),inop, exp2)]
         | RsBinop (exp1, binop, exp2) ->
             (RsBinop (
                 (transform_exp ct exp1),
@@ -550,8 +548,87 @@ let variable_generator = ref (create_variable_generator ())
 let reset_variable_generator () =
     variable_generator := (create_variable_generator ())
 
+let rec rename_in_exp (rn: string * string) (exp: rs_exp) : rs_exp =
+    (* Helpers for renaming one or more exps *)
+    let rename_in_exp exp = rename_in_exp rn exp in
+    let rename_in_exps exps = List.map rename_in_exp exps in
+
+    (* The actual renaming *)
+    let (id, new_id) = rn in
+    match (exp : rs_exp) with
+        | RsId id' ->
+            if id' = id then
+                RsId new_id (* Rename! *)
+            else
+                RsId id' (* No renaming *)
+        | RsLet (pat, cond, next) ->
+            let new_ids = ids_of_pat pat in
+            if SSet.mem id new_ids then
+                (* The ID is being shadowed, stop renaming at that point *)
+                exp
+            else
+                (* The ID is not shadowed, so we need to continue the renaming *)
+                RsLet (pat, rename_in_exp cond, rename_in_exp next)
+        | RsApp (fn, args) -> RsApp (rename_in_exp fn, rename_in_exps args)
+        | RsMethodApp app -> RsMethodApp { app with
+                exp = rename_in_exp app.exp;
+                args = rename_in_exps app.args;
+            }
+        | RsStaticApp (typ, name, args) -> RsStaticApp (typ, name, rename_in_exps args)
+        | RsLit lit -> RsLit lit
+        | RsField (exp, field) -> RsField (rename_in_exp exp, field)
+        | RsBlock exps -> RsBlock (rename_in_exps exps)
+        | RsConstBlock exps -> RsConstBlock (rename_in_exps exps)
+        | RsInstrList exps -> RsInstrList (rename_in_exps exps)
+        | RsIf (cond, if_branch, else_branch) -> RsIf (rename_in_exp cond, rename_in_exp if_branch, rename_in_exp else_branch)
+        | RsMatch (exp, pexps) -> RsMatch (
+                rename_in_exp exp,
+                List.map (rename_in_pexp rn) pexps
+            )
+        | RsTuple exps -> RsTuple (rename_in_exps exps)
+        | RsAssign (lexp, exp) -> RsAssign (rename_in_lexp rn lexp, rename_in_exp exp)
+        | RsIndex (exp1, exp2) -> RsIndex (rename_in_exp exp1, rename_in_exp exp2)
+        | RsBinop (exp1, op, exp2) -> RsBinop (rename_in_exp exp1, op, rename_in_exp exp2)
+        | RsUnop (op, exp) -> RsUnop (op, rename_in_exp exp)
+        | RsAs (exp, typ) -> RsAs (rename_in_exp exp, typ)
+        | RsSome exp -> RsSome (rename_in_exp exp)
+        | RsNone -> RsNone
+        | RsPathSeparator (typ, typ') -> RsPathSeparator (typ, typ')
+        | RsFor (typ, lit, lit', exp) -> RsFor (typ, lit, lit', rename_in_exp exp)
+        | RsStruct (typ, fields) -> RsStruct (
+                typ,
+                List.map (fun (s, exp) -> (s, rename_in_exp exp)) fields
+            )
+        | RsStructAssign (st, field, value) -> RsStructAssign (rename_in_exp st, field, rename_in_exp value)
+        | RsReturn exp -> RsReturn (rename_in_exp exp)
+        | RsTodo s -> RsTodo s
+and rename_in_pexp (rn: string * string) (pexp: rs_pexp) : rs_pexp =
+    let (id, new_id) = rn in
+    match (pexp : rs_pexp) with
+        (* First case: the ID is being shadowed, stop renaming at that point *)
+        | RsPexp (pat, _)
+        | RsPexpWhen (pat, _, _) when SSet.mem id (ids_of_pat pat) ->
+            pexp
+        (* Second case: the IS is not shadowed, continue renaming*)
+        | RsPexp (pat, exp) -> RsPexp (pat, rename_in_exp rn exp)
+        | RsPexpWhen (pat, cond, exp) -> RsPexpWhen (pat, rename_in_exp rn cond, rename_in_exp rn exp)
+and rename_in_lexp (rn: string * string) (lexp: rs_lexp) : rs_lexp =
+    let rename_in_lexp lexp = rename_in_lexp rn lexp in
+    let (id, new_id) = rn in
+    match (lexp : rs_lexp) with
+        | RsLexpId id'->
+            if id' == id then
+                RsLexpId new_id (* Rename! *)
+            else
+                RsLexpId id' (* No renaming *)
+        | RsLexpField (lexp, field) -> RsLexpField (rename_in_lexp lexp, field)
+        | RsLexpIndex (lexp, exp) -> RsLexpIndex (rename_in_lexp lexp, rename_in_exp rn exp)
+        | RsLexpIndexRange (lexp, start, end') -> RsLexpIndexRange (rename_in_lexp lexp, rename_in_exp rn start, rename_in_exp rn end')
+        | RsLexpTodo -> RsLexpTodo
+
+
 (* TODO: This is enough for our use case, but we might need to refactor this condition for the full sail transpilation *)
-let rec should_hoistise (exp: rs_exp list) : bool = 
+let rec should_hoist (exp: rs_exp list) : bool = 
     match exp with
         | [] -> false
         | RsApp _ :: _ -> true  
@@ -559,7 +636,7 @@ let rec should_hoistise (exp: rs_exp list) : bool =
         | RsIf (_,_,_) :: _ -> true
         | RsField (e,e2) :: _ -> true
         | RsBinop (e1, op, e2) :: _ -> true
-        | _ :: tail -> should_hoistise tail 
+        | _ :: tail -> should_hoist tail 
     
 let rec hoist (exp: rs_exp list) : rs_exp list * rs_exp list = 
     match exp with
@@ -575,18 +652,117 @@ let rec generate_hoistised_block (exp: rs_exp list) (app) : rs_exp =
         | [] -> app
         | _ -> failwith "Unreachable code"
 
+let rec hoist_let_exp (exp: rs_exp) : rs_exp * ((rs_pat * rs_exp) list) =
+    let hoit_let_exp_list (exps: rs_exp list) : (rs_exp list) * ((rs_pat * rs_exp) list) =
+        let accumulate acc exp =
+            let (exp, defs) = hoist_let_exp exp in
+            acc @ [exp, defs]
+        in
+        let list = List.fold_left accumulate [] exps in
+        let (exps, defs) = List.split list in
+        (exps, List.flatten defs)
+    in
+    match exp with
+        | RsLet (pat, exp, next) ->
+            (* We generate a new ID to to avoid shadowing existing variables when hoisting the let statement. *)
+            let build_new_id id =
+                id ^ "_" ^ (!variable_generator ())
+            in
+            let (rename, pat) = match pat with
+                | RsPatId id ->
+                    let new_id = build_new_id id in
+                    (Some (id, new_id), RsPatId new_id)
+                | RsPatType (typ, RsPatId id) ->
+                    let new_id = build_new_id id in
+                    (Some (id, new_id), RsPatType (typ, RsPatId new_id))
+                | _ ->
+                    (None, pat)
+            in
+            begin match rename with 
+                (* We decided to hoist that definition *)
+                | Some(rename) ->
+                    let def = (pat, exp) in
+                    let next = rename_in_exp rename next in
+                    let (next, defs) = hoist_let_exp next in
+                    (next, def :: defs )
+                (* We will not hoist that definition *)
+                | None ->
+                    let (next, defs) = hoist_let_exp next in
+                    (RsLet (pat, exp, next), defs)
+            end
+        | RsApp (fn, args) ->
+            let (fn, defs) = hoist_let_exp fn in
+            let (args, defs_args) = hoit_let_exp_list args in
+            (RsApp (fn, args), defs @ defs_args)
+        | RsMethodApp app ->
+            let (exp, defs) = hoist_let_exp app.exp in
+            let (args, defs_args) = hoit_let_exp_list app.args in
+            (RsMethodApp { app with exp = exp; args = args;}, defs @ defs_args)
+        | RsStaticApp (typ, name, exps) -> 
+            let (exps, defs) = hoit_let_exp_list exps in
+            (RsStaticApp (typ, name, exps), defs)
+        | RsField (exp, field) ->
+            let (exp, defs) = hoist_let_exp exp in
+            (RsField (exp, field), defs)
+        | RsBlock exps ->
+            let (exps, defs) = hoit_let_exp_list exps in
+            (RsBlock (exps), defs)
+        | RsInstrList exps ->
+            let (exps, defs) = hoit_let_exp_list exps in
+            (RsInstrList (exps), defs)
+        | RsTuple exps ->
+            let (exps, defs) = hoit_let_exp_list exps in
+            (RsTuple (exps), defs)
+        | RsIndex (exp1, exp2) ->
+            let (exp1, defs1) = hoist_let_exp exp1 in
+            let (exp2, defs2) = hoist_let_exp exp2 in
+            (RsIndex (exp1,exp2), defs1 @ defs2)
+        | RsBinop (exp1, op, exp2) -> 
+            let (exp1, defs1) = hoist_let_exp exp1 in
+            let (exp2, defs2) = hoist_let_exp exp2 in
+            (RsBinop (exp1, op, exp2), defs1 @ defs2)
+        | RsUnop (unop, exp) ->
+            let (exp, defs) = hoist_let_exp exp in
+            (RsUnop (unop, exp), defs)
+        | RsAs (exp, typ) ->
+            let (exp, defs) = hoist_let_exp exp in
+            (RsAs (exp, typ), defs)
+        | _ -> (exp, [])
+
+let pexp_hoister (pexp: rs_pexp) : rs_pexp =
+    match pexp with
+        | RsPexpWhen (pat, cond, exp) ->
+            let (cond, defs) = hoist_let_exp cond in
+            let rec build_cond exp defs =
+                match defs with
+                    | (pat, binding) :: tail -> RsLet (pat, binding, exp)
+                    | [] -> exp
+            in
+            let cond = build_cond cond defs in
+            RsPexpWhen (pat, cond, exp)
+        | _ -> pexp
+
 let expr_hoister (exp: rs_exp) : rs_exp = 
     match exp with
-        (* We dont need to hoistise external functions & some macro might not work with hoisting (for example: format!)*)
-        | RsApp (RsId name, args) when should_hoistise args && not(StringSet.mem name external_func) -> let ret = hoist args in 
+        (* We dont need to hoist external functions & some macro might not work with hoisting (for example: format!)*)
+        | RsApp (RsId name, args) when should_hoist args && not(SSet.mem name external_func) -> let ret = hoist args in 
             RsBlock[generate_hoistised_block (fst ret) (RsApp (RsId name, snd ret))]
-        | RsMethodApp {exp; name; generics; args} when should_hoistise args -> let ret = hoist args in 
+        | RsMethodApp {exp; name; generics; args} when should_hoist args -> let ret = hoist args in 
         RsBlock[generate_hoistised_block (fst ret) (RsMethodApp {
             exp = exp;
             name = name;
             generics = generics;
             args = snd ret
         })]
+        | RsIf (cond, if_branch, else_branch) ->
+            let (cond, defs) = hoist_let_exp cond in
+            let rec build_cond exp defs =
+                match defs with
+                    | (pat, binding) :: tail -> RsLet (pat, binding, exp)
+                    | [] -> exp
+            in
+            let cond = build_cond cond defs in
+            RsIf (cond, if_branch, else_branch)
         | _ -> exp
 
 let obj_hoister (obj: rs_obj) : rs_obj =
@@ -599,7 +775,7 @@ let obj_hoister (obj: rs_obj) : rs_obj =
 let expr_type_hoister = {
     exp = expr_hoister;
     lexp = id_lexp;
-    pexp = id_pexp;
+    pexp = pexp_hoister;
     typ = id_typ;
     pat = id_pat;
     obj = obj_hoister;
@@ -823,11 +999,11 @@ let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List
 
 (* ———————————————————————— prelude_func_filter  ————————————————————————— *)
 
-let prelude_func: StringSet.t = StringSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"; "hex_bits_12_backwards"; "to_bits"; "parse_hex_bits"])
+let prelude_func: SSet.t = SSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"; "hex_bits_12_backwards"; "to_bits"; "parse_hex_bits"])
 
 let rust_prelude_func_filter_alias (obj: rs_obj) : rs_program = 
     match obj with
-        | RsFn {name;_ } when (StringSet.mem name prelude_func)-> RsProg []
+        | RsFn {name;_ } when (SSet.mem name prelude_func)-> RsProg []
         | _ -> RsProg[obj]
 
 let rust_prelude_func_filter (RsProg objs) : rs_program =  merge_rs_prog_list (List.map (rust_prelude_func_filter_alias) objs)
@@ -903,25 +1079,25 @@ let add_wildcard_match: expr_type_transform = {
 (* ———————————————————————— VirtContext binder ————————————————————————— *)
 
 
-let sail_context_binder_exp (register_list: StringSet.t) (exp: rs_exp) : rs_exp = 
+let sail_context_binder_exp (register_list: SSet.t) (exp: rs_exp) : rs_exp = 
   match exp with
-    | RsId value -> if (StringSet.mem value register_list) then (RsId ("sail_ctx." ^ value)) else RsId value
+    | RsId value -> if (SSet.mem value register_list) then (RsId ("sail_ctx." ^ value)) else RsId value
     | _ -> exp
 
-let sail_context_binder_lexp (register_list: StringSet.t) (lexp: rs_lexp) : rs_lexp = 
+let sail_context_binder_lexp (register_list: SSet.t) (lexp: rs_lexp) : rs_lexp = 
   match lexp with
-    | RsLexpId value -> if (StringSet.mem value register_list) then (RsLexpId ("sail_ctx." ^ value)) else RsLexpId value
+    | RsLexpId value -> if (SSet.mem value register_list) then (RsLexpId ("sail_ctx." ^ value)) else RsLexpId value
     | _ -> lexp
 
-let sail_context_binder_pexp (register_list: StringSet.t) (pexp: rs_pexp) : rs_pexp = 
+let sail_context_binder_pexp (register_list: SSet.t) (pexp: rs_pexp) : rs_pexp = 
   match pexp with
-    | RsPexp (RsPatId value, exp) -> if (StringSet.mem value register_list) then RsPexp(RsPatId ("sail_ctx." ^ value), exp) else RsPexp (RsPatId value, exp)
+    | RsPexp (RsPatId value, exp) -> if (SSet.mem value register_list) then RsPexp(RsPatId ("sail_ctx." ^ value), exp) else RsPexp (RsPatId value, exp)
     | _ -> pexp
 
 
 let sail_context_binder_type (typ: rs_type) : rs_type = typ
 
-let sail_context_binder_generator (register_list: StringSet.t): expr_type_transform = {
+let sail_context_binder_generator (register_list: SSet.t): expr_type_transform = {
     exp = sail_context_binder_exp register_list;
     lexp = sail_context_binder_lexp register_list;
     pexp = sail_context_binder_pexp register_list;
@@ -943,7 +1119,7 @@ let is_enum (value: string) : bool =
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
-    | RsApp (RsId app_id, args) when not(StringSet.mem app_id external_func) && not(is_enum app_id) -> 
+    | RsApp (RsId app_id, args) when not(SSet.mem app_id external_func) && not(is_enum app_id) -> 
       let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, args)
     | _ -> exp
     
@@ -1002,18 +1178,18 @@ let dead_code_remover: expr_type_transform = {
 (* those in the future.                                                       *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-let unsupported_obj: StringSet.t = StringSet.of_list ([
+let unsupported_obj: SSet.t = SSet.of_list ([
     "Mem_write_request"; (* Depends on const generic exprs, would require monomorphisation. *)
 ])
 
 let is_supported_obj (obj: rs_obj) : bool =
     match obj with
-        | RsStruct s when StringSet.mem s.name unsupported_obj -> false
+        | RsStruct s when SSet.mem s.name unsupported_obj -> false
         | _ -> true
 
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
 
-let transform (rust_program: rs_program) (register_list: StringSet.t) (enum_entries: (string * string) list) : rs_program =
+let transform (rust_program: rs_program) (register_list: SSet.t) (enum_entries: (string * string) list) : rs_program =
   (* Build list of registers *)
   let sail_context_binder = sail_context_binder_generator register_list in
 

@@ -1,5 +1,6 @@
 (** Rust generation module **)
 
+module SSet = Call_set.SSet
 
 type rs_type =
     | RsTypId of string
@@ -218,6 +219,24 @@ let sanitize_generic_id (id: string) : string =
         String.uppercase_ascii (String.sub id 1 n)
     else
         id
+
+(** Returns the set of IDs redefined by this pattern **)
+let rec ids_of_pat (pat: rs_pat) : SSet.t = 
+    let empty = SSet.empty in 
+    let ids_of_list pats =
+        List.fold_left (fun acc pat -> SSet.union acc (ids_of_pat pat)) empty pats
+    in
+    match pat with
+        | RsPatLit _ -> empty
+        | RsPatId id -> SSet.add id empty
+        | RsPatType (_, pat) -> ids_of_pat pat
+        | RsPatWildcard -> SSet.add "_" empty
+        | RsPatTuple pats -> ids_of_list pats
+        | RsPatApp (_, pats) -> ids_of_list pats
+        | RsPatTodo _ -> empty
+        | RsPatSome pat -> ids_of_pat pat
+        | RsPatNone -> empty
+
 
 (* ————————————————————————————— Rust to String ————————————————————————————— *)
 
