@@ -32,5 +32,8 @@ pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) {
         assert!(false, "Process message")
     } else {
         ()
-    }
+    };
+    let a = BitVector::<3>::new(0b100);
+    let a__quote = BitVector::<3>::new(0b101);
+    assert!((a != a__quote), "Process message")
 }

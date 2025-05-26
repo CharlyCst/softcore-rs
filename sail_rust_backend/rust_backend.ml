@@ -146,7 +146,7 @@ module Codegen () = struct
     and process_pat (P_aux (pat, annot)) : rs_pat =
         match pat with
             | P_lit lit -> RsPatLit (process_lit lit)
-            | P_id id -> RsPatId (string_of_id id)
+            | P_id id -> RsPatId (sanitize_id (string_of_id id))
             | P_typ (typ, pat) -> RsPatType ((typ_to_rust typ), (process_pat pat))
             | P_wild -> RsPatWildcard
             | P_tuple pats -> RsPatTuple (List.map process_pat pats)
@@ -169,10 +169,10 @@ module Codegen () = struct
         (* print_endline (string_of_exp exp); *)
         match exp with
             | E_block exp_list -> RsBlock (List.map (process_exp ctx) exp_list)
-            | E_id id -> RsId (string_of_id id)
+            | E_id id -> RsId (sanitize_id (string_of_id id))
             | E_lit lit -> RsLit (process_lit lit)
             | E_typ (typ, exp) -> RsAs(process_exp ctx exp, typ_to_rust typ)
-            | E_app (id, exp_list) -> RsApp (RsId (string_of_id id), (List.map (process_exp ctx) exp_list))
+            | E_app (id, exp_list) -> RsApp (RsId (sanitize_id (string_of_id id)), (List.map (process_exp ctx) exp_list))
             | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
             | E_tuple (exp_list) -> RsTuple (List.map (process_exp ctx) exp_list)
             | E_if (exp1, exp2, exp3) -> RsIf ((process_exp ctx exp1), (process_exp ctx exp2), (process_exp ctx exp3)) 
@@ -240,7 +240,7 @@ module Codegen () = struct
                 construct_fields (RsField (RsId "sail_ctx", "config")) cfgs
     and process_lexp (ctx: context) (LE_aux (lexp, annot)) : rs_lexp =
         match lexp with
-            | LE_id id -> RsLexpId (string_of_id id)
+            | LE_id id -> RsLexpId (sanitize_id (string_of_id id))
             | LE_vector (lexp, idx) ->
                 (RsLexpIndex (
                     (process_lexp ctx lexp),
@@ -358,10 +358,16 @@ module Codegen () = struct
    
     and build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
         (* This function balances the lenghts of the argument and argument type list by adding more arguments if neccesary *)
+        let counter = ref 0 in
+        let fresh_arg () =
+            let arg_id = Printf.sprintf "missing_arg_%d" !counter in
+            counter := !counter + 1;
+            arg_id
+        in
         let rec add_missing_args args args_type new_args : string list =
             match (args, args_type) with
                 | (ha::ta, ht::tt) -> add_missing_args ta tt (new_args @ [ha])
-                | ([], ht::tt) -> add_missing_args [] tt (new_args @ ["TodoMissingArg"])
+                | ([], ht::tt) -> add_missing_args [] tt (new_args @ [fresh_arg ()])
                 | (_, []) -> new_args
         in
     
@@ -611,7 +617,7 @@ module Codegen () = struct
             | Nexp_times (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopMult, nexp_to_rs_exp m)
             | Nexp_sum   (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopAdd, nexp_to_rs_exp m)
             | Nexp_minus (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopSub, nexp_to_rs_exp m)
-            | Nexp_exp n ->  RsStaticApp (RsTypId "usize", "pow", [nexp_to_rs_exp n; RsLit (RsLitNum (Int64.of_int 2))])  (* exponential, it seems it is always 2 ^ n *)
+            | Nexp_exp n ->  RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum (Int64.of_int 2)); nexp_to_rs_exp n])  (* exponential, it seems it is always 2 ^ n *)
             | Nexp_neg n -> RsUnop (RsUnopNeg, nexp_to_rs_exp n)
             | Nexp_id id -> RsId (string_of_id id)
             | Nexp_var kid  -> RsId (sanitize_generic_id (string_of_kid kid)) (* variable *)

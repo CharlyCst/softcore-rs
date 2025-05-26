@@ -454,7 +454,7 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     (*| RsApp (RsId "min_int", _) -> RsId "BUILTIN_min_int_TODO" *)
     | RsApp (RsId "tdiv_int", _) -> RsId "BUILTIN_tdiv_int_TODO"
     | RsApp (RsId "tmod_int", _) -> RsId "BUILTIN_tmod_int_TODO"
-    | RsApp (RsId "pow2", _) -> RsId "BUILTIN_pow2_TODO"
+    | RsApp (RsId "pow2", [n]) -> RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [RsLit (RsLitNum (Int64.of_int 2)); n])
     (* | RsApp (RsId "zeros", _) -> RsId "BUILTIN_zeros_TODO" *)
     (*| RsApp (RsId "ones", e) -> RsApp (RsId "ones", e) Handled by the integrated library *) 
     (* Implemented in lib.sail *)
@@ -1179,12 +1179,19 @@ let dead_code_remover: expr_type_transform = {
 (* —————————————————————————————————————————————————————————————————————————— *)
 
 let unsupported_obj: SSet.t = SSet.of_list ([
-    "Mem_write_request"; (* Depends on const generic exprs, would require monomorphisation. *)
+    (* Depend on const generic exprs, would require monomorphisation. *)
+    "Mem_write_request";
+    "PTW_Output";
+    "PTW_Result";
+    "pte_bits";
+    "ppn_bits";
+    "vpn_bits";
 ])
 
 let is_supported_obj (obj: rs_obj) : bool =
     match obj with
         | RsStruct s when SSet.mem s.name unsupported_obj -> false
+        | RsAlias alias when SSet.mem alias.new_typ unsupported_obj -> false
         | _ -> true
 
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
