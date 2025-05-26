@@ -34,7 +34,7 @@ pub fn handle_int_int_bool_int(sail_ctx: &mut SailVirtCtx, a1: usize, a2: usize,
 }
 
 pub fn handle_bool(sail_ctx: &mut SailVirtCtx, factor_bool: bool) {
-    ()
+    
 }
 
 pub fn handle_union(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> ExceptionType {
@@ -42,7 +42,7 @@ pub fn handle_union(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> ExceptionType {
 }
 
 pub fn handle_empty(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
-    ()
+    
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]

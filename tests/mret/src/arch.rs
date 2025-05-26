@@ -86,7 +86,7 @@ pub fn set_next_pc(sail_ctx: &mut SailVirtCtx, pc: BitVector<64>) {
 }
 
 pub fn handle_illegal(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
-    ()
+    
 }
 
 pub fn get_xret_target(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<64> {

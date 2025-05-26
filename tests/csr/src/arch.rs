@@ -69,7 +69,7 @@ pub fn wX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>, v: BitVector<64>) {
 }
 
 pub fn handle_illegal(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
-    ()
+    
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
