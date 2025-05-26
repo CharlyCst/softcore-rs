@@ -403,6 +403,12 @@ let rec simplify_rs_exp (rs_exp: rs_exp) : rs_exp =
             RsLit (RsLitNum (Int64.mul a b))
         | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [RsLit (RsLitNum n); RsLit (RsLitNum m)]) ->
             RsLit (RsLitNum (int_pow n m))
+        | RsBlock exps ->
+            let is_not_unit exp = match exp with
+                | RsLit RsLitUnit -> false
+                | _ -> true
+                in
+            RsBlock (List.filter is_not_unit exps)
         | _ -> rs_exp
 
 
@@ -438,6 +444,14 @@ let nested_block_remover = {
 }
 
 (* ——————————————————————————— Native functions transformation ———————————————————————————— *)
+
+let unsupported_fun: SSet.t = SSet.of_list ([
+    (* Used only for side effects, not necessary in the Rust back-end *)
+    "csr_name_write_callback";
+    "csr_id_write_callback";
+    "csr_full_write_callback";
+    "long_csr_write_callback";
+])
 
 (* TODO: This list is probably incomplete and we might want to add extra fields in the future *)
 let native_func_transform_exp (exp : rs_exp) : rs_exp = 
@@ -531,6 +545,8 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "id", _) -> RsId "BUILTIN_id_TODO"
     | RsApp (RsId "gteq_int", [e1; e2]) ->  RsBinop (e1, RsBinopGe, e2)
     | RsApp (RsId "lt_int", [e1; e2]) -> RsBinop (e1, RsBinopLt, e2)
+    | RsApp (RsId "internal_error", [file; line; message]) -> RsApp (RsId "panic!", [RsLit (RsLitStr "{}, l {}: {}"); file; line; message])
+    | RsApp (RsId id, _) when SSet.mem id unsupported_fun -> RsLit RsLitUnit
     | _ -> exp
   
 
@@ -1193,6 +1209,12 @@ let dead_code_remover: expr_type_transform = {
 (* —————————————————————————————————————————————————————————————————————————— *)
 
 let unsupported_obj: SSet.t = SSet.of_list ([
+    (* Used only for side effects, not necessary in the Rust back-end *)
+    "csr_name_write_callback";
+    "csr_id_write_callback";
+    "csr_full_write_callback";
+    "long_csr_write_callback";
+
     (* Depend on const generic exprs, would require monomorphisation. *)
     "Mem_write_request";
     "PTW_Output";
@@ -1206,6 +1228,7 @@ let is_supported_obj (obj: rs_obj) : bool =
     match obj with
         | RsStruct s when SSet.mem s.name unsupported_obj -> false
         | RsAlias alias when SSet.mem alias.new_typ unsupported_obj -> false
+        | RsFn fn when SSet.mem fn.name unsupported_obj -> false
         | _ -> true
 
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)

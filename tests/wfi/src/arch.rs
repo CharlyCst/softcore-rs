@@ -53,7 +53,7 @@ pub fn _get_Mstatus_TW(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
 }
 
 pub fn handle_illegal(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
-    ()
+    
 }
 
 pub fn platform_wfi(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
