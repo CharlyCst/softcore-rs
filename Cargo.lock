@@ -31,6 +31,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "hoisting"
+version = "0.1.0"
+dependencies = [
+ "sail_prelude",
+]
+
+[[package]]
 name = "mret"
 version = "0.1.0"
 dependencies = [
