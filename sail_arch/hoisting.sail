@@ -25,5 +25,10 @@ function clause execute TEST() = {
     // In rust we need to hoist the `let` binding here
     if 0b101 != (let foo = 0b101 in foo) then {
         assert(false, "Branch should not be taken");
-    }
+    };
+
+    // Sail allows names whith single quote (`'`), which Rust do not
+    let a = 0b100;
+    let a' = 0b101;
+    assert (a != a', "Those variables should be different!")
 }
