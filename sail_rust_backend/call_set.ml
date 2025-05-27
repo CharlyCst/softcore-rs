@@ -90,7 +90,7 @@ let rec exp_call_set (texp: tannot exp) (ctx: sail_ctx) : sail_ctx =
         | E_ref id -> ctx
         | E_throw exp -> ctx
         | E_try (exp, pexp_list) -> ctx
-        | E_assert (exp1, exp2) -> ctx
+        | E_assert (exp1, exp2) -> ctx_union (exp_call_set exp1 ctx) (exp_call_set exp2 ctx)
         | E_var (lexp, exp1, exp2) -> ctx
         | E_internal_plet (pat, exp1, exp2) -> ctx
         | E_internal_return exp -> ctx
