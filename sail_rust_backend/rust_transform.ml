@@ -228,7 +228,7 @@ let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
     let ret = transform_type ct ret in
     {
         name = fn.name;
-        args = (List.map ct.exp fn.args);
+        args = (List.map ct.pat fn.args);
         signature = {generics; args; ret};
         body = transform_exp ct fn.body;
     }
@@ -879,7 +879,7 @@ let normalize_generics = {
 
 let sail_context_inserter (func: rs_fn): rs_fn = { 
   func with 
-    args = RsId "sail_ctx" :: func.args;
+    args = RsPatId "sail_ctx" :: func.args;
     signature = { func.signature with args = RsTypId "&mut SailVirtCtx" :: func.signature.args }
 }
 
@@ -895,35 +895,33 @@ let virt_context_transform = {
 (* enums in argument positions will not be detected properly.                 *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-let rec is_enum (enum_list: (string * string) list) (enum: string) : bool = 
-    match enum_list with
-    | (k, v) :: tail ->
-        if k = enum then true
-        else is_enum tail enum
-    | [] -> false
 
-let arg_is_not_enum (enum_list: (string * string) list) (arg: rs_exp * rs_type) : bool =
-    match fst arg with
-    | RsId id -> 
-        not (is_enum enum_list id)
-    | _ -> true
+(* —————————————————————————— Enum Args Namespace ——————————————————————————— *)
+(* Sail does not need to namespace its enum, but Rust does. This pass adds    *)
+(* the approriate namespaces to all enum arguments.                           *)
+(* —————————————————————————————————————————————————————————————————————————— *)
 
-let sail_context_inserter (enum_list: (string * string) list) (func: rs_fn): rs_fn = 
-  (* Locate and remove all enums from the arguments *)
-  let args_exp = func.args in
-  let args_type = func.signature.args in
-  let args = List.combine args_exp args_type in
-  let args = List.filter (arg_is_not_enum enum_list) args in
-  let (args_exp, args_type) = List.split args in
+let add_namespace_to_arg_pats (enum_list: (string * string) list) (func: rs_fn): rs_fn = 
+  let rec get_namespace enum enum_list = match enum_list with
+    | (k, v) :: tail when k = enum -> Some v
+    | (k, v) :: tail -> get_namespace enum tail
+    | [] -> None
+  in
+  (** Add the proper enum namespace to all enum pattern argument, leave other unchanged **)
+  let add_namespace pat = match pat with
+    | RsPatApp (RsPatId enum, args) -> begin match get_namespace enum enum_list with
+        (* There is no concept of path in patterns yet, so we do a hacky string concatenation. *)
+        (* TODO: fix that by adding a path to patterns *)
+        | Some path -> RsPatApp (RsPatId (path ^ "::" ^ enum), args)
+        | None -> pat (* Could not find enum *)
+    end
+    | _ -> pat
+  in
 
-  (* Update the function with the new argument list *)
-  { func with 
-    args = args_exp;
-    signature = {func.signature with args = args_type }
-  }
+  { func with args = List.map add_namespace func.args; }
 
-let enum_in_args_remover_generator (enum_list: (string * string) list) : func_transform = {
-  func = sail_context_inserter enum_list;
+let enum_arg_namespace_generator (enum_list: (string * string) list) : func_transform = {
+  func = add_namespace_to_arg_pats enum_list;
 }
 
 (* ———————————————————————— Enumeration binder ————————————————————————— *)
@@ -1246,7 +1244,7 @@ let transform (rust_program: rs_program) (register_list: SSet.t) (enum_entries: 
   let sail_context_binder = sail_context_binder_generator register_list in
 
   (* Process enumerations *)
-  let enum_args_filter = enum_in_args_remover_generator enum_entries in
+  let enum_args_filter = enum_arg_namespace_generator enum_entries in
   let enum_binder = enum_binder_generator enum_entries in
 
   (* Second stage: bitvector transformations

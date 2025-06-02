@@ -119,7 +119,7 @@ type rs_fn_type = {
 type rs_fn = {
     name: string;
     signature: rs_fn_type;
-    args: rs_exp list;
+    args: rs_pat list;
     body: rs_exp;
 }
 
@@ -498,11 +498,11 @@ and string_of_rs_pexp (n: int) (pexp: rs_pexp) : string =
                 (string_of_rs_exp n exp)
 
 let string_of_rs_fn_args (fn: rs_fn) : string =
-    let string_of_arg_and_type (arg: rs_exp) (typ: rs_type) : string =
+    let string_of_arg_and_type (arg: rs_pat) (typ: rs_type) : string =
         match typ with
             | RsTypUnit -> "unit_arg: ()"
             | _ -> Printf.sprintf "%s: %s"
-                (string_of_rs_exp 0 arg)
+                (string_of_rs_pat arg)
                 (string_of_rs_type typ)
     in
     let arg_types = fn.signature.args in

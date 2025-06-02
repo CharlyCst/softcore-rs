@@ -56,7 +56,7 @@ pub enum ast {
     TEST(())
 }
 
-pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) {
+pub fn execute(sail_ctx: &mut SailVirtCtx, ast::TEST(()): ast) {
     if {hartSupports(sail_ctx, extension::Ext_U)} {
         ()
     } else {
