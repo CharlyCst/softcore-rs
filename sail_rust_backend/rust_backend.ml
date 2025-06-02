@@ -332,28 +332,30 @@ module Codegen () = struct
             | RsPatWildcard -> "_"
             | _ -> Reporting.simple_warn "`extaract_pat_name`: pattern not implemented"; "TodoPat"
     
-    and process_args_pat_list value : string = (extract_pat_name (process_pat value))
-            
-    and process_args_pat (P_aux (pat_aux, annot)) : string list = 
+    and process_args_pat (P_aux (pat_aux, annot)) : rs_pat list = 
         match pat_aux with
-            | P_app (id, [P_aux ((P_tuple pats), _)]) -> List.map process_args_pat_list pats
-            | P_app _ -> ["TodoArgsApp"]
-            | P_struct (id_pat_list, field_pat_wildcard) -> ["TodoArgsStruct"]
-            | P_list pats -> ["TodoArgsList"]
-            | P_var (var, typ) -> ["TodoArgsVar"]
-            | P_cons (h, t) -> ["TodoArgsCons"]
-            | P_tuple pats -> List.map process_args_pat_list pats
-            | P_id id -> [string_of_id id]
-            | P_typ (_, recur) -> process_args_pat recur
-            | P_lit lit -> ["TodoLiteral"]
-            | P_wild -> ["_"]
-            | P_or (_, _) -> ["TodoOr"]
-            | P_not _ -> ["TodoNot"]
-            | P_as (_, _) -> ["TodoAs"]
-            | P_vector vec -> [string_of_rs_pat(RsPatLit (process_vector_pat vec))]
-            | P_vector_concat _ -> ["TodoVectorConcat"]
-            | P_vector_subrange (_, _, _) -> ["TodoVectorSubrange"]
-            | P_string_append _  -> ["TodoStringAppend"]
+            | P_app (id, [P_aux (P_tuple pats, _)]) -> List.flatten (List.map process_args_pat pats)
+            (* | P_app (id, [pat]) -> process_args_pat pat *)
+            | P_app (id, pats) ->
+                [RsPatApp (RsPatId (sanitize_id (string_of_id id)), List.flatten (List.map process_args_pat pats))]
+            | P_app _ -> [RsPatId "TodoArgsApp"]
+            | P_struct (id_pat_list, field_pat_wildcard) -> [RsPatId "TodoArgsStruct"]
+            | P_list pats -> [RsPatId "TodoArgsList"]
+            | P_var (var, typ) -> [RsPatId "TodoArgsVar"]
+            | P_cons (h, t) -> [RsPatId "TodoArgsCons"]
+            | P_tuple pats -> List.flatten (List.map process_args_pat pats)
+            | P_id id -> [RsPatId (string_of_id id)]
+            | P_typ (_, pat) -> process_args_pat pat
+            | P_lit (L_aux (L_unit, _)) -> [RsPatLit RsLitUnit]
+            | P_lit _ -> [RsPatTodo "TodoPatLit"]
+            | P_wild -> [RsPatWildcard]
+            | P_or (_, _) -> [RsPatId "TodoOr"]
+            | P_not _ -> [RsPatId "TodoNot"]
+            | P_as (_, _) -> [RsPatId "TodoAs"]
+            | P_vector vec -> [RsPatLit (process_vector_pat vec)]
+            | P_vector_concat _ -> [RsPatId "TodoVectorConcat"]
+            | P_vector_subrange (_, _, _) -> [RsPatId "TodoVectorSubrange"]
+            | P_string_append _  -> [RsPatId "TodoStringAppend"]
     
    
     and build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
@@ -362,9 +364,9 @@ module Codegen () = struct
         let fresh_arg () =
             let arg_id = Printf.sprintf "missing_arg_%d" !counter in
             counter := !counter + 1;
-            arg_id
+            RsPatId arg_id
         in
-        let rec add_missing_args args args_type new_args : string list =
+        let rec add_missing_args args args_type new_args : rs_pat list =
             match (args, args_type) with
                 | (ha::ta, ht::tt) -> add_missing_args ta tt (new_args @ [ha])
                 | ([], ht::tt) -> add_missing_args [] tt (new_args @ [fresh_arg ()])
@@ -392,7 +394,6 @@ module Codegen () = struct
                 | None -> mk_fn_typ [RsTypId "TodoNoUnionSignature"] RsTypUnit
         in
         let arg_names = add_missing_args arg_names signature.args [] in
-        let arg_names = List.map (fun e -> RsId e) arg_names in
         ctx.ret_type <- signature.ret;
         assert (List.length arg_names = List.length signature.args);
         let rs_exp = process_exp ctx exp in

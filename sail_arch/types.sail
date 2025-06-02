@@ -1,6 +1,12 @@
 default Order dec
 $include <prelude.sail>
 
+// ——————————————————————————————— Arch size ———————————————————————————————— //
+
+type xlen : Int = 64
+type xlen_bytes : Int = 8
+type xlenbits = bits(xlen)
+
 // ——————————————————————————————— Union Type ——————————————————————————————— //
 
 union ExceptionType = {
@@ -11,6 +17,12 @@ union ExceptionType = {
 
  /* extensions */
  E_Extension          : int
+}
+
+newtype physaddr = Physaddr : xlenbits
+
+function pmpMatchAddr(Physaddr(addr) : physaddr) -> bool = {
+    addr != 0x0000000000000000
 }
 
 // —————————————————————————————— Simple Types —————————————————————————————— //
@@ -115,6 +127,7 @@ function clause execute TEST() = {
     let d = handle_retired();
     let e = handle_union();
     let f = hex_bits_backwards(8, "00");
+    let g = pmpMatchAddr(Physaddr(0x00000000deadbeef));
 
     if f != 0b00000000 then {
         assert(false, "failed to parse hex)");

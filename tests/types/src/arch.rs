@@ -12,6 +12,12 @@ pub struct SailConfig {
 
 }
 
+pub const xlen: usize = 64;
+
+pub const xlen_bytes: usize = 8;
+
+pub type xlenbits = BitVector<xlen>;
+
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExceptionType {
     E_Fetch_Addr_Align(()),
@@ -19,6 +25,15 @@ pub enum ExceptionType {
     E_Illegal_Instr(()),
     E_Breakpoint(()),
     E_Extension(usize)
+}
+
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+pub enum physaddr {
+    Physaddr(xlenbits)
+}
+
+pub fn pmpMatchAddr(sail_ctx: &mut SailVirtCtx, physaddr::Physaddr(addr): physaddr) -> bool {
+    (addr != BitVector::<64>::new(0b0000000000000000000000000000000000000000000000000000000000000000))
 }
 
 pub fn handle_int(sail_ctx: &mut SailVirtCtx, a1: usize) -> usize {
@@ -111,7 +126,7 @@ pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> Bi
     }
 }
 
-pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) {
+pub fn execute(sail_ctx: &mut SailVirtCtx, ast::TEST(()): ast) {
     handle_empty(sail_ctx, ());
     handle_bool(sail_ctx, true);
     let a = handle_int(sail_ctx, 1234);
@@ -120,6 +135,10 @@ pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) {
     let d = handle_retired(sail_ctx, ());
     let e = handle_union(sail_ctx, ());
     let f = hex_bits_backwards(sail_ctx, 8, "00");
+    let g = {
+        let var_2 = physaddr::Physaddr(BitVector::<64>::new(0b0000000000000000000000000000000011011110101011011011111011101111));
+        pmpMatchAddr(sail_ctx, var_2)
+    };
     if {(f != BitVector::<8>::new(0b00000000))} {
         assert!(false, "Process message")
     } else {

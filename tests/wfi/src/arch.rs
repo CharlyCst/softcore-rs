@@ -76,7 +76,7 @@ pub enum ast {
     WFI(())
 }
 
-pub fn execute(sail_ctx: &mut SailVirtCtx, TodoArgsApp: ast) -> Retired {
+pub fn execute(sail_ctx: &mut SailVirtCtx, ast::WFI(()): ast) -> Retired {
     match sail_ctx.cur_privilege {
         Privilege::Machine => {{
             platform_wfi(sail_ctx, ());
