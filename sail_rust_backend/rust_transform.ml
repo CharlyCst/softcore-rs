@@ -331,8 +331,13 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                 args = [exp];
             } in
             RsAssign (RsLexpField (lexp, "bits"), RsMethodApp method_app)
-        | RsApp (RsId "zero_extend", RsLit RsLitNum size :: e ) ->  
-            RsApp (RsId (Printf.sprintf "zero_extend_%Lu" size), e)
+        | RsApp (RsId "zero_extend", RsLit RsLitNum size :: [e] ) ->  
+            RsMethodApp {
+                exp = e;
+                name = "zero_extend";
+                generics = [Printf.sprintf "%Lu" size];
+                args = [];
+            }
         | RsMatch (exp, pat::pats) when is_bitvec_lit pat ->
             let method_app = {
                 exp = exp;
