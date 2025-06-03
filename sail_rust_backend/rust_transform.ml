@@ -9,7 +9,7 @@ module SMap = Call_set.SMap
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
-let external_func: SSet.t = SSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "sys_pmp_count"; "subrange_bits"; "sys_pmp_grain"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"; "hex_bits_12_forwards"; "hex_bits_12_backwards" ; "sail_zeros"; "parse_hex_bits"])
+let external_func: SSet.t = SSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "subrange_bits"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"; "hex_bits_12_forwards"; "hex_bits_12_backwards" ; "sail_zeros"; "parse_hex_bits"])
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -406,7 +406,8 @@ let rec simplify_rs_exp (rs_exp: rs_exp) : rs_exp =
             RsLit (RsLitNum (Int64.sub a b))
         | RsBinop (RsLit (RsLitNum a), RsBinopMult, RsLit (RsLitNum b)) -> 
             RsLit (RsLitNum (Int64.mul a b))
-        | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [RsLit (RsLitNum n); RsLit (RsLitNum m)]) ->
+        | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [RsLit (RsLitNum n); RsLit (RsLitNum m)])
+        | RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum n); RsLit (RsLitNum m)])->
             RsLit (RsLitNum (int_pow n m))
         | RsBlock exps ->
             let is_not_unit exp = match exp with
@@ -464,7 +465,6 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "add_atom", [e1;e2]) -> RsBinop(e1,RsBinopAdd,e2)
     | RsApp (RsId "sub_atom", [e1;e2]) -> RsBinop(e1,RsBinopSub,e2)
     | RsApp (RsId "negate_atom", _) -> RsId "BUILTIN_atom_negate_TODO" 
-    | RsApp (RsId "mult_atom", [e1;e2]) -> RsBinop(e1,RsBinopMult,e2)
     | RsApp (RsId "ediv_int", _) -> RsId "BUILTIN_atom_ediv_TODO" 
     | RsApp (RsId "emod_int", [e1; e2]) -> RsBinop(e1, RsBinopMod, e2)
     | RsApp (RsId "abs_int_atom", _) -> RsId "BUILTIN_atom_abs_int_TODO" 
@@ -476,6 +476,7 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "not", [b]) -> RsUnop(RsUnopNeg, b)
     | RsApp (RsId "lt", _) -> RsId "BUILTIN_lt_TODO"
     | RsApp (RsId "lteq", _) -> RsId "BUILTIN_lteq_TODO"
+    | RsApp (RsId "lteq_int", [e1; e2]) -> RsBinop (e1, RsBinopLe, e2)
     | RsApp (RsId "gt", _) -> RsId "BUILTIN_gt_TODO"
     | RsApp (RsId "gteq", _) -> RsId "BUILTIN_gteq_TODO"
     | RsApp (RsId "add_int", _) -> RsId "BUILTIN_add_int_TODO"

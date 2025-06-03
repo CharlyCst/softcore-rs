@@ -11,7 +11,7 @@ pub type _tick_a = ();
 pub type _tick_b = ();
 pub type _tick_paddr = ();
 pub type _tick_failure = ();
-pub type nat = ();
+pub type nat = u128;
 
 #[allow(non_upper_case_globals)]
 pub const zero_reg: BitVector<64> = BitVector::new(0x0);

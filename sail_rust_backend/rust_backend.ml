@@ -94,9 +94,6 @@ module Codegen () = struct
             | Ord_aux (Ord_dec, _) -> "dec"
     
     let process_register reg : rs_program =
-        print_string "Register ";
-        let (typ, id, exp) = match reg with | DEC_reg (typ, id, exp) -> (typ, id, exp) in
-        print_id id;
         RsProg []
     
     let process_scattered scattered : rs_program =
@@ -164,14 +161,45 @@ module Codegen () = struct
             | P_string_append _ -> RsPatId "TODO_PAT_string_append"
             | P_struct (_, _) -> RsPatId "TODO_PAT_struct"
     
+    (** Translate a Sail binary operation into a Rust Binary operation.
+
+        Sail has a more flexible type system, which prevents overflow in some
+        cases. For instance, the type of `a * b` is `int(sizeof(a) * int(sizeof(b))`.
+        In Rust we need to fit all integers in the existing integer types,
+        which requires conversions to bigger types when the result can
+        overflow.
+        This function leverages the Sail types to infer potential overflow, and
+        performs conversions if appropriate.**)
+    and process_binop_exp (ctx: context) (exp1: tannot exp) (binop: rs_binop) (exp2: tannot exp) : rs_exp =
+        let E_aux (_, t1) = exp1 in
+        let E_aux (_, t2) = exp2 in
+        let t1 = typ_of_annot t1 in
+        let t2 = typ_of_annot t2 in
+        let size1 = size_of_num_type t1 in
+        let size2 = size_of_num_type t2 in
+        let exp1 = process_exp ctx exp1 in
+        let exp2 = process_exp ctx exp2 in
+        let u128 = RsTypId "u128" in
+        match binop with
+            | RsBinopMult ->
+                begin match (size1, size2) with
+                    (* 64 bits overflow, switch to 128 bits *)
+                    | (Some n, Some m) when Int64.mul n m >= 64L ->
+                        RsBinop(RsAs (exp1, u128), RsBinopMult, RsAs (exp2, u128))
+                    | _ -> RsBinop(exp1, RsBinopMult, exp2)
+                end
+            | _ ->
+                Reporting.simple_warn (Printf.sprintf "Binop not yet implemented: %s" (string_of_rs_binop binop));
+                RsTodo (Printf.sprintf "Binop%s" (string_of_rs_binop binop))
+
     and process_exp (ctx: context) (E_aux (exp, aux)) : rs_exp = 
-        (* print_string "Exp "; *)
-        (* print_endline (string_of_exp exp); *)
         match exp with
             | E_block exp_list -> RsBlock (List.map (process_exp ctx) exp_list)
             | E_id id -> RsId (sanitize_id (string_of_id id))
             | E_lit lit -> RsLit (process_lit lit)
             | E_typ (typ, exp) -> RsAs(process_exp ctx exp, typ_to_rust typ)
+            | E_app (id, [e1; e2]) when string_of_id id = "mult_atom" ->
+                process_binop_exp ctx e1 RsBinopMult e2
             | E_app (id, exp_list) -> RsApp (RsId (sanitize_id (string_of_id id)), (List.map (process_exp ctx) exp_list))
             | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
             | E_tuple (exp_list) -> RsTuple (List.map (process_exp ctx) exp_list)
@@ -331,7 +359,56 @@ module Codegen () = struct
             | RsPatType (typ, pat) -> (string_of_rs_pat pat) 
             | RsPatWildcard -> "_"
             | _ -> Reporting.simple_warn "`extaract_pat_name`: pattern not implemented"; "TodoPat"
-    
+
+    (** Return the size occupied by a numeral type in bits. **)
+    and size_of_num_type (Typ_aux (typ, l): typ) : int64 option =
+        let rec simplify exp =
+            let simpler_exp = Rust_transform.transform_exp Rust_transform.expression_optimizer exp in
+            if simpler_exp = exp then
+                simpler_exp
+            else
+                simplify simpler_exp
+        in
+        let int_log2 (n : Int64.t) : int64 =
+          if n <= 0L then
+            invalid_arg "int_log2: Input must be positive."
+          else
+            let rec find_log current_val current_log_acc =
+              if current_val = 1L then
+                current_log_acc
+              else
+                find_log (Int64.shift_right_logical current_val 1) (Int64.add current_log_acc 1L)
+            in
+            find_log n 0L
+        in
+        let extract_int value = match value with
+            | RsLit (RsLitNum n) -> Some n
+            | _ -> None 
+        in
+        match typ with
+            (* We expect all num types to be represented as ranges *)
+            | Typ_app (id, [start; A_aux (A_nexp (Nexp_aux (nexp, l)), _)]) when string_of_id id = "range" ->
+                begin match nexp with
+                    (* We expect a range of the form 2 ^ X - 1 *)
+                    | Nexp_minus (Nexp_aux (Nexp_exp exponent, _), Nexp_aux (Nexp_constant n, _)) ->
+                        let exponent = simplify (nexp_to_rs_exp exponent) in
+                        extract_int exponent
+                    | _ ->
+                        Reporting.warn
+                            "Unexpected range for numeral type"
+                            l
+                            (Printf.sprintf "Expected a range of shape `2 ^ X - 1`, found: %s" (string_of_typ (Typ_aux (typ, l))));
+                        None
+                end;
+            (* Note: 'atom' corresponds to 'int' type. *)
+            | Typ_app (id, [A_aux ((A_nexp nexp), _)]) when string_of_id id = "atom" ->
+                let value = simplify (nexp_to_rs_exp nexp) in
+                Option.map int_log2 (extract_int value)
+            (* Unexpected numeral type, return a default value *)
+            | _ ->
+                Reporting.warn "Unknown numeral type" l (Printf.sprintf "Expected a range or int type, found: %s" (string_of_typ (Typ_aux (typ, l))));
+                None
+
     and process_args_pat (P_aux (pat_aux, annot)) : rs_pat list = 
         match pat_aux with
             | P_app (id, [P_aux (P_tuple pats, _)]) -> List.flatten (List.map process_args_pat pats)
