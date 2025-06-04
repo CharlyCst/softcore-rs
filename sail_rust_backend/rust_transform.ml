@@ -893,15 +893,6 @@ let virt_context_transform = {
   func = sail_context_inserter;
 }
 
-(* —————————————————————————— Enum In Args Remover —————————————————————————— *)
-(* A common pattern is to use enums as argument in scattered function.        *)
-(* This allows pattern matching on one of the arguments.                      *)
-(*                                                                            *)
-(* This transformation must be executed _before_ the enum binder, otherwise   *)
-(* enums in argument positions will not be detected properly.                 *)
-(* —————————————————————————————————————————————————————————————————————————— *)
-
-
 (* —————————————————————————— Enum Args Namespace ——————————————————————————— *)
 (* Sail does not need to namespace its enum, but Rust does. This pass adds    *)
 (* the approriate namespaces to all enum arguments.                           *)
