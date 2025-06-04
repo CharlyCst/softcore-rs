@@ -151,7 +151,7 @@ pub fn ext_fail_xret_priv(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
     ()
 }
 
-pub fn execute(sail_ctx: &mut SailVirtCtx, ast::MRET(()): ast) -> Retired {
+pub fn execute_MRET(sail_ctx: &mut SailVirtCtx) -> Retired {
     if {(sail_ctx.cur_privilege != Privilege::Machine)} {
         handle_illegal(sail_ctx, ());
         Retired::RETIRE_FAIL

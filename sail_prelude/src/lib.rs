@@ -1,5 +1,4 @@
 #![allow(incomplete_features, non_camel_case_types)]
-#![feature(generic_const_exprs)]
 
 use core::ops;
 use std::cmp::min;
@@ -39,11 +38,11 @@ pub fn parse_hex_bits<const N: usize>(_n: usize, _hex_str: &str) -> BitVector<N>
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
-pub fn bitvector_concat<const N: usize, const M: usize>(
+pub fn bitvector_concat<const N: usize, const M: usize, const NM: usize>(
     e1: BitVector<N>,
     e2: BitVector<M>,
-) -> BitVector<{ N + M }> {
-    BitVector::<{ N + M }>::new((e1.bits() << M) | e2.bits())
+) -> BitVector<{ NM }> {
+    BitVector::<{ NM }>::new((e1.bits() << M) | e2.bits())
 }
 
 // We assume bit aren't writable in Miralis
@@ -656,10 +655,11 @@ mod tests {
     #[test]
     fn test_bitvector_concat() {
         const SIZE: usize = 20;
+        const NEW_SIZE: usize = 40;
 
         for i in 0..(1 << SIZE) {
             let v = BitVector::<SIZE>::new(i);
-            assert_eq!(bitvector_concat::<SIZE, SIZE>(v, v).bits, i + (i << SIZE));
+            assert_eq!(bitvector_concat::<SIZE, SIZE, NEW_SIZE>(v, v).bits, i + (i << SIZE));
         }
     }
 

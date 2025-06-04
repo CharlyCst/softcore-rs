@@ -81,7 +81,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
                 (transform_pat ct pat),
                 (transform_exp ct exp),
                 (transform_exp ct next)))
-        | RsApp (app, args) -> transform_app ct app args
+        | RsApp (app, generics, args) -> transform_app ct app generics args
         | RsStaticApp (app, method_name, args) -> RsStaticApp(transform_type ct app, method_name, (List.map (transform_exp ct) args))
         | RsMethodApp {exp; name; generics; args} ->
             (RsMethodApp {
@@ -135,7 +135,7 @@ and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
         | RsReturn exp -> RsReturn (transform_exp ct exp)
         | RsTodo str -> RsTodo str
 
-and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : rs_exp =
+and transform_app (ct: expr_type_transform) (fn: rs_exp) (generics: string list) (args: rs_exp list) : rs_exp =
     let args = List.map (transform_exp ct) args in
     match (fn, args) with
         (* Built-in elementary operations *)
@@ -169,10 +169,10 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
             }
         | (RsId "EXTS", (RsLit (RsLitNum n))::value::[]) ->
             (match n with
-                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 8L))]), RsTypId "new"), [mk_method_app value "bits" []])
-                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 16L))]), RsTypId "new"), [mk_method_app value "bits" []])
-                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 32L))]), RsTypId "new"), [mk_method_app value "bits" []])
-                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 64L))]), RsTypId "new"), [mk_method_app value "bits" []])
+                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 8L))]), RsTypId "new"), generics, [mk_method_app value "bits" []])
+                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 16L))]), RsTypId "new"), generics, [mk_method_app value "bits" []])
+                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 32L))]), RsTypId "new"), generics, [mk_method_app value "bits" []])
+                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 64L))]), RsTypId "new"), generics, [mk_method_app value "bits" []])
                 | _ -> 
                     Printf.printf "Warning: unsupported EXTS bit width (%d)\n" (Int64.to_int n);
                     RsAs (value, RsTypId "InvalidUSigned")
@@ -182,7 +182,7 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (args: rs_exp list) : r
         | (RsId "unsigned", value::[]) -> mk_method_app value "as_usize" []
 
         (* Otherwise keep as is *)
-        | _ -> (RsApp (fn, args))
+        | _ -> (RsApp (fn, generics, args))
 
 and transform_pexp (ct: expr_type_transform) (pexp: rs_pexp) : rs_pexp =
     let pexp = ct.pexp pexp in
@@ -303,7 +303,7 @@ let parse_first_tuple_entry(values: rs_pexp list) : rs_pat list =
   
 let bitvec_transform_exp (exp: rs_exp) : rs_exp =
     match exp with
-        | RsApp (RsId "subrange_bits", [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
+        | RsApp (RsId "subrange_bits", generics, [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
             let r_size = Int64.sub r_end r_start in
             RsMethodApp {
@@ -312,12 +312,12 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                 generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
                 args = [];
             }
-        | RsApp (RsId "subrange_bits", [RsId id; RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
+        | RsApp (RsId "subrange_bits", generics, [RsId id; RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
             let r_size = Int64.sub r_end r_start in
             RsMethodApp {
                 exp = RsId id;
-                name = "subrange";
+                name = "subran generics,ge";
                 generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
                 args = [];
             }
@@ -331,7 +331,7 @@ let bitvec_transform_exp (exp: rs_exp) : rs_exp =
                 args = [exp];
             } in
             RsAssign (RsLexpField (lexp, "bits"), RsMethodApp method_app)
-        | RsApp (RsId "zero_extend", RsLit RsLitNum size :: [e] ) ->  
+        | RsApp (RsId "zero_extend", generics, RsLit RsLitNum size :: [e] ) ->  
             RsMethodApp {
                 exp = e;
                 name = "zero_extend";
@@ -406,7 +406,7 @@ let rec simplify_rs_exp (rs_exp: rs_exp) : rs_exp =
             RsLit (RsLitNum (Int64.sub a b))
         | RsBinop (RsLit (RsLitNum a), RsBinopMult, RsLit (RsLitNum b)) -> 
             RsLit (RsLitNum (Int64.mul a b))
-        | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [RsLit (RsLitNum n); RsLit (RsLitNum m)])
+        | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [], [RsLit (RsLitNum n); RsLit (RsLitNum m)])
         | RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum n); RsLit (RsLitNum m)])->
             RsLit (RsLitNum (int_pow n m))
         | RsBlock exps ->
@@ -462,97 +462,97 @@ let unsupported_fun: SSet.t = SSet.of_list ([
 (* TODO: This list is probably incomplete and we might want to add extra fields in the future *)
 let native_func_transform_exp (exp : rs_exp) : rs_exp = 
     match exp with
-    | RsApp (RsId "add_atom", [e1;e2]) -> RsBinop(e1,RsBinopAdd,e2)
-    | RsApp (RsId "sub_atom", [e1;e2]) -> RsBinop(e1,RsBinopSub,e2)
-    | RsApp (RsId "negate_atom", _) -> RsId "BUILTIN_atom_negate_TODO" 
-    | RsApp (RsId "ediv_int", _) -> RsId "BUILTIN_atom_ediv_TODO" 
-    | RsApp (RsId "emod_int", [e1; e2]) -> RsBinop(e1, RsBinopMod, e2)
-    | RsApp (RsId "abs_int_atom", _) -> RsId "BUILTIN_atom_abs_int_TODO" 
-    | RsApp (RsId "not_vec", [v]) -> RsUnop(RsUnopNeg, v)
-    | RsApp (RsId "eq_bit", [e1; e2]) -> RsBinop(e1, RsBinopEq, e2) (* TODO Is it correct to compare like that? *)
-    | RsApp (RsId "eq_bool", _) -> RsId "BUILTIN_eq_bool_TODO"
-    | RsApp (RsId "eq_string", _) -> RsId "BUILTIN_eq_string_TODO"
-    | RsApp (RsId "eq_int", _) -> RsId "BUILTIN_eq_int_TODO"
-    | RsApp (RsId "not", [b]) -> RsUnop(RsUnopNeg, b)
-    | RsApp (RsId "lt", _) -> RsId "BUILTIN_lt_TODO"
-    | RsApp (RsId "lteq", _) -> RsId "BUILTIN_lteq_TODO"
-    | RsApp (RsId "lteq_int", [e1; e2]) -> RsBinop (e1, RsBinopLe, e2)
-    | RsApp (RsId "gt", _) -> RsId "BUILTIN_gt_TODO"
-    | RsApp (RsId "gteq", _) -> RsId "BUILTIN_gteq_TODO"
-    | RsApp (RsId "add_int", _) -> RsId "BUILTIN_add_int_TODO"
-    | RsApp (RsId "sub_int", _) -> RsId "BUILTIN_sub_int_TODO"
-    | RsApp (RsId "mult_int", _) -> RsId "BUILTIN_mult_int_TODO"
-    | RsApp (RsId "neg_int", _) -> RsId "BUILTIN_neg_int_TODO"
-    | RsApp (RsId "abs_int", _) -> RsId "BUILTIN_abs_int_TODO"
-    | RsApp (RsId "max_int", _) -> RsId "BUILTIN_max_int_TODO"
-    (*| RsApp (RsId "min_int", _) -> RsId "BUILTIN_min_int_TODO" *)
-    | RsApp (RsId "tdiv_int", _) -> RsId "BUILTIN_tdiv_int_TODO"
-    | RsApp (RsId "tmod_int", _) -> RsId "BUILTIN_tmod_int_TODO"
-    | RsApp (RsId "pow2", [n]) -> RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [RsLit (RsLitNum (Int64.of_int 2)); n])
-    (* | RsApp (RsId "zeros", _) -> RsId "BUILTIN_zeros_TODO" *)
-    (*| RsApp (RsId "ones", e) -> RsApp (RsId "ones", e) Handled by the integrated library *) 
+    | RsApp (RsId "add_atom", gens, [e1;e2]) -> RsBinop(e1,RsBinopAdd,e2)
+    | RsApp (RsId "sub_atom", gens, [e1;e2]) -> RsBinop(e1,RsBinopSub,e2)
+    | RsApp (RsId "negate_atom", gens, _) -> RsId "BUILTIN_atom_negate_TODO" 
+    | RsApp (RsId "ediv_int", gens, _) -> RsId "BUILTIN_atom_ediv_TODO" 
+    | RsApp (RsId "emod_int", gens, [e1; e2]) -> RsBinop(e1, RsBinopMod, e2)
+    | RsApp (RsId "abs_int_atom", gens, _) -> RsId "BUILTIN_atom_abs_int_TODO" 
+    | RsApp (RsId "not_vec", gens, [v]) -> RsUnop(RsUnopNeg, v)
+    | RsApp (RsId "eq_bit", gens, [e1; e2]) -> RsBinop(e1, RsBinopEq, e2) (* TODO Is it correct to compare like that? *)
+    | RsApp (RsId "eq_bool", gens, _) -> RsId "BUILTIN_eq_bool_TODO"
+    | RsApp (RsId "eq_string", gens, _) -> RsId "BUILTIN_eq_string_TODO"
+    | RsApp (RsId "eq_int", gens, _) -> RsId "BUILTIN_eq_int_TODO"
+    | RsApp (RsId "not", gens, [b]) -> RsUnop(RsUnopNeg, b)
+    | RsApp (RsId "lt", gens, _) -> RsId "BUILTIN_lt_TODO"
+    | RsApp (RsId "lteq", gens, _) -> RsId "BUILTIN_lteq_TODO"
+    | RsApp (RsId "lteq_int", gens, [e1; e2]) -> RsBinop (e1, RsBinopLe, e2)
+    | RsApp (RsId "gt", gens, _) -> RsId "BUILTIN_gt_TODO"
+    | RsApp (RsId "gteq", gens, _) -> RsId "BUILTIN_gteq_TODO"
+    | RsApp (RsId "add_int", gens, _) -> RsId "BUILTIN_add_int_TODO"
+    | RsApp (RsId "sub_int", gens, _) -> RsId "BUILTIN_sub_int_TODO"
+    | RsApp (RsId "mult_int", gens, _) -> RsId "BUILTIN_mult_int_TODO"
+    | RsApp (RsId "neg_int", gens, _) -> RsId "BUILTIN_neg_int_TODO"
+    | RsApp (RsId "abs_int", gens, _) -> RsId "BUILTIN_abs_int_TODO"
+    | RsApp (RsId "max_int", gens, _) -> RsId "BUILTIN_max_int_TODO"
+    (*| RsApp (RsId "min_int", gens, _) -> RsId "BUILTIN_min_int_TODO" *)
+    | RsApp (RsId "tdiv_int", gens, _) -> RsId "BUILTIN_tdiv_int_TODO"
+    | RsApp (RsId "tmod_int", gens, _) -> RsId "BUILTIN_tmod_int_TODO"
+    | RsApp (RsId "pow2", [], [n]) -> RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [], [RsLit (RsLitNum (Int64.of_int 2)); n])
+    (* | RsApp (RsId "zeros", gens, _) -> RsId "BUILTIN_zeros_TODO" *)
+    (*| RsApp (RsId "ones", gens, e) -> RsApp (RsId "ones", e) Handled by the integrated library *) 
     (* Implemented in lib.sail *)
-    (*| RsApp (RsId "zero_extend", e) -> RsApp (RsId "zero_extend", e)
-    | RsApp (RsId "sign_extend", e) -> RsApp (RsId "sign_extend", e) 
-    | RsApp (RsId "sail_ones", e) -> RsApp (RsId "sail_ones", e) *)
-    | RsApp (RsId "sail_signed", _) -> RsId "BUILTIN_sail_signed_TODO"
-    | RsApp (RsId "sail_unsigned", _) -> RsId "BUILTIN_sail_unsigned_TODO"
-    | RsApp (RsId "slice", _) -> RsId "BUILTIN_slice_TODO"
-    | RsApp (RsId "slice_inc", _) -> RsId "BUILTIN_slice_inc_TODO"
-    | RsApp (RsId "add_bits", _) -> RsId "BUILTIN_add_bits_TODO"
-    | RsApp (RsId "add_bits_int", [b1;b2]) -> RsBinop(b1, RsBinopAdd, b2)
-    | RsApp (RsId "sub_bits", _) -> RsId "BUILTIN_sub_bits_TODO"
-    | RsApp (RsId "sub_bits_int", _) -> RsId "BUILTIN_sub_bits_int_TODO"
-    | RsApp (RsId "append", _) -> RsId "BUILTIN_append_TODO"
-    | RsApp (RsId "get_slice_int", _) -> RsId "BUILTIN_get_slice_int_TODO"
-    | RsApp (RsId "eq_bits", _) -> RsId "BUILTIN_eq_bits_TODO"
-    | RsApp (RsId "neq_bits", _) -> RsId "BUILTIN_neq_bits_TODO"
-    | RsApp (RsId "not_bits", _) -> RsId "BUILTIN_not_bits_TODO"
-    | RsApp (RsId "sail_truncate", _) -> RsId "BUILTIN_sail_truncate_TODO"
-    | RsApp (RsId "sail_truncateLSB", _) -> RsId "BUILTIN_sail_truncateLSB_TODO"
-    | RsApp (RsId "shiftl", [e1; e2]) -> RsBinop(e1, RsBinopShiftLeft, e2)
-    | RsApp (RsId "shiftr", [e1; e2]) -> RsBinop(e1, RsBinopShiftRight, e2)
-    | RsApp (RsId "arith_shiftr", _) -> RsId "BUILTIN_arith_shiftr_TODO"
-    | RsApp (RsId "and_bits", _) -> RsId "BUILTIN_and_bits_TODO"
-    | RsApp (RsId "or_bits", _) -> RsId "BUILTIN_or_bits_TODO"
-    | RsApp (RsId "xor_bits", _) -> RsId "BUILTIN_xor_bits_TODO"
-    | RsApp (RsId "vector_init", _) -> RsId "BUILTIN_vector_init_TODO"
-    | RsApp (RsId "vector_access", _) -> RsId "BUILTIN_vector_access_TODO"
-    | RsApp (RsId "vector_access_inc", _) -> RsId "BUILTIN_vector_access_inc_TODO"
-    | RsApp (RsId "vector_subrange", _) -> RsId "BUILTIN_vector_subrange_TODO"
-    | RsApp (RsId "vector_subrange_inc", _) -> RsId "BUILTIN_vector_subrange_inc_TODO"
-    | RsApp (RsId "vector_update", _) -> RsId "BUILTIN_vector_update_TODO"
-    | RsApp (RsId "vector_update_inc", _) -> RsId "BUILTIN_vector_update_inc_TODO"
-    | RsApp (RsId "vector_update_subrange", _) -> RsId "BUILTIN_vector_update_subrange_TODO"
-    | RsApp (RsId "vector_update_subrange_inc", _) -> RsId "BUILTIN_vector_update_subrange_inc_TODO"
-    | RsApp (RsId "length", _) -> RsId "BUILTIN_length_TODO"
-    | RsApp (RsId "replicate_bits", _) -> RsId "BUILTIN_replicate_bits_TODO"
-    | RsApp (RsId "count_leading_zeros", _) -> RsId "BUILTIN_count_leading_zeros_TODO"
-    | RsApp (RsId "eq_real", _) -> RsId "BUILTIN_eq_real_TODO"
-    | RsApp (RsId "neg_real", _) -> RsId "BUILTIN_neg_real_TODO"
-    | RsApp (RsId "add_real", _) -> RsId "BUILTIN_add_real_TODO"
-    | RsApp (RsId "sub_real", _) -> RsId "BUILTIN_sub_real_TODO"
-    | RsApp (RsId "mult_real", _) -> RsId "BUILTIN_mult_real_TODO"
-    | RsApp (RsId "div_real", _) -> RsId "BUILTIN_div_real_TODO"
-    | RsApp (RsId "lt_real", _) -> RsId "BUILTIN_lt_real_TODO"
-    | RsApp (RsId "gt_real", _) -> RsId "BUILTIN_gt_real_TODO"
-    | RsApp (RsId "lteq_real", _) -> RsId "BUILTIN_lteq_real_TODO"
-    | RsApp (RsId "gteq_real", _) -> RsId "BUILTIN_gteq_real_TODO"
-    | RsApp (RsId "concat_str", [s1; s2]) -> RsApp(RsId "format!", [RsId "\"{}{}\""; s1; s2]) (* There is a bug with hoisting here *)
-    | RsApp (RsId "print_bits", e) -> RsApp(RsId "print_output", e)
-    | RsApp (RsId "string_of_bits", _) -> RsId "BUILTIN_string_of_bits_TODO"
-    | RsApp (RsId "dec_str", e) ->RsApp (RsId "dec_str", e) (* Handled by an external lib *)
-    | RsApp (RsId "hex_str", e) -> RsApp (RsId "hex_str", e) (* Handled by an external lib *)
-    | RsApp (RsId "hex_str_upper", _) -> RsId "BUILTIN_hex_str_upper_TODO"
-    | RsApp (RsId "sail_assert", _) -> RsId "BUILTIN_sail_assert_TODO"
-    | RsApp (RsId "reg_deref", _) -> RsId "BUILTIN_reg_deref_TODO"
-    | RsApp (RsId "sail_cons", _) -> RsId "BUILTIN_sail_cons_TODO"
-    | RsApp (RsId "eq_anything", _) -> RsId "BUILTIN_eq_anything_TODO"
-    | RsApp (RsId "id", _) -> RsId "BUILTIN_id_TODO"
-    | RsApp (RsId "gteq_int", [e1; e2]) ->  RsBinop (e1, RsBinopGe, e2)
-    | RsApp (RsId "lt_int", [e1; e2]) -> RsBinop (e1, RsBinopLt, e2)
-    | RsApp (RsId "internal_error", [file; line; message]) -> RsApp (RsId "panic!", [RsLit (RsLitStr "{}, l {}: {}"); file; line; message])
-    | RsApp (RsId id, _) when SSet.mem id unsupported_fun -> RsLit RsLitUnit
+    (*| RsApp (RsId "zero_extend", gens, e) -> RsApp (RsId "zero_extend", e)
+    | RsApp (RsId "sign_extend", gens, e) -> RsApp (RsId "sign_extend", e) 
+    | RsApp (RsId "sail_ones", gens, e) -> RsApp (RsId "sail_ones", e) *)
+    | RsApp (RsId "sail_signed", gens, _) -> RsId "BUILTIN_sail_signed_TODO"
+    | RsApp (RsId "sail_unsigned", gens, _) -> RsId "BUILTIN_sail_unsigned_TODO"
+    | RsApp (RsId "slice", gens, _) -> RsId "BUILTIN_slice_TODO"
+    | RsApp (RsId "slice_inc", gens, _) -> RsId "BUILTIN_slice_inc_TODO"
+    | RsApp (RsId "add_bits", gens, _) -> RsId "BUILTIN_add_bits_TODO"
+    | RsApp (RsId "add_bits_int", gens, [b1;b2]) -> RsBinop(b1, RsBinopAdd, b2)
+    | RsApp (RsId "sub_bits", gens, _) -> RsId "BUILTIN_sub_bits_TODO"
+    | RsApp (RsId "sub_bits_int", gens, _) -> RsId "BUILTIN_sub_bits_int_TODO"
+    | RsApp (RsId "append", gens, _) -> RsId "BUILTIN_append_TODO"
+    | RsApp (RsId "get_slice_int", gens, _) -> RsId "BUILTIN_get_slice_int_TODO"
+    | RsApp (RsId "eq_bits", gens, _) -> RsId "BUILTIN_eq_bits_TODO"
+    | RsApp (RsId "neq_bits", gens, _) -> RsId "BUILTIN_neq_bits_TODO"
+    | RsApp (RsId "not_bits", gens, _) -> RsId "BUILTIN_not_bits_TODO"
+    | RsApp (RsId "sail_truncate", gens, _) -> RsId "BUILTIN_sail_truncate_TODO"
+    | RsApp (RsId "sail_truncateLSB", gens, _) -> RsId "BUILTIN_sail_truncateLSB_TODO"
+    | RsApp (RsId "shiftl", gens, [e1; e2]) -> RsBinop(e1, RsBinopShiftLeft, e2)
+    | RsApp (RsId "shiftr", gens, [e1; e2]) -> RsBinop(e1, RsBinopShiftRight, e2)
+    | RsApp (RsId "arith_shiftr", gens, _) -> RsId "BUILTIN_arith_shiftr_TODO"
+    | RsApp (RsId "and_bits", gens, _) -> RsId "BUILTIN_and_bits_TODO"
+    | RsApp (RsId "or_bits", gens, _) -> RsId "BUILTIN_or_bits_TODO"
+    | RsApp (RsId "xor_bits", gens, _) -> RsId "BUILTIN_xor_bits_TODO"
+    | RsApp (RsId "vector_init", gens, _) -> RsId "BUILTIN_vector_init_TODO"
+    | RsApp (RsId "vector_access", gens, _) -> RsId "BUILTIN_vector_access_TODO"
+    | RsApp (RsId "vector_access_inc", gens, _) -> RsId "BUILTIN_vector_access_inc_TODO"
+    | RsApp (RsId "vector_subrange", gens, _) -> RsId "BUILTIN_vector_subrange_TODO"
+    | RsApp (RsId "vector_subrange_inc", gens, _) -> RsId "BUILTIN_vector_subrange_inc_TODO"
+    | RsApp (RsId "vector_update", gens, _) -> RsId "BUILTIN_vector_update_TODO"
+    | RsApp (RsId "vector_update_inc", gens, _) -> RsId "BUILTIN_vector_update_inc_TODO"
+    | RsApp (RsId "vector_update_subrange", gens, _) -> RsId "BUILTIN_vector_update_subrange_TODO"
+    | RsApp (RsId "vector_update_subrange_inc", gens, _) -> RsId "BUILTIN_vector_update_subrange_inc_TODO"
+    | RsApp (RsId "length", gens, _) -> RsId "BUILTIN_length_TODO"
+    | RsApp (RsId "replicate_bits", gens, _) -> RsId "BUILTIN_replicate_bits_TODO"
+    | RsApp (RsId "count_leading_zeros", gens, _) -> RsId "BUILTIN_count_leading_zeros_TODO"
+    | RsApp (RsId "eq_real", gens, _) -> RsId "BUILTIN_eq_real_TODO"
+    | RsApp (RsId "neg_real", gens, _) -> RsId "BUILTIN_neg_real_TODO"
+    | RsApp (RsId "add_real", gens, _) -> RsId "BUILTIN_add_real_TODO"
+    | RsApp (RsId "sub_real", gens, _) -> RsId "BUILTIN_sub_real_TODO"
+    | RsApp (RsId "mult_real", gens, _) -> RsId "BUILTIN_mult_real_TODO"
+    | RsApp (RsId "div_real", gens, _) -> RsId "BUILTIN_div_real_TODO"
+    | RsApp (RsId "lt_real", gens, _) -> RsId "BUILTIN_lt_real_TODO"
+    | RsApp (RsId "gt_real", gens, _) -> RsId "BUILTIN_gt_real_TODO"
+    | RsApp (RsId "lteq_real", gens, _) -> RsId "BUILTIN_lteq_real_TODO"
+    | RsApp (RsId "gteq_real", gens, _) -> RsId "BUILTIN_gteq_real_TODO"
+    | RsApp (RsId "concat_str", gens, [s1; s2]) -> RsApp(RsId "format!", gens, [RsId "\"{}{}\""; s1; s2]) (* There is a bug with hoisting here *)
+    | RsApp (RsId "print_bits", gens, e) -> RsApp(RsId "print_output", gens, e)
+    | RsApp (RsId "string_of_bits", gens, _) -> RsId "BUILTIN_string_of_bits_TODO"
+    | RsApp (RsId "dec_str", gens, e) ->RsApp (RsId "dec_str", gens, e) (* Handled by an external lib *)
+    | RsApp (RsId "hex_str", gens, e) -> RsApp (RsId "hex_str", gens, e) (* Handled by an external lib *)
+    | RsApp (RsId "hex_str_upper", gens, _) -> RsId "BUILTIN_hex_str_upper_TODO"
+    | RsApp (RsId "sail_assert", gens, _) -> RsId "BUILTIN_sail_assert_TODO"
+    | RsApp (RsId "reg_deref", gens, _) -> RsId "BUILTIN_reg_deref_TODO"
+    | RsApp (RsId "sail_cons", gens, _) -> RsId "BUILTIN_sail_cons_TODO"
+    | RsApp (RsId "eq_anything", gens, _) -> RsId "BUILTIN_eq_anything_TODO"
+    | RsApp (RsId "id", gens, _) -> RsId "BUILTIN_id_TODO"
+    | RsApp (RsId "gteq_int", gens, [e1; e2]) ->  RsBinop (e1, RsBinopGe, e2)
+    | RsApp (RsId "lt_int", gens, [e1; e2]) -> RsBinop (e1, RsBinopLt, e2)
+    | RsApp (RsId "internal_error", gens, [file; line; message]) -> RsApp (RsId "panic!", [], [RsLit (RsLitStr "{}, l {}: {}"); file; line; message])
+    | RsApp (RsId id, gens, _) when SSet.mem id unsupported_fun -> RsLit RsLitUnit
     | _ -> exp
   
 
@@ -605,7 +605,7 @@ let rec rename_in_exp (rn: string * string) (exp: rs_exp) : rs_exp =
             else
                 (* The ID is not shadowed, so we need to continue the renaming *)
                 RsLet (pat, rename_in_exp cond, rename_in_exp next)
-        | RsApp (fn, args) -> RsApp (rename_in_exp fn, rename_in_exps args)
+        | RsApp (fn, generics, args) -> RsApp (rename_in_exp fn, generics, rename_in_exps args)
         | RsMethodApp app -> RsMethodApp { app with
                 exp = rename_in_exp app.exp;
                 args = rename_in_exps app.args;
@@ -726,10 +726,10 @@ let rec hoist_let_exp (exp: rs_exp) : rs_exp * ((rs_pat * rs_exp) list) =
                     let (next, defs) = hoist_let_exp next in
                     (RsLet (pat, exp, next), defs)
             end
-        | RsApp (fn, args) ->
+        | RsApp (fn, generics, args) ->
             let (fn, defs) = hoist_let_exp fn in
             let (args, defs_args) = hoit_let_exp_list args in
-            (RsApp (fn, args), defs @ defs_args)
+            (RsApp (fn, generics, args), defs @ defs_args)
         | RsMethodApp app ->
             let (exp, defs) = hoist_let_exp app.exp in
             let (args, defs_args) = hoit_let_exp_list app.args in
@@ -781,8 +781,8 @@ let pexp_hoister (pexp: rs_pexp) : rs_pexp =
 let expr_hoister (exp: rs_exp) : rs_exp = 
     match exp with
         (* We dont need to hoist external functions & some macro might not work with hoisting (for example: format!)*)
-        | RsApp (RsId name, args) when should_hoist args && not(SSet.mem name external_func) -> let ret = hoist args in 
-            RsBlock[generate_hoistised_block (fst ret) (RsApp (RsId name, snd ret))]
+        | RsApp (RsId name, generics, args) when should_hoist args && not(SSet.mem name external_func) -> let ret = hoist args in 
+            RsBlock[generate_hoistised_block (fst ret) (RsApp (RsId name, generics, snd ret))]
         | RsMethodApp {exp; name; generics; args} when should_hoist args -> let ret = hoist args in 
         RsBlock[generate_hoistised_block (fst ret) (RsMethodApp {
             exp = exp;
@@ -933,7 +933,7 @@ let rec enum_prefix_inserter (key : string) (lst : (string * string) list) : str
 let enum_binder_exp (enum_list: (string * string) list) (exp: rs_exp) : rs_exp = 
   match exp with
     | RsId id -> RsId (enum_prefix_inserter id enum_list)
-    | RsApp (RsId id, args) -> RsApp (RsId (enum_prefix_inserter id enum_list), args)
+    | RsApp (RsId id, generics, args) -> RsApp (RsId (enum_prefix_inserter id enum_list), generics, args)
     | RsMethodApp {exp = RsId id; name; generics; args} -> RsMethodApp {
             exp = RsId (enum_prefix_inserter id enum_list);
             name = name;
@@ -994,7 +994,7 @@ let operator_rewriter = {
 
 let expr_operator_rewriter (exp: rs_exp) : rs_exp = 
     match exp with
-        | RsApp (RsId id, args) -> RsApp(RsId(remove_illegal_operator_char id), args)
+        | RsApp (RsId id, generics, args) -> RsApp(RsId(remove_illegal_operator_char id), generics, args)
         | _ -> exp
 
 let lexpr_operator_rewriter (lexp: rs_lexp) : rs_lexp = lexp
@@ -1089,7 +1089,7 @@ let transform_basic_types: expr_type_transform = {
 
 let add_wildcard_match_expr (exp: rs_exp) : rs_exp = 
     match exp with 
-        | RsMatch (exp, pexps) -> RsMatch(exp, pexps @ [RsPexp(RsPatWildcard, RsApp(RsId "panic!", [RsId "\"Unreachable code\""]))]) 
+        | RsMatch (exp, pexps) -> RsMatch(exp, pexps @ [RsPexp(RsPatWildcard, RsApp(RsId "panic!", [], [RsId "\"Unreachable code\""]))]) 
         | _ -> exp
 
 let add_wildcard_match: expr_type_transform = {
@@ -1144,8 +1144,8 @@ let is_enum (value: string) : bool =
 
 let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
   match exp with 
-    | RsApp (RsId app_id, args) when not(SSet.mem app_id external_func) && not(is_enum app_id) -> 
-      let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, args)
+    | RsApp (RsId app_id, generics, args) when not(SSet.mem app_id external_func) && not(is_enum app_id) -> 
+      let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, generics, args)
     | _ -> exp
     
 
@@ -1179,7 +1179,7 @@ let dead_code_remover_exp (exp: rs_exp) : rs_exp =
         | RsMatch (RsTuple [e; RsLit(RsLitNum n)], pexps) -> 
             RsMatch (RsTuple [e; RsLit(RsLitNum n)], List.filter (filter_different_litterals n) pexps)
         | RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), then_exp, else_exp) when n1 <> n2 ->
-            RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), RsApp(RsId "panic!", [RsId "\"unreachable code\""]), else_exp) 
+            RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), RsApp(RsId "panic!", [], [RsId "\"unreachable code\""]), else_exp) 
         | _ -> exp
     
 let dead_code_remover_lexp (lexp: rs_lexp) : rs_lexp = lexp

@@ -126,7 +126,7 @@ pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> Bi
     }
 }
 
-pub fn execute(sail_ctx: &mut SailVirtCtx, ast::TEST(()): ast) {
+pub fn execute_TEST(sail_ctx: &mut SailVirtCtx) {
     handle_empty(sail_ctx, ());
     handle_bool(sail_ctx, true);
     let a = handle_int(sail_ctx, 1234);

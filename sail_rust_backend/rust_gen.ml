@@ -73,7 +73,7 @@ and rs_method_app = {
 
 and rs_exp =
     | RsLet of rs_pat * rs_exp * rs_exp
-    | RsApp of rs_exp * rs_exp list
+    | RsApp of rs_exp * string list * rs_exp list (* the strings are the generics *)
     | RsMethodApp of rs_method_app
     | RsStaticApp of rs_type * string * rs_exp list
     | RsId of string
@@ -361,9 +361,10 @@ and string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (string_of_rs_exp n exp)
                 (indent n)
                 (string_of_rs_exp n next)
-        | RsApp (fn, args)->
-            Printf.sprintf "%s(%s)"
+        | RsApp (fn, generics, args)->
+            Printf.sprintf "%s%s(%s)"
                 (string_of_rs_exp n fn)
+                (string_of_generics_turbofish generics)
                 (String.concat ", " (List.map (string_of_rs_exp n) args))
         | RsStaticApp(typ, func, args) ->
             Printf.sprintf "%s::%s(%s)" 
