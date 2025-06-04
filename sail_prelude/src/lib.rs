@@ -45,25 +45,10 @@ pub fn bitvector_concat<const N: usize, const M: usize, const NM: usize>(
     BitVector::<{ NM }>::new((e1.bits() << M) | e2.bits())
 }
 
-// We assume bit aren't writable in Miralis
-pub fn sys_enable_writable_misa(_unit: ()) -> bool {
-    false
-}
-
-pub fn sys_enable_rvc(_unit: ()) -> bool {
-    true
-}
-
-pub fn sys_enable_fdext(_unit: ()) -> bool {
-    true
-}
-
-pub fn sys_enable_zfinx(_unit: ()) -> bool {
-    true
-}
-
-pub fn sys_enable_writable_fiom(_unit: ()) -> bool {
-    true
+pub fn get_slice_int<const L: usize>(l: usize, n: usize, start: usize) -> BitVector<L> {
+    let mask = (1 << l) - 1;
+    let val = (n >> start) & mask;
+    BitVector::new(val as u64)
 }
 
 pub fn get_16_random_bits(_unit: ()) -> BitVector<16> {
