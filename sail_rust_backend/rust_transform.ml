@@ -9,7 +9,7 @@ module SMap = Call_set.SMap
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
-let external_func: SSet.t = SSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "subrange_bits"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"; "hex_bits_12_forwards"; "hex_bits_12_backwards" ; "sail_zeros"; "parse_hex_bits"])
+let external_func: SSet.t = SSet.of_list (["subrange_bits";"not_implemented"; "print_output"; "format!"; "assert!"; "panic!"; "dec_str"; "hex_str"; "update_subrange_bits"; "zero_extend_16"; "zero_extend_63";"zero_extend_64";"sign_extend"; "sail_ones"; "min_int"; "__exit"; "signed"; "lteq_int"; "sail_branch_announce"; "bitvector_length"; "bits_str"; "print_reg"; "bitvector_access"; "get_16_random_bits"; "sys_enable_writable_fiom"; "bitvector_concat"; "print_platform"; "cancel_reservation"; "sys_enable_writable_misa"; "sys_enable_rvc"; "sys_enable_fdext"; "plat_mtval_has_illegal_inst_bits"; "truncate"; "subrange_bits"; "sys_enable_zfinx"; "gt_int"; "internal_error"; "bitvector_update"; "hex_bits_12_forwards"; "hex_bits_12_backwards" ; "sail_zeros"; "parse_hex_bits"; "get_slice_int"])
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -504,7 +504,6 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | RsApp (RsId "sub_bits", gens, _) -> RsId "BUILTIN_sub_bits_TODO"
     | RsApp (RsId "sub_bits_int", gens, _) -> RsId "BUILTIN_sub_bits_int_TODO"
     | RsApp (RsId "append", gens, _) -> RsId "BUILTIN_append_TODO"
-    | RsApp (RsId "get_slice_int", gens, _) -> RsId "BUILTIN_get_slice_int_TODO"
     | RsApp (RsId "eq_bits", gens, _) -> RsId "BUILTIN_eq_bits_TODO"
     | RsApp (RsId "neq_bits", gens, _) -> RsId "BUILTIN_neq_bits_TODO"
     | RsApp (RsId "not_bits", gens, _) -> RsId "BUILTIN_not_bits_TODO"
@@ -1024,7 +1023,7 @@ let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List
 
 (* ———————————————————————— prelude_func_filter  ————————————————————————— *)
 
-let prelude_func: SSet.t = SSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"; "hex_bits_12_backwards"; "to_bits"; "parse_hex_bits"])
+let prelude_func: SSet.t = SSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"; "hex_bits_12_backwards"; "parse_hex_bits"])
 
 let rust_prelude_func_filter_alias (obj: rs_obj) : rs_program = 
     match obj with
