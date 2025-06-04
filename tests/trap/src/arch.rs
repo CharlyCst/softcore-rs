@@ -27,14 +27,6 @@ pub struct SailConfig {
 
 }
 
-pub fn bit_to_bool(sail_ctx: &mut SailVirtCtx, b: bool) -> bool {
-    match b {
-        true => {true}
-        false => {false}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
 pub fn bool_to_bit(sail_ctx: &mut SailVirtCtx, x: bool) -> bool {
     if {x} {
         true
@@ -51,14 +43,6 @@ pub fn bool_to_bits(sail_ctx: &mut SailVirtCtx, x: bool) -> BitVector<1> {
         __generated_vector.set_vector_entry(var_1, var_2)
     };
     __generated_vector
-}
-
-pub fn _operator_biggerequal_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVector<N>, y: BitVector<N>) -> bool {
-    (x.as_usize() >= y.as_usize())
-}
-
-pub fn _operator_smaller_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVector<N>, y: BitVector<N>) -> bool {
-    (x.as_usize() < y.as_usize())
 }
 
 pub const xlen: usize = 64;
@@ -86,10 +70,6 @@ pub fn privLevel_to_bits(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<
 }
 
 pub fn haveSupMode(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> bool {
-    true
-}
-
-pub fn haveUsrMode(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> bool {
     true
 }
 
@@ -136,22 +116,6 @@ pub fn _get_Mstatus_UIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> 
     v.bits.subrange::<0, 1, 1>()
 }
 
-pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
-    match r {
-        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
-        _ => {sail_ctx.Xs[r.as_usize()]}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
-pub fn wX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>, v: BitVector<64>) {
-    if {(r != BitVector::<5>::new(0b00000))} {
-        sail_ctx.Xs[r.as_usize()] = v
-    } else {
-        ()
-    }
-}
-
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExceptionType {
     E_Fetch_Addr_Align(()),
@@ -174,50 +138,6 @@ pub enum ExceptionType {
 
 pub type exc_code = BitVector<8>;
 
-pub fn num_of_ExceptionType(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> usize {
-    match e {
-        ExceptionType::E_Fetch_Addr_Align(()) => {0}
-        ExceptionType::E_Fetch_Access_Fault(()) => {1}
-        ExceptionType::E_Illegal_Instr(()) => {2}
-        ExceptionType::E_Breakpoint(()) => {3}
-        ExceptionType::E_Load_Addr_Align(()) => {4}
-        ExceptionType::E_Load_Access_Fault(()) => {5}
-        ExceptionType::E_SAMO_Addr_Align(()) => {6}
-        ExceptionType::E_SAMO_Access_Fault(()) => {7}
-        ExceptionType::E_U_EnvCall(()) => {8}
-        ExceptionType::E_S_EnvCall(()) => {9}
-        ExceptionType::E_Reserved_10(()) => {10}
-        ExceptionType::E_M_EnvCall(()) => {11}
-        ExceptionType::E_Fetch_Page_Fault(()) => {12}
-        ExceptionType::E_Load_Page_Fault(()) => {13}
-        ExceptionType::E_Reserved_14(()) => {14}
-        ExceptionType::E_SAMO_Page_Fault(()) => {15}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
-pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> BitVector<8> {
-    match e {
-        ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::<8>::new(0b00000000)}
-        ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::<8>::new(0b00000001)}
-        ExceptionType::E_Illegal_Instr(()) => {BitVector::<8>::new(0b00000010)}
-        ExceptionType::E_Breakpoint(()) => {BitVector::<8>::new(0b00000011)}
-        ExceptionType::E_Load_Addr_Align(()) => {BitVector::<8>::new(0b00000100)}
-        ExceptionType::E_Load_Access_Fault(()) => {BitVector::<8>::new(0b00000101)}
-        ExceptionType::E_SAMO_Addr_Align(()) => {BitVector::<8>::new(0b00000110)}
-        ExceptionType::E_SAMO_Access_Fault(()) => {BitVector::<8>::new(0b00000111)}
-        ExceptionType::E_U_EnvCall(()) => {BitVector::<8>::new(0b00001000)}
-        ExceptionType::E_S_EnvCall(()) => {BitVector::<8>::new(0b00001001)}
-        ExceptionType::E_Reserved_10(()) => {BitVector::<8>::new(0b00001010)}
-        ExceptionType::E_M_EnvCall(()) => {BitVector::<8>::new(0b00001011)}
-        ExceptionType::E_Fetch_Page_Fault(()) => {BitVector::<8>::new(0b00001100)}
-        ExceptionType::E_Load_Page_Fault(()) => {BitVector::<8>::new(0b00001101)}
-        ExceptionType::E_Reserved_14(()) => {BitVector::<8>::new(0b00001110)}
-        ExceptionType::E_SAMO_Page_Fault(()) => {BitVector::<8>::new(0b00001111)}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct sync_exception {
     pub trap: ExceptionType,
@@ -236,10 +156,6 @@ pub enum TrapVectorMode {
     TV_Direct,
     TV_Vector,
     TV_Reserved
-}
-
-pub fn set_next_pc(sail_ctx: &mut SailVirtCtx, pc: BitVector<64>) {
-    sail_ctx.nextPC = pc
 }
 
 pub fn tval(sail_ctx: &mut SailVirtCtx, excinfo: Option<BitVector<64>>) -> BitVector<64> {
@@ -316,71 +232,6 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
     }
 }
 
-pub fn exception_delegatee(sail_ctx: &mut SailVirtCtx, e: ExceptionType, p: Privilege) -> Privilege {
-    let idx = num_of_ExceptionType(sail_ctx, e);
-    let _super_ = {
-        let var_3 = bitvector_access(sail_ctx.medeleg.bits, idx);
-        bit_to_bool(sail_ctx, var_3)
-    };
-    let user = false;
-    let deleg = if {(haveUsrMode(sail_ctx, ()) && user)} {
-        Privilege::User
-    } else if {(haveSupMode(sail_ctx, ()) && _super_)} {
-        Privilege::Supervisor
-    } else {
-        Privilege::Machine
-    };
-    if {{
-        let var_1 = privLevel_to_bits(sail_ctx, deleg);
-        let var_2 = privLevel_to_bits(sail_ctx, p);
-        _operator_smaller_u_(sail_ctx, var_1, var_2)
-    }} {
-        p
-    } else {
-        deleg
-    }
-}
-
-pub fn exception_handler(sail_ctx: &mut SailVirtCtx, cur_priv: Privilege, ctl: ctl_result, pc: BitVector<64>) -> BitVector<64> {
-    match (cur_priv, ctl) {
-        (_, ctl_result::CTL_TRAP(e)) => {{
-            let del_priv = {
-                let var_7 = e.trap;
-                let var_8 = cur_priv;
-                exception_delegatee(sail_ctx, var_7, var_8)
-            };
-            {
-                let var_1 = del_priv;
-                let var_2 = false;
-                let var_3 = {
-                    let var_6 = e.trap;
-                    exceptionType_to_bits(sail_ctx, var_6)
-                };
-                let var_4 = pc;
-                let var_5 = e.excinfo;
-                trap_handler(sail_ctx, var_1, var_2, var_3, var_4, var_5)
-            }
-        }}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
-pub fn handle_illegal(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
-    let t: sync_exception = sync_exception {
-        trap: ExceptionType::E_Illegal_Instr(()),
-        excinfo: None
-    };
-    {
-        let var_1 = {
-            let var_2 = sail_ctx.cur_privilege;
-            let var_3 = ctl_result::CTL_TRAP(t);
-            let var_4 = sail_ctx.PC;
-            exception_handler(sail_ctx, var_2, var_3, var_4)
-        };
-        set_next_pc(sail_ctx, var_1)
-    }
-}
-
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
     RISCV_ADDI,
@@ -411,112 +262,3 @@ pub enum ast {
 }
 
 pub type csrRW = BitVector<2>;
-
-pub fn csrAccess(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<2> {
-    csr.subrange::<10, 12, 2>()
-}
-
-pub fn csrPriv(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<2> {
-    csr.subrange::<8, 10, 2>()
-}
-
-pub fn is_CSR_defined(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>, p: Privilege) -> bool {
-    match csr {
-        b__0 if {(b__0 == BitVector::<12>::new(0b001101000000))} => {(p == Privilege::Machine)}
-        b__1 if {(b__1 == BitVector::<12>::new(0b000101000000))} => {((p == Privilege::Machine) || (p == Privilege::Supervisor))}
-        _ => {false}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
-pub fn check_CSR_access(sail_ctx: &mut SailVirtCtx, csrrw: BitVector<2>, csrpr: BitVector<2>, p: Privilege, isWrite: bool) -> bool {
-    (!(((isWrite == true) && (csrrw == BitVector::<2>::new(0b11)))) && {
-        let var_1 = privLevel_to_bits(sail_ctx, p);
-        let var_2 = csrpr;
-        _operator_biggerequal_u_(sail_ctx, var_1, var_2)
-    })
-}
-
-pub fn check_CSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>, p: Privilege, isWrite: bool) -> bool {
-    (is_CSR_defined(sail_ctx, csr, p) && {
-        let var_1 = csrAccess(sail_ctx, csr);
-        let var_2 = csrPriv(sail_ctx, csr);
-        let var_3 = p;
-        let var_4 = isWrite;
-        check_CSR_access(sail_ctx, var_1, var_2, var_3, var_4)
-    })
-}
-
-pub fn readCSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>) -> BitVector<64> {
-    let res: xlenbits = match (csr, 64) {
-        (b__0, _) if {(b__0 == BitVector::<12>::new(0b001101000000))} => {sail_ctx.mscratch}
-        (b__1, _) if {(b__1 == BitVector::<12>::new(0b000101000000))} => {sail_ctx.sscratch}
-        _ => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
-        _ => {panic!("Unreachable code")}
-    };
-    res
-}
-
-pub fn writeCSR(sail_ctx: &mut SailVirtCtx, csr: BitVector<12>, value: BitVector<64>) {
-    let res: Option<xlenbits> = match (csr, 64) {
-        (b__0, _) if {(b__0 == BitVector::<12>::new(0b001101000000))} => {{
-            sail_ctx.mscratch = value;
-            Some(sail_ctx.mscratch)
-        }}
-        (b__1, _) if {(b__1 == BitVector::<12>::new(0b000101000000))} => {{
-            sail_ctx.sscratch = value;
-            Some(sail_ctx.sscratch)
-        }}
-        _ => {None}
-        _ => {panic!("Unreachable code")}
-    };
-    ()
-}
-
-pub fn execute(sail_ctx: &mut SailVirtCtx, merge_hashtag_var: ast) -> Retired {
-    match merge_hashtag_var {
-        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {{
-            let rs1_val = rX(sail_ctx, rs1);
-            let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
-            let result = rs1_val.wrapped_add(imm_ext);
-            wX(sail_ctx, rd, result);
-            Retired::RETIRE_SUCCESS
-        }}
-        ast::CSR((csr, rs1, rd, is_imm, op)) => {{
-            let rs1_val: xlenbits = if {is_imm} {
-                rs1.zero_extend::<64>()
-            } else {
-                rX(sail_ctx, rs1)
-            };
-            let isWrite: bool = match op {
-                csrop::CSRRW => {true}
-                _ => {if {is_imm} {
-                    (rs1_val.as_usize() != 0)
-                } else {
-                    (rs1.as_usize() != 0)
-                }}
-                _ => {panic!("Unreachable code")}
-            };
-            if {!(check_CSR(sail_ctx, csr, sail_ctx.cur_privilege, isWrite))} {
-                handle_illegal(sail_ctx, ());
-                Retired::RETIRE_FAIL
-            } else {
-                let csr_val = readCSR(sail_ctx, csr);
-                if {isWrite} {
-                    let new_val: xlenbits = match op {
-                        csrop::CSRRW => {rs1_val}
-                        csrop::CSRRS => {(csr_val | rs1_val)}
-                        csrop::CSRRC => {(csr_val & !(rs1_val))}
-                        _ => {panic!("Unreachable code")}
-                    };
-                    writeCSR(sail_ctx, csr, new_val)
-                } else {
-                    ()
-                };
-                wX(sail_ctx, rd, csr_val);
-                Retired::RETIRE_SUCCESS
-            }
-        }}
-        _ => {panic!("Unreachable code")}
-    }
-}

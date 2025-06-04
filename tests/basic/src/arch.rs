@@ -23,22 +23,6 @@ pub type xlenbits = BitVector<xlen>;
 
 pub type regbits = BitVector<5>;
 
-pub fn rX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>) -> BitVector<64> {
-    match r {
-        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
-        _ => {sail_ctx.Xs[r.as_usize()]}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
-pub fn wX(sail_ctx: &mut SailVirtCtx, r: BitVector<5>, v: BitVector<64>) {
-    if {(r != BitVector::<5>::new(0b00000))} {
-        sail_ctx.Xs[r.as_usize()] = v
-    } else {
-        ()
-    }
-}
-
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
     RISCV_ADDI,
@@ -53,20 +37,4 @@ pub enum iop {
 pub enum ast {
     ITYPE((BitVector<12>, BitVector<5>, BitVector<5>, iop)),
     LOAD((BitVector<12>, BitVector<5>, BitVector<5>))
-}
-
-pub fn execute(sail_ctx: &mut SailVirtCtx, merge_hashtag_var: ast) {
-    match merge_hashtag_var {
-        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {let rs1_val = rX(sail_ctx, rs1);
-        let imm_ext: xlenbits = BitVector::<64>::new(imm.bits());
-        let result = rs1_val.wrapped_add(imm_ext);
-        wX(sail_ctx, rd, result)}
-        ast::LOAD((imm, rs1, rd)) => {let addr: xlenbits = {
-            let var_1 = BitVector::<64>::new(imm.bits());
-            rX(sail_ctx, rs1).wrapped_add(var_1)
-        };
-        let result: xlenbits = BitVector::<64>::new(BitVector::<1>::new(0b0).bits());
-        wX(sail_ctx, rd, result)}
-        _ => {panic!("Unreachable code")}
-    }
 }

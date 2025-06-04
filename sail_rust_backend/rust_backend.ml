@@ -200,7 +200,29 @@ module Codegen () = struct
             | E_typ (typ, exp) -> RsAs(process_exp ctx exp, typ_to_rust typ)
             | E_app (id, [e1; e2]) when string_of_id id = "mult_atom" ->
                 process_binop_exp ctx e1 RsBinopMult e2
-            | E_app (id, exp_list) -> RsApp (RsId (sanitize_id (string_of_id id)), (List.map (process_exp ctx) exp_list))
+            | E_app (id, exp_list) when string_of_id id = "bitvector_concat" ->
+                (* We need to infer the vectors dimensions. To do so we look-up the type variable bindings in the typing context. *)
+                let as_kid str = kid_of_id (mk_id str) in
+                let bindings = instantiation_of (E_aux (exp, aux)) in
+                let n = KBindings.find (as_kid "n") bindings in
+                let m = KBindings.find (as_kid "m") bindings in
+                let as_int64 (A_aux (typ, l)) = match typ with
+                    | A_nexp nexp ->
+                        begin match  big_int_of_nexp nexp with
+                            | Some n -> Big_int.to_int64 n
+                            | None ->
+                                Reporting.warn "Could not infer 'bitvector_concat' type" l (Printf.sprintf "found %s" (string_of_typ_arg (A_aux (typ, l))));
+                                64L
+                        end
+                    | _ ->
+                            Reporting.warn "Could not infer 'bitvector_concat' type" l (Printf.sprintf "found %s" (string_of_typ_arg (A_aux (typ, l))));
+                        64L
+                in
+                let nm = Int64.to_string (Int64.add (as_int64 n) (as_int64 m)) in
+                let n = Int64.to_string (as_int64 n) in
+                let m = Int64.to_string (as_int64 m) in
+                RsApp (RsId (sanitize_id (string_of_id id)), [n; m; nm], (List.map (process_exp ctx) exp_list))
+            | E_app (id, exp_list) -> RsApp (RsId (sanitize_id (string_of_id id)), [], (List.map (process_exp ctx) exp_list))
             | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
             | E_tuple (exp_list) -> RsTuple (List.map (process_exp ctx) exp_list)
             | E_if (exp1, exp2, exp3) -> RsIf ((process_exp ctx exp1), (process_exp ctx exp2), (process_exp ctx exp3)) 
@@ -248,12 +270,12 @@ module Codegen () = struct
                 ))
             | E_sizeof nexp -> RsTodo "E_sizeof"
             | E_return exp -> RsReturn (process_exp ctx exp)
-            | E_exit exp -> RsApp(RsId "__exit" , [])
+            | E_exit exp -> RsApp(RsId "__exit" , [], [])
             | E_ref id -> RsTodo "E_ref"
-            | E_throw exp -> RsApp(RsId "panic!", [RsLit(RsLitStr "todo_process_panic_type")])
+            | E_throw exp -> RsApp(RsId "panic!", [], [RsLit(RsLitStr "todo_process_panic_type")])
             | E_try (exp, pexp_list) -> RsTodo "E_try"
             (* TODO: In the future process the assertion message *)
-            | E_assert (exp1, exp2) -> RsApp(RsId "assert!", [process_exp ctx exp1; RsId "\"Process message\""])
+            | E_assert (exp1, exp2) -> RsApp(RsId "assert!", [], [process_exp ctx exp1; RsId "\"Process message\""])
             | E_var (lexp, exp1, exp2) -> RsTodo "E_var"
             | E_internal_plet (pat, exp1, exp2) -> RsTodo "E_internal_plet"
             | E_internal_return exp -> RsTodo "E_internal_return"
@@ -412,10 +434,8 @@ module Codegen () = struct
     and process_args_pat (P_aux (pat_aux, annot)) : rs_pat list = 
         match pat_aux with
             | P_app (id, [P_aux (P_tuple pats, _)]) -> List.flatten (List.map process_args_pat pats)
-            (* | P_app (id, [pat]) -> process_args_pat pat *)
             | P_app (id, pats) ->
                 [RsPatApp (RsPatId (sanitize_id (string_of_id id)), List.flatten (List.map process_args_pat pats))]
-            | P_app _ -> [RsPatId "TodoArgsApp"]
             | P_struct (id_pat_list, field_pat_wildcard) -> [RsPatId "TodoArgsStruct"]
             | P_list pats -> [RsPatId "TodoArgsList"]
             | P_var (var, typ) -> [RsPatId "TodoArgsVar"]
