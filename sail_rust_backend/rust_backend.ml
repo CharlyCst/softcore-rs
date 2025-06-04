@@ -695,7 +695,12 @@ module Codegen () = struct
             | Nexp_times (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopMult, nexp_to_rs_exp m)
             | Nexp_sum   (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopAdd, nexp_to_rs_exp m)
             | Nexp_minus (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopSub, nexp_to_rs_exp m)
-            | Nexp_exp n ->  RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum (Int64.of_int 2)); nexp_to_rs_exp n])  (* exponential, it seems it is always 2 ^ n *)
+            | Nexp_exp n -> (* exponential, it seems it is always 2 ^ n *)
+                let n_exp = match nexp_to_rs_exp n with
+                    | RsLit n -> RsLit n (* Types is inferred automatically for literals *)
+                    | n_exp -> RsAs (n_exp, RsTypId "u32") (* For all other types we do the conversion manually *)
+                in
+                RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum (Int64.of_int 2)); n_exp])
             | Nexp_neg n -> RsUnop (RsUnopNeg, nexp_to_rs_exp n)
             | Nexp_id id -> RsId (string_of_id id)
             | Nexp_var kid  -> RsId (sanitize_generic_id (string_of_kid kid)) (* variable *)
