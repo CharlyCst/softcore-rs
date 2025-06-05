@@ -193,6 +193,9 @@ module Codegen () = struct
                 RsTodo (Printf.sprintf "Binop%s" (string_of_rs_binop binop))
 
     and process_exp (ctx: context) (E_aux (exp, aux)) : rs_exp = 
+        let as_kid str = kid_of_id (mk_id str) in
+        let typ = typ_of_annot aux in
+        let env = env_of_annot aux in
         match exp with
             | E_block exp_list -> RsBlock (List.map (process_exp ctx) exp_list)
             | E_id id -> RsId (sanitize_id (string_of_id id))
@@ -202,7 +205,6 @@ module Codegen () = struct
                 process_binop_exp ctx e1 RsBinopMult e2
             | E_app (id, exp_list) when string_of_id id = "bitvector_concat" ->
                 (* We need to infer the vectors dimensions. To do so we look-up the type variable bindings in the typing context. *)
-                let as_kid str = kid_of_id (mk_id str) in
                 let bindings = instantiation_of (E_aux (exp, aux)) in
                 let n = KBindings.find (as_kid "n") bindings in
                 let m = KBindings.find (as_kid "m") bindings in
@@ -222,6 +224,45 @@ module Codegen () = struct
                 let n = Int64.to_string (as_int64 n) in
                 let m = Int64.to_string (as_int64 m) in
                 RsApp (RsId (sanitize_id (string_of_id id)), [n; m; nm], (List.map (process_exp ctx) exp_list))
+            | E_app (id, exp_list) when let sid = string_of_id id in sid = "ones" || sid = "sail_ones" ->
+                (* Those functions' const generic type might not always be
+                   known at compile time as it might depend the configuration.
+                   When it can not be known, we need to use a conservative
+                   approximation.
+
+                   When we do an approximation, we use the SMT solver to prove
+                   that the approximation is correct. In this case correct
+                   means that we use more bits rather than fewer.*)
+                let id = sanitize_id (string_of_id id) in
+                let exp_list = List.map (process_exp ctx) exp_list in
+                let bindings = instantiation_of (E_aux (exp, aux)) in
+                begin match KBindings.find_opt (as_kid "n") bindings with
+                    (* The type variable depends on another variable.
+                       For now we leave that case to the Rust type inference,
+                       and simply omit the generic. *)
+                    | None -> RsApp (RsId id, [], exp_list)
+                    (* We found the type variable *)
+                    | Some (A_aux (A_nexp n, _)) ->
+                        begin match big_int_of_nexp n with
+                            | Some n -> (* The constant can be determined at compile time *)
+                                RsApp (RsId id, [Big_int.to_string n], exp_list)
+                            | None -> (* If the constant is unknown, we need to make a conservative approximation *)
+                                (* First, we find the type variables and contraints *)
+                                let (kind_ids, constraints) = match typ with
+                                    | Typ_aux (Typ_exist (kinded_ids, constriants, ret_typ), _) -> (kinded_ids, constriants)
+                                    | Typ_aux (_, l) -> Reporting.unreachable l __POS__ "Unexpected type"
+                                in
+                                (* Then we add them to the current environment *)
+                                let env = add_existential (fst aux) kind_ids constraints env in
+                                (* And finally we use the SMT solver to prove that our approximation is conservative *)
+                                if prove __POS__ env (nc_lteq n (nconstant (Big_int.of_int 64))) then
+                                    RsApp (RsId id, ["64"], exp_list)
+                                else
+                                    Reporting.unreachable (fst aux) __POS__ "Could not prove that the bit width is less or equal to 64"
+                        end
+                    (* We found the type variable, but it is not a nexp! *)
+                    | Some (A_aux (_, l)) -> Reporting.unreachable l __POS__ "Expected a nexp"
+                end
             | E_app (id, exp_list) -> RsApp (RsId (sanitize_id (string_of_id id)), [], (List.map (process_exp ctx) exp_list))
             | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
             | E_tuple (exp_list) -> RsTuple (List.map (process_exp ctx) exp_list)
@@ -239,7 +280,7 @@ module Codegen () = struct
             | E_list (exp_list) -> RsTodo "E_list"
             | E_cons (exp1, exp2) -> RsTodo "E_cons"
             | E_struct fexp_list ->
-                let typ = typ_to_rust (typ_of (E_aux (exp, aux))) in
+                let typ = typ_to_rust typ in
                 RsStruct (strip_generic_parameters typ, process_fexp_entries ctx fexp_list)
             (* todo: This is enough for the risc-v translation, but must be refactored for a more general transpiler *)
             | E_struct_update (exp, fexp_list) -> assert(List.length fexp_list = 1); RsStruct (RsTypId "BitField", (process_fexp_entries ctx fexp_list))

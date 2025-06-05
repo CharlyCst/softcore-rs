@@ -128,8 +128,16 @@ pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVect
     BitVector::<64>::new(extension | input.bits)
 }
 
-pub fn sail_ones<const N: usize>(_n: usize) -> BitVector<N> {
-    !BitVector::<N>::new(0)
+pub fn sail_ones<const N: usize>(n: usize) -> BitVector<N> {
+    assert!(n <= 64);
+
+    let value = if n == 64 {
+        u64::MAX
+    } else {
+        (1 << n) - 1
+    };
+
+    BitVector::<N>::new(value)
 }
 
 pub fn sail_zeros<const N: usize>(_n: usize) -> BitVector<N> {
