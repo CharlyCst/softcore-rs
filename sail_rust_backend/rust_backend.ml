@@ -39,6 +39,9 @@ module Codegen () = struct
         | FieldKindStruct of field_kind SMap.t
         | FieldKindLeaf of rs_type
 
+    (** The Rust representation of natural numbers **)
+    let nat_typ = RsTypId "u128"
+
     (* ——————————————————————————————— Type Utils ——————————————————————————————— *)
     
     let map_union (a: 'a SMap.t) (b: 'a SMap.t) : 'a SMap.t =
@@ -179,13 +182,12 @@ module Codegen () = struct
         let size2 = size_of_num_type t2 in
         let exp1 = process_exp ctx exp1 in
         let exp2 = process_exp ctx exp2 in
-        let u128 = RsTypId "u128" in
         match binop with
             | RsBinopMult ->
                 begin match (size1, size2) with
                     (* 64 bits overflow, switch to 128 bits *)
                     | (Some n, Some m) when Int64.mul n m >= 64L ->
-                        RsBinop(RsAs (exp1, u128), RsBinopMult, RsAs (exp2, u128))
+                        RsBinop(RsAs (exp1, nat_typ), RsBinopMult, RsAs (exp2, nat_typ))
                     | _ -> RsBinop(exp1, RsBinopMult, exp2)
                 end
             | _ ->
@@ -425,13 +427,6 @@ module Codegen () = struct
 
     (** Return the size occupied by a numeral type in bits. **)
     and size_of_num_type (Typ_aux (typ, l): typ) : int64 option =
-        let rec simplify exp =
-            let simpler_exp = Rust_transform.transform_exp Rust_transform.expression_optimizer exp in
-            if simpler_exp = exp then
-                simpler_exp
-            else
-                simplify simpler_exp
-        in
         let int_log2 (n : Int64.t) : int64 =
           if n <= 0L then
             invalid_arg "int_log2: Input must be positive."
@@ -444,18 +439,13 @@ module Codegen () = struct
             in
             find_log n 0L
         in
-        let extract_int value = match value with
-            | RsLit (RsLitNum n) -> Some n
-            | _ -> None 
-        in
         match typ with
             (* We expect all num types to be represented as ranges *)
             | Typ_app (id, [start; A_aux (A_nexp (Nexp_aux (nexp, l)), _)]) when string_of_id id = "range" ->
                 begin match nexp with
                     (* We expect a range of the form 2 ^ X - 1 *)
                     | Nexp_minus (Nexp_aux (Nexp_exp exponent, _), Nexp_aux (Nexp_constant n, _)) ->
-                        let exponent = simplify (nexp_to_rs_exp exponent) in
-                        extract_int exponent
+                        Option.map Big_int.to_int64 (big_int_of_nexp exponent)
                     | _ ->
                         Reporting.warn
                             "Unexpected range for numeral type"
@@ -465,8 +455,7 @@ module Codegen () = struct
                 end;
             (* Note: 'atom' corresponds to 'int' type. *)
             | Typ_app (id, [A_aux ((A_nexp nexp), _)]) when string_of_id id = "atom" ->
-                let value = simplify (nexp_to_rs_exp nexp) in
-                Option.map int_log2 (extract_int value)
+                Option.map int_log2 (Option.map Big_int.to_int64 (big_int_of_nexp nexp))
             (* Unexpected numeral type, return a default value *)
             | _ ->
                 Reporting.warn "Unknown numeral type" l (Printf.sprintf "Expected a range or int type, found: %s" (string_of_typ (Typ_aux (typ, l))));
@@ -945,18 +934,15 @@ module Codegen () = struct
         defs = defs;
         call_set = sail_ctx.call_set;
         config_map = sail_ctx.config_map;
+        registers = Util.StringSet.of_list (gather_registers_list ast);
+        enum_entries = process_enum_entries ast.defs;
         ret_type = RsTypUnit;
       } in
 
-      (* Build list of registers *)
-      let register_list = Util.StringSet.of_list (gather_registers_list ast) in
       
-      (* Process enumerations *)
-      let enum_entries = process_enum_entries ast.defs in
-
       (* First stage : sail to raw (invalid) rust *)
       let rust_program = sail_to_rust ast ctx in
-      let rust_program = Rust_transform.transform rust_program register_list enum_entries in
+      let rust_program = Rust_transform.transform rust_program ctx in
 
       let rust_program_string = string_of_rs_prog rust_program in
 
