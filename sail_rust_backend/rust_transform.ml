@@ -1,6 +1,7 @@
 (** Rust Transformations **)
 (** This module transforms raw Rust code generated from Sail into a valid Rust module. **)
 
+open Context
 open Rust_gen
 open Libsail
 
@@ -13,130 +14,130 @@ let external_func: SSet.t = SSet.of_list (["subrange_bits";"not_implemented"; "p
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
-let id_exp (exp: rs_exp) : rs_exp = exp
+let id_exp (ctx: context) (exp: rs_exp) : rs_exp = exp
 
-let id_lexp (lexp: rs_lexp) : rs_lexp = lexp
+let id_lexp (ctx: context) (lexp: rs_lexp) : rs_lexp = lexp
 
-let id_pexp (pexp: rs_pexp) : rs_pexp = pexp
+let id_pexp (ctx: context) (pexp: rs_pexp) : rs_pexp = pexp
 
-let id_typ (typ: rs_type) : rs_type = typ
+let id_typ (ctx: context) (typ: rs_type) : rs_type = typ
 
-let id_pat (pat: rs_pat) : rs_pat = pat
+let id_pat (ctx: context) (pat: rs_pat) : rs_pat = pat
 
-let id_obj (obj: rs_obj) : rs_obj = obj
+let id_obj (ctx: context) (obj: rs_obj) : rs_obj = obj
 
 type expr_type_transform = {
-    exp : rs_exp -> rs_exp;
-    lexp : rs_lexp -> rs_lexp;
-    pexp : rs_pexp -> rs_pexp;
-    typ : rs_type -> rs_type;
-    pat: rs_pat -> rs_pat;
-    obj: rs_obj -> rs_obj;
+    exp : context -> rs_exp -> rs_exp;
+    lexp : context -> rs_lexp -> rs_lexp;
+    pexp : context -> rs_pexp -> rs_pexp;
+    typ : context -> rs_type -> rs_type;
+    pat: context -> rs_pat -> rs_pat;
+    obj: context -> rs_obj -> rs_obj;
 }
 
-let rec transform_pat (ct: expr_type_transform) (pat: rs_pat): rs_pat = 
-    let pat = ct.pat pat in 
+let rec transform_pat (ct: expr_type_transform) (ctx: context) (pat: rs_pat): rs_pat = 
+    let pat = ct.pat ctx pat in 
     match pat with 
         | RsPatId "None" -> RsPatNone
         | RsPatApp (RsPatId "Some", args) -> (
             match args with
-                | arg :: [] -> RsPatSome(transform_pat ct arg) 
+                | arg :: [] -> RsPatSome(transform_pat ct ctx arg) 
                 | _ -> failwith "This case should be unreachable, revise assumption"
         )
-        | RsPatType (typ, pat) -> RsPatType(transform_type ct typ, transform_pat ct pat)
-        | RsPatTuple (pat_list) -> RsPatTuple(List.map (transform_pat ct) pat_list)
+        | RsPatType (typ, pat) -> RsPatType(transform_type ct ctx typ, transform_pat ct ctx pat)
+        | RsPatTuple (pat_list) -> RsPatTuple(List.map (transform_pat ct ctx) pat_list)
         | RsPatWildcard -> RsPatWildcard
         | RsPatLit l -> RsPatLit l
         | RsPatId id -> RsPatId id
         | RsPatApp (RsPatId "None", args) -> RsPatNone
-        | RsPatApp (name, args) -> RsPatApp(transform_pat ct name, List.map (fun p -> transform_pat ct p) args)
-        | RsPatSome pat -> RsPatSome (transform_pat ct pat) 
+        | RsPatApp (name, args) -> RsPatApp(transform_pat ct ctx name, List.map (fun p -> transform_pat ct ctx p) args)
+        | RsPatSome pat -> RsPatSome (transform_pat ct ctx pat) 
         | RsPatNone -> RsPatNone
         | RsPatTodo text -> RsPatTodo text
 
-and transform_lexp (ct: expr_type_transform) (lexp: rs_lexp): rs_lexp =
-    let lexp = ct.lexp lexp in
+and transform_lexp (ct: expr_type_transform) (ctx: context) (lexp: rs_lexp): rs_lexp =
+    let lexp = ct.lexp ctx lexp in
     match lexp with
         | RsLexpId id -> RsLexpId id
         | RsLexpField (lexp, id) ->
             (RsLexpField (
-                (transform_lexp ct lexp),
+                (transform_lexp ct ctx lexp),
                 id))
         | RsLexpIndex (lexp, exp) ->
             (RsLexpIndex (
-                (transform_lexp ct lexp),
-                (transform_exp ct exp)))
+                (transform_lexp ct ctx lexp),
+                (transform_exp ct ctx exp)))
         | RsLexpIndexRange (lexp, range_start, range_end) ->
             (RsLexpIndexRange (
-                (transform_lexp ct lexp),
-                (transform_exp ct range_start),
-                (transform_exp ct range_end)))
+                (transform_lexp ct ctx lexp),
+                (transform_exp ct ctx range_start),
+                (transform_exp ct ctx range_end)))
         | RsLexpTodo -> RsLexpTodo
 
-and transform_exp (ct: expr_type_transform) (exp: rs_exp) : rs_exp =
-    let exp = ct.exp exp in
+and transform_exp (ct: expr_type_transform) (ctx: context) (exp: rs_exp) : rs_exp =
+    let exp = ct.exp ctx exp in
     match exp with
         | RsLet (pat, exp, next) ->
             (RsLet (
-                (transform_pat ct pat),
-                (transform_exp ct exp),
-                (transform_exp ct next)))
-        | RsApp (app, generics, args) -> transform_app ct app generics args
-        | RsStaticApp (app, method_name, args) -> RsStaticApp(transform_type ct app, method_name, (List.map (transform_exp ct) args))
+                (transform_pat ct ctx pat),
+                (transform_exp ct ctx exp),
+                (transform_exp ct ctx next)))
+        | RsApp (app, generics, args) -> transform_app ct ctx app generics args
+        | RsStaticApp (app, method_name, args) -> RsStaticApp(transform_type ct ctx app, method_name, (List.map (transform_exp ct ctx) args))
         | RsMethodApp {exp; name; generics; args} ->
             (RsMethodApp {
-                exp = transform_exp ct exp;
+                exp = transform_exp ct ctx exp;
                 name = name;
                 generics = generics;
-                args = List.map (transform_exp ct) args
+                args = List.map (transform_exp ct ctx) args
             })
         | RsId id -> RsId id
         | RsLit lit -> RsLit lit
-        | RsField (exp, field) -> RsField ((transform_exp ct exp), field)
-        | RsBlock exps -> RsBlock (List.map (transform_exp ct) exps)
-        | RsConstBlock exps -> RsConstBlock (List.map (transform_exp ct) exps)
-        | RsInstrList exps -> RsInstrList (List.map (transform_exp ct) exps)
+        | RsField (exp, field) -> RsField ((transform_exp ct ctx exp), field)
+        | RsBlock exps -> RsBlock (List.map (transform_exp ct ctx) exps)
+        | RsConstBlock exps -> RsConstBlock (List.map (transform_exp ct ctx) exps)
+        | RsInstrList exps -> RsInstrList (List.map (transform_exp ct ctx) exps)
         | RsIf (cond, exp_true, exp_false) ->
             (RsIf (
-                (transform_exp ct cond),
-                (transform_exp ct exp_true),
-                (transform_exp ct exp_false)))
+                (transform_exp ct ctx cond),
+                (transform_exp ct ctx exp_true),
+                (transform_exp ct ctx exp_false)))
         | RsMatch (exp, pexps) ->
             (RsMatch (
-                (transform_exp ct exp),
-                (List.map (transform_pexp ct) pexps)))
+                (transform_exp ct ctx exp),
+                (List.map (transform_pexp ct ctx) pexps)))
         | RsTuple exps ->
             (RsTuple
-                (List.map (transform_exp ct) exps))
+                (List.map (transform_exp ct ctx) exps))
         | RsAssign (lexp, exp) ->
             (RsAssign (
-                (transform_lexp ct lexp),
-                (transform_exp ct exp)))
+                (transform_lexp ct ctx lexp),
+                (transform_exp ct ctx exp)))
         | RsIndex (exp1, exp2) ->
             (RsIndex (
-                (transform_exp ct exp1),
-                (transform_exp ct exp2)))
+                (transform_exp ct ctx exp1),
+                (transform_exp ct ctx exp2)))
         | RsBinop (exp1, binop, exp2) ->
             (RsBinop (
-                (transform_exp ct exp1),
+                (transform_exp ct ctx exp1),
                 binop,
-                (transform_exp ct exp2)))
-        | RsUnop (unop, exp) -> RsUnop(unop, transform_exp ct exp)
+                (transform_exp ct ctx exp2)))
+        | RsUnop (unop, exp) -> RsUnop(unop, transform_exp ct ctx exp)
         | RsAs (exp, typ) ->
             (RsAs (
-                (transform_exp ct exp),
-                (transform_type ct typ)))
-        | RsSome(exp) -> RsSome (transform_exp ct exp)
+                (transform_exp ct ctx exp),
+                (transform_type ct ctx typ)))
+        | RsSome(exp) -> RsSome (transform_exp ct ctx exp)
         | RsNone -> RsNone
         | RsPathSeparator (t1, t2) -> RsPathSeparator (t1,t2)
-        | RsFor (var, start, until, body) ->  RsFor (var, start, until, transform_exp ct body)
-        | RsStruct (typ, entries) -> RsStruct(transform_type ct typ, List.map (fun (s,e) -> (s, transform_exp ct e)) entries)
-        | RsStructAssign (e1, name, e2) -> RsStructAssign(transform_exp ct e1, name, transform_exp ct e2)
-        | RsReturn exp -> RsReturn (transform_exp ct exp)
+        | RsFor (var, start, until, body) ->  RsFor (var, start, until, transform_exp ct ctx body)
+        | RsStruct (typ, entries) -> RsStruct(transform_type ct ctx typ, List.map (fun (s,e) -> (s, transform_exp ct ctx e)) entries)
+        | RsStructAssign (e1, name, e2) -> RsStructAssign(transform_exp ct ctx e1, name, transform_exp ct ctx e2)
+        | RsReturn exp -> RsReturn (transform_exp ct ctx exp)
         | RsTodo str -> RsTodo str
 
-and transform_app (ct: expr_type_transform) (fn: rs_exp) (generics: string list) (args: rs_exp list) : rs_exp =
-    let args = List.map (transform_exp ct) args in
+and transform_app (ct: expr_type_transform) (ctx: context) (fn: rs_exp) (generics: string list) (args: rs_exp list) : rs_exp =
+    let args = List.map (transform_exp ct ctx) args in
     match (fn, args) with
         (* Built-in elementary operations *)
         | (RsId "plain_vector_access", [vector; item]) -> (RsIndex (vector, item))
@@ -184,93 +185,93 @@ and transform_app (ct: expr_type_transform) (fn: rs_exp) (generics: string list)
         (* Otherwise keep as is *)
         | _ -> (RsApp (fn, generics, args))
 
-and transform_pexp (ct: expr_type_transform) (pexp: rs_pexp) : rs_pexp =
-    let pexp = ct.pexp pexp in
+and transform_pexp (ct: expr_type_transform) (ctx: context) (pexp: rs_pexp) : rs_pexp =
+    let pexp = ct.pexp ctx pexp in
     match pexp with
         | RsPexp (pat, exp) ->
             (RsPexp (
-                (transform_pat ct pat),
-                (transform_exp ct exp)))
+                (transform_pat ct ctx pat),
+                (transform_exp ct ctx exp)))
         | RsPexpWhen (pat, exp1, exp2) ->
             (RsPexpWhen (
-                (transform_pat ct pat),
-                (transform_exp ct exp1),
-                (transform_exp ct exp2)))
+                (transform_pat ct ctx pat),
+                (transform_exp ct ctx exp1),
+                (transform_exp ct ctx exp2)))
  
 (* ———————————————————————————— Transform Types ————————————————————————————— *)
  
-and transform_type_param (ct: expr_type_transform) (param: rs_type_param) : rs_type_param =
+and transform_type_param (ct: expr_type_transform) (ctx: context) (param: rs_type_param) : rs_type_param =
     match param with
-        | RsTypParamTyp typ -> RsTypParamTyp (transform_type ct typ)
+        | RsTypParamTyp typ -> RsTypParamTyp (transform_type ct ctx typ)
         | RsTypParamNum n -> RsTypParamNum n
 
-and transform_type (ct: expr_type_transform) (typ: rs_type) : rs_type =
-    let typ = ct.typ typ in
+and transform_type (ct: expr_type_transform) (ctx: context) (typ: rs_type) : rs_type =
+    let typ = ct.typ ctx typ in
     match typ with
         | RsTypId "unit" -> RsTypUnit
         | RsTypId id -> RsTypId id
         | RsTypUnit -> RsTypUnit
         | RsTypTodo e -> RsTypTodo e
-        | RsTypTuple types -> RsTypTuple (List.map (transform_type ct) types)
+        | RsTypTuple types -> RsTypTuple (List.map (transform_type ct ctx) types)
         | RsTypGeneric typ -> RsTypGeneric typ
         (* TODO: Maybe there is a bug here *)
-        | RsTypGenericParam (typ, e::params) when typ = "option" -> RsTypOption (transform_type_param ct e)
-        | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, (List.map (transform_type_param ct) params))
-        | RsTypArray (typ, size) -> RsTypArray (transform_type_param ct typ, transform_type_param ct size)
-        | RsTypOption param -> RsTypOption (transform_type_param ct param)
+        | RsTypGenericParam (typ, e::params) when typ = "option" -> RsTypOption (transform_type_param ct ctx e)
+        | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, (List.map (transform_type_param ct ctx) params))
+        | RsTypArray (typ, size) -> RsTypArray (transform_type_param ct ctx typ, transform_type_param ct ctx size)
+        | RsTypOption param -> RsTypOption (transform_type_param ct ctx param)
         
 
 (* ———————————————————————— Expression and Type transformer ————————————————————————— *)
 
-let transform_fn (ct: expr_type_transform) (fn: rs_fn) : rs_fn =
+let transform_fn (ct: expr_type_transform) (ctx: context) (fn: rs_fn) : rs_fn =
     let {generics; args; ret} = fn.signature in
-    let args = List.map (transform_type ct) args in
-    let ret = transform_type ct ret in
+    let args = List.map (transform_type ct ctx) args in
+    let ret = transform_type ct ctx ret in
     {
         name = fn.name;
-        args = (List.map ct.pat fn.args);
+        args = (List.map (ct.pat ctx) fn.args);
         signature = {generics; args; ret};
-        body = transform_exp ct fn.body;
+        body = transform_exp ct ctx fn.body;
     }
 
-let transform_alias (ct: expr_type_transform) (alias: rs_alias) : rs_alias = {
+let transform_alias (ct: expr_type_transform) (ctx: context) (alias: rs_alias) : rs_alias = {
         new_typ = alias.new_typ; 
         generics = alias.generics;
-        old_type = transform_type ct alias.old_type
+        old_type = transform_type ct ctx alias.old_type
     }
 
-let transform_obj (ct: expr_type_transform) (obj: rs_obj) : rs_obj = 
-    let obj = ct.obj obj in
+let transform_obj (ct: expr_type_transform) (ctx: context) (obj: rs_obj) : rs_obj = 
+    let obj = ct.obj ctx obj in
     match obj with
-        | RsFn fn -> RsFn (transform_fn ct fn)
-        | RsAlias alias -> RsAlias (transform_alias ct alias)
-        | RsStruct {name; generics; fields} -> RsStruct { name = name; generics = generics; fields = (List.map (fun (a,b) -> (a, transform_type ct b)) fields)}
+        | RsFn fn -> RsFn (transform_fn ct ctx fn)
+        | RsAlias alias -> RsAlias (transform_alias ct ctx alias)
+        | RsStruct {name; generics; fields} -> RsStruct { name = name; generics = generics; fields = (List.map (fun (a,b) -> (a, transform_type ct ctx b)) fields)}
         | RsEnum {name; generics; fields} -> RsEnum {
             name = name;
             generics;
             fields = (List.map (fun (name, typ) -> match typ with
                 | None -> (name, None) 
-                | Some typ -> (name, Some (transform_type ct typ)))
+                | Some typ -> (name, Some (transform_type ct ctx typ)))
             fields)
         }
         | _ -> obj
 
-let rust_transform_expr (ct: expr_type_transform) (RsProg objs) : rs_program =
-    RsProg (List.map (transform_obj ct) objs)
+let rust_transform_expr (ct: expr_type_transform) (ctx: context) (RsProg objs) : rs_program =
+    RsProg (List.map (transform_obj ct ctx) objs)
 
 (* ———————————————————————— Function transformer ————————————————————————— *)
 
 type func_transform = {
-    func : rs_fn -> rs_fn
+    func : context -> rs_fn -> rs_fn
 }
 
-let transform_obj_func (ct: func_transform) (obj: rs_obj) : rs_obj =
+let transform_obj_func (ct: func_transform) (ctx: context) (obj: rs_obj) : rs_obj =
     match obj with
-    | RsFn fn -> RsFn (ct.func fn) 
+    | RsFn fn -> RsFn (ct.func ctx fn) 
     | _ -> obj
 
-let rust_transform_func (ct: func_transform) (RsProg objs) : rs_program =
-    RsProg (List.map (transform_obj_func ct) objs)
+let rust_transform_func (ct: func_transform) (ctx: context) (RsProg objs) : rs_program =
+    RsProg (List.map (transform_obj_func ct ctx) objs)
 
 (* ——————————————————————————— BitVec transformation ———————————————————————————— *)
 
@@ -301,7 +302,7 @@ let parse_first_tuple_entry(values: rs_pexp list) : rs_pat list =
         | RsPexpWhen(RsPatTuple t, _, _) :: rest -> t
         | _ -> failwith "Code should be unreachable"
   
-let bitvec_transform_exp (exp: rs_exp) : rs_exp =
+let bitvec_transform_exp (ctx: context) (exp: rs_exp) : rs_exp =
     match exp with
         | RsApp (RsId "subrange_bits", generics, [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
             let r_end = Int64.add r_end Int64.one in
@@ -361,7 +362,7 @@ and uint_to_bitvector (n: int) : rs_type =
     else
         RsTypId "InvalidBitVectorSize"
 
-let rec bitvec_transform_type (typ: rs_type) : rs_type =
+let rec bitvec_transform_type (ctx: context) (typ: rs_type) : rs_type =
     match typ with
         | RsTypGenericParam ("bitvector", t) -> RsTypGenericParam ("BitVector", t)
         | RsTypGenericParam ("bits", t) -> RsTypGenericParam ("BitVector", t)
@@ -398,7 +399,7 @@ let rec int_pow (n: int64) (m: int64) : int64 =
 (** Simplifies rust expression by applying basic optimisations.
 
  For now, this mostly includes arithmetic operators.**)
-let rec simplify_rs_exp (rs_exp: rs_exp) : rs_exp =
+let rec simplify_rs_exp (ctx: context) (rs_exp: rs_exp) : rs_exp =
     match rs_exp with
         | RsBinop (RsLit (RsLitNum a), RsBinopAdd, RsLit (RsLitNum b)) -> 
             RsLit (RsLitNum (Int64.add a b))
@@ -432,7 +433,7 @@ let expression_optimizer = {
 
 (** Sail often generates blocks in constructs such as if statements, for which
     we already have blocks. This transformation removes the nested blocks. **)
-let nested_block_remover_exp (exp: rs_exp) : rs_exp = 
+let nested_block_remover_exp (ctx: context) (exp: rs_exp) : rs_exp = 
     match exp with
         | RsIf (c, RsBlock e1, RsBlock e2) -> RsIf (c, RsInstrList e1, RsInstrList e2)
         | RsIf (c, RsBlock e1, e2) -> RsIf (c, RsInstrList e1, e2)
@@ -460,7 +461,7 @@ let unsupported_fun: SSet.t = SSet.of_list ([
 ])
 
 (* TODO: This list is probably incomplete and we might want to add extra fields in the future *)
-let native_func_transform_exp (exp : rs_exp) : rs_exp = 
+let native_func_transform_exp (ctx: context) (exp : rs_exp) : rs_exp = 
     match exp with
     | RsApp (RsId "add_atom", gens, [e1;e2]) -> RsBinop(e1,RsBinopAdd,e2)
     | RsApp (RsId "sub_atom", gens, [e1;e2]) -> RsBinop(e1,RsBinopSub,e2)
@@ -555,17 +556,11 @@ let native_func_transform_exp (exp : rs_exp) : rs_exp =
     | _ -> exp
   
 
-let native_func_transform_lexp (lexp: rs_lexp) : rs_lexp = lexp 
-
-let native_func_transform_pexp (pexp: rs_pexp) : rs_pexp = pexp
-
-let native_func_transform_type (typ: rs_type) : rs_type = typ
-
 let native_func_transform = {
     exp = native_func_transform_exp;
-    lexp = native_func_transform_lexp;
-    pexp = native_func_transform_pexp;
-    typ = native_func_transform_type;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
     pat = id_pat;
     obj = id_obj;
 }
@@ -764,7 +759,7 @@ let rec hoist_let_exp (exp: rs_exp) : rs_exp * ((rs_pat * rs_exp) list) =
             (RsAs (exp, typ), defs)
         | _ -> (exp, [])
 
-let pexp_hoister (pexp: rs_pexp) : rs_pexp =
+let pexp_hoister (ctx: context) (pexp: rs_pexp) : rs_pexp =
     match pexp with
         | RsPexpWhen (pat, cond, exp) ->
             let (cond, defs) = hoist_let_exp cond in
@@ -777,7 +772,7 @@ let pexp_hoister (pexp: rs_pexp) : rs_pexp =
             RsPexpWhen (pat, cond, exp)
         | _ -> pexp
 
-let expr_hoister (exp: rs_exp) : rs_exp = 
+let expr_hoister (ctx: context) (exp: rs_exp) : rs_exp = 
     match exp with
         (* We dont need to hoist external functions & some macro might not work with hoisting (for example: format!)*)
         | RsApp (RsId name, generics, args) when should_hoist args && not(SSet.mem name external_func) -> let ret = hoist args in 
@@ -800,7 +795,7 @@ let expr_hoister (exp: rs_exp) : rs_exp =
             RsIf (cond, if_branch, else_branch)
         | _ -> exp
 
-let obj_hoister (obj: rs_obj) : rs_obj =
+let obj_hoister (ctx: context) (obj: rs_obj) : rs_obj =
     (* For each rust object we reset the counter
        This makes the IDs of variables more stable, as a change in a function
        doesn't rename variables in another *)
@@ -834,23 +829,23 @@ let sanitize_generic (generic: rs_generic) : rs_generic =
         | RsGenNum _ -> RsGenNum new_id
         | RsGenBool _ -> RsGenBool new_id
 
-let rec rewrite_generics (typ: rs_type) : rs_type =
+let rec rewrite_generics (ctx: context) (typ: rs_type) : rs_type =
     match (typ : rs_type) with
         | RsTypId id -> RsTypId (sanitize_generic_id id)
         | RsTypGeneric id -> RsTypGeneric (sanitize_generic_id id)
-        | RsTypTuple typs -> RsTypTuple (List.map rewrite_generics typs)
+        | RsTypTuple typs -> RsTypTuple (List.map (rewrite_generics ctx) typs)
         | RsTypUnit -> RsTypUnit
-        | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, List.map rewrite_generic_params params)
-        | RsTypArray (n, m) -> RsTypArray (rewrite_generic_params n, rewrite_generic_params m)
-        | RsTypOption typ -> RsTypOption (rewrite_generic_params typ)
+        | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, List.map (rewrite_generic_params ctx) params)
+        | RsTypArray (n, m) -> RsTypArray (rewrite_generic_params ctx n, rewrite_generic_params ctx m)
+        | RsTypOption typ -> RsTypOption (rewrite_generic_params ctx typ)
         | RsTypTodo s -> RsTypTodo s
 
-and rewrite_generic_params (param: rs_type_param) : rs_type_param =
+and rewrite_generic_params (ctx: context) (param: rs_type_param) : rs_type_param =
     match param with 
-        | RsTypParamTyp typ -> RsTypParamTyp (rewrite_generics typ)
+        | RsTypParamTyp typ -> RsTypParamTyp (rewrite_generics ctx typ)
         | RsTypParamNum num -> param
 
-let rewrite_generics_obj (obj: rs_obj) : rs_obj =
+let rewrite_generics_obj (ctx: context) (obj: rs_obj) : rs_obj =
     match (obj : rs_obj) with
         | RsEnum enum -> RsEnum {
             enum with
@@ -882,7 +877,7 @@ let normalize_generics = {
 (* Adds a virtual context as first argument to all functions.                 *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-let sail_context_inserter (func: rs_fn): rs_fn = { 
+let sail_context_inserter (ctx: context) (func: rs_fn): rs_fn = { 
   func with 
     args = RsPatId "sail_ctx" :: func.args;
     signature = { func.signature with args = RsTypId "&mut SailVirtCtx" :: func.signature.args }
@@ -897,7 +892,7 @@ let virt_context_transform = {
 (* the approriate namespaces to all enum arguments.                           *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-let add_namespace_to_arg_pats (enum_list: (string * string) list) (func: rs_fn): rs_fn = 
+let add_namespace_to_arg_pats (ctx: context) (func: rs_fn): rs_fn = 
   let rec get_namespace enum enum_list = match enum_list with
     | (k, v) :: tail when k = enum -> Some v
     | (k, v) :: tail -> get_namespace enum tail
@@ -905,7 +900,7 @@ let add_namespace_to_arg_pats (enum_list: (string * string) list) (func: rs_fn):
   in
   (** Add the proper enum namespace to all enum pattern argument, leave other unchanged **)
   let add_namespace pat = match pat with
-    | RsPatApp (RsPatId enum, args) -> begin match get_namespace enum enum_list with
+    | RsPatApp (RsPatId enum, args) -> begin match get_namespace enum ctx.enum_entries with
         (* There is no concept of path in patterns yet, so we do a hacky string concatenation. *)
         (* TODO: fix that by adding a path to patterns *)
         | Some path -> RsPatApp (RsPatId (path ^ "::" ^ enum), args)
@@ -916,8 +911,8 @@ let add_namespace_to_arg_pats (enum_list: (string * string) list) (func: rs_fn):
 
   { func with args = List.map add_namespace func.args; }
 
-let enum_arg_namespace_generator (enum_list: (string * string) list) : func_transform = {
-  func = add_namespace_to_arg_pats enum_list;
+let enum_arg_namespace : func_transform = {
+  func = add_namespace_to_arg_pats;
 }
 
 (* ———————————————————————— Enumeration binder ————————————————————————— *)
@@ -929,37 +924,36 @@ let rec enum_prefix_inserter (key : string) (lst : (string * string) list) : str
         if k = key then v ^ "::" ^ k
         else enum_prefix_inserter key rest
   
-let enum_binder_exp (enum_list: (string * string) list) (exp: rs_exp) : rs_exp = 
+let enum_binder_exp (ctx: context) (exp: rs_exp) : rs_exp = 
   match exp with
-    | RsId id -> RsId (enum_prefix_inserter id enum_list)
-    | RsApp (RsId id, generics, args) -> RsApp (RsId (enum_prefix_inserter id enum_list), generics, args)
+    | RsId id -> RsId (enum_prefix_inserter id ctx.enum_entries)
+    | RsApp (RsId id, generics, args) -> RsApp (RsId (enum_prefix_inserter id ctx.enum_entries), generics, args)
     | RsMethodApp {exp = RsId id; name; generics; args} -> RsMethodApp {
-            exp = RsId (enum_prefix_inserter id enum_list);
+            exp = RsId (enum_prefix_inserter id ctx.enum_entries);
             name = name;
             generics = generics;
             args = args;
         }
     | _ -> exp
  
-let enum_binder_lexp (enum_list: (string * string) list) (lexp: rs_lexp) : rs_lexp = 
+let enum_binder_lexp (ctx: context) (lexp: rs_lexp) : rs_lexp = 
   match lexp with
-    | RsLexpId id -> RsLexpId (enum_prefix_inserter id enum_list)
+    | RsLexpId id -> RsLexpId (enum_prefix_inserter id ctx.enum_entries)
     | _ -> lexp
  
 (*TODO: Maybe we should match RsPatId directly?*)
-let enum_binder_pat (enum_list: (string * string) list) (pat: rs_pat) : rs_pat = 
+let enum_binder_pat (ctx: context) (pat: rs_pat) : rs_pat = 
   match pat with
-    | RsPatId id -> RsPatId (enum_prefix_inserter id enum_list)
+    | RsPatId id -> RsPatId (enum_prefix_inserter id ctx.enum_entries)
     | _ -> pat
  
-let enum_binder_type (typ: rs_type) : rs_type = typ
  
-let enum_binder_generator (enum_list: (string * string) list) : expr_type_transform = {
-    exp = enum_binder_exp enum_list;
+let enum_binder : expr_type_transform = {
+    exp = enum_binder_exp;
     pexp = id_pexp;
-    lexp = enum_binder_lexp enum_list;
-    typ = enum_binder_type;
-    pat = enum_binder_pat enum_list;
+    lexp = enum_binder_lexp;
+    typ = id_typ;
+    pat = enum_binder_pat;
     obj = id_obj;
 }
   
@@ -977,7 +971,7 @@ let remove_illegal_operator_char str =
   let str = global_replace (regexp " ") "_" str in
   str 
 
-let operator_rewriter_func (func: rs_fn): rs_fn = {
+let operator_rewriter_func (ctx: context) (func: rs_fn): rs_fn = {
   name = remove_illegal_operator_char func.name;
   args = func.args;
   signature = func.signature;
@@ -991,22 +985,16 @@ let operator_rewriter = {
 
 (* ———————————————————————— Operator rewriter caller side  ————————————————————————— *)
 
-let expr_operator_rewriter (exp: rs_exp) : rs_exp = 
+let expr_operator_rewriter (ctx: context) (exp: rs_exp) : rs_exp = 
     match exp with
         | RsApp (RsId id, generics, args) -> RsApp(RsId(remove_illegal_operator_char id), generics, args)
         | _ -> exp
 
-let lexpr_operator_rewriter (lexp: rs_lexp) : rs_lexp = lexp
-
-let pexpr_operator_rewriter (pexp: rs_pexp) : rs_pexp = pexp 
-
-let type_operator_rewriter (typ: rs_type) : rs_type = typ 
-
 let expr_type_operator_rewriter = {
     exp = expr_operator_rewriter;
-    lexp = lexpr_operator_rewriter;
-    pexp = pexpr_operator_rewriter;
-    typ = type_operator_rewriter;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
     pat = id_pat;
     obj = id_obj;
 }
@@ -1042,24 +1030,38 @@ let insert_annotation_imports (RsProg objs) : rs_program =  merge_rs_prog_list[i
 
 (* ———————————————————————— BasicTypes rewriter  ————————————————————————— *)
 
-let transform_basic_types_exp (exp: rs_exp) : rs_exp = 
+let transform_basic_types_exp (ctx: context) (exp: rs_exp) : rs_exp = 
     match exp with
         (* Reserved keywords in rust *)
         | RsId "priv" -> RsId "_priv_"
         | RsId "super" -> RsId "_super_"
+        (* Conversion for `nat` type *)
+        | RsApp (RsId id, generics, args)->
+            let patch_arg (exp, typ) =
+                match typ with
+                    (* Conversion between integer types is not automatic, therefore we need to insert some casts *)
+                    | RsTypId "nat" -> RsAs (exp, RsTypId "u128")
+                    | _ -> exp
+            in
+            let args = match SMap.find_opt (id) ctx.defs.funs with
+                | Some fun_def ->
+                    List.map patch_arg (List.combine args fun_def.args)
+                | None -> args
+            in
+            RsApp (RsId id, generics, args)
         | _ -> exp
 
 (* TODO: Should we apply the same logic in lexp here? *)
-let transform_basic_types_lexp (lexp: rs_lexp) : rs_lexp = 
+let transform_basic_types_lexp (ctx: context) (lexp: rs_lexp) : rs_lexp = 
     match lexp with 
         | RsLexpId "priv" -> RsLexpId "_priv_"
         | RsLexpId "super" -> RsLexpId "_super_"
         | _ -> lexp
 
 
-let transform_basic_types_pexp (pexp: rs_pexp) : rs_pexp = pexp
+let transform_basic_types_pexp (ctx: context) (pexp: rs_pexp) : rs_pexp = pexp
 
-let transform_basic_types_type (typ: rs_type) : rs_type = 
+let transform_basic_types_type (ctx: context) (typ: rs_type) : rs_type = 
   match typ with
     | RsTypId "string" -> RsTypId "&\'static str"
     | RsTypId "int" -> RsTypId "usize"
@@ -1069,7 +1071,7 @@ let transform_basic_types_type (typ: rs_type) : rs_type =
     | RsTypGenericParam ("implicit", _) -> RsTypId "usize"
     | _ -> typ
 
-let transform_basic_types_pat (pat: rs_pat) : rs_pat =
+let transform_basic_types_pat (ctx: context) (pat: rs_pat) : rs_pat =
     match pat with
         | RsPatId "priv" -> RsPatId "_priv_"
         | RsPatId "super" -> RsPatId "_super_"
@@ -1086,7 +1088,7 @@ let transform_basic_types: expr_type_transform = {
 
 (* ———————————————————————— Wildcard inserter  ————————————————————————— *)
 
-let add_wildcard_match_expr (exp: rs_exp) : rs_exp = 
+let add_wildcard_match_expr (ctx: context) (exp: rs_exp) : rs_exp = 
     match exp with 
         | RsMatch (exp, pexps) -> RsMatch(exp, pexps @ [RsPexp(RsPatWildcard, RsApp(RsId "panic!", [], [RsId "\"Unreachable code\""]))]) 
         | _ -> exp
@@ -1103,29 +1105,26 @@ let add_wildcard_match: expr_type_transform = {
 (* ———————————————————————— VirtContext binder ————————————————————————— *)
 
 
-let sail_context_binder_exp (register_list: SSet.t) (exp: rs_exp) : rs_exp = 
+let sail_context_binder_exp (ctx: context) (exp: rs_exp) : rs_exp = 
   match exp with
-    | RsId value -> if (SSet.mem value register_list) then (RsId ("sail_ctx." ^ value)) else RsId value
+    | RsId value -> if (SSet.mem value ctx.registers) then (RsId ("sail_ctx." ^ value)) else RsId value
     | _ -> exp
 
-let sail_context_binder_lexp (register_list: SSet.t) (lexp: rs_lexp) : rs_lexp = 
+let sail_context_binder_lexp (ctx: context) (lexp: rs_lexp) : rs_lexp = 
   match lexp with
-    | RsLexpId value -> if (SSet.mem value register_list) then (RsLexpId ("sail_ctx." ^ value)) else RsLexpId value
+    | RsLexpId value -> if (SSet.mem value ctx.registers) then (RsLexpId ("sail_ctx." ^ value)) else RsLexpId value
     | _ -> lexp
 
-let sail_context_binder_pexp (register_list: SSet.t) (pexp: rs_pexp) : rs_pexp = 
+let sail_context_binder_pexp (ctx: context) (pexp: rs_pexp) : rs_pexp = 
   match pexp with
-    | RsPexp (RsPatId value, exp) -> if (SSet.mem value register_list) then RsPexp(RsPatId ("sail_ctx." ^ value), exp) else RsPexp (RsPatId value, exp)
+    | RsPexp (RsPatId value, exp) -> if (SSet.mem value ctx.registers) then RsPexp(RsPatId ("sail_ctx." ^ value), exp) else RsPexp (RsPatId value, exp)
     | _ -> pexp
 
-
-let sail_context_binder_type (typ: rs_type) : rs_type = typ
-
-let sail_context_binder_generator (register_list: SSet.t): expr_type_transform = {
-    exp = sail_context_binder_exp register_list;
-    lexp = sail_context_binder_lexp register_list;
-    pexp = sail_context_binder_pexp register_list;
-    typ = sail_context_binder_type;
+let sail_context_binder : expr_type_transform = {
+    exp = sail_context_binder_exp;
+    lexp = sail_context_binder_lexp;
+    pexp = sail_context_binder_pexp;
+    typ = id_typ;
     pat = id_pat;
     obj = id_obj;
 }
@@ -1141,24 +1140,17 @@ let is_enum (value: string) : bool =
         true
     with Not_found -> false 
 
-let sail_context_arg_inserter_exp (exp: rs_exp) : rs_exp = 
+let sail_context_arg_inserter_exp (ctx: context) (exp: rs_exp) : rs_exp = 
   match exp with 
     | RsApp (RsId app_id, generics, args) when not(SSet.mem app_id external_func) && not(is_enum app_id) -> 
       let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, generics, args)
     | _ -> exp
     
-
-let sail_context_arg_inserter_lexp (lexp: rs_lexp) : rs_lexp = lexp
-
-let sail_context_arg_inserter_pexp (pexp: rs_pexp) : rs_pexp = pexp
-
-let sail_context_arg_inserter_type (typ: rs_type) : rs_type = typ
-
 let sail_context_arg_inserter: expr_type_transform = {
     exp = sail_context_arg_inserter_exp;
-    lexp = sail_context_arg_inserter_lexp;
-    pexp = sail_context_arg_inserter_pexp;
-    typ = sail_context_arg_inserter_type;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
     pat = id_pat;
     obj = id_obj;
 }
@@ -1173,7 +1165,7 @@ let filter_different_litterals (lit: int64) (pexp: rs_pexp) : bool =
         | _ -> true
 
 
-let dead_code_remover_exp (exp: rs_exp) : rs_exp = 
+let dead_code_remover_exp (ctx: context) (exp: rs_exp) : rs_exp = 
     match exp with
         | RsMatch (RsTuple [e; RsLit(RsLitNum n)], pexps) -> 
             RsMatch (RsTuple [e; RsLit(RsLitNum n)], List.filter (filter_different_litterals n) pexps)
@@ -1181,17 +1173,11 @@ let dead_code_remover_exp (exp: rs_exp) : rs_exp =
             RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), RsApp(RsId "panic!", [], [RsId "\"unreachable code\""]), else_exp) 
         | _ -> exp
     
-let dead_code_remover_lexp (lexp: rs_lexp) : rs_lexp = lexp
-
-let dead_code_remover_pexp (pexp: rs_pexp) : rs_pexp = pexp
-
-let dead_code_remover_type (typ: rs_type) : rs_type = typ
-
 let dead_code_remover: expr_type_transform = {
     exp = dead_code_remover_exp;
-    lexp = dead_code_remover_lexp;
-    pexp = dead_code_remover_pexp;
-    typ = dead_code_remover_type;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
     pat = id_pat;
     obj = id_obj;
 }
@@ -1235,43 +1221,33 @@ let rec fix_point fn args limit =
     else
         fix_point fn new_args (limit - 1)
 
-let transform (rust_program: rs_program) (register_list: SSet.t) (enum_entries: (string * string) list) : rs_program =
-  (* Build list of registers *)
-  let sail_context_binder = sail_context_binder_generator register_list in
+let transform (rust_program: rs_program) (ctx: context) : rs_program =
 
-  (* Process enumerations *)
-  let enum_args_filter = enum_arg_namespace_generator enum_entries in
-  let enum_binder = enum_binder_generator enum_entries in
-
-  (* Second stage: bitvector transformations
+  (* Bitvector transformations
 
      We must first replace the Sail native function and perform a basic pass of optimization
      to detect some bitvec patterns properly *)
-  let rust_program = rust_transform_expr nested_block_remover rust_program in
-  let rust_program = rust_transform_expr native_func_transform rust_program in
-  let rust_program = fix_point (rust_transform_expr expression_optimizer) rust_program 10 in
-  let rust_program = rust_transform_expr bitvec_transform rust_program in
-
-  (* Third stage: general valid rust code*)
-  let rust_program = rust_transform_expr expr_type_hoister rust_program in 
-  let rust_program = rust_transform_func virt_context_transform rust_program in
-  let rust_program = rust_transform_expr normalize_generics rust_program in
-  let rust_program = rust_transform_func enum_args_filter rust_program in
-  let rust_program = rust_transform_expr enum_binder rust_program in
-  let rust_program = rust_transform_func operator_rewriter rust_program in
-  let rust_program = rust_transform_expr expr_type_operator_rewriter rust_program in
+  let rust_program = rust_transform_expr nested_block_remover ctx rust_program in
+  let rust_program = rust_transform_expr native_func_transform ctx rust_program in
+  let rust_program = fix_point (rust_transform_expr expression_optimizer ctx) rust_program 10 in
+  let rust_program = rust_transform_expr bitvec_transform ctx rust_program in
+  let rust_program = rust_transform_expr expr_type_hoister ctx rust_program in 
+  let rust_program = rust_transform_func virt_context_transform ctx rust_program in
+  let rust_program = rust_transform_expr normalize_generics ctx rust_program in
+  let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in
+  let rust_program = rust_transform_expr enum_binder ctx rust_program in
+  let rust_program = rust_transform_func operator_rewriter ctx rust_program in
+  let rust_program = rust_transform_expr expr_type_operator_rewriter ctx rust_program in
   let rust_program = rust_remove_type_bits rust_program in
   let rust_program = rust_prelude_func_filter rust_program in
   let rust_program = insert_annotation_imports rust_program in
-  let rust_program = rust_transform_expr transform_basic_types rust_program in
-  let rust_program = rust_transform_expr add_wildcard_match rust_program in
-
-  (* Last stage : Transform into a borrow checker friendly code *)
-  let rust_program = rust_transform_expr sail_context_binder rust_program in
-  let rust_program = rust_transform_expr sail_context_arg_inserter rust_program in
+  let rust_program = rust_transform_expr transform_basic_types ctx rust_program in
+  let rust_program = rust_transform_expr add_wildcard_match ctx rust_program in
+  let rust_program = rust_transform_expr sail_context_binder ctx rust_program in
+  let rust_program = rust_transform_expr sail_context_arg_inserter ctx rust_program in
 
   (* Optimizer: Dead code elimination *)
-  let rust_program = rust_transform_expr dead_code_remover rust_program in
+  let rust_program = rust_transform_expr dead_code_remover ctx rust_program in
 
   (* Filter unsupported items *)
   let rust_program = match rust_program with RsProg objs -> RsProg (List.filter is_supported_obj objs) in
