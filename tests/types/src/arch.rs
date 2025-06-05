@@ -9,7 +9,7 @@ pub struct SailVirtCtx {
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SailConfig {
-
+    pub unknown_at_compile_time: usize,
 }
 
 pub const xlen: usize = 64;
@@ -122,6 +122,7 @@ pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> Bi
         ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::<8>::new(0b00000001)}
         ExceptionType::E_Illegal_Instr(()) => {BitVector::<8>::new(0b00000010)}
         ExceptionType::E_Breakpoint(()) => {BitVector::<8>::new(0b00000011)}
+        ExceptionType::E_Extension(_) => {BitVector::<8>::new(0b00000100)}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -158,6 +159,9 @@ pub fn execute_TEST(sail_ctx: &mut SailVirtCtx) {
     let s2: My_struct_generic<4> = My_struct_generic {
         foo: BitVector::<4>::new(0b1010)
     };
+    let G: usize = sail_ctx.config.unknown_at_compile_time;
+    let mask: xlenbits = sail_ones::<64>(min_int(G, 64)).zero_extend::<64>();
+    let mask2 = sail_ones::<8>(8);
     let value = {
         let var_1 = ExceptionType::E_Fetch_Addr_Align(());
         exceptionType_to_bits(sail_ctx, var_1)

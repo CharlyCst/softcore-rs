@@ -7,6 +7,9 @@ type xlen : Int = 64
 type xlen_bytes : Int = 8
 type xlenbits = bits(xlen)
 
+// Variable version, which can have the same name
+let xlen = sizeof(xlen)
+
 // ——————————————————————————————— Union Type ——————————————————————————————— //
 
 union ExceptionType = {
@@ -62,6 +65,9 @@ scattered mapping encdec
 val zeros : forall 'n, 'n >= 0 . implicit('n) -> bits('n)
 function zeros (n) = sail_zeros(n)
 
+val zero_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
+function zero_extend(m, v) = sail_zero_extend(v, m)
+
 val "parse_hex_bits" : forall 'n, 'n > 0. (int('n), string) -> bits('n)
 function parse_hex_bits(n, s) = {
     zeros(n)
@@ -116,6 +122,7 @@ function exceptionType_to_bits(e) =
     E_Fetch_Access_Fault() => 0x01,
     E_Illegal_Instr()      => 0x02,
     E_Breakpoint()         => 0x03,
+    E_Extension(_)         => 0x04,
   }
 
 function clause execute TEST() = {
@@ -149,6 +156,13 @@ function clause execute TEST() = {
     let s2 : My_struct_generic(4) = struct {
         foo = 0b1010,
     };
+
+    // Sometimes some values are unknown at compile time, yet the type resolution depends on them.
+    // In those case, we need to make a conservative over-approximation of the final type.
+    let G : range(0, 64) = config unknown_at_compile_time;
+    let mask : xlenbits = zero_extend(sail_ones(min_int(G, 64)));
+    // Here is a case where we know at compile time
+    let mask2 = sail_ones(8);
 
     let value = exceptionType_to_bits(E_Fetch_Addr_Align());
 }
