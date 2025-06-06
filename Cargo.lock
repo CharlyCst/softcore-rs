@@ -45,15 +45,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "riscv"
+name = "sail_prelude"
+version = "0.1.0"
+
+[[package]]
+name = "softcore-rv64"
 version = "0.1.0"
 dependencies = [
  "sail_prelude",
 ]
-
-[[package]]
-name = "sail_prelude"
-version = "0.1.0"
 
 [[package]]
 name = "trap"
