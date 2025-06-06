@@ -293,8 +293,18 @@ module Codegen () = struct
             | E_struct fexp_list ->
                 let typ = typ_to_rust typ in
                 RsStruct (strip_generic_parameters typ, process_fexp_entries ctx fexp_list)
-            (* todo: This is enough for the risc-v translation, but must be refactored for a more general transpiler *)
-            | E_struct_update (exp, fexp_list) -> assert(List.length fexp_list = 1); RsStruct (RsTypId "BitField", (process_fexp_entries ctx fexp_list))
+            | E_struct_update (exp, fexp_list) -> begin match fexp_list with
+                (* The struct update is expexted to return the new struct with the field updated *)
+                | [FE_aux (FE_fexp (field, fexp), _)] ->
+                    let struct_typ = match typ with
+                        | Typ_aux (Typ_id id, l) -> RsTypId (string_of_id id)
+                        | Typ_aux (_, l) ->
+                            Reporting.warn "Could not infer struct type in field update" l "TODO: improve type inference";
+                            RsTypId "TodoStructAssingType"
+                    in
+                    RsStruct (struct_typ, [(string_of_id field, process_exp ctx fexp)]);
+                | _ -> Reporting.unreachable (fst aux) __POS__ "TODO: handle multiple field update"
+                end
             | E_field (exp, id) -> RsField ((process_exp ctx exp), (string_of_id id))
             | E_match (exp, pexp_list)
                 -> (RsMatch (
@@ -346,7 +356,7 @@ module Codegen () = struct
                 let id = (sanitize_id (string_of_id id)) in
                 if SSet.mem id ctx.registers then
                     let _ = ctx.uses_sail_ctx <- true in (* set flag *)
-                    RsLexpField (RsLexpId "sail_ctx", id)
+                    RsLexpField (RsId "sail_ctx", id)
                 else
                     RsLexpId id
             | LE_vector (lexp, idx) ->
@@ -361,7 +371,7 @@ module Codegen () = struct
                     (process_exp ctx range_end)))
             | LE_field (lexp, id) ->
                 (RsLexpField (
-                    (process_lexp ctx lexp),
+                    (process_exp ctx (Ast_util.lexp_to_exp lexp)),
                     (string_of_id id)))
             | LE_app _ -> RsLexpId "TodoLexpApp"
             | LE_deref _ -> RsLexpId "TodoLexpDeref"
@@ -381,6 +391,8 @@ module Codegen () = struct
                     (process_exp ctx exp1),
                     (process_exp ctx exp2)
                 ))
+    
+
     (* todo: Currently we assume that all vectors are vector of bits, in the future we should make this function more general*)
     and process_vector (ctx: context) (items: 'a exp list) : rs_exp =
         let is_only_bits acc exp = match exp with

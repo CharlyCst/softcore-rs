@@ -100,7 +100,7 @@ and rs_exp =
     | RsTodo of string
 and rs_lexp =
     | RsLexpId of string
-    | RsLexpField of rs_lexp * string
+    | RsLexpField of rs_exp * string
     | RsLexpIndex of rs_lexp * rs_exp
     | RsLexpIndexRange of rs_lexp * rs_exp * rs_exp
     | RsLexpTodo
@@ -247,6 +247,11 @@ let rec ids_of_pat (pat: rs_pat) : SSet.t =
         | RsPatSome pat -> ids_of_pat pat
         | RsPatNone -> empty
 
+let rec lexp_to_exp (lexp: rs_lexp) : rs_exp =
+    match lexp with
+        | RsLexpId id -> RsId id
+        | RsLexpField (exp, field) -> RsField (exp, field)
+        | _ -> RsId "LexpToExpTodo" 
 
 (* ————————————————————————————— Rust to String ————————————————————————————— *)
 
@@ -472,9 +477,9 @@ and string_of_rs_exp (n: int) (exp: rs_exp) : string =
 and string_of_rs_lexp (n: int) (lexp: rs_lexp) : string =
     match lexp with
         | RsLexpId id -> id
-        | RsLexpField (lexp, id) ->
+        | RsLexpField (exp, id) ->
             Printf.sprintf "%s.%s"
-                (string_of_rs_lexp n lexp)
+                (string_of_rs_exp n exp)
                 id
         | RsLexpIndex (lexp, idx) ->
             Printf.sprintf "%s[%s]"

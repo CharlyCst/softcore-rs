@@ -2737,6 +2737,12 @@ pub fn _get_Misa_A(v: Misa) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
+pub fn _update_Pmpcfg_ent_A(v: Pmpcfg_ent, x: BitVector<2>) -> Pmpcfg_ent {
+    Pmpcfg_ent {
+        bits: update_subrange_bits(v.bits, 4, 3, x)
+    }
+}
+
 pub fn _get_Pmpcfg_ent_A(v: Pmpcfg_ent) -> BitVector<2> {
     v.bits.subrange::<3, 5, 2>()
 }
@@ -2765,6 +2771,12 @@ pub fn _get_Misa_M(v: Misa) -> BitVector<1> {
     v.bits.subrange::<12, 13, 1>()
 }
 
+pub fn _update_Pmpcfg_ent_R(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
+    Pmpcfg_ent {
+        bits: update_subrange_bits(v.bits, 0, 0, x)
+    }
+}
+
 pub fn _get_Pmpcfg_ent_R(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
@@ -2781,8 +2793,20 @@ pub fn _get_Misa_V(v: Misa) -> BitVector<1> {
     v.bits.subrange::<21, 22, 1>()
 }
 
+pub fn _update_Pmpcfg_ent_W(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
+    Pmpcfg_ent {
+        bits: update_subrange_bits(v.bits, 1, 1, x)
+    }
+}
+
 pub fn _get_Pmpcfg_ent_W(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
+}
+
+pub fn _update_Pmpcfg_ent_X(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
+    Pmpcfg_ent {
+        bits: update_subrange_bits(v.bits, 2, 2, x)
+    }
 }
 
 pub fn _get_Pmpcfg_ent_X(v: Pmpcfg_ent) -> BitVector<1> {
@@ -3004,6 +3028,22 @@ pub fn pmpAddrMatchType_of_bits(bs: BitVector<2>) -> PmpAddrMatchType {
     }
 }
 
+pub fn pmpAddrMatchType_to_bits(bs: PmpAddrMatchType) -> BitVector<2> {
+    match bs {
+        PmpAddrMatchType::OFF => {BitVector::<2>::new(0b00)}
+        PmpAddrMatchType::TOR => {BitVector::<2>::new(0b01)}
+        PmpAddrMatchType::NA4 => {BitVector::<2>::new(0b10)}
+        PmpAddrMatchType::NAPOT => {BitVector::<2>::new(0b11)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+pub fn Mk_Pmpcfg_ent(v: BitVector<8>) -> Pmpcfg_ent {
+    Pmpcfg_ent {
+        bits: v
+    }
+}
+
 pub fn pmpReadAddrReg(sail_ctx: &mut SailVirtCtx, n: usize) -> BitVector<{
     (usize::pow(2, 3) * 8)
 }> {
@@ -3032,6 +3072,92 @@ pub fn pmpReadAddrReg(sail_ctx: &mut SailVirtCtx, n: usize) -> BitVector<{
 
 pub fn pmpLocked(cfg: Pmpcfg_ent) -> bool {
     (_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1))
+}
+
+pub fn pmpWriteCfg(sail_ctx: &mut SailVirtCtx, n: usize, cfg: Pmpcfg_ent, v: BitVector<8>) -> Pmpcfg_ent {
+    if {pmpLocked(cfg)} {
+        cfg
+    } else {
+        let cfg = {
+            let var_8 = (v & BitVector::<8>::new(0b10011111));
+            Mk_Pmpcfg_ent(var_8)
+        };
+        let cfg = if {((_get_Pmpcfg_ent_W(cfg) == BitVector::<1>::new(0b1)) && (_get_Pmpcfg_ent_R(cfg) == BitVector::<1>::new(0b0)))} {
+            {
+                let var_4 = {
+                    let var_6 = _update_Pmpcfg_ent_X(cfg, BitVector::<1>::new(0b0));
+                    let var_7 = BitVector::<1>::new(0b0);
+                    _update_Pmpcfg_ent_W(var_6, var_7)
+                };
+                let var_5 = BitVector::<1>::new(0b0);
+                _update_Pmpcfg_ent_R(var_4, var_5)
+            }
+        } else {
+            cfg
+        };
+        let cfg = if {((sys_pmp_grain(sail_ctx, ()) >= 1) && ({
+            let var_3 = _get_Pmpcfg_ent_A(cfg);
+            pmpAddrMatchType_of_bits(var_3)
+        } == PmpAddrMatchType::NA4))} {
+            {
+                let var_1 = cfg;
+                let var_2 = pmpAddrMatchType_to_bits(PmpAddrMatchType::OFF);
+                _update_Pmpcfg_ent_A(var_1, var_2)
+            }
+        } else {
+            cfg
+        };
+        cfg
+    }
+}
+
+pub fn pmpWriteCfgReg(sail_ctx: &mut SailVirtCtx, n: usize, v: BitVector<{
+    (usize::pow(2, 3) * 8)
+}>) {
+    if {(xlen == 32)} {
+        for i in 0..=3 {
+            let idx = ((n * 4) + i);
+            sail_ctx.pmpcfg_n[idx] = {
+                let var_4 = idx;
+                let var_5 = sail_ctx.pmpcfg_n[idx];
+                let var_6 = subrange_bits(v, ((8 * i) + 7), (8 * i));
+                pmpWriteCfg(sail_ctx, var_4, var_5, var_6)
+            }
+        }
+    } else {
+        assert!(((n % 2) == 0), "Process message");
+        for i in 0..=7 {
+            let idx = ((n * 4) + i);
+            sail_ctx.pmpcfg_n[idx] = {
+                let var_1 = idx;
+                let var_2 = sail_ctx.pmpcfg_n[idx];
+                let var_3 = subrange_bits(v, ((8 * i) + 7), (8 * i));
+                pmpWriteCfg(sail_ctx, var_1, var_2, var_3)
+            }
+        }
+    }
+}
+
+pub fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
+    (usize::pow(2, 3) * 8)
+}>, v: BitVector<{
+    (usize::pow(2, 3) * 8)
+}>) -> BitVector<{
+    (usize::pow(2, 3) * 8)
+}> {
+    if {(xlen == 32)} {
+        if {(locked || tor_locked)} {
+            reg
+        } else {
+            v
+        }
+    } else {
+        if {(locked || tor_locked)} {
+            reg
+        } else {
+            v.subrange::<0, 54, 54>().zero_extend::<64>()
+        }
+    }
 }
 
 pub fn pmpCheckRWX(ent: Pmpcfg_ent, acc: AccessType<()>) -> bool {

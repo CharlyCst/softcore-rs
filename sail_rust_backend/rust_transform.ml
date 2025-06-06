@@ -61,7 +61,7 @@ and transform_lexp (ct: expr_type_transform) (ctx: context) (lexp: rs_lexp): rs_
         | RsLexpId id -> RsLexpId id
         | RsLexpField (lexp, id) ->
             (RsLexpField (
-                (transform_lexp ct ctx lexp),
+                (transform_exp ct ctx lexp),
                 id))
         | RsLexpIndex (lexp, exp) ->
             (RsLexpIndex (
@@ -275,12 +275,6 @@ let rust_transform_func (ct: func_transform) (ctx: context) (RsProg objs) : rs_p
 
 (* ——————————————————————————— BitVec transformation ———————————————————————————— *)
 
-let rec lexp_to_exp (lexp: rs_lexp) : rs_exp =
-    match lexp with
-        | RsLexpId id -> RsId id
-        | RsLexpField (exp, field) -> RsField (lexp_to_exp exp, field)
-        | _ -> RsId "LexpToExpTodo" 
-
 let is_bitvec_lit (pexp: rs_pexp) : bool =
     match pexp with
         | RsPexp (RsPatLit RsLitHex _, _) -> true
@@ -323,16 +317,16 @@ let bitvec_transform_exp (ctx: context) (exp: rs_exp) : rs_exp =
                 generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
                 args = [];
             }
-        | RsAssign (RsLexpIndexRange (RsLexpField (lexp, "bits"), RsLit RsLitNum r_end, RsLit RsLitNum r_start), exp) ->
+        | RsAssign (RsLexpIndexRange (RsLexpField (fexp, "bits"), RsLit RsLitNum r_end, RsLit RsLitNum r_start), exp) ->
             let r_end = Int64.add r_end Int64.one in
             let r_size = Int64.sub r_end r_start in
             let method_app = {
-                exp = RsField (lexp_to_exp lexp, "bits");
+                exp = RsField (fexp, "bits");
                 name = "set_subrange";
                 generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
                 args = [exp];
             } in
-            RsAssign (RsLexpField (lexp, "bits"), RsMethodApp method_app)
+            RsAssign (RsLexpField (fexp, "bits"), RsMethodApp method_app)
         | RsApp (RsId "zero_extend", generics, RsLit RsLitNum size :: [e] ) ->  
             RsMethodApp {
                 exp = e;
@@ -652,7 +646,7 @@ and rename_in_lexp (rn: string * string) (lexp: rs_lexp) : rs_lexp =
                 RsLexpId new_id (* Rename! *)
             else
                 RsLexpId id' (* No renaming *)
-        | RsLexpField (lexp, field) -> RsLexpField (rename_in_lexp lexp, field)
+        | RsLexpField (fexp, field) -> RsLexpField (rename_in_exp rn fexp, field)
         | RsLexpIndex (lexp, exp) -> RsLexpIndex (rename_in_lexp lexp, rename_in_exp rn exp)
         | RsLexpIndexRange (lexp, start, end') -> RsLexpIndexRange (rename_in_lexp lexp, rename_in_exp rn start, rename_in_exp rn end')
         | RsLexpTodo -> RsLexpTodo

@@ -166,6 +166,8 @@ let rec get_call_set (ast: (tannot, env) ast) : sail_ctx =
         "EBREAK";
         "trap_handler";
         "pmpCheck";
+        "pmpWriteAddr";
+        "pmpWriteCfgReg";
         "dispatchInterrupt";
         "step_interrupts_only";
         "SFENCE_VMA";
