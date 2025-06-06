@@ -5,7 +5,7 @@ members = [
     "sail_prelude",
 
     # The RISC-V Sail model
-    "riscv",
+    "rv64",
 
     # Our tests
     "tests/basic",
