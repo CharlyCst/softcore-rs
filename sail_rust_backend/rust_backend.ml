@@ -335,8 +335,8 @@ module Codegen () = struct
             | E_ref id -> RsTodo "E_ref"
             | E_throw exp -> RsApp(RsId "panic!", [], [RsLit(RsLitStr "todo_process_panic_type")])
             | E_try (exp, pexp_list) -> RsTodo "E_try"
-            (* TODO: In the future process the assertion message *)
-            | E_assert (exp1, exp2) -> RsApp(RsId "assert!", [], [process_exp ctx exp1; RsId "\"Process message\""])
+            | E_assert (exp1, E_aux (E_lit (L_aux (L_string err_msg, _)), _)) -> RsApp(RsId "assert!", [], [process_exp ctx exp1; RsLit (RsLitStr err_msg)])
+            | E_assert (exp1, exp2) -> RsApp(RsId "assert!", [], [process_exp ctx exp1; RsLit (RsLitStr "[Compiler TODO] process non-trivial error messages")])
             | E_var (lexp, exp1, exp2) -> RsTodo "E_var"
             | E_internal_plet (pat, exp1, exp2) -> RsTodo "E_internal_plet"
             | E_internal_return exp -> RsTodo "E_internal_return"

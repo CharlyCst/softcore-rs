@@ -141,11 +141,11 @@ pub fn execute_TEST(sail_ctx: &mut SailVirtCtx) {
         pmpMatchAddr(var_2)
     };
     if {(f != BitVector::<8>::new(0b00000000))} {
-        assert!(false, "Process message")
+        assert!(false, "failed to parse hex)")
     } else {
         ()
     };
-    assert!(true, "Process message");
+    assert!(true, "works");
     panic!("todo_process_panic_type");
     for i in 0..=3 {
         let idx = i;

@@ -266,7 +266,7 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
             }
         }}
         Privilege::Supervisor => {{
-            assert!(haveSupMode(()), "Process message");
+            assert!(haveSupMode(()), "no supervisor mode present for delegation");
             sail_ctx.scause.bits = {
                 let var_9 = bool_to_bits(intr);
                 sail_ctx.scause.bits.set_subrange::<63, 64, 1>(var_9)
