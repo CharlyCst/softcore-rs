@@ -3074,6 +3074,13 @@ pub fn pmpLocked(cfg: Pmpcfg_ent) -> bool {
     (_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1))
 }
 
+pub fn pmpTORLocked(cfg: Pmpcfg_ent) -> bool {
+    ((_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1)) && ({
+        let var_1 = _get_Pmpcfg_ent_A(cfg);
+        pmpAddrMatchType_of_bits(var_1)
+    } == PmpAddrMatchType::TOR))
+}
+
 pub fn pmpWriteCfg(sail_ctx: &mut SailVirtCtx, n: usize, cfg: Pmpcfg_ent, v: BitVector<8>) -> Pmpcfg_ent {
     if {pmpLocked(cfg)} {
         cfg
@@ -3125,7 +3132,7 @@ pub fn pmpWriteCfgReg(sail_ctx: &mut SailVirtCtx, n: usize, v: BitVector<{
             }
         }
     } else {
-        assert!(((n % 2) == 0), "Process message");
+        assert!(((n % 2) == 0), "Unexpected pmp config reg write");
         for i in 0..=7 {
             let idx = ((n * 4) + i);
             sail_ctx.pmpcfg_n[idx] = {
@@ -3157,6 +3164,22 @@ pub fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
         } else {
             v.subrange::<0, 54, 54>().zero_extend::<64>()
         }
+    }
+}
+
+pub fn pmpWriteAddrReg(sail_ctx: &mut SailVirtCtx, n: usize, v: BitVector<{
+    (usize::pow(2, 3) * 8)
+}>) {
+    sail_ctx.pmpaddr_n[n] = {
+        let var_1 = pmpLocked(sail_ctx.pmpcfg_n[n]);
+        let var_2 = if {((n + 1) < 64)} {
+            pmpTORLocked(sail_ctx.pmpcfg_n[(n + 1)])
+        } else {
+            false
+        };
+        let var_3 = sail_ctx.pmpaddr_n[n];
+        let var_4 = v;
+        pmpWriteAddr(var_1, var_2, var_3, var_4)
     }
 }
 
@@ -3215,7 +3238,7 @@ pub fn pmpMatchAddr(sail_ctx: &mut SailVirtCtx, physaddr::Physaddr(addr): physad
             }
         }}
         PmpAddrMatchType::NA4 => {{
-            assert!((sys_pmp_grain(sail_ctx, ()) < 1), "Process message");
+            assert!((sys_pmp_grain(sail_ctx, ()) < 1), "NA4 cannot be selected when PMP grain G >= 1.");
             let begin = (pmpaddr.as_usize() * 4);
             {
                 let var_5 = begin;
@@ -3449,7 +3472,7 @@ pub fn findPendingInterrupt(ip: BitVector<{
 pub fn getPendingSet(sail_ctx: &mut SailVirtCtx, _priv_: Privilege) -> Option<(BitVector<{
     (usize::pow(2, 3) * 8)
 }>, Privilege)> {
-    assert!((currentlyEnabled(sail_ctx, extension::Ext_S) || (sail_ctx.mideleg.bits == zeros(64))), "Process message");
+    assert!((currentlyEnabled(sail_ctx, extension::Ext_S) || (sail_ctx.mideleg.bits == zeros(64))), "riscv_sys_control.sail:137.58-137.59");
     let pending_m = (sail_ctx.mip.bits & (sail_ctx.mie.bits & !(sail_ctx.mideleg.bits)));
     let pending_s = (sail_ctx.mip.bits & (sail_ctx.mie.bits & sail_ctx.mideleg.bits));
     let mIE = (((_priv_ == Privilege::Machine) && ({
@@ -3567,7 +3590,7 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
             }
         }}
         Privilege::Supervisor => {{
-            assert!(currentlyEnabled(sail_ctx, extension::Ext_S), "Process message");
+            assert!(currentlyEnabled(sail_ctx, extension::Ext_S), "no supervisor mode present for delegation");
             sail_ctx.scause.bits = {
                 let var_9 = bool_to_bits(intr);
                 sail_ctx.scause.bits.set_subrange::<63, 64, 1>(var_9)

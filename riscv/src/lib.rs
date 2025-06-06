@@ -1,7 +1,6 @@
 pub mod config;
 pub mod raw;
 
-use raw::Pmpcfg_ent;
 pub use raw::{Privilege, SailVirtCtx};
 use sail_prelude::BitVector;
 
@@ -20,6 +19,7 @@ impl SailVirtCtx {
         self.cur_privilege
     }
 
+    /// Set the privilege mode mode
     pub fn set_mode(&mut self, mode: Privilege) {
         self.cur_privilege = mode
     }
@@ -31,28 +31,25 @@ impl SailVirtCtx {
 
     /// Set the pmpaddr<index> register to the given value.
     pub fn set_pmpaddr(&mut self, index: usize, val: u64) {
-        self.pmpaddr_n[index] = BitVector::new(val)
-    }
-
-    /// Return the pmpcfg<index> register.
-    pub fn get_pmpcfg(&self, index: usize) -> u8 {
-        self.pmpcfg_n[index].bits.bits() as u8
+        raw::pmpWriteAddrReg(self, index, BitVector::new(val));
     }
 
     /// Set the pmpcfg<index> register to the given value.
-    pub fn set_pmpcfg(&mut self, index: usize, val: u8) {
-        self.pmpcfg_n[index] = Pmpcfg_ent {
-            bits: BitVector::new(val as u64),
-        };
+    pub fn set_pmpcfg(&mut self, index: usize, val: u64) {
+        raw::pmpWriteCfgReg(self, index, BitVector::new(val));
     }
 
     /// Check if an 8 byte access is allowed with the current mode and PMP configuration.
     ///
     /// Return None is the check succeed, or an error otherwise.
-    pub fn pmp_check(&mut self, addr: u64, access_kind: raw::AccessType<()>) -> Option<raw::ExceptionType>{
+    pub fn pmp_check(
+        &mut self,
+        addr: u64,
+        access_kind: raw::AccessType<()>,
+    ) -> Option<raw::ExceptionType> {
         let addr = raw::physaddr::Physaddr(BitVector::new(addr));
         let width = 8;
-        raw::pmpCheck::<8>(self, addr, width, access_kind, Privilege::Machine)
+        raw::pmpCheck::<8>(self, addr, width, access_kind, self.cur_privilege)
     }
 }
 
@@ -262,12 +259,31 @@ mod tests {
 
     #[test]
     fn pmp_check() {
-        let mut ctx = new_ctx(config::MINIMAL_CONFIG);
+        let mut ctx = new_ctx(config::U74);
         let addr = 0x8000_0000;
         let access = raw::AccessType::Read(());
 
-        assert!(ctx.pmp_check(addr, access).is_none(), "M-mode can access all memory by default");
+        // Check the default access rights
+        assert!(
+            ctx.pmp_check(addr, access).is_none(),
+            "M-mode can access all memory by default"
+        );
+
         ctx.set_mode(Privilege::User);
-        assert!(ctx.pmp_check(addr, access).is_none(), "M-mode can access all memory by default");
+        assert_eq!(
+            ctx.pmp_check(addr, access),
+            Some(ExceptionType::E_Load_Access_Fault(())),
+            "U-mode has no access by default"
+        );
+
+        // Now let's add a PMP entry to allow reads from U-mode
+        let pmp_addr = addr >> 2; // There is a shift of 2 in the pmpaddr registers
+        ctx.set_pmpaddr(0, pmp_addr);
+        ctx.set_pmpaddr(1, 2 * pmp_addr);
+        ctx.set_pmpcfg(0, 0b0000_1001 << 8); // Entry 1, Read-only access, ToR matching mode
+        assert!(
+            ctx.pmp_check(addr, access).is_none(),
+            "PMP allow read access"
+        );
     }
 }

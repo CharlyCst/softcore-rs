@@ -29,11 +29,11 @@ pub enum ast {
 pub fn execute_TEST() {
     if {let foo_var_1 = BitVector::<3>::new(0b101);
     (BitVector::<3>::new(0b101) != foo_var_1)} {
-        assert!(false, "Process message")
+        assert!(false, "Branch should not be taken")
     } else {
         ()
     };
     let a = BitVector::<3>::new(0b100);
     let a__quote = BitVector::<3>::new(0b101);
-    assert!((a != a__quote), "Process message")
+    assert!((a != a__quote), "Those variables should be different!")
 }
