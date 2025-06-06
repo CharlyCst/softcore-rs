@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     # The Rust prelude, shared by all generated models
-    "sail_prelude",
+    "prelude",
 
     # The RISC-V Sail model
     "rv64",
