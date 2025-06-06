@@ -18,6 +18,7 @@ all: build
 
 tests: $(TEST_ARCH_RUST)
 
+# Build the compiler
 build:
 	dune build --release
 
@@ -25,42 +26,6 @@ build:
 tests/%/src/arch.rs: sail_arch/%.sail build
 	@echo "Processing $< to $@"
 	./sail_to_rust $< -o $@
-
-csr: build
-	./sail_to_rust sail_arch/csr.sail -o out.rs
-
-mret: build
-	./sail_to_rust sail_arch/mret.sail -o out.rs
-
-basic_types: build
-	./sail_to_rust sail_arch/basic_types.sail -o out.rs
-
-trap: build
-	./sail_to_rust sail_arch/arch_trap.sail -o out.rs
-
-wfi: build
-	./sail_to_rust sail_arch/wfi.sail -o out.rs
-
-riscv: build
-	./sail_to_rust $(RISCV_SAIL_SRCS) ../miralis-sail-riscv/model/main.sail -o out.rs
-
-generate: build
-	./sail_to_rust sail_arch/mret.sail -o ./rust_arch/mret/src/sail.rs
-
-generate-riscv: build
-	./sail_to_rust $(RISCV_SAIL_SRCS) ../miralis-sail-riscv/model/main.sail -o ./src/lib.rs
-	python3 manual_fixes.py
-
-riscv-c:  
-	sail -c $(RISCV_SAIL_SRCS) 1> riscv_c.c 
-
-verify: build
-	cd rust_arch/mret && cargo kani 
-
-
-decoder: build
-	./sail_to_rust sail_arch/decoder.sail -o ./src/lib.rs
-	python3 manual_fixes.py
 
 clean:
 	-dune clean
