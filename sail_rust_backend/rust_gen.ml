@@ -121,6 +121,7 @@ type rs_fn = {
     signature: rs_fn_type;
     args: rs_pat list;
     body: rs_exp;
+    mutable use_sail_ctx: bool;
 }
 
 type rs_enum = {

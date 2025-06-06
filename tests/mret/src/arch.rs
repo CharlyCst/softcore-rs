@@ -35,11 +35,11 @@ pub enum Privilege {
     Machine
 }
 
-pub fn haveUsrMode(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> bool {
+pub fn haveUsrMode(unit_arg: ()) -> bool {
     true
 }
 
-pub fn privLevel_to_bits(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<2> {
+pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
     match p {
         Privilege::User => {BitVector::<2>::new(0b00)}
         Privilege::Supervisor => {BitVector::<2>::new(0b01)}
@@ -48,7 +48,7 @@ pub fn privLevel_to_bits(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVector<
     }
 }
 
-pub fn privLevel_of_bits(sail_ctx: &mut SailVirtCtx, p: BitVector<2>) -> Privilege {
+pub fn privLevel_of_bits(p: BitVector<2>) -> Privilege {
     match p {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {Privilege::User}
         b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {Privilege::Supervisor}
@@ -58,7 +58,7 @@ pub fn privLevel_of_bits(sail_ctx: &mut SailVirtCtx, p: BitVector<2>) -> Privile
     }
 }
 
-pub fn pc_alignment_mask(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> BitVector<64> {
+pub fn pc_alignment_mask(unit_arg: ()) -> BitVector<64> {
     !(BitVector::<2>::new(0b10).zero_extend::<64>())
 }
 
@@ -73,11 +73,11 @@ pub struct Mstatus {
     pub bits: BitVector<64>,
 }
 
-pub fn _get_Mstatus_MPIE(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_MPIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
-pub fn _get_Mstatus_MPP(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<2> {
+pub fn _get_Mstatus_MPP(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<11, 13, 2>()
 }
 
@@ -85,7 +85,7 @@ pub fn set_next_pc(sail_ctx: &mut SailVirtCtx, pc: BitVector<64>) {
     sail_ctx.nextPC = pc
 }
 
-pub fn handle_illegal(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
+pub fn handle_illegal(unit_arg: ()) {
     
 }
 
@@ -105,31 +105,37 @@ pub fn prepare_xret_target(sail_ctx: &mut SailVirtCtx, p: Privilege) -> BitVecto
 pub fn exception_handler(sail_ctx: &mut SailVirtCtx, cur_priv: Privilege, pc: BitVector<64>) -> BitVector<64> {
     let prev_priv = sail_ctx.cur_privilege;
     sail_ctx.mstatus.bits = {
-        let var_1 = _get_Mstatus_MPIE(sail_ctx, sail_ctx.mstatus);
+        let var_1 = {
+            let var_2 = sail_ctx.mstatus;
+            _get_Mstatus_MPIE(var_2)
+        };
         sail_ctx.mstatus.bits.set_subrange::<3, 4, 1>(var_1)
     };
     sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<7, 8, 1>(BitVector::<1>::new(0b1));
     sail_ctx.cur_privilege = {
-        let var_2 = _get_Mstatus_MPP(sail_ctx, sail_ctx.mstatus);
-        privLevel_of_bits(sail_ctx, var_2)
+        let var_3 = {
+            let var_4 = sail_ctx.mstatus;
+            _get_Mstatus_MPP(var_4)
+        };
+        privLevel_of_bits(var_3)
     };
     sail_ctx.mstatus.bits = {
-        let var_3 = {
-            let var_4 = if {haveUsrMode(sail_ctx, ())} {
+        let var_5 = {
+            let var_6 = if {haveUsrMode(())} {
                 Privilege::User
             } else {
                 Privilege::Machine
             };
-            privLevel_to_bits(sail_ctx, var_4)
+            privLevel_to_bits(var_6)
         };
-        sail_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_3)
+        sail_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_5)
     };
     if {(sail_ctx.cur_privilege != Privilege::Machine)} {
         sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<17, 18, 1>(BitVector::<1>::new(0b0))
     } else {
         ()
     };
-    (prepare_xret_target(sail_ctx, Privilege::Machine) & pc_alignment_mask(sail_ctx, ()))
+    (prepare_xret_target(sail_ctx, Privilege::Machine) & pc_alignment_mask(()))
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
@@ -143,24 +149,28 @@ pub enum ast {
     MRET(())
 }
 
-pub fn ext_check_xret_priv(sail_ctx: &mut SailVirtCtx, p: Privilege) -> bool {
+pub fn ext_check_xret_priv(p: Privilege) -> bool {
     true
 }
 
-pub fn ext_fail_xret_priv(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
+pub fn ext_fail_xret_priv(unit_arg: ()) {
     ()
 }
 
 pub fn execute_MRET(sail_ctx: &mut SailVirtCtx) -> Retired {
     if {(sail_ctx.cur_privilege != Privilege::Machine)} {
-        handle_illegal(sail_ctx, ());
+        handle_illegal(());
         Retired::RETIRE_FAIL
-    } else if {!(ext_check_xret_priv(sail_ctx, Privilege::Machine))} {
-        ext_fail_xret_priv(sail_ctx, ());
+    } else if {!(ext_check_xret_priv(Privilege::Machine))} {
+        ext_fail_xret_priv(());
         Retired::RETIRE_FAIL
     } else {
         {
-            let var_1 = exception_handler(sail_ctx, sail_ctx.cur_privilege, sail_ctx.PC);
+            let var_1 = {
+                let var_2 = sail_ctx.cur_privilege;
+                let var_3 = sail_ctx.PC;
+                exception_handler(sail_ctx, var_2, var_3)
+            };
             set_next_pc(sail_ctx, var_1)
         };
         Retired::RETIRE_SUCCESS

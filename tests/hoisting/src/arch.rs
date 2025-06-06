@@ -26,7 +26,7 @@ pub enum ast {
     TEST(())
 }
 
-pub fn execute_TEST(sail_ctx: &mut SailVirtCtx) {
+pub fn execute_TEST() {
     if {let foo_var_1 = BitVector::<3>::new(0b101);
     (BitVector::<3>::new(0b101) != foo_var_1)} {
         assert!(false, "Process message")

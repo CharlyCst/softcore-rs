@@ -88,8 +88,13 @@ register nextPC : xlenbits
 
 // CSRs
 register mtval    : xlenbits
+register stval    : xlenbits
+register utval    : xlenbits
 register mscratch : xlenbits
 register sscratch : xlenbits
+register mepc     : xlenbits
+register sepc     : xlenbits
+register uepc     : xlenbits
 
 bitfield Medeleg : xlenbits = {
   SAMO_Page_Fault   : 15,
