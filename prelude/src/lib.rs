@@ -2,25 +2,14 @@
 
 use core::ops;
 use std::cmp::min;
-use std::process::{self, exit};
 
-// TODO: What should we do with this? This is not clear how we should transpile it
-pub type _tick_arch_ak = ();
-pub type _tick_a = ();
-pub type _tick_b = ();
-pub type _tick_paddr = ();
-pub type _tick_failure = ();
+// NOTE: Ideally we would use unbounded integers for natural numbers. Yet in practice this would
+// mess up with things such as the SMT solver during symbolic execution.
+// After manual inspection, u128 are big enough for all the RISC-V use cases, so we keep that until
+// a better solution is needed.
 pub type nat = u128;
 
-#[allow(non_upper_case_globals)]
-pub const zero_reg: BitVector<64> = BitVector::new(0x0);
-
 pub fn sail_branch_announce(_value: usize, _pc: BitVector<64>) {}
-
-pub fn signed<const N: usize>(e: BitVector<N>) -> BitVector<64> {
-    // TODO: Is this function correct?
-    BitVector::<64>::new(e.bits())
-}
 
 pub fn lteq_int(e1: usize, e2: usize) -> bool {
     e1 <= e2
@@ -58,14 +47,8 @@ pub fn not_implemented<T>(_any: T) -> ! {
     panic!("Feature not implemented yet");
 }
 
-pub fn __exit() -> ! {
-    println!("Called exit, leaving the program");
-    process::exit(1)
-}
-
 pub fn internal_error(_file: String, _line: usize, _s: String) -> ! {
-    assert!(false, "todo_process_message_internal_error");
-    exit(0);
+    panic!("Softcore: internal error")
 }
 
 pub fn print_output<const N: usize>(text: String, _csr: BitVector<N>) {
@@ -76,46 +59,18 @@ pub fn print_platform(text: String) {
     println!("{}", text)
 }
 
-pub fn dec_str(val: usize) -> String {
-    // Format into a normal decimal string
-    format!("{}", val)
-}
-
-pub fn hex_str(val: usize) -> String {
-    // Format into a hexadecimal string
-    format!("{:x}", val)
-}
-
 pub fn bits_str<const N: usize>(val: BitVector<N>) -> String {
-    String::from(format!("{:b}", val.bits()))
-}
-
-pub fn print_reg(register: String) {
-    print!("{}", register)
-}
-
-// Granularity of the pmp : 0 ==> 4 bytes (and is what we use in Miralis)
-pub fn sys_pmp_grain(_unit: ()) -> usize {
-    0
+    format!("{:b}", val.bits())
 }
 
 pub fn bitvector_access<const N: usize>(vec: BitVector<N>, idx: usize) -> bool {
     (vec.bits() & (1 << idx)) > 0
 }
 
-pub fn plat_mtval_has_illegal_inst_bits(_unit: ()) -> bool {
-    // TODO: Implement this function
-    false
-}
-
 // Todo: implement truncate for other sizes if required
 pub fn truncate(v: BitVector<64>, size: usize) -> BitVector<64> {
     assert!(size == 64);
     v
-}
-
-pub fn sys_pmp_count(_unit: ()) -> usize {
-    16
 }
 
 pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVector<64> {
@@ -145,16 +100,18 @@ pub fn cancel_reservation(_unit: ()) {
 }
 
 pub fn hex_bits_12_forwards(_reg: BitVector<12>) -> ! {
-    // TODO: Implement this function
-    panic!("Implement this function")
+    todo!("Implement this function")
 }
 
 pub fn hex_bits_12_backwards(_: &'static str) -> BitVector<12> {
-    // TODO: Implement this function
-    panic!("Implement this function")
+    todo!("Implement this function")
 }
 
-pub fn subrange_bits<const IN: usize, const OUT: usize>(vec: BitVector<IN>, end: usize, start: usize) -> BitVector<OUT> {
+pub fn subrange_bits<const IN: usize, const OUT: usize>(
+    vec: BitVector<IN>,
+    end: usize,
+    start: usize,
+) -> BitVector<OUT> {
     assert_eq!(end - start + 1, OUT);
     assert!(OUT <= IN);
 
@@ -180,13 +137,13 @@ pub fn update_subrange_bits<const N: usize, const M: usize>(
     mask = !(mask << from);
 
     // Now we can update and return the updated value
-    return BitVector::<N>::new((bits.bits & mask) | (value.bits() << from));
+    BitVector::new((bits.bits & mask) | (value.bits() << from))
 }
 
 // TODO: Make this function more generic in the future.
 pub fn bitvector_update(v: BitVector<64>, pos: usize, value: bool) -> BitVector<64> {
     let mask = 1 << pos;
-    BitVector::<64>::new((v.bits() & !mask) | ((value as u64) << pos) as u64)
+    BitVector::<64>::new((v.bits() & !mask) | (value as u64) << pos)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
@@ -657,7 +614,10 @@ mod tests {
 
         for i in 0..(1 << SIZE) {
             let v = BitVector::<SIZE>::new(i);
-            assert_eq!(bitvector_concat::<SIZE, SIZE, NEW_SIZE>(v, v).bits, i + (i << SIZE));
+            assert_eq!(
+                bitvector_concat::<SIZE, SIZE, NEW_SIZE>(v, v).bits,
+                i + (i << SIZE)
+            );
         }
     }
 
@@ -680,7 +640,7 @@ mod tests {
         let mut v = BitVector::<SIZE>::new(0);
         let mut val: u64 = 0;
         for idx in 0..SIZE {
-            val |= (1 as u64) << idx;
+            val |= 1u64 << idx;
             v.set_vector_entry(idx, true);
 
             assert_eq!(v.bits, val);
