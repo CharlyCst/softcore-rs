@@ -46,8 +46,7 @@ pub fn bitvector_concat<const N: usize, const M: usize, const NM: usize>(
 }
 
 pub fn get_slice_int<const L: usize>(l: usize, n: usize, start: usize) -> BitVector<L> {
-    let mask = (1 << l) - 1;
-    let val = (n >> start) & mask;
+    let val = (n >> start) & (mask(l) as usize);
     BitVector::new(val as u64)
 }
 
@@ -130,14 +129,7 @@ pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVect
 
 pub fn sail_ones<const N: usize>(n: usize) -> BitVector<N> {
     assert!(n <= 64);
-
-    let value = if n == 64 {
-        u64::MAX
-    } else {
-        (1 << n) - 1
-    };
-
-    BitVector::<N>::new(value)
+    BitVector::<N>::new(mask(n))
 }
 
 pub fn sail_zeros<const N: usize>(_n: usize) -> BitVector<N> {
@@ -162,10 +154,11 @@ pub fn hex_bits_12_backwards(_: &'static str) -> BitVector<12> {
     panic!("Implement this function")
 }
 
-// TODO: This is enough for the risc-v transpilation, but not enought for full sail-to-rust
-pub fn subrange_bits(vec: BitVector<64>, end: usize, start: usize) -> BitVector<64> {
-    assert!(end - start + 1 == 64); // todo: In the future, we should improve the subrange bits function
-    vec
+pub fn subrange_bits<const IN: usize, const OUT: usize>(vec: BitVector<IN>, end: usize, start: usize) -> BitVector<OUT> {
+    assert_eq!(end - start + 1, OUT);
+    assert!(OUT <= IN);
+
+    BitVector::new((vec.bits >> start) & mask(OUT))
 }
 
 pub fn subrange_bits_8(vec: BitVector<64>, end: usize, start: usize) -> BitVector<8> {
@@ -384,6 +377,18 @@ impl<const N: usize> std::ops::Add<i64> for BitVector<N> {
         BitVector::<N>::new(result as u64) // Returning the result as BitVector
     }
 }
+
+// ———————————————————————————————— Helpers ————————————————————————————————— //
+
+const fn mask(nb_ones: usize) -> u64 {
+    if nb_ones == 64 {
+        u64::MAX
+    } else {
+        (1 << nb_ones) - 1
+    }
+}
+
+// ————————————————————————————————— Tests —————————————————————————————————— //
 
 #[cfg(test)]
 mod tests {
