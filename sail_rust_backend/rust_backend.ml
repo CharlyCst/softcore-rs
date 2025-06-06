@@ -49,33 +49,36 @@ module Codegen () = struct
         SMap.union select a b
     
     let defs_empty = {
-        funs = SMap.empty;
+        fun_typs = SMap.empty;
         unions = SMap.empty;
+        funmap = SMap.empty;
     }
     
     let defs_merge (a: defs) (b: defs) : defs =
         {
-            funs = map_union a.funs b.funs;
+            fun_typs = map_union a.fun_typs b.fun_typs;
             unions = map_union a.unions b.unions;
+            funmap = map_union a.funmap b.funmap;
         }
     
     let defs_add_union (defs: defs) (union: unionmap) : defs =
         let unions = map_union union defs.unions in
-        {
-            funs = defs.funs;
+        { defs with
             unions = unions;
         }
     
     let defs_from_union (union: unionmap) : defs = 
         {
-            funs = SMap.empty;
+            fun_typs = SMap.empty;
             unions = union;
+            funmap = SMap.empty;
         }
     
     let defs_from_funs (funs: defmap) : defs =
         {
-            funs = funs;
+            fun_typs = funs;
             unions = SMap.empty;
+            funmap = SMap.empty;
         }
 
     (* —————————————————————————————— Other Utils ——————————————————————————————— *)
@@ -200,7 +203,13 @@ module Codegen () = struct
         let env = env_of_annot aux in
         match exp with
             | E_block exp_list -> RsBlock (List.map (process_exp ctx) exp_list)
-            | E_id id -> RsId (sanitize_id (string_of_id id))
+            | E_id id ->
+                let id = (sanitize_id (string_of_id id)) in
+                if SSet.mem id ctx.registers then
+                    let _ = ctx.uses_sail_ctx <- true in (* set flag *)
+                    RsField (RsId "sail_ctx", id)
+                else
+                    RsId id
             | E_lit lit -> RsLit (process_lit lit)
             | E_typ (typ, exp) -> RsAs(process_exp ctx exp, typ_to_rust typ)
             | E_app (id, [e1; e2]) when string_of_id id = "mult_atom" ->
@@ -297,7 +306,6 @@ module Codegen () = struct
                 let new_pat = process_pat let_var in
                 let new_pat = match new_pat with 
                     | RsPatType (typ, exp) -> 
-                        ctx.ret_type <- typ; 
                         RsPatType (typ, exp)
                     | _ -> new_pat
                 in
@@ -330,10 +338,17 @@ module Codegen () = struct
                     | head :: tail -> construct_fields (RsField (expr, head)) tail
                     | [] -> expr
                 in
+                ctx.uses_sail_ctx <- true; (* set flag *)
                 construct_fields (RsField (RsId "sail_ctx", "config")) cfgs
     and process_lexp (ctx: context) (LE_aux (lexp, annot)) : rs_lexp =
         match lexp with
-            | LE_id id -> RsLexpId (sanitize_id (string_of_id id))
+            | LE_id id ->
+                let id = (sanitize_id (string_of_id id)) in
+                if SSet.mem id ctx.registers then
+                    let _ = ctx.uses_sail_ctx <- true in (* set flag *)
+                    RsLexpField (RsLexpId "sail_ctx", id)
+                else
+                    RsLexpId id
             | LE_vector (lexp, idx) ->
                 (RsLexpIndex (
                     (process_lexp ctx lexp),
@@ -507,7 +522,7 @@ module Codegen () = struct
                 | None -> {generics = []; args = [RsTypId "TodoNoSignature"]; ret = RsTypUnit})
             | FunKindUnion (func, union) ->
                 (* We look up the function definition to get the return type *)
-                let ret_type = match SMap.find_opt func ctx.defs.funs with
+                let ret_type = match ctx_fun_type func ctx with
                     | Some func_t -> func_t.ret
                     | None -> RsTypUnit
                 in
@@ -521,7 +536,7 @@ module Codegen () = struct
                 | None -> mk_fn_typ [RsTypId "TodoNoUnionSignature"] RsTypUnit
         in
         let arg_names = add_missing_args arg_names signature.args [] in
-        ctx.ret_type <- signature.ret;
+        ctx.uses_sail_ctx <- false;
         assert (List.length arg_names = List.length signature.args);
         let rs_exp = process_exp ctx exp in
         {
@@ -529,6 +544,7 @@ module Codegen () = struct
             args = arg_names;
             signature = signature;
             body = rs_exp;
+            use_sail_ctx = ctx.uses_sail_ctx;
         }
     
     and process_func (FCL_aux (func, annot)) (ctx: context) : rs_program =
@@ -866,7 +882,7 @@ module Codegen () = struct
     
     let get_defs (ast: ('a, 'b) ast) : defs =
         collect_defs ast.defs
-   
+
     (* ———————————————————————— Generate the enumeration context  ————————————————————————— *)
       
     let gen_enum_list (id: Ast.id) (enum_fields: string list) : (string * string) list =
@@ -891,31 +907,19 @@ module Codegen () = struct
             | h :: t -> (process_enum_entries_aux h) @ (process_enum_entries t)
             | [] -> []
 
-
-    (* ————————————————————————————————— Utils —————————————————————————————————— *)
-    
-    let print_all_defs (defs: defs) =
-        let print_one_fun key {generics; args; ret} =
-            Printf.printf "  %s(%s) -> %s\n"
-                key
-                (String.concat ", " (List.map string_of_rs_type args))
-                (string_of_rs_type ret)
-        in
-        let print_one_union key typ =
-            Printf.printf "  %s %s\n"
-                key
-                (string_of_rs_type typ)
-        in
-        print_endline "Fun defs:";
-        SMap.iter print_one_fun defs.funs;
-        print_endline "Union defs:";
-        SMap.iter print_one_union defs.unions;
-        ()
-    
     (* ———————————————————————— Translation function  ————————————————————————— *)
     
     let sail_to_rust (ast: ('a, 'b) ast) (ctx: context) : rs_program =
         merge_rs_prog_list [generate_sail_virt_ctx ast.defs ctx; defs_to_rust ast.defs ctx]
+
+    let get_funs (RsProg obj : rs_program) : (string * rs_fn) list =
+        let rec funs obj =
+            match obj with
+                | RsFn fn :: tail -> (fn.name, fn) :: funs tail
+                | head :: tail -> funs tail
+                | [] -> []
+        in
+        funs obj
     
   let compile_ast env effect_info ast =
     try
@@ -927,7 +931,6 @@ module Codegen () = struct
 
       (* Collect definitions *)
       let defs = get_defs ast in
-      (* print_all_defs defs; *)
 
       (* Build the context *)
       let ctx = {
@@ -936,12 +939,18 @@ module Codegen () = struct
         config_map = sail_ctx.config_map;
         registers = Util.StringSet.of_list (gather_registers_list ast);
         enum_entries = process_enum_entries ast.defs;
-        ret_type = RsTypUnit;
+        uses_sail_ctx = false;
       } in
 
       
       (* First stage : sail to raw (invalid) rust *)
       let rust_program = sail_to_rust ast ctx in
+
+      (* Update context with all function definitions *)
+      let funs = get_funs rust_program in
+      let defs = defs_merge ctx.defs { defs_empty with funmap = SMap.of_list funs} in
+      let ctx = { ctx with defs = defs } in
+      
       let rust_program = Rust_transform.transform rust_program ctx in
 
       let rust_program_string = string_of_rs_prog rust_program in

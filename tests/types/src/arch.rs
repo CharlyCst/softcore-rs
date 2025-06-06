@@ -32,31 +32,31 @@ pub enum physaddr {
     Physaddr(xlenbits)
 }
 
-pub fn pmpMatchAddr(sail_ctx: &mut SailVirtCtx, physaddr::Physaddr(addr): physaddr) -> bool {
+pub fn pmpMatchAddr(physaddr::Physaddr(addr): physaddr) -> bool {
     (addr != BitVector::<64>::new(0b0000000000000000000000000000000000000000000000000000000000000000))
 }
 
-pub fn handle_int(sail_ctx: &mut SailVirtCtx, a1: usize) -> usize {
+pub fn handle_int(a1: usize) -> usize {
     (a1 + 4)
 }
 
-pub fn handle_int_int(sail_ctx: &mut SailVirtCtx, a1: usize, a2: usize) -> bool {
+pub fn handle_int_int(a1: usize, a2: usize) -> bool {
     false
 }
 
-pub fn handle_int_int_bool_int(sail_ctx: &mut SailVirtCtx, a1: usize, a2: usize, a3: bool, a4: usize) -> usize {
+pub fn handle_int_int_bool_int(a1: usize, a2: usize, a3: bool, a4: usize) -> usize {
     131
 }
 
-pub fn handle_bool(sail_ctx: &mut SailVirtCtx, factor_bool: bool) {
+pub fn handle_bool(factor_bool: bool) {
     
 }
 
-pub fn handle_union(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> ExceptionType {
+pub fn handle_union(unit_arg: ()) -> ExceptionType {
     ExceptionType::E_Illegal_Instr(())
 }
 
-pub fn handle_empty(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
+pub fn handle_empty(unit_arg: ()) {
     
 }
 
@@ -65,11 +65,11 @@ pub enum ast {
     TEST(())
 }
 
-pub fn zeros<const N: usize>(sail_ctx: &mut SailVirtCtx, n: usize) -> BitVector<N> {
+pub fn zeros<const N: usize>(n: usize) -> BitVector<N> {
     sail_zeros(n)
 }
 
-pub fn hex_bits_backwards<const M: usize>(sail_ctx: &mut SailVirtCtx, m: usize, str: &'static str) -> BitVector<M> {
+pub fn hex_bits_backwards<const M: usize>(m: usize, str: &'static str) -> BitVector<M> {
     parse_hex_bits(m, str)
 }
 
@@ -94,7 +94,7 @@ pub enum Retired {
     RETIRE_FAIL
 }
 
-pub fn handle_retired(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> Retired {
+pub fn handle_retired(unit_arg: ()) -> Retired {
     Retired::RETIRE_SUCCESS
 }
 
@@ -116,7 +116,7 @@ pub struct My_struct_generic<const N: usize> {
     pub foo: BitVector<N>,
 }
 
-pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> BitVector<8> {
+pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<8> {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::<8>::new(0b00000000)}
         ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::<8>::new(0b00000001)}
@@ -128,17 +128,17 @@ pub fn exceptionType_to_bits(sail_ctx: &mut SailVirtCtx, e: ExceptionType) -> Bi
 }
 
 pub fn execute_TEST(sail_ctx: &mut SailVirtCtx) {
-    handle_empty(sail_ctx, ());
-    handle_bool(sail_ctx, true);
-    let a = handle_int(sail_ctx, 1234);
-    let b = handle_int_int(sail_ctx, 1234, 12345);
-    let c = handle_int_int_bool_int(sail_ctx, 1234, 12345, false, 2);
-    let d = handle_retired(sail_ctx, ());
-    let e = handle_union(sail_ctx, ());
-    let f = hex_bits_backwards(sail_ctx, 8, "00");
+    handle_empty(());
+    handle_bool(true);
+    let a = handle_int(1234);
+    let b = handle_int_int(1234, 12345);
+    let c = handle_int_int_bool_int(1234, 12345, false, 2);
+    let d = handle_retired(());
+    let e = handle_union(());
+    let f = hex_bits_backwards(8, "00");
     let g = {
         let var_2 = physaddr::Physaddr(BitVector::<64>::new(0b0000000000000000000000000000000011011110101011011011111011101111));
-        pmpMatchAddr(sail_ctx, var_2)
+        pmpMatchAddr(var_2)
     };
     if {(f != BitVector::<8>::new(0b00000000))} {
         assert!(false, "Process message")
@@ -164,7 +164,7 @@ pub fn execute_TEST(sail_ctx: &mut SailVirtCtx) {
     let mask2 = sail_ones::<8>(8);
     let value = {
         let var_1 = ExceptionType::E_Fetch_Addr_Align(());
-        exceptionType_to_bits(sail_ctx, var_1)
+        exceptionType_to_bits(var_1)
     };
     ()
 }

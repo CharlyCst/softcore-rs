@@ -20,7 +20,7 @@ pub struct SailConfig {
 
 }
 
-pub fn _operator_smaller_u_<const N: usize>(sail_ctx: &mut SailVirtCtx, x: BitVector<N>, y: BitVector<N>) -> bool {
+pub fn _operator_smaller_u_<const N: usize>(x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.as_usize() < y.as_usize())
 }
 
@@ -48,16 +48,20 @@ pub struct Mstatus {
     pub bits: BitVector<64>,
 }
 
-pub fn _get_Mstatus_TW(sail_ctx: &mut SailVirtCtx, v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_TW(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<21, 22, 1>()
 }
 
-pub fn handle_illegal(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
+pub fn handle_illegal(unit_arg: ()) {
     
 }
 
 pub fn platform_wfi(sail_ctx: &mut SailVirtCtx, unit_arg: ()) {
-    if {_operator_smaller_u_(sail_ctx, sail_ctx.mtime, sail_ctx.mtimecmp)} {
+    if {{
+        let var_1 = sail_ctx.mtime;
+        let var_2 = sail_ctx.mtimecmp;
+        _operator_smaller_u_(var_1, var_2)
+    }} {
         sail_ctx.mtime = sail_ctx.mtimecmp;
         sail_ctx.mcycle = sail_ctx.mtimecmp
     } else {
@@ -82,15 +86,18 @@ pub fn execute_WFI(sail_ctx: &mut SailVirtCtx) -> Retired {
             platform_wfi(sail_ctx, ());
             Retired::RETIRE_SUCCESS
         }}
-        Privilege::Supervisor => {if {(_get_Mstatus_TW(sail_ctx, sail_ctx.mstatus) == BitVector::<1>::new(0b1))} {
-            handle_illegal(sail_ctx, ());
+        Privilege::Supervisor => {if {({
+            let var_1 = sail_ctx.mstatus;
+            _get_Mstatus_TW(var_1)
+        } == BitVector::<1>::new(0b1))} {
+            handle_illegal(());
             Retired::RETIRE_FAIL
         } else {
             platform_wfi(sail_ctx, ());
             Retired::RETIRE_SUCCESS
         }}
         Privilege::User => {{
-            handle_illegal(sail_ctx, ());
+            handle_illegal(());
             Retired::RETIRE_FAIL
         }}
         _ => {panic!("Unreachable code")}

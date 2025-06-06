@@ -228,7 +228,7 @@ let transform_fn (ct: expr_type_transform) (ctx: context) (fn: rs_fn) : rs_fn =
     let args = List.map (transform_type ct ctx) args in
     let ret = transform_type ct ctx ret in
     {
-        name = fn.name;
+        fn with
         args = (List.map (ct.pat ctx) fn.args);
         signature = {generics; args; ret};
         body = transform_exp ct ctx fn.body;
@@ -275,9 +275,10 @@ let rust_transform_func (ct: func_transform) (ctx: context) (RsProg objs) : rs_p
 
 (* ——————————————————————————— BitVec transformation ———————————————————————————— *)
 
-let lexp_to_exp (lexp: rs_lexp) : rs_exp =
+let rec lexp_to_exp (lexp: rs_lexp) : rs_exp =
     match lexp with
         | RsLexpId id -> RsId id
+        | RsLexpField (exp, field) -> RsField (lexp_to_exp exp, field)
         | _ -> RsId "LexpToExpTodo" 
 
 let is_bitvec_lit (pexp: rs_pexp) : bool =
@@ -318,7 +319,7 @@ let bitvec_transform_exp (ctx: context) (exp: rs_exp) : rs_exp =
             let r_size = Int64.sub r_end r_start in
             RsMethodApp {
                 exp = RsId id;
-                name = "subran generics,ge";
+                name = "subrange";
                 generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
                 args = [];
             }
@@ -873,15 +874,67 @@ let normalize_generics = {
     obj = rewrite_generics_obj;
 }
 
+
+(* ————————————————————————— VirtContext Call Graph ————————————————————————— *)
+(* Infers which function needs to have the context as argument.               *)
+(* The initial Sail-to-Rust translation tracks usage of registers and         *)
+(* configuration, in this pass we aditionnaly check if a function calls       *)
+(* another function that needs the context.                                   *)
+(* —————————————————————————————————————————————————————————————————————————— *)
+
+let exp_virt_ctx_usage (ctx: context) (exp: rs_exp) : rs_exp = match exp with
+    | RsApp (RsId fn, _, _) ->
+        begin match ctx_fun fn ctx with
+            | Some fn when fn.use_sail_ctx ->
+                ctx.uses_sail_ctx <- true;
+                exp
+            | _ -> exp
+        end
+    | _ -> exp
+
+let exp_virt_context_call_graph = {
+    exp = exp_virt_ctx_usage;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
+    pat = id_pat;
+    obj = id_obj;
+}
+
+let is_sail_context_needed (ctx: context) (func: rs_fn): rs_fn = match func.use_sail_ctx with
+    | true ->
+        (* Nothing to do, we already know it uses the context *)
+        func
+    | false ->
+        (* We need to search for any function call that needs the context *)
+        ctx.uses_sail_ctx <- false; (* remove flag *)
+        ignore (transform_fn exp_virt_context_call_graph ctx func);
+        let ctx_func = Option.get (ctx_fun func.name ctx) in
+        match ctx.uses_sail_ctx with
+            | true ->
+                (* We need to keep the context in sync *)
+                    ctx_func.use_sail_ctx <- true;
+                { func with use_sail_ctx = true; }
+            | false ->
+                func
+
+let virt_context_call_graph = {
+  func = is_sail_context_needed;
+}
+
 (* ———————————————————————— VirtContext transformer ————————————————————————— *)
 (* Adds a virtual context as first argument to all functions.                 *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-let sail_context_inserter (ctx: context) (func: rs_fn): rs_fn = { 
-  func with 
-    args = RsPatId "sail_ctx" :: func.args;
-    signature = { func.signature with args = RsTypId "&mut SailVirtCtx" :: func.signature.args }
-}
+let sail_context_inserter (ctx: context) (func: rs_fn): rs_fn = 
+    if func.use_sail_ctx then
+        { 
+            func with 
+            args = RsPatId "sail_ctx" :: func.args;
+            signature = { func.signature with args = RsTypId "&mut SailVirtCtx" :: func.signature.args }
+        }
+    else
+        func
 
 let virt_context_transform = {
   func = sail_context_inserter;
@@ -972,10 +1025,8 @@ let remove_illegal_operator_char str =
   str 
 
 let operator_rewriter_func (ctx: context) (func: rs_fn): rs_fn = {
-  name = remove_illegal_operator_char func.name;
-  args = func.args;
-  signature = func.signature;
-  body = func.body;
+    func with
+    name = remove_illegal_operator_char func.name;
 }
 
 let operator_rewriter = {
@@ -1043,7 +1094,7 @@ let transform_basic_types_exp (ctx: context) (exp: rs_exp) : rs_exp =
                     | RsTypId "nat" -> RsAs (exp, RsTypId "u128")
                     | _ -> exp
             in
-            let args = match SMap.find_opt (id) ctx.defs.funs with
+            let args = match ctx_fun_type id ctx with
                 | Some fun_def ->
                     List.map patch_arg (List.combine args fun_def.args)
                 | None -> args
@@ -1090,40 +1141,13 @@ let transform_basic_types: expr_type_transform = {
 
 let add_wildcard_match_expr (ctx: context) (exp: rs_exp) : rs_exp = 
     match exp with 
-        | RsMatch (exp, pexps) -> RsMatch(exp, pexps @ [RsPexp(RsPatWildcard, RsApp(RsId "panic!", [], [RsId "\"Unreachable code\""]))]) 
+        | RsMatch (exp, pexps) -> RsMatch(exp, pexps @ [RsPexp(RsPatWildcard, RsApp(RsId "panic!", [], [RsLit (RsLitStr "Unreachable code")]))]) 
         | _ -> exp
 
 let add_wildcard_match: expr_type_transform = {
     exp = add_wildcard_match_expr;
     lexp = id_lexp;
     pexp = id_pexp;
-    typ = id_typ;
-    pat = id_pat;
-    obj = id_obj;
-}
-
-(* ———————————————————————— VirtContext binder ————————————————————————— *)
-
-
-let sail_context_binder_exp (ctx: context) (exp: rs_exp) : rs_exp = 
-  match exp with
-    | RsId value -> if (SSet.mem value ctx.registers) then (RsId ("sail_ctx." ^ value)) else RsId value
-    | _ -> exp
-
-let sail_context_binder_lexp (ctx: context) (lexp: rs_lexp) : rs_lexp = 
-  match lexp with
-    | RsLexpId value -> if (SSet.mem value ctx.registers) then (RsLexpId ("sail_ctx." ^ value)) else RsLexpId value
-    | _ -> lexp
-
-let sail_context_binder_pexp (ctx: context) (pexp: rs_pexp) : rs_pexp = 
-  match pexp with
-    | RsPexp (RsPatId value, exp) -> if (SSet.mem value ctx.registers) then RsPexp(RsPatId ("sail_ctx." ^ value), exp) else RsPexp (RsPatId value, exp)
-    | _ -> pexp
-
-let sail_context_binder : expr_type_transform = {
-    exp = sail_context_binder_exp;
-    lexp = sail_context_binder_lexp;
-    pexp = sail_context_binder_pexp;
     typ = id_typ;
     pat = id_pat;
     obj = id_obj;
@@ -1143,7 +1167,13 @@ let is_enum (value: string) : bool =
 let sail_context_arg_inserter_exp (ctx: context) (exp: rs_exp) : rs_exp = 
   match exp with 
     | RsApp (RsId app_id, generics, args) when not(SSet.mem app_id external_func) && not(is_enum app_id) -> 
-      let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, generics, args)
+        begin match ctx_fun app_id ctx  with
+            | Some(fn) when not fn.use_sail_ctx -> exp
+            | Some(fn) -> let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, generics, args)
+            | _ ->
+                Reporting.simple_warn (Printf.sprintf "Could not find function '%s' in context" app_id);
+                let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, generics, args)
+        end
     | _ -> exp
     
 let sail_context_arg_inserter: expr_type_transform = {
@@ -1227,24 +1257,24 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
 
      We must first replace the Sail native function and perform a basic pass of optimization
      to detect some bitvec patterns properly *)
+  let rust_program = rust_transform_func virt_context_call_graph ctx rust_program in
+  let rust_program = rust_transform_func virt_context_transform ctx rust_program in
   let rust_program = rust_transform_expr nested_block_remover ctx rust_program in
   let rust_program = rust_transform_expr native_func_transform ctx rust_program in
   let rust_program = fix_point (rust_transform_expr expression_optimizer ctx) rust_program 10 in
   let rust_program = rust_transform_expr bitvec_transform ctx rust_program in
   let rust_program = rust_transform_expr expr_type_hoister ctx rust_program in 
-  let rust_program = rust_transform_func virt_context_transform ctx rust_program in
   let rust_program = rust_transform_expr normalize_generics ctx rust_program in
   let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in
   let rust_program = rust_transform_expr enum_binder ctx rust_program in
-  let rust_program = rust_transform_func operator_rewriter ctx rust_program in
-  let rust_program = rust_transform_expr expr_type_operator_rewriter ctx rust_program in
   let rust_program = rust_remove_type_bits rust_program in
   let rust_program = rust_prelude_func_filter rust_program in
   let rust_program = insert_annotation_imports rust_program in
   let rust_program = rust_transform_expr transform_basic_types ctx rust_program in
   let rust_program = rust_transform_expr add_wildcard_match ctx rust_program in
-  let rust_program = rust_transform_expr sail_context_binder ctx rust_program in
   let rust_program = rust_transform_expr sail_context_arg_inserter ctx rust_program in
+  let rust_program = rust_transform_expr expr_type_operator_rewriter ctx rust_program in
+  let rust_program = rust_transform_func operator_rewriter ctx rust_program in
 
   (* Optimizer: Dead code elimination *)
   let rust_program = rust_transform_expr dead_code_remover ctx rust_program in
