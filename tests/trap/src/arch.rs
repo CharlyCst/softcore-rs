@@ -1,6 +1,6 @@
-#![allow(unused, non_snake_case, non_upper_case_globals, non_camel_case_types, bindings_with_variant_name)]
+#![allow(warnings)]
 
-use sail_prelude::*;
+use softcore_prelude::*;
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SailVirtCtx {

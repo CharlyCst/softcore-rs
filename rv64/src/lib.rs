@@ -2,7 +2,7 @@ pub mod config;
 pub mod raw;
 
 pub use raw::{Privilege, SailVirtCtx};
-use sail_prelude::BitVector;
+use softcore_prelude::BitVector;
 
 const DEFAULT_PMP_CFG: raw::Pmpcfg_ent = raw::Pmpcfg_ent {
     bits: BitVector::new(0),

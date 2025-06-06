@@ -6,72 +6,72 @@ version = 4
 name = "basic"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
 name = "basic_alt"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
 name = "config"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
 name = "csr"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
 name = "hoisting"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
 name = "mret"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
-name = "sail_prelude"
+name = "softcore-prelude"
 version = "0.1.0"
 
 [[package]]
 name = "softcore-rv64"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
 name = "trap"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
 name = "types"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
 
 [[package]]
 name = "wfi"
 version = "0.1.0"
 dependencies = [
- "sail_prelude",
+ "softcore-prelude",
 ]
