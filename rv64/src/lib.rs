@@ -255,7 +255,6 @@ pub const fn new_ctx(config: raw::SailConfig) -> SailVirtCtx {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::raw::*;
 
     #[test]
     fn pmp_check() {
