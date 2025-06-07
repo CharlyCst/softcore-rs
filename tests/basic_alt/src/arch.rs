@@ -2,16 +2,22 @@
 
 use softcore_prelude::*;
 
+/// The software core.
+/// 
+/// This struct represents a software core, and holds all the registers as well as the core configuration.
+/// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
+/// 
+/// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailVirtCtx {
+pub struct Core {
     pub PC: xlenbits,
     pub nextPC: xlenbits,
     pub Xs: [xlenbits;32],
-    pub config: SailConfig,
+    pub config: Config,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfig {
+pub struct Config {
 
 }
 
@@ -23,6 +29,9 @@ pub type xlenbits = BitVector<xlen>;
 
 pub type regbits = BitVector<5>;
 
+/// iop
+/// 
+/// Generated from the Sail sources at `sail_arch/basic_alt.sail` L61.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
     RISCV_ADDI,
@@ -33,6 +42,9 @@ pub enum iop {
     RISCV_ANDI
 }
 
+/// ast
+/// 
+/// Generated from the Sail sources at `sail_arch/basic_alt.sail` L63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     ITYPE((BitVector<12>, BitVector<5>, BitVector<5>, iop)),

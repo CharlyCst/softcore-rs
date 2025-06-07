@@ -98,6 +98,50 @@ module Codegen () = struct
         match order with
             | Ord_aux (Ord_inc, _) -> "inc"
             | Ord_aux (Ord_dec, _) -> "dec"
+
+
+    (** Format a location in a human readeable format. **)
+    let rec pretty_loc (l: l) =
+        (* Some files have the full path in thei file location, this removes the prefix *)
+        let strip_prefix s =
+            let rec drop n lst =
+                if n <= 0 then
+                    lst
+                else
+                    match lst with
+                    | [] -> []
+                    | _ :: tail -> drop (n - 1) tail
+            in
+            let segments = String.split_on_char '/' s in
+            (* The path has the shape: /XXX/username/.opam/default/share/sail/xxx*)
+            if Option.is_some (List.find_opt (fun s -> s = ".opam") segments) then
+                match List.find_index (fun x -> x = "share") segments with
+                    | Some n ->
+                        String.concat "/" (drop (n + 1) segments)
+                    | None -> s
+            else
+                s
+        in
+        match l with
+            | Parse_ast.Unknown -> None
+            | Parse_ast.Unique (n, l) -> pretty_loc l
+            | Parse_ast.Generated l -> pretty_loc l
+            | Parse_ast.Hint (_, l1, l2) -> pretty_loc l
+            | Parse_ast.Range (lx1, lx2) ->
+                let (l1, l2) = (lx1.pos_lnum, lx2.pos_lnum) in
+                let lines = if l1 = l2 then
+                    Int.to_string l1
+                else
+                    (Int.to_string l1) ^ "-" ^ (Int.to_string l2)
+                in
+                Some ( "`" ^ (strip_prefix lx1.pos_fname) ^ "` L" ^ lines )
+
+    let loc_to_doc (l: l) =
+        match pretty_loc l with
+            | Some loc -> "Generated from the Sail sources at " ^ loc ^ "."
+            | None -> "Generated from the Sail sources."
+
+    (* ———————————————————————— Sail-to-Rust Conversion ————————————————————————— *)
     
     let process_register reg : rs_program =
         RsProg []
@@ -207,7 +251,7 @@ module Codegen () = struct
                 let id = (sanitize_id (string_of_id id)) in
                 if SSet.mem id ctx.registers then
                     let _ = ctx.uses_sail_ctx <- true in (* set flag *)
-                    RsField (RsId "sail_ctx", id)
+                    RsField (RsId "core_ctx", id)
                 else
                     RsId id
             | E_lit lit -> RsLit (process_lit lit)
@@ -349,14 +393,14 @@ module Codegen () = struct
                     | [] -> expr
                 in
                 ctx.uses_sail_ctx <- true; (* set flag *)
-                construct_fields (RsField (RsId "sail_ctx", "config")) cfgs
+                construct_fields (RsField (RsId "core_ctx", "config")) cfgs
     and process_lexp (ctx: context) (LE_aux (lexp, annot)) : rs_lexp =
         match lexp with
             | LE_id id ->
                 let id = (sanitize_id (string_of_id id)) in
                 if SSet.mem id ctx.registers then
                     let _ = ctx.uses_sail_ctx <- true in (* set flag *)
-                    RsLexpField (RsId "sail_ctx", id)
+                    RsLexpField (RsId "core_ctx", id)
                 else
                     RsLexpId id
             | LE_vector (lexp, idx) ->
@@ -512,7 +556,7 @@ module Codegen () = struct
             | P_string_append _  -> [RsPatId "TodoStringAppend"]
     
    
-    and build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context): rs_fn =
+    and build_function (kind: function_kind) (name: string) (pat: 'a pat) (exp: 'a exp) (ctx: context) (l: l) (doc_comment: string option) : rs_fn =
         (* This function balances the lenghts of the argument and argument type list by adding more arguments if neccesary *)
         let counter = ref 0 in
         let fresh_arg () =
@@ -557,21 +601,27 @@ module Codegen () = struct
             signature = signature;
             body = rs_exp;
             use_sail_ctx = ctx.uses_sail_ctx;
+            doc = 
+                [ name ] @
+                begin match doc_comment with | Some c -> [""; c] | None -> [] end @
+                [""; loc_to_doc l]
         }
     
     and process_func (FCL_aux (func, annot)) (ctx: context) : rs_program =
+        let l = (fst annot).loc in
+        let doc_comment = (fst annot).doc_comment in
         let (id, pexp) = match func with | FCL_funcl (id, pexp) -> (id, pexp) in
         let (pexp, annot) = match pexp with | Pat_aux (pexp, annot) -> (pexp, annot) in
         let name = (string_of_id id) in
         if ctx_fun_is_used name ctx then match pexp with
-            | Pat_exp (pat, exp) -> RsProg [RsFn(build_function FunKindFunc name pat exp ctx)]
+            | Pat_exp (pat, exp) -> RsProg [RsFn(build_function FunKindFunc name pat exp ctx l doc_comment)]
             | Pat_when (pat1, exp, pat2) -> RsProg []
         else match pexp with
             | Pat_exp (pat, exp) ->
                     let pat_name = pat_app_name pat in
                     let fun_name = Printf.sprintf "%s_%s" name pat_name in
                     if ctx_fun_is_used pat_name ctx then
-                        RsProg [RsFn(build_function (FunKindUnion (name, pat_name)) fun_name pat exp ctx)]
+                        RsProg [RsFn(build_function (FunKindUnion (name, pat_name)) fun_name pat exp ctx l doc_comment)]
                     else RsProg []
             | _ -> RsProg []
     
@@ -583,13 +633,18 @@ module Codegen () = struct
     and process_fundef (FD_function (rec_opt, tannot_opt, funcl)) (s: context) : rs_program =
         process_funcl funcl s
     
-    and enum_to_rust (id: Ast.id) (members: Ast.id list) : rs_enum =
+    and enum_to_rust (id: Ast.id) (members: Ast.id list) (l: l) : rs_enum =
             let enum_name = string_of_id id in
             let enum_fields = List.map string_of_id members in 
             {
                 name = enum_name;
                 generics = [];
                 fields =  List.map (fun id -> (id, None)) enum_fields; 
+                doc = [
+                    enum_name;
+                    "";
+                    loc_to_doc l;
+                ]
             }
 
     and process_unions (members: Ast.type_union list) : (string * (rs_type option)) list = 
@@ -622,30 +677,42 @@ module Codegen () = struct
         in
         add_generic (quant_items typq)
 
-    and variant_to_rust (id: id) (typq: typquant) (members: type_union list): rs_enum =
+    and variant_to_rust (id: id) (typq: typquant) (members: type_union list) (l: l) : rs_enum =
+        let id = string_of_id id in
         {
-            name = string_of_id id;
+            name = id;
             generics = typequant_to_generics typq;
             fields = process_unions members;
+            doc = [
+                id;
+                "";
+                loc_to_doc l;
+            ]
         }
 
-    and record_to_rust (id: id) (typeq: typquant) (fields: (typ * id) list) : rs_obj =
+    and record_to_rust (id: id) (typeq: typquant) (fields: (typ * id) list) (l: l): rs_obj =
         let to_rs_fields ((typ, id) : (typ  * id)) =
             (string_of_id id, typ_to_rust typ)
         in
+        let id = string_of_id id in
         RsStruct ({
-            name = string_of_id id;
+            name = id;
             generics = typequant_to_generics typeq;
-            fields = List.map to_rs_fields fields
+            fields = List.map to_rs_fields fields;
+            doc = [
+                id;
+                "";
+                loc_to_doc l;
+            ];
         })
                  
     and typdef_to_rust (TD_aux (typ, (l, _))) : rs_program = 
             match typ with
-            | TD_enum (id, members, _) -> RsProg [RsEnum(enum_to_rust id members)] 
+            | TD_enum (id, members, _) -> RsProg [RsEnum(enum_to_rust id members l)] 
             | TD_variant (id, typq, members, _) when string_of_id id = "option" -> RsProg [] (* Special semantics in rust *)
-            | TD_variant (id, typq, members, _) -> RsProg [RsEnum (variant_to_rust id typq members)]
+            | TD_variant (id, typq, members, _) -> RsProg [RsEnum (variant_to_rust id typq members l)]
             | TD_abstract _ -> Reporting.unreachable l __POS__ "Abstract type not supported in Rust backend"
-            | TD_record (id, typq, fields, _) -> RsProg [record_to_rust id typq fields]
+            | TD_record (id, typq, fields, _) -> RsProg [record_to_rust id typq fields l]
             | TD_abbrev (id, typq, A_aux (A_typ typ, _)) ->
                 let alias = {
                     new_typ = string_of_id id;
@@ -730,11 +797,11 @@ module Codegen () = struct
                 match field_kind with
                     | FieldKindLeaf typ -> (fields @ [(field_name, typ)], structs)
                     | FieldKindStruct s ->
-                        let struct_typ = RsTypId ("SailConfig" ^ (String.capitalize_ascii field_name)) in
+                        let struct_typ = RsTypId ("Config" ^ (String.capitalize_ascii field_name)) in
                         (fields @ [(field_name, struct_typ)], structs @ (cfg_struct_to_rust s field_name))
             in
             let (fields, structs) = List.fold_left fold_acc ([], []) (SMap.to_list s) in
-            let struct_name = "SailConfig" ^ (String.capitalize_ascii name_suffix) in
+            let struct_name = "Config" ^ (String.capitalize_ascii name_suffix) in
             [mk_struct struct_name fields] @ structs
         in
         cfg_struct_to_rust cfg_struct ""
@@ -744,13 +811,21 @@ module Codegen () = struct
         let config_field = if List.length config_structs = 0 then
             []
         else
-            ["config", RsTypId "SailConfig"]
+            ["config", RsTypId "Config"]
         in
         RsProg ([
             RsStruct({
-                name = "SailVirtCtx";
+                name = "Core";
                 generics = [];
                 fields = (gather_registers defs) @ config_field;
+                doc = [
+                    "The software core.";
+                    "";
+                    "This struct represents a software core, and holds all the registers as well as the core configuration.";
+                    "The core is the main abstraction exposed by the softcore library and represents a single execution thread.";
+                    "";
+                    "The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.";
+                ]
             })
             ] @ config_structs
         )

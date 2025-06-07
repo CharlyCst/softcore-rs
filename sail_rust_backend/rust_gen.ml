@@ -121,6 +121,7 @@ type rs_fn = {
     signature: rs_fn_type;
     args: rs_pat list;
     body: rs_exp;
+    doc: string list;
     mutable use_sail_ctx: bool;
 }
 
@@ -128,12 +129,14 @@ type rs_enum = {
     name: string;
     generics: rs_generic list;
     fields: (string * rs_type option) list;
+    doc: string list;
 }
 
 type rs_struct = {
     name: string;
     generics: rs_generic list;
     fields: (string * rs_type) list;
+    doc: string list;
 }
 
 type rs_alias = {
@@ -191,7 +194,8 @@ let mk_struct (name: string) (fields: (string * rs_type) list) : rs_obj =
     RsStruct {
         name = name;
         generics = [];
-        fields = fields
+        fields = fields;
+        doc = [];
     }
 
 (** Removes the generic parameters from a type
@@ -254,6 +258,12 @@ let rec lexp_to_exp (lexp: rs_lexp) : rs_exp =
         | _ -> RsId "LexpToExpTodo" 
 
 (* ————————————————————————————— Rust to String ————————————————————————————— *)
+
+let rec string_of_doc (doc: string list) : string =
+    match doc with
+    | head :: [] -> "/// " ^ head ^ "\n"
+    | head :: tail -> "/// " ^ head ^ "\n" ^ (string_of_doc tail)
+    | [] -> ""
 
 let string_of_generics (generics: string list) : string =
     match generics with
@@ -516,6 +526,7 @@ let string_of_rs_fn_args (fn: rs_fn) : string =
     String.concat ", " (List.map2 string_of_arg_and_type fn.args arg_types)
 
 let string_of_rs_fn (fn: rs_fn) : string =
+    let doc = string_of_doc fn.doc in
     let args = string_of_rs_fn_args fn in
     let ret_type = match fn.signature.ret with
         | RsTypUnit -> ""
@@ -523,7 +534,7 @@ let string_of_rs_fn (fn: rs_fn) : string =
     in
     (* For now we assume all generics are const usize *)
     let generics = string_of_generics_parameters fn.signature.generics in
-    let signature = Printf.sprintf "pub fn %s%s(%s)%s {\n%s" fn.name generics args ret_type (indent 1) in
+    let signature = Printf.sprintf "%spub fn %s%s(%s)%s {\n%s" doc fn.name generics args ret_type (indent 1) in
     let stmts = (match fn.body with
         | RsBlock exps
             -> String.concat
@@ -550,7 +561,8 @@ let parse_enum_fields (entries: (string * rs_type option) list) : string =
     String.concat ",\n" prefixed_entries
 
 let string_of_rs_enum (enum: rs_enum) : string = 
-    Printf.sprintf "%s\npub enum %s%s {\n%s\n}" (enum_attribute ()) enum.name (string_of_generics_parameters enum.generics) (parse_enum_fields enum.fields)
+    let doc = string_of_doc enum.doc in
+    Printf.sprintf "%s%s\npub enum %s%s {\n%s\n}" doc (enum_attribute ()) enum.name (string_of_generics_parameters enum.generics) (parse_enum_fields enum.fields)
 
 let parse_struct_fields (entries: (string * rs_type)  list) : string = 
     let prefixed_entries = List.map (fun s -> "    pub " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
@@ -559,7 +571,14 @@ let parse_struct_fields (entries: (string * rs_type)  list) : string =
 
 let string_of_rs_struct (struc: rs_struct) : string = 
     let generics = string_of_generics_parameters struc.generics in
-    Printf.sprintf "#[derive(Eq, PartialEq, Clone, Copy, Debug)]\npub struct %s%s {\n%s\n}" struc.name generics (parse_struct_fields struc.fields)
+    let attributes = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]" in
+    Printf.sprintf
+        "%s%s\npub struct %s%s {\n%s\n}"
+        (string_of_doc struc.doc)
+        attributes
+        struc.name
+        generics
+        (parse_struct_fields struc.fields)
 
 let string_of_rs_obj (obj: rs_obj) : string =
     match obj with
