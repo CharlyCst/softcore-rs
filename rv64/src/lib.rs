@@ -24,17 +24,17 @@ impl SailVirtCtx {
         self.cur_privilege = mode
     }
 
-    /// Return the pmpaddr<index> register.
+    /// Return the `pmpaddr<index>` register.
     pub fn get_pmpaddr(&self, index: usize) -> u64 {
         self.pmpaddr_n[index].bits()
     }
 
-    /// Set the pmpaddr<index> register to the given value.
+    /// Set the `pmpaddr<index>` register to the given value.
     pub fn set_pmpaddr(&mut self, index: usize, val: u64) {
         raw::pmpWriteAddrReg(self, index, BitVector::new(val));
     }
 
-    /// Set the pmpcfg<index> register to the given value.
+    /// Set the `pmpcfg<index>` register to the given value.
     pub fn set_pmpcfg(&mut self, index: usize, val: u64) {
         raw::pmpWriteCfgReg(self, index, BitVector::new(val));
     }
