@@ -1,7 +1,14 @@
+//! A set of pre-defined core configurations.
+//!
+//! The configuration defines which RISC-V extensions are available, as well as some other
+//! parameters such as the number and granularity of PMP registers implemented by the core.
+//!
+//! PRs to contribute new configurations for popular cores are welcome.
+
 use crate::raw;
 
-/// A configuration with all extension disabled
-pub const MINIMAL_CONFIG: raw::SailConfig = raw::SailConfig {
+/// A configuration with all extensions disabled.
+pub const MINIMAL: raw::SailConfig = raw::SailConfig {
     extensions: raw::SailConfigExtensions {
         A: raw::SailConfigA { supported: false },
         B: raw::SailConfigB { supported: false },

@@ -1,4 +1,25 @@
+//! Softcore RISC-V 64
+//!
+//! This library is a wrapper around a Rust translation of the official [RISC-V executable
+//! specification][1]. The software core can be used to test the behavior of the hardware, for
+//! instance to check if a memory access is allowed, or the register state after taking a trap.
+//! This is especially helpful to test or verify low-level software, such as kernels, hypervisors,
+//! or firmware.
+//!
+//! The raw translation is exposed in the [raw] module.
+//!
+//! [1]: https://github.com/riscv/sail-riscv
+
 pub mod config;
+
+/// The raw translation of the official RISC-V executable specification.
+///
+/// The [RISC-V executable specification][1] is written in [Sail][2], a domain specific language to
+/// specify Instruction Set Architectures (ISA). The translation is automated using a custom
+/// Sail-to-Rust back-end for the Sail compiler.
+///
+/// [1]: https://github.com/riscv/sail-riscv
+/// [2]: https://github.com/rems-project/sail
 pub mod raw;
 
 pub use raw::{Privilege, SailVirtCtx};
@@ -19,7 +40,7 @@ impl SailVirtCtx {
         self.cur_privilege
     }
 
-    /// Set the privilege mode mode
+    /// Set the privilege mode
     pub fn set_mode(&mut self, mode: Privilege) {
         self.cur_privilege = mode
     }
@@ -53,7 +74,8 @@ impl SailVirtCtx {
     }
 }
 
-pub const fn new_ctx(config: raw::SailConfig) -> SailVirtCtx {
+/// Returns a fresh core instance with the provided configuration.
+pub const fn new_core(config: raw::SailConfig) -> SailVirtCtx {
     SailVirtCtx {
         PC: BitVector::new(0),
         nextPC: BitVector::new(0),
@@ -254,11 +276,12 @@ pub const fn new_ctx(config: raw::SailConfig) -> SailVirtCtx {
 
 #[cfg(test)]
 mod tests {
+    use crate::raw::*;
     use super::*;
 
     #[test]
     fn pmp_check() {
-        let mut ctx = new_ctx(config::U74);
+        let mut ctx = new_core(config::U74);
         let addr = 0x8000_0000;
         let access = raw::AccessType::Read(());
 
