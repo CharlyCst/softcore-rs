@@ -2,8 +2,14 @@
 
 use softcore_prelude::*;
 
+/// The software core.
+/// 
+/// This struct represents a software core, and holds all the registers as well as the core configuration.
+/// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
+/// 
+/// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailVirtCtx {
+pub struct Core {
     pub PC: xlenbits,
     pub nextPC: xlenbits,
     pub mtval: xlenbits,
@@ -24,14 +30,17 @@ pub struct SailVirtCtx {
     pub utvec: Mtvec,
     pub cur_privilege: Privilege,
     pub Xs: [xlenbits;32],
-    pub config: SailConfig,
+    pub config: Config,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfig {
+pub struct Config {
 
 }
 
+/// bool_to_bit
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L25.
 pub fn bool_to_bit(x: bool) -> bool {
     if {x} {
         true
@@ -40,6 +49,9 @@ pub fn bool_to_bit(x: bool) -> bool {
     }
 }
 
+/// bool_to_bits
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L28.
 pub fn bool_to_bits(x: bool) -> BitVector<1> {
     let mut __generated_vector: BitVector<1> = BitVector::<1>::new_empty();
     {
@@ -58,6 +70,9 @@ pub type xlenbits = BitVector<xlen>;
 
 pub type priv_level = BitVector<2>;
 
+/// Privilege
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L56.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
     User,
@@ -65,6 +80,9 @@ pub enum Privilege {
     Machine
 }
 
+/// privLevel_to_bits
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L59-64.
 pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
     match p {
         Privilege::User => {BitVector::<2>::new(0b00)}
@@ -74,10 +92,16 @@ pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
     }
 }
 
+/// haveSupMode
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L66.
 pub fn haveSupMode(unit_arg: ()) -> bool {
     true
 }
 
+/// exception
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L73-76.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
     Error_internal_error(())
@@ -89,54 +113,90 @@ pub type cregidx = BitVector<3>;
 
 pub type csreg = BitVector<12>;
 
+/// Medeleg
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L99-114.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Medeleg {
     pub bits: BitVector<64>,
 }
 
+/// Mcause
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L117-120.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mcause {
     pub bits: BitVector<64>,
 }
 
+/// Mstatus
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L125-149.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
     pub bits: BitVector<64>,
 }
 
+/// Mtvec
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L152-155.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mtvec {
     pub bits: BitVector<64>,
 }
 
+/// _get_Mcause_Cause
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mcause_Cause(v: Mcause) -> BitVector<63> {
     v.bits.subrange::<0, 63, 63>()
 }
 
+/// _get_Mcause_IsInterrupt
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mcause_IsInterrupt(v: Mcause) -> BitVector<1> {
     v.bits.subrange::<63, 64, 1>()
 }
 
+/// _get_Mstatus_MIE
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mstatus_MIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<3, 4, 1>()
 }
 
+/// _get_Mstatus_SIE
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mstatus_SIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
+/// _get_Mstatus_UIE
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mstatus_UIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
+/// _get_Mtvec_Base
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mtvec_Base(v: Mtvec) -> BitVector<62> {
     v.bits.subrange::<2, 64, 62>()
 }
 
+/// _get_Mtvec_Mode
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mtvec_Mode(v: Mtvec) -> BitVector<2> {
     v.bits.subrange::<0, 2, 2>()
 }
 
+/// ExceptionType
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L193-210.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExceptionType {
     E_Fetch_Addr_Align(()),
@@ -159,12 +219,18 @@ pub enum ExceptionType {
 
 pub type exc_code = BitVector<8>;
 
+/// sync_exception
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L256-259.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct sync_exception {
     pub trap: ExceptionType,
     pub excinfo: Option<xlenbits>,
 }
 
+/// ctl_result
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L262-264.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ctl_result {
     CTL_TRAP(sync_exception)
@@ -172,6 +238,9 @@ pub enum ctl_result {
 
 pub type tv_mode = BitVector<2>;
 
+/// TrapVectorMode
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L267.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TrapVectorMode {
     TV_Direct,
@@ -179,6 +248,9 @@ pub enum TrapVectorMode {
     TV_Reserved
 }
 
+/// tval
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L274-279.
 pub fn tval(excinfo: Option<BitVector<64>>) -> BitVector<64> {
     match excinfo {
         Some(e) => {e}
@@ -187,6 +259,9 @@ pub fn tval(excinfo: Option<BitVector<64>>) -> BitVector<64> {
     }
 }
 
+/// trapVectorMode_of_bits
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L282-287.
 pub fn trapVectorMode_of_bits(m: BitVector<2>) -> TrapVectorMode {
     match m {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {TrapVectorMode::TV_Direct}
@@ -196,6 +271,9 @@ pub fn trapVectorMode_of_bits(m: BitVector<2>) -> TrapVectorMode {
     }
 }
 
+/// tvec_addr
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L290-299.
 pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<64>> {
     let base: xlenbits = bitvector_concat::<62, 2, 64>(_get_Mtvec_Base(m), BitVector::<2>::new(0b00));
     match {
@@ -216,11 +294,14 @@ pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<64>> {
     }
 }
 
-pub fn prepare_trap_vector(sail_ctx: &mut SailVirtCtx, p: Privilege, cause: Mcause) -> BitVector<64> {
+/// prepare_trap_vector
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L302-312.
+pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitVector<64> {
     let tvec: Mtvec = match p {
-        Privilege::Machine => {sail_ctx.mtvec}
-        Privilege::Supervisor => {sail_ctx.stvec}
-        Privilege::User => {sail_ctx.utvec}
+        Privilege::Machine => {core_ctx.mtvec}
+        Privilege::Supervisor => {core_ctx.stvec}
+        Privilege::User => {core_ctx.utvec}
         _ => {panic!("Unreachable code")}
     };
     match tvec_addr(tvec, cause) {
@@ -230,104 +311,110 @@ pub fn prepare_trap_vector(sail_ctx: &mut SailVirtCtx, p: Privilege, cause: Mcau
     }
 }
 
-pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool, c: BitVector<8>, pc: BitVector<64>, info: Option<BitVector<64>>) -> BitVector<64> {
+/// trap_handler
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L314-365.
+pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: BitVector<8>, pc: BitVector<64>, info: Option<BitVector<64>>) -> BitVector<64> {
     match del_priv {
         Privilege::Machine => {{
-            sail_ctx.mcause.bits = {
+            core_ctx.mcause.bits = {
                 let var_1 = bool_to_bits(intr);
-                sail_ctx.mcause.bits.set_subrange::<63, 64, 1>(var_1)
+                core_ctx.mcause.bits.set_subrange::<63, 64, 1>(var_1)
             };
-            sail_ctx.mcause.bits = {
+            core_ctx.mcause.bits = {
                 let var_2 = c.zero_extend::<63>();
-                sail_ctx.mcause.bits.set_subrange::<0, 63, 63>(var_2)
+                core_ctx.mcause.bits.set_subrange::<0, 63, 63>(var_2)
             };
-            sail_ctx.mstatus.bits = {
+            core_ctx.mstatus.bits = {
                 let var_3 = {
-                    let var_4 = sail_ctx.mstatus;
+                    let var_4 = core_ctx.mstatus;
                     _get_Mstatus_MIE(var_4)
                 };
-                sail_ctx.mstatus.bits.set_subrange::<7, 8, 1>(var_3)
+                core_ctx.mstatus.bits.set_subrange::<7, 8, 1>(var_3)
             };
-            sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<3, 4, 1>(BitVector::<1>::new(0b0));
-            sail_ctx.mstatus.bits = {
+            core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<3, 4, 1>(BitVector::<1>::new(0b0));
+            core_ctx.mstatus.bits = {
                 let var_5 = {
-                    let var_6 = sail_ctx.cur_privilege;
+                    let var_6 = core_ctx.cur_privilege;
                     privLevel_to_bits(var_6)
                 };
-                sail_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_5)
+                core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_5)
             };
-            sail_ctx.mtval = tval(info);
-            sail_ctx.mepc = pc;
-            sail_ctx.cur_privilege = del_priv;
+            core_ctx.mtval = tval(info);
+            core_ctx.mepc = pc;
+            core_ctx.cur_privilege = del_priv;
             {
                 let var_7 = del_priv;
-                let var_8 = sail_ctx.mcause;
-                prepare_trap_vector(sail_ctx, var_7, var_8)
+                let var_8 = core_ctx.mcause;
+                prepare_trap_vector(core_ctx, var_7, var_8)
             }
         }}
         Privilege::Supervisor => {{
             assert!(haveSupMode(()), "no supervisor mode present for delegation");
-            sail_ctx.scause.bits = {
+            core_ctx.scause.bits = {
                 let var_9 = bool_to_bits(intr);
-                sail_ctx.scause.bits.set_subrange::<63, 64, 1>(var_9)
+                core_ctx.scause.bits.set_subrange::<63, 64, 1>(var_9)
             };
-            sail_ctx.scause.bits = {
+            core_ctx.scause.bits = {
                 let var_10 = c.zero_extend::<63>();
-                sail_ctx.scause.bits.set_subrange::<0, 63, 63>(var_10)
+                core_ctx.scause.bits.set_subrange::<0, 63, 63>(var_10)
             };
-            sail_ctx.mstatus.bits = {
+            core_ctx.mstatus.bits = {
                 let var_11 = {
-                    let var_12 = sail_ctx.mstatus;
+                    let var_12 = core_ctx.mstatus;
                     _get_Mstatus_SIE(var_12)
                 };
-                sail_ctx.mstatus.bits.set_subrange::<5, 6, 1>(var_11)
+                core_ctx.mstatus.bits.set_subrange::<5, 6, 1>(var_11)
             };
-            sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<1, 2, 1>(BitVector::<1>::new(0b0));
-            sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<8, 9, 1>(match sail_ctx.cur_privilege {
+            core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<1, 2, 1>(BitVector::<1>::new(0b0));
+            core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<8, 9, 1>(match core_ctx.cur_privilege {
                 Privilege::User => {BitVector::<1>::new(0b0)}
                 Privilege::Supervisor => {BitVector::<1>::new(0b1)}
                 Privilege::Machine => {panic!("todo_process_panic_type")}
                 _ => {panic!("Unreachable code")}
             });
-            sail_ctx.stval = tval(info);
-            sail_ctx.sepc = pc;
-            sail_ctx.cur_privilege = del_priv;
+            core_ctx.stval = tval(info);
+            core_ctx.sepc = pc;
+            core_ctx.cur_privilege = del_priv;
             {
                 let var_13 = del_priv;
-                let var_14 = sail_ctx.scause;
-                prepare_trap_vector(sail_ctx, var_13, var_14)
+                let var_14 = core_ctx.scause;
+                prepare_trap_vector(core_ctx, var_13, var_14)
             }
         }}
         Privilege::User => {{
-            sail_ctx.ucause.bits = {
+            core_ctx.ucause.bits = {
                 let var_15 = bool_to_bits(intr);
-                sail_ctx.ucause.bits.set_subrange::<63, 64, 1>(var_15)
+                core_ctx.ucause.bits.set_subrange::<63, 64, 1>(var_15)
             };
-            sail_ctx.ucause.bits = {
+            core_ctx.ucause.bits = {
                 let var_16 = c.zero_extend::<63>();
-                sail_ctx.ucause.bits.set_subrange::<0, 63, 63>(var_16)
+                core_ctx.ucause.bits.set_subrange::<0, 63, 63>(var_16)
             };
-            sail_ctx.mstatus.bits = {
+            core_ctx.mstatus.bits = {
                 let var_17 = {
-                    let var_18 = sail_ctx.mstatus;
+                    let var_18 = core_ctx.mstatus;
                     _get_Mstatus_UIE(var_18)
                 };
-                sail_ctx.mstatus.bits.set_subrange::<4, 5, 1>(var_17)
+                core_ctx.mstatus.bits.set_subrange::<4, 5, 1>(var_17)
             };
-            sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<0, 1, 1>(BitVector::<1>::new(0b0));
-            sail_ctx.utval = tval(info);
-            sail_ctx.uepc = pc;
-            sail_ctx.cur_privilege = del_priv;
+            core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<0, 1, 1>(BitVector::<1>::new(0b0));
+            core_ctx.utval = tval(info);
+            core_ctx.uepc = pc;
+            core_ctx.cur_privilege = del_priv;
             {
                 let var_19 = del_priv;
-                let var_20 = sail_ctx.ucause;
-                prepare_trap_vector(sail_ctx, var_19, var_20)
+                let var_20 = core_ctx.ucause;
+                prepare_trap_vector(core_ctx, var_19, var_20)
             }
         }}
         _ => {panic!("Unreachable code")}
     }
 }
 
+/// iop
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L400.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
     RISCV_ADDI,
@@ -338,6 +425,9 @@ pub enum iop {
     RISCV_ANDI
 }
 
+/// csrop
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L401.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum csrop {
     CSRRW,
@@ -345,12 +435,18 @@ pub enum csrop {
     CSRRC
 }
 
+/// Retired
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L402.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
     RETIRE_FAIL
 }
 
+/// ast
+/// 
+/// Generated from the Sail sources at `sail_arch/trap.sail` L404.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     ITYPE((BitVector<12>, regidx, regidx, iop)),

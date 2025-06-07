@@ -245,14 +245,15 @@ let transform_obj (ct: expr_type_transform) (ctx: context) (obj: rs_obj) : rs_ob
     match obj with
         | RsFn fn -> RsFn (transform_fn ct ctx fn)
         | RsAlias alias -> RsAlias (transform_alias ct ctx alias)
-        | RsStruct {name; generics; fields} -> RsStruct { name = name; generics = generics; fields = (List.map (fun (a,b) -> (a, transform_type ct ctx b)) fields)}
-        | RsEnum {name; generics; fields} -> RsEnum {
-            name = name;
-            generics;
+        | RsStruct s ->
+            RsStruct { s with
+                fields = (List.map (fun (a,b) -> (a, transform_type ct ctx b)) s.fields)
+            }
+        | RsEnum enum -> RsEnum { enum with
             fields = (List.map (fun (name, typ) -> match typ with
                 | None -> (name, None) 
                 | Some typ -> (name, Some (transform_type ct ctx typ)))
-            fields)
+            enum.fields)
         }
         | _ -> obj
 
@@ -924,8 +925,8 @@ let sail_context_inserter (ctx: context) (func: rs_fn): rs_fn =
     if func.use_sail_ctx then
         { 
             func with 
-            args = RsPatId "sail_ctx" :: func.args;
-            signature = { func.signature with args = RsTypId "&mut SailVirtCtx" :: func.signature.args }
+            args = RsPatId "core_ctx" :: func.args;
+            signature = { func.signature with args = RsTypId "&mut Core" :: func.signature.args }
         }
     else
         func
@@ -1163,10 +1164,10 @@ let sail_context_arg_inserter_exp (ctx: context) (exp: rs_exp) : rs_exp =
     | RsApp (RsId app_id, generics, args) when not(SSet.mem app_id external_func) && not(is_enum app_id) -> 
         begin match ctx_fun app_id ctx  with
             | Some(fn) when not fn.use_sail_ctx -> exp
-            | Some(fn) -> let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, generics, args)
+            | Some(fn) -> let args = RsId "core_ctx" :: args in RsApp (RsId app_id, generics, args)
             | _ ->
                 Reporting.simple_warn (Printf.sprintf "Could not find function '%s' in context" app_id);
-                let args = RsId "sail_ctx" :: args in RsApp (RsId app_id, generics, args)
+                let args = RsId "core_ctx" :: args in RsApp (RsId app_id, generics, args)
         end
     | _ -> exp
     

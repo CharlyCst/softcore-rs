@@ -22,8 +22,10 @@ pub mod config;
 /// [2]: https://github.com/rems-project/sail
 pub mod raw;
 
-pub use raw::{Privilege, SailVirtCtx};
+pub use raw::{Privilege, Core};
 use softcore_prelude::BitVector;
+
+// ———————————————————————— Initialization Constants ———————————————————————— //
 
 const DEFAULT_PMP_CFG: raw::Pmpcfg_ent = raw::Pmpcfg_ent {
     bits: BitVector::new(0),
@@ -34,7 +36,7 @@ const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent {
 const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
 const ZEROES: BitVector<64> = BitVector::new(0);
 
-impl SailVirtCtx {
+impl Core {
     /// Return the current privilege mode.
     pub fn mode(&self) -> Privilege {
         self.cur_privilege
@@ -75,8 +77,8 @@ impl SailVirtCtx {
 }
 
 /// Returns a fresh core instance with the provided configuration.
-pub const fn new_core(config: raw::SailConfig) -> SailVirtCtx {
-    SailVirtCtx {
+pub const fn new_core(config: raw::Config) -> Core {
+    Core {
         PC: BitVector::new(0),
         nextPC: BitVector::new(0),
         x1: BitVector::new(0),

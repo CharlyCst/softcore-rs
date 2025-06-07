@@ -2,8 +2,14 @@
 
 use softcore_prelude::*;
 
+/// The software core.
+/// 
+/// This struct represents a software core, and holds all the registers as well as the core configuration.
+/// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
+/// 
+/// The raw functions translated directly from the specification are available in the [raw] module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailVirtCtx {
+pub struct Core {
     pub PC: xlenbits,
     pub nextPC: xlenbits,
     pub x1: regtype,
@@ -157,362 +163,362 @@ pub struct SailVirtCtx {
     pub tlb: [Option<TLB_Entry>;num_tlb_entries],
     pub satp: xlenbits,
     pub hart_state: HartState,
-    pub config: SailConfig,
+    pub config: Config,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfig {
-    pub extensions: SailConfigExtensions,
-    pub memory: SailConfigMemory,
+pub struct Config {
+    pub extensions: ConfigExtensions,
+    pub memory: ConfigMemory,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigExtensions {
-    pub A: SailConfigA,
-    pub B: SailConfigB,
-    pub FD: SailConfigFD,
-    pub M: SailConfigM,
-    pub S: SailConfigS,
-    pub Smcntrpmf: SailConfigSmcntrpmf,
-    pub Sscofpmf: SailConfigSscofpmf,
-    pub Sstc: SailConfigSstc,
-    pub Sv32: SailConfigSv32,
-    pub Sv39: SailConfigSv39,
-    pub Sv48: SailConfigSv48,
-    pub Sv57: SailConfigSv57,
-    pub Svbare: SailConfigSvbare,
-    pub Svinval: SailConfigSvinval,
-    pub U: SailConfigU,
-    pub V: SailConfigV,
-    pub Zaamo: SailConfigZaamo,
-    pub Zabha: SailConfigZabha,
-    pub Zalrsc: SailConfigZalrsc,
-    pub Zba: SailConfigZba,
-    pub Zbb: SailConfigZbb,
-    pub Zbc: SailConfigZbc,
-    pub Zbkb: SailConfigZbkb,
-    pub Zbkc: SailConfigZbkc,
-    pub Zbkx: SailConfigZbkx,
-    pub Zbs: SailConfigZbs,
-    pub Zca: SailConfigZca,
-    pub Zcb: SailConfigZcb,
-    pub Zcd: SailConfigZcd,
-    pub Zcf: SailConfigZcf,
-    pub Zcmop: SailConfigZcmop,
-    pub Zfa: SailConfigZfa,
-    pub Zfh: SailConfigZfh,
-    pub Zfhmin: SailConfigZfhmin,
-    pub Zfinx: SailConfigZfinx,
-    pub Zhinx: SailConfigZhinx,
-    pub Zicbom: SailConfigZicbom,
-    pub Zicboz: SailConfigZicboz,
-    pub Zicntr: SailConfigZicntr,
-    pub Zicond: SailConfigZicond,
-    pub Zifencei: SailConfigZifencei,
-    pub Zihpm: SailConfigZihpm,
-    pub Zimop: SailConfigZimop,
-    pub Zknd: SailConfigZknd,
-    pub Zkne: SailConfigZkne,
-    pub Zknh: SailConfigZknh,
-    pub Zkr: SailConfigZkr,
-    pub Zksed: SailConfigZksed,
-    pub Zksh: SailConfigZksh,
-    pub Zmmul: SailConfigZmmul,
-    pub Zvbb: SailConfigZvbb,
-    pub Zvbc: SailConfigZvbc,
-    pub Zvkb: SailConfigZvkb,
-    pub Zvknha: SailConfigZvknha,
-    pub Zvknhb: SailConfigZvknhb,
-    pub Zvksh: SailConfigZvksh,
+pub struct ConfigExtensions {
+    pub A: ConfigA,
+    pub B: ConfigB,
+    pub FD: ConfigFD,
+    pub M: ConfigM,
+    pub S: ConfigS,
+    pub Smcntrpmf: ConfigSmcntrpmf,
+    pub Sscofpmf: ConfigSscofpmf,
+    pub Sstc: ConfigSstc,
+    pub Sv32: ConfigSv32,
+    pub Sv39: ConfigSv39,
+    pub Sv48: ConfigSv48,
+    pub Sv57: ConfigSv57,
+    pub Svbare: ConfigSvbare,
+    pub Svinval: ConfigSvinval,
+    pub U: ConfigU,
+    pub V: ConfigV,
+    pub Zaamo: ConfigZaamo,
+    pub Zabha: ConfigZabha,
+    pub Zalrsc: ConfigZalrsc,
+    pub Zba: ConfigZba,
+    pub Zbb: ConfigZbb,
+    pub Zbc: ConfigZbc,
+    pub Zbkb: ConfigZbkb,
+    pub Zbkc: ConfigZbkc,
+    pub Zbkx: ConfigZbkx,
+    pub Zbs: ConfigZbs,
+    pub Zca: ConfigZca,
+    pub Zcb: ConfigZcb,
+    pub Zcd: ConfigZcd,
+    pub Zcf: ConfigZcf,
+    pub Zcmop: ConfigZcmop,
+    pub Zfa: ConfigZfa,
+    pub Zfh: ConfigZfh,
+    pub Zfhmin: ConfigZfhmin,
+    pub Zfinx: ConfigZfinx,
+    pub Zhinx: ConfigZhinx,
+    pub Zicbom: ConfigZicbom,
+    pub Zicboz: ConfigZicboz,
+    pub Zicntr: ConfigZicntr,
+    pub Zicond: ConfigZicond,
+    pub Zifencei: ConfigZifencei,
+    pub Zihpm: ConfigZihpm,
+    pub Zimop: ConfigZimop,
+    pub Zknd: ConfigZknd,
+    pub Zkne: ConfigZkne,
+    pub Zknh: ConfigZknh,
+    pub Zkr: ConfigZkr,
+    pub Zksed: ConfigZksed,
+    pub Zksh: ConfigZksh,
+    pub Zmmul: ConfigZmmul,
+    pub Zvbb: ConfigZvbb,
+    pub Zvbc: ConfigZvbc,
+    pub Zvkb: ConfigZvkb,
+    pub Zvknha: ConfigZvknha,
+    pub Zvknhb: ConfigZvknhb,
+    pub Zvksh: ConfigZvksh,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigA {
+pub struct ConfigA {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigB {
+pub struct ConfigB {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigFD {
+pub struct ConfigFD {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigM {
+pub struct ConfigM {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigS {
+pub struct ConfigS {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSmcntrpmf {
+pub struct ConfigSmcntrpmf {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSscofpmf {
+pub struct ConfigSscofpmf {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSstc {
+pub struct ConfigSstc {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSv32 {
+pub struct ConfigSv32 {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSv39 {
+pub struct ConfigSv39 {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSv48 {
+pub struct ConfigSv48 {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSv57 {
+pub struct ConfigSv57 {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSvbare {
+pub struct ConfigSvbare {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigSvinval {
+pub struct ConfigSvinval {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigU {
+pub struct ConfigU {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigV {
+pub struct ConfigV {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZaamo {
+pub struct ConfigZaamo {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZabha {
+pub struct ConfigZabha {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZalrsc {
+pub struct ConfigZalrsc {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZba {
+pub struct ConfigZba {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZbb {
+pub struct ConfigZbb {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZbc {
+pub struct ConfigZbc {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZbkb {
+pub struct ConfigZbkb {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZbkc {
+pub struct ConfigZbkc {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZbkx {
+pub struct ConfigZbkx {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZbs {
+pub struct ConfigZbs {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZca {
+pub struct ConfigZca {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZcb {
+pub struct ConfigZcb {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZcd {
+pub struct ConfigZcd {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZcf {
+pub struct ConfigZcf {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZcmop {
+pub struct ConfigZcmop {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZfa {
+pub struct ConfigZfa {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZfh {
+pub struct ConfigZfh {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZfhmin {
+pub struct ConfigZfhmin {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZfinx {
+pub struct ConfigZfinx {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZhinx {
+pub struct ConfigZhinx {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZicbom {
+pub struct ConfigZicbom {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZicboz {
+pub struct ConfigZicboz {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZicntr {
+pub struct ConfigZicntr {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZicond {
+pub struct ConfigZicond {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZifencei {
+pub struct ConfigZifencei {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZihpm {
+pub struct ConfigZihpm {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZimop {
+pub struct ConfigZimop {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZknd {
+pub struct ConfigZknd {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZkne {
+pub struct ConfigZkne {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZknh {
+pub struct ConfigZknh {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZkr {
+pub struct ConfigZkr {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZksed {
+pub struct ConfigZksed {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZksh {
+pub struct ConfigZksh {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZmmul {
+pub struct ConfigZmmul {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZvbb {
+pub struct ConfigZvbb {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZvbc {
+pub struct ConfigZvbc {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZvkb {
+pub struct ConfigZvkb {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZvknha {
+pub struct ConfigZvknha {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZvknhb {
+pub struct ConfigZvknhb {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigZvksh {
+pub struct ConfigZvksh {
     pub supported: bool,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigMemory {
-    pub pmp: SailConfigPmp,
+pub struct ConfigMemory {
+    pub pmp: ConfigPmp,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct SailConfigPmp {
+pub struct ConfigPmp {
     pub grain: usize,
 }
 
@@ -524,15 +530,24 @@ pub const xlen: usize = (xlen_bytes * 8);
 
 pub type xlenbits = BitVector<xlen>;
 
+/// virtaddr
+/// 
+/// Generated from the Sail sources at `prelude_mem_addrtype.sail` L17.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum virtaddr {
     Virtaddr(xlenbits)
 }
 
+/// hex_bits_backwards
+/// 
+/// Generated from the Sail sources at `sail/lib/hex_bits.sail` L65.
 pub fn hex_bits_backwards<const N: usize>(n: usize, str: &'static str) -> BitVector<N> {
     parse_hex_bits(n, str)
 }
 
+/// hex_bits_12_backwards_matches
+/// 
+/// Generated from the Sail sources.
 pub fn hex_bits_12_backwards_matches(arg_hashtag_: &'static str) -> bool {
     match arg_hashtag_ {
         s => {true}
@@ -541,18 +556,30 @@ pub fn hex_bits_12_backwards_matches(arg_hashtag_: &'static str) -> bool {
     }
 }
 
+/// get_config_print_platform
+/// 
+/// Generated from the Sail sources at `prelude.sail` L75.
 pub fn get_config_print_platform(unit_arg: ()) -> bool {
     false
 }
 
+/// zeros
+/// 
+/// Generated from the Sail sources at `prelude.sail` L84.
 pub fn zeros<const N: usize>(n: usize) -> BitVector<N> {
     sail_zeros(n)
 }
 
+/// ones
+/// 
+/// Generated from the Sail sources at `prelude.sail` L87.
 pub fn ones<const N: usize>(n: usize) -> BitVector<N> {
     sail_ones(n)
 }
 
+/// bool_bits_forwards
+/// 
+/// Generated from the Sail sources.
 pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<1> {
     match arg_hashtag_ {
         true => {BitVector::<1>::new(0b1)}
@@ -561,14 +588,23 @@ pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<1> {
     }
 }
 
+/// bool_to_bits
+/// 
+/// Generated from the Sail sources at `prelude.sail` L112.
 pub fn bool_to_bits(x: bool) -> BitVector<1> {
     bool_bits_forwards(x)
 }
 
+/// to_bits
+/// 
+/// Generated from the Sail sources at `prelude.sail` L117.
 pub fn to_bits<const L: usize>(l: usize, n: usize) -> BitVector<L> {
     get_slice_int(l, n, 0)
 }
 
+/// (operator >=_u)
+/// 
+/// Generated from the Sail sources at `prelude.sail` L144.
 pub fn _operator_biggerequal_u_<const N: usize>(x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.as_usize() >= y.as_usize())
 }
@@ -577,6 +613,9 @@ pub const max_mem_access: usize = 4096;
 
 pub type mem_access_width = usize;
 
+/// exception
+/// 
+/// Generated from the Sail sources at `riscv_errors.sail` L11-14.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
     Error_not_implemented(&'static str),
@@ -601,6 +640,9 @@ pub const vlenmax: usize = 65536;
 
 pub type physaddrbits = BitVector<physaddrbits_len>;
 
+/// physaddr
+/// 
+/// Generated from the Sail sources at `prelude_mem_addrtype.sail` L16.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum physaddr {
     Physaddr(physaddrbits)
@@ -608,12 +650,18 @@ pub enum physaddr {
 
 pub type mem_meta = ();
 
+/// result
+/// 
+/// Generated from the Sail sources at `sail/lib/result.sail` L60-63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum result<A, B> {
     Ok(A),
     Err(B)
 }
 
+/// Access_variety
+/// 
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L57-61.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_variety {
     AV_plain,
@@ -621,6 +669,9 @@ pub enum Access_variety {
     AV_atomic_rmw
 }
 
+/// Access_strength
+/// 
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L66-70.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_strength {
     AS_normal,
@@ -628,12 +679,18 @@ pub enum Access_strength {
     AS_acq_rcpc
 }
 
+/// Explicit_access_kind
+/// 
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L75-78.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Explicit_access_kind {
     pub variety: Access_variety,
     pub strength: Access_strength,
 }
 
+/// Access_kind
+/// 
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L83-88.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_kind<ARCH_AK> {
     AK_explicit(Explicit_access_kind),
@@ -642,6 +699,9 @@ pub enum Access_kind<ARCH_AK> {
     AK_arch(ARCH_AK)
 }
 
+/// Mem_read_request
+/// 
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L93-104.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mem_read_request<const N: usize, const VASIZE: usize, PA, TS, ARCH_AK> {
     pub access_kind: Access_kind<ARCH_AK>,
@@ -652,6 +712,9 @@ pub struct Mem_read_request<const N: usize, const VASIZE: usize, PA, TS, ARCH_AK
     pub tag: bool,
 }
 
+/// write_kind
+/// 
+/// Generated from the Sail sources at `prelude_mem.sail` L19-26.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum write_kind {
     Write_plain,
@@ -662,6 +725,9 @@ pub enum write_kind {
     Write_RISCV_conditional_strong_release
 }
 
+/// read_kind
+/// 
+/// Generated from the Sail sources at `prelude_mem.sail` L28-36.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum read_kind {
     Read_plain,
@@ -673,6 +739,9 @@ pub enum read_kind {
     Read_RISCV_reserved_strong_acquire
 }
 
+/// barrier_kind
+/// 
+/// Generated from the Sail sources at `prelude_mem.sail` L38-50.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum barrier_kind {
     Barrier_RISCV_rw_rw,
@@ -688,11 +757,17 @@ pub enum barrier_kind {
     Barrier_RISCV_i
 }
 
+/// RISCV_strong_access
+/// 
+/// Generated from the Sail sources at `prelude_mem.sail` L55-57.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RISCV_strong_access {
     pub variety: Access_variety,
 }
 
+/// extension
+/// 
+/// Generated from the Sail sources at `riscv_extensions.sail` L10.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum extension {
     Ext_M,
@@ -758,69 +833,72 @@ pub enum extension {
     Ext_Smcntrpmf
 }
 
-pub fn hartSupports(sail_ctx: &mut SailVirtCtx, merge_hashtag_var: extension) -> bool {
+/// hartSupports
+/// 
+/// Generated from the Sail sources at `riscv_extensions.sail` L32.
+pub fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
     match merge_hashtag_var {
-        extension::Ext_M => {sail_ctx.config.extensions.M.supported}
-        extension::Ext_A => {sail_ctx.config.extensions.A.supported}
-        extension::Ext_F => {sail_ctx.config.extensions.FD.supported}
-        extension::Ext_D => {sail_ctx.config.extensions.FD.supported}
-        extension::Ext_B => {sail_ctx.config.extensions.B.supported}
-        extension::Ext_V => {sail_ctx.config.extensions.V.supported}
-        extension::Ext_S => {sail_ctx.config.extensions.S.supported}
-        extension::Ext_U => {sail_ctx.config.extensions.U.supported}
-        extension::Ext_Zicbom => {sail_ctx.config.extensions.Zicbom.supported}
-        extension::Ext_Zicboz => {sail_ctx.config.extensions.Zicboz.supported}
-        extension::Ext_Zicntr => {sail_ctx.config.extensions.Zicntr.supported}
-        extension::Ext_Zicond => {sail_ctx.config.extensions.Zicond.supported}
-        extension::Ext_Zifencei => {sail_ctx.config.extensions.Zifencei.supported}
-        extension::Ext_Zihpm => {sail_ctx.config.extensions.Zihpm.supported}
-        extension::Ext_Zimop => {sail_ctx.config.extensions.Zimop.supported}
-        extension::Ext_Zmmul => {sail_ctx.config.extensions.Zmmul.supported}
-        extension::Ext_Zaamo => {sail_ctx.config.extensions.Zaamo.supported}
-        extension::Ext_Zabha => {sail_ctx.config.extensions.Zabha.supported}
-        extension::Ext_Zalrsc => {sail_ctx.config.extensions.Zalrsc.supported}
-        extension::Ext_Zfa => {sail_ctx.config.extensions.Zfa.supported}
-        extension::Ext_Zfh => {sail_ctx.config.extensions.Zfh.supported}
-        extension::Ext_Zfhmin => {sail_ctx.config.extensions.Zfhmin.supported}
-        extension::Ext_Zfinx => {sail_ctx.config.extensions.Zfinx.supported}
-        extension::Ext_Zdinx => {sail_ctx.config.extensions.Zfinx.supported}
-        extension::Ext_Zca => {sail_ctx.config.extensions.Zca.supported}
-        extension::Ext_Zcb => {sail_ctx.config.extensions.Zcb.supported}
-        extension::Ext_Zcd => {sail_ctx.config.extensions.Zcd.supported}
-        extension::Ext_Zcf => {((sail_ctx.config.extensions.Zcf.supported as bool) && (xlen == 32))}
-        extension::Ext_Zcmop => {sail_ctx.config.extensions.Zcmop.supported}
-        extension::Ext_C => {(hartSupports(sail_ctx, extension::Ext_Zca) && ((hartSupports(sail_ctx, extension::Ext_Zcf) || (!(hartSupports(sail_ctx, extension::Ext_F)) || (xlen != 32))) && (hartSupports(sail_ctx, extension::Ext_Zcd) || !(hartSupports(sail_ctx, extension::Ext_D)))))}
-        extension::Ext_Zba => {sail_ctx.config.extensions.Zba.supported}
-        extension::Ext_Zbb => {sail_ctx.config.extensions.Zbb.supported}
-        extension::Ext_Zbc => {sail_ctx.config.extensions.Zbc.supported}
-        extension::Ext_Zbkb => {sail_ctx.config.extensions.Zbkb.supported}
-        extension::Ext_Zbkc => {sail_ctx.config.extensions.Zbkc.supported}
-        extension::Ext_Zbkx => {sail_ctx.config.extensions.Zbkx.supported}
-        extension::Ext_Zbs => {sail_ctx.config.extensions.Zbs.supported}
-        extension::Ext_Zknd => {sail_ctx.config.extensions.Zknd.supported}
-        extension::Ext_Zkne => {sail_ctx.config.extensions.Zkne.supported}
-        extension::Ext_Zknh => {sail_ctx.config.extensions.Zknh.supported}
-        extension::Ext_Zkr => {sail_ctx.config.extensions.Zkr.supported}
-        extension::Ext_Zksed => {sail_ctx.config.extensions.Zksed.supported}
-        extension::Ext_Zksh => {sail_ctx.config.extensions.Zksh.supported}
-        extension::Ext_Zhinx => {sail_ctx.config.extensions.Zhinx.supported}
-        extension::Ext_Zvbb => {sail_ctx.config.extensions.Zvbb.supported}
-        extension::Ext_Zvkb => {sail_ctx.config.extensions.Zvkb.supported}
-        extension::Ext_Zvbc => {sail_ctx.config.extensions.Zvbc.supported}
-        extension::Ext_Zvknha => {sail_ctx.config.extensions.Zvknha.supported}
-        extension::Ext_Zvknhb => {sail_ctx.config.extensions.Zvknhb.supported}
-        extension::Ext_Zvksh => {sail_ctx.config.extensions.Zvksh.supported}
-        extension::Ext_Sscofpmf => {sail_ctx.config.extensions.Sscofpmf.supported}
-        extension::Ext_Sstc => {sail_ctx.config.extensions.Sstc.supported}
-        extension::Ext_Svinval => {sail_ctx.config.extensions.Svinval.supported}
+        extension::Ext_M => {core_ctx.config.extensions.M.supported}
+        extension::Ext_A => {core_ctx.config.extensions.A.supported}
+        extension::Ext_F => {core_ctx.config.extensions.FD.supported}
+        extension::Ext_D => {core_ctx.config.extensions.FD.supported}
+        extension::Ext_B => {core_ctx.config.extensions.B.supported}
+        extension::Ext_V => {core_ctx.config.extensions.V.supported}
+        extension::Ext_S => {core_ctx.config.extensions.S.supported}
+        extension::Ext_U => {core_ctx.config.extensions.U.supported}
+        extension::Ext_Zicbom => {core_ctx.config.extensions.Zicbom.supported}
+        extension::Ext_Zicboz => {core_ctx.config.extensions.Zicboz.supported}
+        extension::Ext_Zicntr => {core_ctx.config.extensions.Zicntr.supported}
+        extension::Ext_Zicond => {core_ctx.config.extensions.Zicond.supported}
+        extension::Ext_Zifencei => {core_ctx.config.extensions.Zifencei.supported}
+        extension::Ext_Zihpm => {core_ctx.config.extensions.Zihpm.supported}
+        extension::Ext_Zimop => {core_ctx.config.extensions.Zimop.supported}
+        extension::Ext_Zmmul => {core_ctx.config.extensions.Zmmul.supported}
+        extension::Ext_Zaamo => {core_ctx.config.extensions.Zaamo.supported}
+        extension::Ext_Zabha => {core_ctx.config.extensions.Zabha.supported}
+        extension::Ext_Zalrsc => {core_ctx.config.extensions.Zalrsc.supported}
+        extension::Ext_Zfa => {core_ctx.config.extensions.Zfa.supported}
+        extension::Ext_Zfh => {core_ctx.config.extensions.Zfh.supported}
+        extension::Ext_Zfhmin => {core_ctx.config.extensions.Zfhmin.supported}
+        extension::Ext_Zfinx => {core_ctx.config.extensions.Zfinx.supported}
+        extension::Ext_Zdinx => {core_ctx.config.extensions.Zfinx.supported}
+        extension::Ext_Zca => {core_ctx.config.extensions.Zca.supported}
+        extension::Ext_Zcb => {core_ctx.config.extensions.Zcb.supported}
+        extension::Ext_Zcd => {core_ctx.config.extensions.Zcd.supported}
+        extension::Ext_Zcf => {((core_ctx.config.extensions.Zcf.supported as bool) && (xlen == 32))}
+        extension::Ext_Zcmop => {core_ctx.config.extensions.Zcmop.supported}
+        extension::Ext_C => {(hartSupports(core_ctx, extension::Ext_Zca) && ((hartSupports(core_ctx, extension::Ext_Zcf) || (!(hartSupports(core_ctx, extension::Ext_F)) || (xlen != 32))) && (hartSupports(core_ctx, extension::Ext_Zcd) || !(hartSupports(core_ctx, extension::Ext_D)))))}
+        extension::Ext_Zba => {core_ctx.config.extensions.Zba.supported}
+        extension::Ext_Zbb => {core_ctx.config.extensions.Zbb.supported}
+        extension::Ext_Zbc => {core_ctx.config.extensions.Zbc.supported}
+        extension::Ext_Zbkb => {core_ctx.config.extensions.Zbkb.supported}
+        extension::Ext_Zbkc => {core_ctx.config.extensions.Zbkc.supported}
+        extension::Ext_Zbkx => {core_ctx.config.extensions.Zbkx.supported}
+        extension::Ext_Zbs => {core_ctx.config.extensions.Zbs.supported}
+        extension::Ext_Zknd => {core_ctx.config.extensions.Zknd.supported}
+        extension::Ext_Zkne => {core_ctx.config.extensions.Zkne.supported}
+        extension::Ext_Zknh => {core_ctx.config.extensions.Zknh.supported}
+        extension::Ext_Zkr => {core_ctx.config.extensions.Zkr.supported}
+        extension::Ext_Zksed => {core_ctx.config.extensions.Zksed.supported}
+        extension::Ext_Zksh => {core_ctx.config.extensions.Zksh.supported}
+        extension::Ext_Zhinx => {core_ctx.config.extensions.Zhinx.supported}
+        extension::Ext_Zvbb => {core_ctx.config.extensions.Zvbb.supported}
+        extension::Ext_Zvkb => {core_ctx.config.extensions.Zvkb.supported}
+        extension::Ext_Zvbc => {core_ctx.config.extensions.Zvbc.supported}
+        extension::Ext_Zvknha => {core_ctx.config.extensions.Zvknha.supported}
+        extension::Ext_Zvknhb => {core_ctx.config.extensions.Zvknhb.supported}
+        extension::Ext_Zvksh => {core_ctx.config.extensions.Zvksh.supported}
+        extension::Ext_Sscofpmf => {core_ctx.config.extensions.Sscofpmf.supported}
+        extension::Ext_Sstc => {core_ctx.config.extensions.Sstc.supported}
+        extension::Ext_Svinval => {core_ctx.config.extensions.Svinval.supported}
         extension::Ext_Svnapot => {false}
         extension::Ext_Svpbmt => {false}
-        extension::Ext_Svbare => {sail_ctx.config.extensions.Svbare.supported}
-        extension::Ext_Sv32 => {((sail_ctx.config.extensions.Sv32.supported as bool) && (xlen == 32))}
-        extension::Ext_Sv39 => {((sail_ctx.config.extensions.Sv39.supported as bool) && (xlen == 64))}
-        extension::Ext_Sv48 => {((sail_ctx.config.extensions.Sv48.supported as bool) && (xlen == 64))}
-        extension::Ext_Sv57 => {((sail_ctx.config.extensions.Sv57.supported as bool) && (xlen == 64))}
-        extension::Ext_Smcntrpmf => {sail_ctx.config.extensions.Smcntrpmf.supported}
+        extension::Ext_Svbare => {core_ctx.config.extensions.Svbare.supported}
+        extension::Ext_Sv32 => {((core_ctx.config.extensions.Sv32.supported as bool) && (xlen == 32))}
+        extension::Ext_Sv39 => {((core_ctx.config.extensions.Sv39.supported as bool) && (xlen == 64))}
+        extension::Ext_Sv48 => {((core_ctx.config.extensions.Sv48.supported as bool) && (xlen == 64))}
+        extension::Ext_Sv57 => {((core_ctx.config.extensions.Sv57.supported as bool) && (xlen == 64))}
+        extension::Ext_Smcntrpmf => {core_ctx.config.extensions.Smcntrpmf.supported}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -843,11 +921,17 @@ pub type instbits = BitVector<32>;
 
 pub const pagesize_bits: usize = 12;
 
+/// regidx
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L25.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum regidx {
     Regidx(BitVector<5>)
 }
 
+/// cregidx
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L26.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum cregidx {
     Cregidx(BitVector<3>)
@@ -855,11 +939,17 @@ pub enum cregidx {
 
 pub type csreg = BitVector<12>;
 
+/// regno
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L34.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum regno {
     Regno(usize)
 }
 
+/// Architecture
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L50.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Architecture {
     RV32,
@@ -871,6 +961,9 @@ pub type arch_xlen = BitVector<2>;
 
 pub type priv_level = BitVector<2>;
 
+/// Privilege
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
     User,
@@ -878,6 +971,9 @@ pub enum Privilege {
     Machine
 }
 
+/// privLevel_bits_forwards
+/// 
+/// Generated from the Sail sources.
 pub fn privLevel_bits_forwards(arg_hashtag_: Privilege) -> BitVector<2> {
     match arg_hashtag_ {
         Privilege::User => {BitVector::<2>::new(0b00)}
@@ -887,10 +983,16 @@ pub fn privLevel_bits_forwards(arg_hashtag_: Privilege) -> BitVector<2> {
     }
 }
 
+/// privLevel_to_bits
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L72.
 pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
     privLevel_bits_forwards(p)
 }
 
+/// privLevel_to_str
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L75-80.
 pub fn privLevel_to_str(p: Privilege) -> &'static str {
     match p {
         Privilege::User => {"U"}
@@ -900,6 +1002,9 @@ pub fn privLevel_to_str(p: Privilege) -> &'static str {
     }
 }
 
+/// AccessType
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L86-91.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum AccessType<A> {
     Read(A),
@@ -908,6 +1013,9 @@ pub enum AccessType<A> {
     InstructionFetch(())
 }
 
+/// ExceptionType
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L125-145.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExceptionType {
     E_Fetch_Addr_Align(()),
@@ -929,6 +1037,9 @@ pub enum ExceptionType {
     E_Extension(ext_exc_type)
 }
 
+/// amoop
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L279-280.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum amoop {
     AMOSWAP,
@@ -942,6 +1053,9 @@ pub enum amoop {
     AMOMAXU
 }
 
+/// bop
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L271.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum bop {
     BEQ,
@@ -952,6 +1066,9 @@ pub enum bop {
     BGEU
 }
 
+/// cbop_zicbom
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L283.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum cbop_zicbom {
     CBO_CLEAN,
@@ -959,6 +1076,9 @@ pub enum cbop_zicbom {
     CBO_INVAL
 }
 
+/// csrop
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L281.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum csrop {
     CSRRW,
@@ -966,6 +1086,9 @@ pub enum csrop {
     CSRRC
 }
 
+/// f_bin_f_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L90.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_f_op_D {
     FSGNJ_D,
@@ -975,6 +1098,9 @@ pub enum f_bin_f_op_D {
     FMAX_D
 }
 
+/// f_bin_f_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L52.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_f_op_H {
     FSGNJ_H,
@@ -984,6 +1110,9 @@ pub enum f_bin_f_op_H {
     FMAX_H
 }
 
+/// f_bin_rm_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L80.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_rm_op_D {
     FADD_D,
@@ -992,6 +1121,9 @@ pub enum f_bin_rm_op_D {
     FDIV_D
 }
 
+/// f_bin_rm_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L38.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_rm_op_H {
     FADD_H,
@@ -1000,6 +1132,9 @@ pub enum f_bin_rm_op_H {
     FDIV_H
 }
 
+/// f_bin_rm_op_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L60.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_rm_op_S {
     FADD_S,
@@ -1008,6 +1143,9 @@ pub enum f_bin_rm_op_S {
     FDIV_S
 }
 
+/// f_bin_op_f_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L74.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_op_f_S {
     FSGNJ_S,
@@ -1017,6 +1155,9 @@ pub enum f_bin_op_f_S {
     FMAX_S
 }
 
+/// f_bin_op_x_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L76.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_op_x_S {
     FEQ_S,
@@ -1024,6 +1165,9 @@ pub enum f_bin_op_x_S {
     FLE_S
 }
 
+/// f_bin_x_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L92.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_x_op_D {
     FEQ_D,
@@ -1031,6 +1175,9 @@ pub enum f_bin_x_op_D {
     FLE_D
 }
 
+/// f_bin_x_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L54.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_bin_x_op_H {
     FEQ_H,
@@ -1038,6 +1185,9 @@ pub enum f_bin_x_op_H {
     FLE_H
 }
 
+/// f_madd_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L78.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_madd_op_D {
     FMADD_D,
@@ -1046,6 +1196,9 @@ pub enum f_madd_op_D {
     FNMADD_D
 }
 
+/// f_madd_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L36.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_madd_op_H {
     FMADD_H,
@@ -1054,6 +1207,9 @@ pub enum f_madd_op_H {
     FNMADD_H
 }
 
+/// f_madd_op_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L58.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_madd_op_S {
     FMADD_S,
@@ -1062,16 +1218,25 @@ pub enum f_madd_op_S {
     FNMADD_S
 }
 
+/// f_un_f_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L97.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_f_op_D {
     FMV_D_X
 }
 
+/// f_un_f_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L50.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_f_op_H {
     FMV_H_X
 }
 
+/// f_un_rm_ff_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L82.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_ff_op_D {
     FSQRT_D,
@@ -1079,6 +1244,9 @@ pub enum f_un_rm_ff_op_D {
     FCVT_D_S
 }
 
+/// f_un_rm_ff_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L40.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_ff_op_H {
     FSQRT_H,
@@ -1088,6 +1256,9 @@ pub enum f_un_rm_ff_op_H {
     FCVT_D_H
 }
 
+/// f_un_rm_fx_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L84-85.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_fx_op_D {
     FCVT_W_D,
@@ -1096,6 +1267,9 @@ pub enum f_un_rm_fx_op_D {
     FCVT_LU_D
 }
 
+/// f_un_rm_fx_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L42-43.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_fx_op_H {
     FCVT_W_H,
@@ -1104,6 +1278,9 @@ pub enum f_un_rm_fx_op_H {
     FCVT_LU_H
 }
 
+/// f_un_rm_fx_op_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L64-65.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_fx_op_S {
     FCVT_W_S,
@@ -1112,6 +1289,9 @@ pub enum f_un_rm_fx_op_S {
     FCVT_LU_S
 }
 
+/// f_un_rm_xf_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L87-88.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_xf_op_D {
     FCVT_D_W,
@@ -1120,6 +1300,9 @@ pub enum f_un_rm_xf_op_D {
     FCVT_D_LU
 }
 
+/// f_un_rm_xf_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L45-46.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_xf_op_H {
     FCVT_H_W,
@@ -1128,6 +1311,9 @@ pub enum f_un_rm_xf_op_H {
     FCVT_H_LU
 }
 
+/// f_un_rm_xf_op_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L67-68.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_xf_op_S {
     FCVT_S_W,
@@ -1136,34 +1322,52 @@ pub enum f_un_rm_xf_op_S {
     FCVT_S_LU
 }
 
+/// f_un_op_f_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L70.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_op_f_S {
     FMV_W_X
 }
 
+/// f_un_op_x_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L72.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_op_x_S {
     FCLASS_S,
     FMV_X_W
 }
 
+/// f_un_x_op_D
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L94-95.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_x_op_D {
     FCLASS_D,
     FMV_X_D
 }
 
+/// f_un_x_op_H
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L48.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_x_op_H {
     FCLASS_H,
     FMV_X_H
 }
 
+/// fregidx
+/// 
+/// Generated from the Sail sources at `riscv_fdext_regs.sail` L55.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fregidx {
     Fregidx(BitVector<5>)
 }
 
+/// rounding_mode
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L56.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum rounding_mode {
     RM_RNE,
@@ -1174,6 +1378,9 @@ pub enum rounding_mode {
     RM_DYN
 }
 
+/// fvfmafunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L138.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fvfmafunct6 {
     VF_VMADD,
@@ -1186,6 +1393,9 @@ pub enum fvfmafunct6 {
     VF_VNMSAC
 }
 
+/// fvfmfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L146.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fvfmfunct6 {
     VFM_VMFEQ,
@@ -1196,6 +1406,9 @@ pub enum fvfmfunct6 {
     VFM_VMFGE
 }
 
+/// fvffunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L135-136.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fvffunct6 {
     VF_VADD,
@@ -1213,6 +1426,9 @@ pub enum fvffunct6 {
     VF_VSLIDE1DOWN
 }
 
+/// fvvmafunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L115.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fvvmafunct6 {
     FVV_VMADD,
@@ -1225,6 +1441,9 @@ pub enum fvvmafunct6 {
     FVV_VNMSAC
 }
 
+/// fvvmfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L123.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fvvmfunct6 {
     FVVM_VMFEQ,
@@ -1233,6 +1452,9 @@ pub enum fvvmfunct6 {
     FVVM_VMFNE
 }
 
+/// fvvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L112-113.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fvvfunct6 {
     FVV_VADD,
@@ -1246,12 +1468,18 @@ pub enum fvvfunct6 {
     FVV_VMUL
 }
 
+/// fwffunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L144.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwffunct6 {
     FWF_VADD,
     FWF_VSUB
 }
 
+/// fwvfmafunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L142.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwvfmafunct6 {
     FWVF_VMACC,
@@ -1260,6 +1488,9 @@ pub enum fwvfmafunct6 {
     FWVF_VNMSAC
 }
 
+/// fwvffunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L140.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwvffunct6 {
     FWVF_VADD,
@@ -1267,12 +1498,18 @@ pub enum fwvffunct6 {
     FWVF_VMUL
 }
 
+/// fwvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L121.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwvfunct6 {
     FWV_VADD,
     FWV_VSUB
 }
 
+/// fwvvmafunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L119.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwvvmafunct6 {
     FWVV_VMACC,
@@ -1281,6 +1518,9 @@ pub enum fwvvmafunct6 {
     FWVV_VNMSAC
 }
 
+/// fwvvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L117.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fwvvfunct6 {
     FWVV_VADD,
@@ -1288,6 +1528,9 @@ pub enum fwvvfunct6 {
     FWVV_VMUL
 }
 
+/// iop
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L272.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
     ADDI,
@@ -1298,6 +1541,9 @@ pub enum iop {
     ANDI
 }
 
+/// mmfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L55.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum mmfunct6 {
     MM_VMAND,
@@ -1310,6 +1556,9 @@ pub enum mmfunct6 {
     MM_VMXNOR
 }
 
+/// mul_op
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L325-329.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct mul_op {
     pub high: bool,
@@ -1317,6 +1566,9 @@ pub struct mul_op {
     pub signed_rs2: bool,
 }
 
+/// mvvmafunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L89.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum mvvmafunct6 {
     MVV_VMACC,
@@ -1325,6 +1577,9 @@ pub enum mvvmafunct6 {
     MVV_VNMSUB
 }
 
+/// mvvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L86-87.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum mvvfunct6 {
     MVV_VAADDU,
@@ -1341,6 +1596,9 @@ pub enum mvvfunct6 {
     MVV_VREM
 }
 
+/// mvxmafunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L104.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum mvxmafunct6 {
     MVX_VMACC,
@@ -1349,6 +1607,9 @@ pub enum mvxmafunct6 {
     MVX_VNMSUB
 }
 
+/// mvxfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L101-102.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum mvxfunct6 {
     MVX_VAADDU,
@@ -1367,42 +1628,63 @@ pub enum mvxfunct6 {
     MVX_VREM
 }
 
+/// nisfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L59.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nisfunct6 {
     NIS_VNSRL,
     NIS_VNSRA
 }
 
+/// nifunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L57.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nifunct6 {
     NI_VNCLIPU,
     NI_VNCLIP
 }
 
+/// nvsfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L49.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nvsfunct6 {
     NVS_VNSRL,
     NVS_VNSRA
 }
 
+/// nvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L47.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nvfunct6 {
     NV_VNCLIPU,
     NV_VNCLIP
 }
 
+/// nxsfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L53.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nxsfunct6 {
     NXS_VNSRL,
     NXS_VNSRA
 }
 
+/// nxfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L51.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum nxfunct6 {
     NX_VNCLIPU,
     NX_VNCLIP
 }
 
+/// rfvvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L96-97.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum rfvvfunct6 {
     FVV_VFREDOSUM,
@@ -1413,12 +1695,18 @@ pub enum rfvvfunct6 {
     FVV_VFWREDUSUM
 }
 
+/// rivvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L94.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum rivvfunct6 {
     IVV_VWREDSUMU,
     IVV_VWREDSUM
 }
 
+/// rmvvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L91-92.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum rmvvfunct6 {
     MVV_VREDSUM,
@@ -1431,6 +1719,9 @@ pub enum rmvvfunct6 {
     MVV_VREDMAX
 }
 
+/// rop
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L274-275.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum rop {
     ADD,
@@ -1445,6 +1736,9 @@ pub enum rop {
     AND
 }
 
+/// ropw
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L277.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ropw {
     ADDW,
@@ -1454,6 +1748,9 @@ pub enum ropw {
     SRAW
 }
 
+/// sop
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L273.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum sop {
     SLLI,
@@ -1461,6 +1758,9 @@ pub enum sop {
     SRAI
 }
 
+/// sopw
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L278.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum sopw {
     SLLIW,
@@ -1468,6 +1768,9 @@ pub enum sopw {
     SRAIW
 }
 
+/// word_width
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L93.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum word_width {
     BYTE,
@@ -1476,30 +1779,45 @@ pub enum word_width {
     DOUBLE
 }
 
+/// uop
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L270.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum uop {
     LUI,
     AUIPC
 }
 
+/// vext2funct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L69.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vext2funct6 {
     VEXT2_ZVF2,
     VEXT2_SVF2
 }
 
+/// vext4funct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L71.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vext4funct6 {
     VEXT4_ZVF4,
     VEXT4_SVF4
 }
 
+/// vext8funct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L73.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vext8funct6 {
     VEXT8_ZVF8,
     VEXT8_SVF8
 }
 
+/// vfnunary0
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L130-131.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vfnunary0 {
     FNV_CVT_XU_F,
@@ -1512,6 +1830,9 @@ pub enum vfnunary0 {
     FNV_CVT_RTZ_X_F
 }
 
+/// vfunary0
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L125.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vfunary0 {
     FV_CVT_XU_F,
@@ -1522,6 +1843,9 @@ pub enum vfunary0 {
     FV_CVT_RTZ_X_F
 }
 
+/// vfunary1
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L133.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vfunary1 {
     FVV_VSQRT,
@@ -1530,6 +1854,9 @@ pub enum vfunary1 {
     FVV_VCLASS
 }
 
+/// vfwunary0
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L127-128.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vfwunary0 {
     FWV_CVT_XU_F,
@@ -1541,6 +1868,9 @@ pub enum vfwunary0 {
     FWV_CVT_RTZ_X_F
 }
 
+/// vicmpfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L45.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vicmpfunct6 {
     VICMP_VMSEQ,
@@ -1551,21 +1881,33 @@ pub enum vicmpfunct6 {
     VICMP_VMSGT
 }
 
+/// vimcfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L38.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vimcfunct6 {
     VIMC_VMADC
 }
 
+/// vimsfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L40.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vimsfunct6 {
     VIMS_VADC
 }
 
+/// vimfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L36.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vimfunct6 {
     VIM_VMADC
 }
 
+/// visgfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L84.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum visgfunct6 {
     VI_VSLIDEUP,
@@ -1573,6 +1915,9 @@ pub enum visgfunct6 {
     VI_VRGATHER
 }
 
+/// vifunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L79-80.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vifunct6 {
     VI_VADD,
@@ -1589,6 +1934,9 @@ pub enum vifunct6 {
     VI_VSSRA
 }
 
+/// vlewidth
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L110.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vlewidth {
     VLE8,
@@ -1597,23 +1945,35 @@ pub enum vlewidth {
     VLE64
 }
 
+/// vmlsop
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L148.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vmlsop {
     VLM,
     VSM
 }
 
+/// vregidx
+/// 
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L9.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregidx {
     Vregidx(BitVector<5>)
 }
 
+/// zvkfunct6
+/// 
+/// Generated from the Sail sources at `riscv_zvk_utils.sail` L24.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum zvkfunct6 {
     ZVK_VSHA2CH,
     ZVK_VSHA2CL
 }
 
+/// vvcmpfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L22.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vvcmpfunct6 {
     VVCMP_VMSEQ,
@@ -1624,24 +1984,36 @@ pub enum vvcmpfunct6 {
     VVCMP_VMSLE
 }
 
+/// vvmcfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L26.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vvmcfunct6 {
     VVMC_VMADC,
     VVMC_VMSBC
 }
 
+/// vvmsfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L28.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vvmsfunct6 {
     VVMS_VADC,
     VVMS_VSBC
 }
 
+/// vvmfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L24.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vvmfunct6 {
     VVM_VMADC,
     VVM_VMSBC
 }
 
+/// vvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L18-20.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vvfunct6 {
     VV_VADD,
@@ -1667,6 +2039,9 @@ pub enum vvfunct6 {
     VV_VSSRA
 }
 
+/// vxcmpfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L42-43.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxcmpfunct6 {
     VXCMP_VMSEQ,
@@ -1679,24 +2054,36 @@ pub enum vxcmpfunct6 {
     VXCMP_VMSGT
 }
 
+/// vxmcfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L32.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxmcfunct6 {
     VXMC_VMADC,
     VXMC_VMSBC
 }
 
+/// vxmsfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L34.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxmsfunct6 {
     VXMS_VADC,
     VXMS_VSBC
 }
 
+/// vxmfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L30.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxmfunct6 {
     VXM_VMADC,
     VXM_VMSBC
 }
 
+/// vxsgfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L82.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxsgfunct6 {
     VX_VSLIDEUP,
@@ -1704,6 +2091,9 @@ pub enum vxsgfunct6 {
     VX_VRGATHER
 }
 
+/// vxfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L75-77.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vxfunct6 {
     VX_VADD,
@@ -1728,6 +2118,9 @@ pub enum vxfunct6 {
     VX_VSSRA
 }
 
+/// wmvvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L99.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum wmvvfunct6 {
     WMVV_VWMACCU,
@@ -1735,6 +2128,9 @@ pub enum wmvvfunct6 {
     WMVV_VWMACCSU
 }
 
+/// wmvxfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L106.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum wmvxfunct6 {
     WMVX_VWMACCU,
@@ -1743,6 +2139,9 @@ pub enum wmvxfunct6 {
     WMVX_VWMACCSU
 }
 
+/// wvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum wvfunct6 {
     WV_VADD,
@@ -1751,6 +2150,9 @@ pub enum wvfunct6 {
     WV_VSUBU
 }
 
+/// wvvfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L61.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum wvvfunct6 {
     WVV_VADD,
@@ -1762,6 +2164,9 @@ pub enum wvvfunct6 {
     WVV_VWMULSU
 }
 
+/// wvxfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L65.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum wvxfunct6 {
     WVX_VADD,
@@ -1773,6 +2178,9 @@ pub enum wvxfunct6 {
     WVX_VWMULSU
 }
 
+/// wxfunct6
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L67.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum wxfunct6 {
     WX_VADD,
@@ -1781,6 +2189,9 @@ pub enum wxfunct6 {
     WX_VSUBU
 }
 
+/// brop_zba
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L285.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum brop_zba {
     SH1ADD,
@@ -1788,6 +2199,9 @@ pub enum brop_zba {
     SH3ADD
 }
 
+/// bropw_zba
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L293.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum bropw_zba {
     ADDUW,
@@ -1796,6 +2210,9 @@ pub enum bropw_zba {
     SH3ADDUW
 }
 
+/// extop_zbb
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L299.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum extop_zbb {
     SEXTB,
@@ -1803,6 +2220,9 @@ pub enum extop_zbb {
     ZEXTH
 }
 
+/// brop_zbb
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L287.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum brop_zbb {
     ANDN,
@@ -1816,18 +2236,27 @@ pub enum brop_zbb {
     ROR
 }
 
+/// bropw_zbb
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L295.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum bropw_zbb {
     ROLW,
     RORW
 }
 
+/// brop_zbkb
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L289.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum brop_zbkb {
     PACK,
     PACKH
 }
 
+/// biop_zbs
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L297.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum biop_zbs {
     BCLRI,
@@ -1836,6 +2265,9 @@ pub enum biop_zbs {
     BSETI
 }
 
+/// brop_zbs
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L291.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum brop_zbs {
     BCLR,
@@ -1844,17 +2276,26 @@ pub enum brop_zbs {
     BSET
 }
 
+/// zicondop
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L301.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum zicondop {
     CZERO_EQZ,
     CZERO_NEZ
 }
 
+/// f_un_rm_ff_op_S
+/// 
+/// Generated from the Sail sources at `riscv_freg_type.sail` L62.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum f_un_rm_ff_op_S {
     FSQRT_S
 }
 
+/// ast
+/// 
+/// Generated from the Sail sources at `riscv_insts_begin.sail` L14.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     ILLEGAL(word),
@@ -2193,6 +2634,9 @@ pub enum ast {
     ZCMOP(BitVector<3>)
 }
 
+/// PTW_Error
+/// 
+/// Generated from the Sail sources at `riscv_vmem_ptw.sail` L17-25.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PTW_Error {
     PTW_Invalid_Addr(()),
@@ -2204,6 +2648,9 @@ pub enum PTW_Error {
     PTW_Ext_Error(ext_ptw_error)
 }
 
+/// InterruptType
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L97-107.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum InterruptType {
     I_U_Software,
@@ -2219,6 +2666,9 @@ pub enum InterruptType {
 
 pub type tv_mode = BitVector<2>;
 
+/// TrapVectorMode
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L225.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TrapVectorMode {
     TV_Direct,
@@ -2226,6 +2676,9 @@ pub enum TrapVectorMode {
     TV_Reserved
 }
 
+/// trapVectorMode_of_bits
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L228-233.
 pub fn trapVectorMode_of_bits(m: BitVector<2>) -> TrapVectorMode {
     match m {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {TrapVectorMode::TV_Direct}
@@ -2237,6 +2690,9 @@ pub fn trapVectorMode_of_bits(m: BitVector<2>) -> TrapVectorMode {
 
 pub type ext_status = BitVector<2>;
 
+/// ExtStatus
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L238.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExtStatus {
     Off,
@@ -2247,6 +2703,9 @@ pub enum ExtStatus {
 
 pub type satp_mode = BitVector<4>;
 
+/// SATPMode
+/// 
+/// Generated from the Sail sources at `riscv_types.sail` L253.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum SATPMode {
     Bare,
@@ -2262,10 +2721,16 @@ pub type level_range<const V: usize> = usize;
 
 pub type ext_access_type = ();
 
+/// trap_callback
+/// 
+/// Generated from the Sail sources at `riscv_callbacks.sail` L32.
 pub fn trap_callback(unit_arg: ()) {
     ()
 }
 
+/// csr_name_map_backwards
+/// 
+/// Generated from the Sail sources.
 pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitVector<12> {
     let head_exp_hashtag_ = arg_hashtag_;
     match match head_exp_hashtag_ {
@@ -2604,6 +3069,9 @@ pub type regtype = xlenbits;
 
 pub type fregtype = flenbits;
 
+/// Misa
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L49-78.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Misa {
     pub bits: BitVector<{
@@ -2611,36 +3079,57 @@ pub struct Misa {
 }>,
 }
 
+/// CountSmcntrpmf
+/// 
+/// Generated from the Sail sources at `riscv_smcntrpmf.sail` L3-9.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CountSmcntrpmf {
     pub bits: BitVector<64>,
 }
 
+/// Counteren
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L581-586.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Counteren {
     pub bits: BitVector<32>,
 }
 
+/// Counterin
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L614-618.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Counterin {
     pub bits: BitVector<32>,
 }
 
+/// Fcsr
+/// 
+/// Generated from the Sail sources at `riscv_fdext_regs.sail` L384-387.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Fcsr {
     pub bits: BitVector<32>,
 }
 
+/// HpmEvent
+/// 
+/// Generated from the Sail sources at `riscv_zihpm.sail` L165-175.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HpmEvent {
     pub bits: BitVector<64>,
 }
 
+/// MEnvcfg
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L315-332.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MEnvcfg {
     pub bits: BitVector<64>,
 }
 
+/// Mcause
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L518-521.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mcause {
     pub bits: BitVector<{
@@ -2648,11 +3137,17 @@ pub struct Mcause {
 }>,
 }
 
+/// Medeleg
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L449-464.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Medeleg {
     pub bits: BitVector<64>,
 }
 
+/// Minterrupts
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L404-413.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Minterrupts {
     pub bits: BitVector<{
@@ -2660,11 +3155,17 @@ pub struct Minterrupts {
 }>,
 }
 
+/// Mstatus
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L168-204.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
     pub bits: BitVector<64>,
 }
 
+/// Mtvec
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L503-506.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mtvec {
     pub bits: BitVector<{
@@ -2672,21 +3173,33 @@ pub struct Mtvec {
 }>,
 }
 
+/// PTE_Ext
+/// 
+/// Generated from the Sail sources at `riscv_vmem_pte.sail` L25-31.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PTE_Ext {
     pub bits: BitVector<10>,
 }
 
+/// PTE_Flags
+/// 
+/// Generated from the Sail sources at `riscv_vmem_pte.sail` L55-64.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PTE_Flags {
     pub bits: BitVector<8>,
 }
 
+/// Pmpcfg_ent
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L33-41.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Pmpcfg_ent {
     pub bits: BitVector<8>,
 }
 
+/// SEnvcfg
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L334-345.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SEnvcfg {
     pub bits: BitVector<{
@@ -2694,16 +3207,25 @@ pub struct SEnvcfg {
 }>,
 }
 
+/// Satp32
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L850-854.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Satp32 {
     pub bits: BitVector<32>,
 }
 
+/// Satp64
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L844-848.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Satp64 {
     pub bits: BitVector<64>,
 }
 
+/// Sinterrupts
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L746-752.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Sinterrupts {
     pub bits: BitVector<{
@@ -2711,16 +3233,25 @@ pub struct Sinterrupts {
 }>,
 }
 
+/// Sstatus
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L680-694.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Sstatus {
     pub bits: BitVector<64>,
 }
 
+/// Vcsr
+/// 
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L226-229.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Vcsr {
     pub bits: BitVector<3>,
 }
 
+/// Vtype
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L923-930.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Vtype {
     pub bits: BitVector<{
@@ -2728,260 +3259,371 @@ pub struct Vtype {
 }>,
 }
 
+/// htif_cmd
+/// 
+/// Generated from the Sail sources at `riscv_platform.sail` L283-287.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct htif_cmd {
     pub bits: BitVector<64>,
 }
 
+/// _get_Misa_A
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_A(v: Misa) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
+/// _update_Pmpcfg_ent_A
+/// 
+/// Generated from the Sail sources.
 pub fn _update_Pmpcfg_ent_A(v: Pmpcfg_ent, x: BitVector<2>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 4, 3, x)
     }
 }
 
+/// _get_Pmpcfg_ent_A
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Pmpcfg_ent_A(v: Pmpcfg_ent) -> BitVector<2> {
     v.bits.subrange::<3, 5, 2>()
 }
 
+/// _get_Misa_B
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_B(v: Misa) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
+/// _get_Misa_C
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_C(v: Misa) -> BitVector<1> {
     v.bits.subrange::<2, 3, 1>()
 }
 
+/// _get_Misa_D
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_D(v: Misa) -> BitVector<1> {
     v.bits.subrange::<3, 4, 1>()
 }
 
+/// _get_Misa_F
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_F(v: Misa) -> BitVector<1> {
     v.bits.subrange::<5, 6, 1>()
 }
 
+/// _get_Pmpcfg_ent_L
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Pmpcfg_ent_L(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
+/// _get_Misa_M
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_M(v: Misa) -> BitVector<1> {
     v.bits.subrange::<12, 13, 1>()
 }
 
+/// _update_Pmpcfg_ent_R
+/// 
+/// Generated from the Sail sources.
 pub fn _update_Pmpcfg_ent_R(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 0, 0, x)
     }
 }
 
+/// _get_Pmpcfg_ent_R
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Pmpcfg_ent_R(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
+/// _get_Misa_S
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_S(v: Misa) -> BitVector<1> {
     v.bits.subrange::<18, 19, 1>()
 }
 
+/// _get_Misa_U
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_U(v: Misa) -> BitVector<1> {
     v.bits.subrange::<20, 21, 1>()
 }
 
+/// _get_Misa_V
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Misa_V(v: Misa) -> BitVector<1> {
     v.bits.subrange::<21, 22, 1>()
 }
 
+/// _update_Pmpcfg_ent_W
+/// 
+/// Generated from the Sail sources.
 pub fn _update_Pmpcfg_ent_W(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 1, 1, x)
     }
 }
 
+/// _get_Pmpcfg_ent_W
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Pmpcfg_ent_W(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
+/// _update_Pmpcfg_ent_X
+/// 
+/// Generated from the Sail sources.
 pub fn _update_Pmpcfg_ent_X(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 2, 2, x)
     }
 }
 
+/// _get_Pmpcfg_ent_X
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Pmpcfg_ent_X(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<2, 3, 1>()
 }
 
-pub fn sys_pmp_grain(sail_ctx: &mut SailVirtCtx, unit_arg: ()) -> usize {
-    sail_ctx.config.memory.pmp.grain
+/// sys_pmp_grain
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L97.
+pub fn sys_pmp_grain(core_ctx: &mut Core, unit_arg: ()) -> usize {
+    core_ctx.config.memory.pmp.grain
 }
 
+/// _get_Mstatus_FS
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mstatus_FS(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<13, 15, 2>()
 }
 
+/// _get_Mstatus_VS
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mstatus_VS(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<9, 11, 2>()
 }
 
-pub fn currentlyEnabled(sail_ctx: &mut SailVirtCtx, merge_hashtag_var: extension) -> bool {
+/// currentlyEnabled
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L103.
+pub fn currentlyEnabled(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
     match merge_hashtag_var {
-        extension::Ext_Sstc => {hartSupports(sail_ctx, extension::Ext_Sstc)}
-        extension::Ext_U => {(hartSupports(sail_ctx, extension::Ext_U) && ({
-            let var_1 = sail_ctx.misa;
+        extension::Ext_Sstc => {hartSupports(core_ctx, extension::Ext_Sstc)}
+        extension::Ext_U => {(hartSupports(core_ctx, extension::Ext_U) && ({
+            let var_1 = core_ctx.misa;
             _get_Misa_U(var_1)
         } == BitVector::<1>::new(0b1)))}
-        extension::Ext_S => {(hartSupports(sail_ctx, extension::Ext_S) && ({
-            let var_2 = sail_ctx.misa;
+        extension::Ext_S => {(hartSupports(core_ctx, extension::Ext_S) && ({
+            let var_2 = core_ctx.misa;
             _get_Misa_S(var_2)
         } == BitVector::<1>::new(0b1)))}
-        extension::Ext_Svbare => {currentlyEnabled(sail_ctx, extension::Ext_S)}
-        extension::Ext_Sv32 => {(hartSupports(sail_ctx, extension::Ext_Sv32) && currentlyEnabled(sail_ctx, extension::Ext_S))}
-        extension::Ext_Sv39 => {(hartSupports(sail_ctx, extension::Ext_Sv39) && currentlyEnabled(sail_ctx, extension::Ext_S))}
-        extension::Ext_Sv48 => {(hartSupports(sail_ctx, extension::Ext_Sv48) && currentlyEnabled(sail_ctx, extension::Ext_S))}
-        extension::Ext_Sv57 => {(hartSupports(sail_ctx, extension::Ext_Sv57) && currentlyEnabled(sail_ctx, extension::Ext_S))}
-        extension::Ext_V => {(hartSupports(sail_ctx, extension::Ext_V) && (({
-            let var_4 = sail_ctx.misa;
+        extension::Ext_Svbare => {currentlyEnabled(core_ctx, extension::Ext_S)}
+        extension::Ext_Sv32 => {(hartSupports(core_ctx, extension::Ext_Sv32) && currentlyEnabled(core_ctx, extension::Ext_S))}
+        extension::Ext_Sv39 => {(hartSupports(core_ctx, extension::Ext_Sv39) && currentlyEnabled(core_ctx, extension::Ext_S))}
+        extension::Ext_Sv48 => {(hartSupports(core_ctx, extension::Ext_Sv48) && currentlyEnabled(core_ctx, extension::Ext_S))}
+        extension::Ext_Sv57 => {(hartSupports(core_ctx, extension::Ext_Sv57) && currentlyEnabled(core_ctx, extension::Ext_S))}
+        extension::Ext_V => {(hartSupports(core_ctx, extension::Ext_V) && (({
+            let var_4 = core_ctx.misa;
             _get_Misa_V(var_4)
         } == BitVector::<1>::new(0b1)) && ({
-            let var_3 = sail_ctx.mstatus;
+            let var_3 = core_ctx.mstatus;
             _get_Mstatus_VS(var_3)
         } != BitVector::<2>::new(0b00))))}
-        extension::Ext_Zihpm => {(hartSupports(sail_ctx, extension::Ext_Zihpm) && currentlyEnabled(sail_ctx, extension::Ext_Zicntr))}
-        extension::Ext_Sscofpmf => {(hartSupports(sail_ctx, extension::Ext_Sscofpmf) && currentlyEnabled(sail_ctx, extension::Ext_Zihpm))}
-        extension::Ext_Zkr => {hartSupports(sail_ctx, extension::Ext_Zkr)}
-        extension::Ext_Zicntr => {hartSupports(sail_ctx, extension::Ext_Zicntr)}
-        extension::Ext_F => {(hartSupports(sail_ctx, extension::Ext_F) && (({
-            let var_6 = sail_ctx.misa;
+        extension::Ext_Zihpm => {(hartSupports(core_ctx, extension::Ext_Zihpm) && currentlyEnabled(core_ctx, extension::Ext_Zicntr))}
+        extension::Ext_Sscofpmf => {(hartSupports(core_ctx, extension::Ext_Sscofpmf) && currentlyEnabled(core_ctx, extension::Ext_Zihpm))}
+        extension::Ext_Zkr => {hartSupports(core_ctx, extension::Ext_Zkr)}
+        extension::Ext_Zicntr => {hartSupports(core_ctx, extension::Ext_Zicntr)}
+        extension::Ext_F => {(hartSupports(core_ctx, extension::Ext_F) && (({
+            let var_6 = core_ctx.misa;
             _get_Misa_F(var_6)
         } == BitVector::<1>::new(0b1)) && ({
-            let var_5 = sail_ctx.mstatus;
+            let var_5 = core_ctx.mstatus;
             _get_Mstatus_FS(var_5)
         } != BitVector::<2>::new(0b00))))}
-        extension::Ext_D => {(hartSupports(sail_ctx, extension::Ext_D) && (({
-            let var_8 = sail_ctx.misa;
+        extension::Ext_D => {(hartSupports(core_ctx, extension::Ext_D) && (({
+            let var_8 = core_ctx.misa;
             _get_Misa_D(var_8)
         } == BitVector::<1>::new(0b1)) && (({
-            let var_7 = sail_ctx.mstatus;
+            let var_7 = core_ctx.mstatus;
             _get_Mstatus_FS(var_7)
         } != BitVector::<2>::new(0b00)) && (flen >= 64))))}
-        extension::Ext_Zfinx => {hartSupports(sail_ctx, extension::Ext_Zfinx)}
-        extension::Ext_Smcntrpmf => {(hartSupports(sail_ctx, extension::Ext_Smcntrpmf) && currentlyEnabled(sail_ctx, extension::Ext_Zicntr))}
+        extension::Ext_Zfinx => {hartSupports(core_ctx, extension::Ext_Zfinx)}
+        extension::Ext_Smcntrpmf => {(hartSupports(core_ctx, extension::Ext_Smcntrpmf) && currentlyEnabled(core_ctx, extension::Ext_Zicntr))}
         extension::Ext_Svnapot => {false}
         extension::Ext_Svpbmt => {false}
-        extension::Ext_C => {(hartSupports(sail_ctx, extension::Ext_C) && ({
-            let var_9 = sail_ctx.misa;
+        extension::Ext_C => {(hartSupports(core_ctx, extension::Ext_C) && ({
+            let var_9 = core_ctx.misa;
             _get_Misa_C(var_9)
         } == BitVector::<1>::new(0b1)))}
-        extension::Ext_Zca => {(hartSupports(sail_ctx, extension::Ext_Zca) && (currentlyEnabled(sail_ctx, extension::Ext_C) || !(hartSupports(sail_ctx, extension::Ext_C))))}
-        extension::Ext_Zifencei => {hartSupports(sail_ctx, extension::Ext_Zifencei)}
-        extension::Ext_A => {(hartSupports(sail_ctx, extension::Ext_A) && ({
-            let var_10 = sail_ctx.misa;
+        extension::Ext_Zca => {(hartSupports(core_ctx, extension::Ext_Zca) && (currentlyEnabled(core_ctx, extension::Ext_C) || !(hartSupports(core_ctx, extension::Ext_C))))}
+        extension::Ext_Zifencei => {hartSupports(core_ctx, extension::Ext_Zifencei)}
+        extension::Ext_A => {(hartSupports(core_ctx, extension::Ext_A) && ({
+            let var_10 = core_ctx.misa;
             _get_Misa_A(var_10)
         } == BitVector::<1>::new(0b1)))}
-        extension::Ext_Zabha => {(hartSupports(sail_ctx, extension::Ext_Zabha) && currentlyEnabled(sail_ctx, extension::Ext_Zaamo))}
-        extension::Ext_Zalrsc => {(hartSupports(sail_ctx, extension::Ext_Zalrsc) || currentlyEnabled(sail_ctx, extension::Ext_A))}
-        extension::Ext_Zaamo => {(hartSupports(sail_ctx, extension::Ext_Zaamo) || currentlyEnabled(sail_ctx, extension::Ext_A))}
-        extension::Ext_M => {(hartSupports(sail_ctx, extension::Ext_M) && ({
-            let var_11 = sail_ctx.misa;
+        extension::Ext_Zabha => {(hartSupports(core_ctx, extension::Ext_Zabha) && currentlyEnabled(core_ctx, extension::Ext_Zaamo))}
+        extension::Ext_Zalrsc => {(hartSupports(core_ctx, extension::Ext_Zalrsc) || currentlyEnabled(core_ctx, extension::Ext_A))}
+        extension::Ext_Zaamo => {(hartSupports(core_ctx, extension::Ext_Zaamo) || currentlyEnabled(core_ctx, extension::Ext_A))}
+        extension::Ext_M => {(hartSupports(core_ctx, extension::Ext_M) && ({
+            let var_11 = core_ctx.misa;
             _get_Misa_M(var_11)
         } == BitVector::<1>::new(0b1)))}
-        extension::Ext_Zmmul => {(hartSupports(sail_ctx, extension::Ext_Zmmul) || currentlyEnabled(sail_ctx, extension::Ext_M))}
-        extension::Ext_Zfh => {(hartSupports(sail_ctx, extension::Ext_Zfh) && currentlyEnabled(sail_ctx, extension::Ext_F))}
-        extension::Ext_Zfhmin => {((hartSupports(sail_ctx, extension::Ext_Zfhmin) && currentlyEnabled(sail_ctx, extension::Ext_F)) || currentlyEnabled(sail_ctx, extension::Ext_Zfh))}
-        extension::Ext_Zcf => {(hartSupports(sail_ctx, extension::Ext_Zcf) && (currentlyEnabled(sail_ctx, extension::Ext_F) && (currentlyEnabled(sail_ctx, extension::Ext_Zca) && (currentlyEnabled(sail_ctx, extension::Ext_C) || !(hartSupports(sail_ctx, extension::Ext_C))))))}
-        extension::Ext_Zdinx => {(hartSupports(sail_ctx, extension::Ext_Zdinx) && (flen >= 64))}
-        extension::Ext_Zcd => {(hartSupports(sail_ctx, extension::Ext_Zcd) && (currentlyEnabled(sail_ctx, extension::Ext_D) && (currentlyEnabled(sail_ctx, extension::Ext_Zca) && (currentlyEnabled(sail_ctx, extension::Ext_C) || !(hartSupports(sail_ctx, extension::Ext_C))))))}
-        extension::Ext_Svinval => {hartSupports(sail_ctx, extension::Ext_Svinval)}
-        extension::Ext_B => {(hartSupports(sail_ctx, extension::Ext_B) && ({
-            let var_12 = sail_ctx.misa;
+        extension::Ext_Zmmul => {(hartSupports(core_ctx, extension::Ext_Zmmul) || currentlyEnabled(core_ctx, extension::Ext_M))}
+        extension::Ext_Zfh => {(hartSupports(core_ctx, extension::Ext_Zfh) && currentlyEnabled(core_ctx, extension::Ext_F))}
+        extension::Ext_Zfhmin => {((hartSupports(core_ctx, extension::Ext_Zfhmin) && currentlyEnabled(core_ctx, extension::Ext_F)) || currentlyEnabled(core_ctx, extension::Ext_Zfh))}
+        extension::Ext_Zcf => {(hartSupports(core_ctx, extension::Ext_Zcf) && (currentlyEnabled(core_ctx, extension::Ext_F) && (currentlyEnabled(core_ctx, extension::Ext_Zca) && (currentlyEnabled(core_ctx, extension::Ext_C) || !(hartSupports(core_ctx, extension::Ext_C))))))}
+        extension::Ext_Zdinx => {(hartSupports(core_ctx, extension::Ext_Zdinx) && (flen >= 64))}
+        extension::Ext_Zcd => {(hartSupports(core_ctx, extension::Ext_Zcd) && (currentlyEnabled(core_ctx, extension::Ext_D) && (currentlyEnabled(core_ctx, extension::Ext_Zca) && (currentlyEnabled(core_ctx, extension::Ext_C) || !(hartSupports(core_ctx, extension::Ext_C))))))}
+        extension::Ext_Svinval => {hartSupports(core_ctx, extension::Ext_Svinval)}
+        extension::Ext_B => {(hartSupports(core_ctx, extension::Ext_B) && ({
+            let var_12 = core_ctx.misa;
             _get_Misa_B(var_12)
         } == BitVector::<1>::new(0b1)))}
-        extension::Ext_Zba => {(hartSupports(sail_ctx, extension::Ext_Zba) || currentlyEnabled(sail_ctx, extension::Ext_B))}
-        extension::Ext_Zbb => {(hartSupports(sail_ctx, extension::Ext_Zbb) || currentlyEnabled(sail_ctx, extension::Ext_B))}
-        extension::Ext_Zbkb => {hartSupports(sail_ctx, extension::Ext_Zbkb)}
-        extension::Ext_Zbc => {hartSupports(sail_ctx, extension::Ext_Zbc)}
-        extension::Ext_Zbkc => {hartSupports(sail_ctx, extension::Ext_Zbkc)}
-        extension::Ext_Zbs => {(hartSupports(sail_ctx, extension::Ext_Zbs) || currentlyEnabled(sail_ctx, extension::Ext_B))}
-        extension::Ext_Zcb => {(hartSupports(sail_ctx, extension::Ext_Zcb) && currentlyEnabled(sail_ctx, extension::Ext_Zca))}
-        extension::Ext_Zhinx => {(hartSupports(sail_ctx, extension::Ext_Zhinx) && currentlyEnabled(sail_ctx, extension::Ext_Zfinx))}
-        extension::Ext_Zfa => {(hartSupports(sail_ctx, extension::Ext_Zfa) && currentlyEnabled(sail_ctx, extension::Ext_F))}
-        extension::Ext_Zknh => {hartSupports(sail_ctx, extension::Ext_Zknh)}
-        extension::Ext_Zkne => {hartSupports(sail_ctx, extension::Ext_Zkne)}
-        extension::Ext_Zknd => {hartSupports(sail_ctx, extension::Ext_Zknd)}
-        extension::Ext_Zksh => {hartSupports(sail_ctx, extension::Ext_Zksh)}
-        extension::Ext_Zksed => {hartSupports(sail_ctx, extension::Ext_Zksed)}
-        extension::Ext_Zbkx => {hartSupports(sail_ctx, extension::Ext_Zbkx)}
-        extension::Ext_Zicond => {hartSupports(sail_ctx, extension::Ext_Zicond)}
-        extension::Ext_Zicbom => {hartSupports(sail_ctx, extension::Ext_Zicbom)}
-        extension::Ext_Zicboz => {hartSupports(sail_ctx, extension::Ext_Zicboz)}
-        extension::Ext_Zvbb => {(hartSupports(sail_ctx, extension::Ext_Zvbb) && currentlyEnabled(sail_ctx, extension::Ext_V))}
-        extension::Ext_Zvkb => {((hartSupports(sail_ctx, extension::Ext_Zvkb) || currentlyEnabled(sail_ctx, extension::Ext_Zvbb)) && currentlyEnabled(sail_ctx, extension::Ext_V))}
-        extension::Ext_Zvbc => {(hartSupports(sail_ctx, extension::Ext_Zvbc) && currentlyEnabled(sail_ctx, extension::Ext_V))}
-        extension::Ext_Zvknha => {(hartSupports(sail_ctx, extension::Ext_Zvknha) && currentlyEnabled(sail_ctx, extension::Ext_V))}
-        extension::Ext_Zvknhb => {(hartSupports(sail_ctx, extension::Ext_Zvknhb) && currentlyEnabled(sail_ctx, extension::Ext_V))}
-        extension::Ext_Zvksh => {(hartSupports(sail_ctx, extension::Ext_Zvksh) && currentlyEnabled(sail_ctx, extension::Ext_V))}
-        extension::Ext_Zimop => {hartSupports(sail_ctx, extension::Ext_Zimop)}
-        extension::Ext_Zcmop => {(hartSupports(sail_ctx, extension::Ext_Zcmop) && currentlyEnabled(sail_ctx, extension::Ext_Zca))}
+        extension::Ext_Zba => {(hartSupports(core_ctx, extension::Ext_Zba) || currentlyEnabled(core_ctx, extension::Ext_B))}
+        extension::Ext_Zbb => {(hartSupports(core_ctx, extension::Ext_Zbb) || currentlyEnabled(core_ctx, extension::Ext_B))}
+        extension::Ext_Zbkb => {hartSupports(core_ctx, extension::Ext_Zbkb)}
+        extension::Ext_Zbc => {hartSupports(core_ctx, extension::Ext_Zbc)}
+        extension::Ext_Zbkc => {hartSupports(core_ctx, extension::Ext_Zbkc)}
+        extension::Ext_Zbs => {(hartSupports(core_ctx, extension::Ext_Zbs) || currentlyEnabled(core_ctx, extension::Ext_B))}
+        extension::Ext_Zcb => {(hartSupports(core_ctx, extension::Ext_Zcb) && currentlyEnabled(core_ctx, extension::Ext_Zca))}
+        extension::Ext_Zhinx => {(hartSupports(core_ctx, extension::Ext_Zhinx) && currentlyEnabled(core_ctx, extension::Ext_Zfinx))}
+        extension::Ext_Zfa => {(hartSupports(core_ctx, extension::Ext_Zfa) && currentlyEnabled(core_ctx, extension::Ext_F))}
+        extension::Ext_Zknh => {hartSupports(core_ctx, extension::Ext_Zknh)}
+        extension::Ext_Zkne => {hartSupports(core_ctx, extension::Ext_Zkne)}
+        extension::Ext_Zknd => {hartSupports(core_ctx, extension::Ext_Zknd)}
+        extension::Ext_Zksh => {hartSupports(core_ctx, extension::Ext_Zksh)}
+        extension::Ext_Zksed => {hartSupports(core_ctx, extension::Ext_Zksed)}
+        extension::Ext_Zbkx => {hartSupports(core_ctx, extension::Ext_Zbkx)}
+        extension::Ext_Zicond => {hartSupports(core_ctx, extension::Ext_Zicond)}
+        extension::Ext_Zicbom => {hartSupports(core_ctx, extension::Ext_Zicbom)}
+        extension::Ext_Zicboz => {hartSupports(core_ctx, extension::Ext_Zicboz)}
+        extension::Ext_Zvbb => {(hartSupports(core_ctx, extension::Ext_Zvbb) && currentlyEnabled(core_ctx, extension::Ext_V))}
+        extension::Ext_Zvkb => {((hartSupports(core_ctx, extension::Ext_Zvkb) || currentlyEnabled(core_ctx, extension::Ext_Zvbb)) && currentlyEnabled(core_ctx, extension::Ext_V))}
+        extension::Ext_Zvbc => {(hartSupports(core_ctx, extension::Ext_Zvbc) && currentlyEnabled(core_ctx, extension::Ext_V))}
+        extension::Ext_Zvknha => {(hartSupports(core_ctx, extension::Ext_Zvknha) && currentlyEnabled(core_ctx, extension::Ext_V))}
+        extension::Ext_Zvknhb => {(hartSupports(core_ctx, extension::Ext_Zvknhb) && currentlyEnabled(core_ctx, extension::Ext_V))}
+        extension::Ext_Zvksh => {(hartSupports(core_ctx, extension::Ext_Zvksh) && currentlyEnabled(core_ctx, extension::Ext_V))}
+        extension::Ext_Zimop => {hartSupports(core_ctx, extension::Ext_Zimop)}
+        extension::Ext_Zcmop => {(hartSupports(core_ctx, extension::Ext_Zcmop) && currentlyEnabled(core_ctx, extension::Ext_Zca))}
         _ => {panic!("Unreachable code")}
     }
 }
 
+/// _get_Mstatus_MIE
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mstatus_MIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<3, 4, 1>()
 }
 
+/// _get_Mstatus_SIE
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mstatus_SIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
+/// Mk_Minterrupts
+/// 
+/// Generated from the Sail sources at `` L1.
 pub fn Mk_Minterrupts(v: BitVector<64>) -> Minterrupts {
     Minterrupts {
         bits: v
     }
 }
 
+/// _get_Minterrupts_MEI
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Minterrupts_MEI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<11, 12, 1>()
 }
 
+/// _get_Minterrupts_MSI
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Minterrupts_MSI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<3, 4, 1>()
 }
 
+/// _get_Minterrupts_MTI
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Minterrupts_MTI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
+/// _get_Minterrupts_SEI
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Minterrupts_SEI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<9, 10, 1>()
 }
 
+/// _get_Minterrupts_SSI
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Minterrupts_SSI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
+/// _get_Minterrupts_STI
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Minterrupts_STI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<5, 6, 1>()
 }
 
+/// _get_Mtvec_Base
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mtvec_Base(v: Mtvec) -> BitVector<62> {
     v.bits.subrange::<2, 64, 62>()
 }
 
+/// _get_Mtvec_Mode
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mtvec_Mode(v: Mtvec) -> BitVector<2> {
     v.bits.subrange::<0, 2, 2>()
 }
 
+/// _get_Mcause_Cause
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mcause_Cause(v: Mcause) -> BitVector<63> {
     v.bits.subrange::<0, 63, 63>()
 }
 
+/// _get_Mcause_IsInterrupt
+/// 
+/// Generated from the Sail sources.
 pub fn _get_Mcause_IsInterrupt(v: Mcause) -> BitVector<1> {
     v.bits.subrange::<63, 64, 1>()
 }
 
+/// tvec_addr
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L529-538.
 pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<{
     (usize::pow(2, 3) * 8)
 }>> {
@@ -3004,12 +3646,18 @@ pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<{
     }
 }
 
+/// agtype
+/// 
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L985.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum agtype {
     UNDISTURBED,
     AGNOSTIC
 }
 
+/// PmpAddrMatchType
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L11.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PmpAddrMatchType {
     OFF,
@@ -3018,6 +3666,9 @@ pub enum PmpAddrMatchType {
     NAPOT
 }
 
+/// pmpAddrMatchType_of_bits
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L14-21.
 pub fn pmpAddrMatchType_of_bits(bs: BitVector<2>) -> PmpAddrMatchType {
     match bs {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {PmpAddrMatchType::OFF}
@@ -3028,6 +3679,9 @@ pub fn pmpAddrMatchType_of_bits(bs: BitVector<2>) -> PmpAddrMatchType {
     }
 }
 
+/// pmpAddrMatchType_to_bits
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L24-31.
 pub fn pmpAddrMatchType_to_bits(bs: PmpAddrMatchType) -> BitVector<2> {
     match bs {
         PmpAddrMatchType::OFF => {BitVector::<2>::new(0b00)}
@@ -3038,18 +3692,24 @@ pub fn pmpAddrMatchType_to_bits(bs: PmpAddrMatchType) -> BitVector<2> {
     }
 }
 
+/// Mk_Pmpcfg_ent
+/// 
+/// Generated from the Sail sources at `` L1.
 pub fn Mk_Pmpcfg_ent(v: BitVector<8>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: v
     }
 }
 
-pub fn pmpReadAddrReg(sail_ctx: &mut SailVirtCtx, n: usize) -> BitVector<{
+/// pmpReadAddrReg
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L69-89.
+pub fn pmpReadAddrReg(core_ctx: &mut Core, n: usize) -> BitVector<{
     (usize::pow(2, 3) * 8)
 }> {
-    let G = sys_pmp_grain(sail_ctx, ());
-    let match_type = _get_Pmpcfg_ent_A(sail_ctx.pmpcfg_n[n]);
-    let addr = sail_ctx.pmpaddr_n[n];
+    let G = sys_pmp_grain(core_ctx, ());
+    let match_type = _get_Pmpcfg_ent_A(core_ctx.pmpcfg_n[n]);
+    let addr = core_ctx.pmpaddr_n[n];
     match bitvector_access(match_type, 1) {
         true if {(G >= 2)} => {{
             let mask: xlenbits = {
@@ -3070,10 +3730,16 @@ pub fn pmpReadAddrReg(sail_ctx: &mut SailVirtCtx, n: usize) -> BitVector<{
     }
 }
 
+/// pmpLocked
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L92-93.
 pub fn pmpLocked(cfg: Pmpcfg_ent) -> bool {
     (_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1))
 }
 
+/// pmpTORLocked
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L95-96.
 pub fn pmpTORLocked(cfg: Pmpcfg_ent) -> bool {
     ((_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1)) && ({
         let var_1 = _get_Pmpcfg_ent_A(cfg);
@@ -3081,7 +3747,10 @@ pub fn pmpTORLocked(cfg: Pmpcfg_ent) -> bool {
     } == PmpAddrMatchType::TOR))
 }
 
-pub fn pmpWriteCfg(sail_ctx: &mut SailVirtCtx, n: usize, cfg: Pmpcfg_ent, v: BitVector<8>) -> Pmpcfg_ent {
+/// pmpWriteCfg
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L98-117.
+pub fn pmpWriteCfg(core_ctx: &mut Core, n: usize, cfg: Pmpcfg_ent, v: BitVector<8>) -> Pmpcfg_ent {
     if {pmpLocked(cfg)} {
         cfg
     } else {
@@ -3102,7 +3771,7 @@ pub fn pmpWriteCfg(sail_ctx: &mut SailVirtCtx, n: usize, cfg: Pmpcfg_ent, v: Bit
         } else {
             cfg
         };
-        let cfg = if {((sys_pmp_grain(sail_ctx, ()) >= 1) && ({
+        let cfg = if {((sys_pmp_grain(core_ctx, ()) >= 1) && ({
             let var_3 = _get_Pmpcfg_ent_A(cfg);
             pmpAddrMatchType_of_bits(var_3)
         } == PmpAddrMatchType::NA4))} {
@@ -3118,33 +3787,39 @@ pub fn pmpWriteCfg(sail_ctx: &mut SailVirtCtx, n: usize, cfg: Pmpcfg_ent, v: Bit
     }
 }
 
-pub fn pmpWriteCfgReg(sail_ctx: &mut SailVirtCtx, n: usize, v: BitVector<{
+/// pmpWriteCfgReg
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L119-134.
+pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: usize, v: BitVector<{
     (usize::pow(2, 3) * 8)
 }>) {
     if {(xlen == 32)} {
         for i in 0..=3 {
             let idx = ((n * 4) + i);
-            sail_ctx.pmpcfg_n[idx] = {
+            core_ctx.pmpcfg_n[idx] = {
                 let var_4 = idx;
-                let var_5 = sail_ctx.pmpcfg_n[idx];
+                let var_5 = core_ctx.pmpcfg_n[idx];
                 let var_6 = subrange_bits(v, ((8 * i) + 7), (8 * i));
-                pmpWriteCfg(sail_ctx, var_4, var_5, var_6)
+                pmpWriteCfg(core_ctx, var_4, var_5, var_6)
             }
         }
     } else {
         assert!(((n % 2) == 0), "Unexpected pmp config reg write");
         for i in 0..=7 {
             let idx = ((n * 4) + i);
-            sail_ctx.pmpcfg_n[idx] = {
+            core_ctx.pmpcfg_n[idx] = {
                 let var_1 = idx;
-                let var_2 = sail_ctx.pmpcfg_n[idx];
+                let var_2 = core_ctx.pmpcfg_n[idx];
                 let var_3 = subrange_bits(v, ((8 * i) + 7), (8 * i));
-                pmpWriteCfg(sail_ctx, var_1, var_2, var_3)
+                pmpWriteCfg(core_ctx, var_1, var_2, var_3)
             }
         }
     }
 }
 
+/// pmpWriteAddr
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L136-139.
 pub fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
     (usize::pow(2, 3) * 8)
 }>, v: BitVector<{
@@ -3167,22 +3842,28 @@ pub fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
     }
 }
 
-pub fn pmpWriteAddrReg(sail_ctx: &mut SailVirtCtx, n: usize, v: BitVector<{
+/// pmpWriteAddrReg
+/// 
+/// Generated from the Sail sources at `riscv_pmp_regs.sail` L141-148.
+pub fn pmpWriteAddrReg(core_ctx: &mut Core, n: usize, v: BitVector<{
     (usize::pow(2, 3) * 8)
 }>) {
-    sail_ctx.pmpaddr_n[n] = {
-        let var_1 = pmpLocked(sail_ctx.pmpcfg_n[n]);
+    core_ctx.pmpaddr_n[n] = {
+        let var_1 = pmpLocked(core_ctx.pmpcfg_n[n]);
         let var_2 = if {((n + 1) < 64)} {
-            pmpTORLocked(sail_ctx.pmpcfg_n[(n + 1)])
+            pmpTORLocked(core_ctx.pmpcfg_n[(n + 1)])
         } else {
             false
         };
-        let var_3 = sail_ctx.pmpaddr_n[n];
+        let var_3 = core_ctx.pmpaddr_n[n];
         let var_4 = v;
         pmpWriteAddr(var_1, var_2, var_3, var_4)
     }
 }
 
+/// pmpCheckRWX
+/// 
+/// Generated from the Sail sources at `riscv_pmp_control.sail` L13-19.
 pub fn pmpCheckRWX(ent: Pmpcfg_ent, acc: AccessType<()>) -> bool {
     match acc {
         AccessType::Read(_) => {(_get_Pmpcfg_ent_R(ent) == BitVector::<1>::new(0b1))}
@@ -3193,6 +3874,9 @@ pub fn pmpCheckRWX(ent: Pmpcfg_ent, acc: AccessType<()>) -> bool {
     }
 }
 
+/// pmpAddrMatch
+/// 
+/// Generated from the Sail sources at `riscv_pmp_control.sail` L24.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum pmpAddrMatch {
     PMP_NoMatch,
@@ -3200,6 +3884,9 @@ pub enum pmpAddrMatch {
     PMP_Match
 }
 
+/// pmpRangeMatch
+/// 
+/// Generated from the Sail sources at `riscv_pmp_control.sail` L29-39.
 pub fn pmpRangeMatch(begin: nat, end_: nat, addr: nat, width: nat) -> pmpAddrMatch {
     if {(((addr + width) <= begin) || (end_ <= addr))} {
         pmpAddrMatch::PMP_NoMatch
@@ -3210,7 +3897,10 @@ pub fn pmpRangeMatch(begin: nat, end_: nat, addr: nat, width: nat) -> pmpAddrMat
     }
 }
 
-pub fn pmpMatchAddr(sail_ctx: &mut SailVirtCtx, physaddr::Physaddr(addr): physaddr, width: BitVector<{
+/// pmpMatchAddr
+/// 
+/// Generated from the Sail sources at `riscv_pmp_control.sail` L41-80.
+pub fn pmpMatchAddr(core_ctx: &mut Core, physaddr::Physaddr(addr): physaddr, width: BitVector<{
     (usize::pow(2, 3) * 8)
 }>, ent: Pmpcfg_ent, pmpaddr: BitVector<{
     (usize::pow(2, 3) * 8)
@@ -3238,7 +3928,7 @@ pub fn pmpMatchAddr(sail_ctx: &mut SailVirtCtx, physaddr::Physaddr(addr): physad
             }
         }}
         PmpAddrMatchType::NA4 => {{
-            assert!((sys_pmp_grain(sail_ctx, ()) < 1), "NA4 cannot be selected when PMP grain G >= 1.");
+            assert!((sys_pmp_grain(core_ctx, ()) < 1), "NA4 cannot be selected when PMP grain G >= 1.");
             let begin = (pmpaddr.as_usize() * 4);
             {
                 let var_5 = begin;
@@ -3264,6 +3954,9 @@ pub fn pmpMatchAddr(sail_ctx: &mut SailVirtCtx, physaddr::Physaddr(addr): physad
     }
 }
 
+/// pmpMatch
+/// 
+/// Generated from the Sail sources at `riscv_pmp_control.sail` L82.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum pmpMatch {
     PMP_Success,
@@ -3271,14 +3964,17 @@ pub enum pmpMatch {
     PMP_Fail
 }
 
-pub fn pmpMatchEntry(sail_ctx: &mut SailVirtCtx, addr: physaddr, width: BitVector<{
+/// pmpMatchEntry
+/// 
+/// Generated from the Sail sources at `riscv_pmp_control.sail` L84-93.
+pub fn pmpMatchEntry(core_ctx: &mut Core, addr: physaddr, width: BitVector<{
     (usize::pow(2, 3) * 8)
 }>, acc: AccessType<()>, _priv_: Privilege, ent: Pmpcfg_ent, pmpaddr: BitVector<{
     (usize::pow(2, 3) * 8)
 }>, prev_pmpaddr: BitVector<{
     (usize::pow(2, 3) * 8)
 }>) -> pmpMatch {
-    match pmpMatchAddr(sail_ctx, addr, width, ent, pmpaddr, prev_pmpaddr) {
+    match pmpMatchAddr(core_ctx, addr, width, ent, pmpaddr, prev_pmpaddr) {
         pmpAddrMatch::PMP_NoMatch => {pmpMatch::PMP_Continue}
         pmpAddrMatch::PMP_PartialMatch => {pmpMatch::PMP_Fail}
         pmpAddrMatch::PMP_Match => {if {(pmpCheckRWX(ent, acc) || ((_priv_ == Privilege::Machine) && !(pmpLocked(ent))))} {
@@ -3290,6 +3986,9 @@ pub fn pmpMatchEntry(sail_ctx: &mut SailVirtCtx, addr: physaddr, width: BitVecto
     }
 }
 
+/// accessToFault
+/// 
+/// Generated from the Sail sources at `riscv_pmp_control.sail` L97-103.
 pub fn accessToFault(acc: AccessType<()>) -> ExceptionType {
     match acc {
         AccessType::Read(_) => {ExceptionType::E_Load_Access_Fault(())}
@@ -3300,13 +3999,16 @@ pub fn accessToFault(acc: AccessType<()>) -> ExceptionType {
     }
 }
 
-pub fn pmpCheck<const N: usize>(sail_ctx: &mut SailVirtCtx, addr: physaddr, width: usize, acc: AccessType<()>, _priv_: Privilege) -> Option<ExceptionType> {
+/// pmpCheck
+/// 
+/// Generated from the Sail sources at `riscv_pmp_control.sail` L105-118.
+pub fn pmpCheck<const N: usize>(core_ctx: &mut Core, addr: physaddr, width: usize, acc: AccessType<()>, _priv_: Privilege) -> Option<ExceptionType> {
     let width: xlenbits = to_bits(xlen, width);
     for i in 0..=63 {
         let prev_pmpaddr = if {gt_int(i, 0)} {
             {
                 let var_8 = (i - 1);
-                pmpReadAddrReg(sail_ctx, var_8)
+                pmpReadAddrReg(core_ctx, var_8)
             }
         } else {
             zeros(64)
@@ -3316,10 +4018,10 @@ pub fn pmpCheck<const N: usize>(sail_ctx: &mut SailVirtCtx, addr: physaddr, widt
             let var_2 = width;
             let var_3 = acc;
             let var_4 = _priv_;
-            let var_5 = sail_ctx.pmpcfg_n[i];
-            let var_6 = pmpReadAddrReg(sail_ctx, i);
+            let var_5 = core_ctx.pmpcfg_n[i];
+            let var_6 = pmpReadAddrReg(core_ctx, i);
             let var_7 = prev_pmpaddr;
-            pmpMatchEntry(sail_ctx, var_1, var_2, var_3, var_4, var_5, var_6, var_7)
+            pmpMatchEntry(core_ctx, var_1, var_2, var_3, var_4, var_5, var_6, var_7)
         } {
             pmpMatch::PMP_Success => {{
                 return None;
@@ -3338,24 +4040,36 @@ pub fn pmpCheck<const N: usize>(sail_ctx: &mut SailVirtCtx, addr: physaddr, widt
     }
 }
 
+/// Ext_FetchAddr_Check
+/// 
+/// Generated from the Sail sources at `riscv_addr_checks_common.sail` L17-20.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Ext_FetchAddr_Check<A> {
     Ext_FetchAddr_OK(virtaddr),
     Ext_FetchAddr_Error(A)
 }
 
+/// Ext_ControlAddr_Check
+/// 
+/// Generated from the Sail sources at `riscv_addr_checks_common.sail` L22-25.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Ext_ControlAddr_Check<A> {
     Ext_ControlAddr_OK(virtaddr),
     Ext_ControlAddr_Error(A)
 }
 
+/// Ext_DataAddr_Check
+/// 
+/// Generated from the Sail sources at `riscv_addr_checks_common.sail` L27-30.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Ext_DataAddr_Check<A> {
     Ext_DataAddr_OK(virtaddr),
     Ext_DataAddr_Error(A)
 }
 
+/// Ext_PhysAddr_Check
+/// 
+/// Generated from the Sail sources at `riscv_addr_checks_common.sail` L32-35.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Ext_PhysAddr_Check {
     Ext_PhysAddr_OK(()),
@@ -3372,6 +4086,9 @@ pub type vreglenbits = BitVector<vlenmax>;
 
 pub type vregtype = vreglenbits;
 
+/// maskfunct3
+/// 
+/// Generated from the Sail sources at `riscv_vreg_type.sail` L108.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum maskfunct3 {
     VV_VMERGE,
@@ -3379,6 +4096,9 @@ pub enum maskfunct3 {
     VX_VMERGE
 }
 
+/// vregno
+/// 
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L10.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregno {
     Vregno(usize)
@@ -3386,18 +4106,24 @@ pub enum vregno {
 
 pub type ext_exception = ();
 
+/// handle_trap_extension
+/// 
+/// Generated from the Sail sources at `riscv_sys_exceptions.sail` L18.
 pub fn handle_trap_extension(p: Privilege, pc: BitVector<{
     (usize::pow(2, 3) * 8)
 }>, u: Option<()>) {
     ()
 }
 
-pub fn prepare_trap_vector(sail_ctx: &mut SailVirtCtx, p: Privilege, cause: Mcause) -> BitVector<{
+/// prepare_trap_vector
+/// 
+/// Generated from the Sail sources at `riscv_sys_exceptions.sail` L21-31.
+pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitVector<{
     (usize::pow(2, 3) * 8)
 }> {
     let tvec: Mtvec = match p {
-        Privilege::Machine => {sail_ctx.mtvec}
-        Privilege::Supervisor => {sail_ctx.stvec}
+        Privilege::Machine => {core_ctx.mtvec}
+        Privilege::Supervisor => {core_ctx.stvec}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_exceptions.sail", 25, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
     };
@@ -3408,6 +4134,9 @@ pub fn prepare_trap_vector(sail_ctx: &mut SailVirtCtx, p: Privilege, cause: Mcau
     }
 }
 
+/// sync_exception
+/// 
+/// Generated from the Sail sources at `riscv_sync_exception.sail` L11-15.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct sync_exception {
     pub trap: ExceptionType,
@@ -3417,6 +4146,9 @@ pub struct sync_exception {
 
 pub type hpmidx = usize;
 
+/// seed_opst
+/// 
+/// Generated from the Sail sources at `riscv_zkr_control.sail` L13-18.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum seed_opst {
     BIST,
@@ -3443,11 +4175,17 @@ pub type bits_L = BitVector<64>;
 
 pub type bits_LU = BitVector<64>;
 
+/// fregno
+/// 
+/// Generated from the Sail sources at `riscv_fdext_regs.sail` L56.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fregno {
     Fregno(usize)
 }
 
+/// findPendingInterrupt
+/// 
+/// Generated from the Sail sources at `riscv_sys_control.sail` L116-125.
 pub fn findPendingInterrupt(ip: BitVector<{
     (usize::pow(2, 3) * 8)
 }>) -> Option<InterruptType> {
@@ -3469,18 +4207,21 @@ pub fn findPendingInterrupt(ip: BitVector<{
     }
 }
 
-pub fn getPendingSet(sail_ctx: &mut SailVirtCtx, _priv_: Privilege) -> Option<(BitVector<{
+/// getPendingSet
+/// 
+/// Generated from the Sail sources at `riscv_sys_control.sail` L135-148.
+pub fn getPendingSet(core_ctx: &mut Core, _priv_: Privilege) -> Option<(BitVector<{
     (usize::pow(2, 3) * 8)
 }>, Privilege)> {
-    assert!((currentlyEnabled(sail_ctx, extension::Ext_S) || (sail_ctx.mideleg.bits == zeros(64))), "riscv_sys_control.sail:137.58-137.59");
-    let pending_m = (sail_ctx.mip.bits & (sail_ctx.mie.bits & !(sail_ctx.mideleg.bits)));
-    let pending_s = (sail_ctx.mip.bits & (sail_ctx.mie.bits & sail_ctx.mideleg.bits));
+    assert!((currentlyEnabled(core_ctx, extension::Ext_S) || (core_ctx.mideleg.bits == zeros(64))), "riscv_sys_control.sail:137.58-137.59");
+    let pending_m = (core_ctx.mip.bits & (core_ctx.mie.bits & !(core_ctx.mideleg.bits)));
+    let pending_s = (core_ctx.mip.bits & (core_ctx.mie.bits & core_ctx.mideleg.bits));
     let mIE = (((_priv_ == Privilege::Machine) && ({
-        let var_2 = sail_ctx.mstatus;
+        let var_2 = core_ctx.mstatus;
         _get_Mstatus_MIE(var_2)
     } == BitVector::<1>::new(0b1))) || ((_priv_ == Privilege::Supervisor) || (_priv_ == Privilege::User)));
     let sIE = (((_priv_ == Privilege::Supervisor) && ({
-        let var_1 = sail_ctx.mstatus;
+        let var_1 = core_ctx.mstatus;
         _get_Mstatus_SIE(var_1)
     } == BitVector::<1>::new(0b1))) || (_priv_ == Privilege::User));
     if {(mIE && (pending_m != zeros(64)))} {
@@ -3492,8 +4233,11 @@ pub fn getPendingSet(sail_ctx: &mut SailVirtCtx, _priv_: Privilege) -> Option<(B
     }
 }
 
-pub fn dispatchInterrupt(sail_ctx: &mut SailVirtCtx, _priv_: Privilege) -> Option<(InterruptType, Privilege)> {
-    match getPendingSet(sail_ctx, _priv_) {
+/// dispatchInterrupt
+/// 
+/// Generated from the Sail sources at `riscv_sys_control.sail` L177-185.
+pub fn dispatchInterrupt(core_ctx: &mut Core, _priv_: Privilege) -> Option<(InterruptType, Privilege)> {
+    match getPendingSet(core_ctx, _priv_) {
         None => {None}
         Some((ip, p)) => {match findPendingInterrupt(ip) {
             None => {None}
@@ -3504,6 +4248,9 @@ pub fn dispatchInterrupt(sail_ctx: &mut SailVirtCtx, _priv_: Privilege) -> Optio
     }
 }
 
+/// ctl_result
+/// 
+/// Generated from the Sail sources at `riscv_sys_control.sail` L189-193.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ctl_result {
     CTL_TRAP(sync_exception),
@@ -3511,6 +4258,9 @@ pub enum ctl_result {
     CTL_MRET(())
 }
 
+/// tval
+/// 
+/// Generated from the Sail sources at `riscv_sys_control.sail` L197-202.
 pub fn tval(excinfo: Option<BitVector<{
     (usize::pow(2, 3) * 8)
 }>>) -> BitVector<{
@@ -3523,7 +4273,10 @@ pub fn tval(excinfo: Option<BitVector<{
     }
 }
 
-pub fn track_trap(sail_ctx: &mut SailVirtCtx, p: Privilege) {
+/// track_trap
+/// 
+/// Generated from the Sail sources at `riscv_sys_control.sail` L204-219.
+pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
             
@@ -3536,7 +4289,10 @@ pub fn track_trap(sail_ctx: &mut SailVirtCtx, p: Privilege) {
     }
 }
 
-pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool, c: BitVector<8>, pc: BitVector<{
+/// trap_handler
+/// 
+/// Generated from the Sail sources at `riscv_sys_control.sail` L222-275.
+pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: BitVector<8>, pc: BitVector<{
     (usize::pow(2, 3) * 8)
 }>, info: Option<BitVector<{
     (usize::pow(2, 3) * 8)
@@ -3555,73 +4311,73 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
     };
     match del_priv {
         Privilege::Machine => {{
-            sail_ctx.mcause.bits = {
+            core_ctx.mcause.bits = {
                 let var_1 = bool_to_bits(intr);
-                sail_ctx.mcause.bits.set_subrange::<63, 64, 1>(var_1)
+                core_ctx.mcause.bits.set_subrange::<63, 64, 1>(var_1)
             };
-            sail_ctx.mcause.bits = {
+            core_ctx.mcause.bits = {
                 let var_2 = c.zero_extend::<63>();
-                sail_ctx.mcause.bits.set_subrange::<0, 63, 63>(var_2)
+                core_ctx.mcause.bits.set_subrange::<0, 63, 63>(var_2)
             };
-            sail_ctx.mstatus.bits = {
+            core_ctx.mstatus.bits = {
                 let var_3 = {
-                    let var_4 = sail_ctx.mstatus;
+                    let var_4 = core_ctx.mstatus;
                     _get_Mstatus_MIE(var_4)
                 };
-                sail_ctx.mstatus.bits.set_subrange::<7, 8, 1>(var_3)
+                core_ctx.mstatus.bits.set_subrange::<7, 8, 1>(var_3)
             };
-            sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<3, 4, 1>(BitVector::<1>::new(0b0));
-            sail_ctx.mstatus.bits = {
+            core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<3, 4, 1>(BitVector::<1>::new(0b0));
+            core_ctx.mstatus.bits = {
                 let var_5 = {
-                    let var_6 = sail_ctx.cur_privilege;
+                    let var_6 = core_ctx.cur_privilege;
                     privLevel_to_bits(var_6)
                 };
-                sail_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_5)
+                core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_5)
             };
-            sail_ctx.mtval = tval(info);
-            sail_ctx.mepc = pc;
-            sail_ctx.cur_privilege = del_priv;
+            core_ctx.mtval = tval(info);
+            core_ctx.mepc = pc;
+            core_ctx.cur_privilege = del_priv;
             handle_trap_extension(del_priv, pc, ext);
-            track_trap(sail_ctx, del_priv);
+            track_trap(core_ctx, del_priv);
             {
                 let var_7 = del_priv;
-                let var_8 = sail_ctx.mcause;
-                prepare_trap_vector(sail_ctx, var_7, var_8)
+                let var_8 = core_ctx.mcause;
+                prepare_trap_vector(core_ctx, var_7, var_8)
             }
         }}
         Privilege::Supervisor => {{
-            assert!(currentlyEnabled(sail_ctx, extension::Ext_S), "no supervisor mode present for delegation");
-            sail_ctx.scause.bits = {
+            assert!(currentlyEnabled(core_ctx, extension::Ext_S), "no supervisor mode present for delegation");
+            core_ctx.scause.bits = {
                 let var_9 = bool_to_bits(intr);
-                sail_ctx.scause.bits.set_subrange::<63, 64, 1>(var_9)
+                core_ctx.scause.bits.set_subrange::<63, 64, 1>(var_9)
             };
-            sail_ctx.scause.bits = {
+            core_ctx.scause.bits = {
                 let var_10 = c.zero_extend::<63>();
-                sail_ctx.scause.bits.set_subrange::<0, 63, 63>(var_10)
+                core_ctx.scause.bits.set_subrange::<0, 63, 63>(var_10)
             };
-            sail_ctx.mstatus.bits = {
+            core_ctx.mstatus.bits = {
                 let var_11 = {
-                    let var_12 = sail_ctx.mstatus;
+                    let var_12 = core_ctx.mstatus;
                     _get_Mstatus_SIE(var_12)
                 };
-                sail_ctx.mstatus.bits.set_subrange::<5, 6, 1>(var_11)
+                core_ctx.mstatus.bits.set_subrange::<5, 6, 1>(var_11)
             };
-            sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<1, 2, 1>(BitVector::<1>::new(0b0));
-            sail_ctx.mstatus.bits = sail_ctx.mstatus.bits.set_subrange::<8, 9, 1>(match sail_ctx.cur_privilege {
+            core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<1, 2, 1>(BitVector::<1>::new(0b0));
+            core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<8, 9, 1>(match core_ctx.cur_privilege {
                 Privilege::User => {BitVector::<1>::new(0b0)}
                 Privilege::Supervisor => {BitVector::<1>::new(0b1)}
                 Privilege::Machine => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 260, "invalid privilege for s-mode trap")}
                 _ => {panic!("Unreachable code")}
             });
-            sail_ctx.stval = tval(info);
-            sail_ctx.sepc = pc;
-            sail_ctx.cur_privilege = del_priv;
+            core_ctx.stval = tval(info);
+            core_ctx.sepc = pc;
+            core_ctx.cur_privilege = del_priv;
             handle_trap_extension(del_priv, pc, ext);
-            track_trap(sail_ctx, del_priv);
+            track_trap(core_ctx, del_priv);
             {
                 let var_13 = del_priv;
-                let var_14 = sail_ctx.scause;
-                prepare_trap_vector(sail_ctx, var_13, var_14)
+                let var_14 = core_ctx.scause;
+                prepare_trap_vector(core_ctx, var_13, var_14)
             }
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 273, "Invalid privilege level")}
@@ -3631,6 +4387,9 @@ pub fn trap_handler(sail_ctx: &mut SailVirtCtx, del_priv: Privilege, intr: bool,
 
 pub type MemoryOpResult<A> = result<A, ExceptionType>;
 
+/// ExecutionResult
+/// 
+/// Generated from the Sail sources at `riscv_inst_retire.sail` L10-28.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExecutionResult {
     Retire_Success(()),
@@ -3648,6 +4407,9 @@ pub type pte_flags_bits = BitVector<8>;
 
 pub type pte_ext_bits = BitVector<10>;
 
+/// PTE_Check
+/// 
+/// Generated from the Sail sources at `riscv_vmem_pte.sail` L94-97.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PTE_Check {
     PTE_Check_Success(ext_ptw),
@@ -3658,6 +4420,9 @@ pub const tlb_vpn_bits: usize = (57 - pagesize_bits);
 
 pub const tlb_ppn_bits: usize = 44;
 
+/// TLB_Entry
+/// 
+/// Generated from the Sail sources at `riscv_vmem_tlb.sail` L25-33.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TLB_Entry {
     pub asid: asidbits,
@@ -3673,6 +4438,9 @@ pub const num_tlb_entries: usize = 64;
 
 pub type tlb_index_range = usize;
 
+/// TR_Result
+/// 
+/// Generated from the Sail sources at `riscv_vmem.sail` L212-215.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TR_Result<PADDR, FAILURE> {
     TR_Address((PADDR, ext_ptw)),
@@ -3681,6 +4449,9 @@ pub enum TR_Result<PADDR, FAILURE> {
 
 pub type nfields = usize;
 
+/// cbie
+/// 
+/// Generated from the Sail sources at `riscv_insts_zicbom.sail` L38.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum cbie {
     CBIE_ILLEGAL,
@@ -3688,6 +4459,9 @@ pub enum cbie {
     CBIE_EXEC_INVAL
 }
 
+/// checked_cbop
+/// 
+/// Generated from the Sail sources at `riscv_insts_zicbom.sail` L48.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum checked_cbop {
     CBOP_ILLEGAL,
@@ -3696,12 +4470,18 @@ pub enum checked_cbop {
     CBOP_INVAL_INVAL
 }
 
+/// HartState
+/// 
+/// Generated from the Sail sources at `riscv_step_common.sail` L21-28.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum HartState {
     HART_ACTIVE(()),
     HART_WAITING(instbits)
 }
 
+/// FetchResult
+/// 
+/// Generated from the Sail sources at `riscv_step_common.sail` L48-53.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum FetchResult {
     F_Ext_Error(ext_fetch_addr_error),
@@ -3710,6 +4490,9 @@ pub enum FetchResult {
     F_Error((ExceptionType, xlenbits))
 }
 
+/// Step
+/// 
+/// Generated from the Sail sources at `riscv_step.sail` L13-19.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Step {
     Step_Pending_Interrupt((InterruptType, Privilege)),
