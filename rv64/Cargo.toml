@@ -2,6 +2,13 @@
 name = "softcore-rv64"
 version = "0.1.0"
 edition = "2024"
+authors = ["Charly Castes", "François Costa"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/CharlyCst/softcore-rs"
+description = "A Rust translation of the RISC-V 64 specification"
+keywords = ["riscv", "regsiter", "specification"]
+categories = ["emulators", "development-tools::testing"]
+readme = "readme.md"
 
 [dependencies]
-softcore-prelude = { path = "../prelude" }
+softcore-prelude = { version = "0.1.0", path = "../prelude" }
