@@ -7,8 +7,8 @@ use softcore_prelude::*;
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
 /// 
-/// The raw functions translated directly from the specification are available in the [raw] module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+/// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
     pub PC: xlenbits,
     pub nextPC: xlenbits,
@@ -166,13 +166,13 @@ pub struct Core {
     pub config: Config,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Config {
     pub extensions: ConfigExtensions,
     pub memory: ConfigMemory,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigExtensions {
     pub A: ConfigA,
     pub B: ConfigB,
@@ -232,292 +232,292 @@ pub struct ConfigExtensions {
     pub Zvksh: ConfigZvksh,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigA {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigB {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigFD {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigM {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigS {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSmcntrpmf {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSscofpmf {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSstc {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSv32 {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSv39 {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSv48 {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSv57 {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSvbare {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigSvinval {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigU {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigV {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZaamo {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZabha {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZalrsc {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZba {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZbb {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZbc {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZbkb {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZbkc {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZbkx {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZbs {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZca {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZcb {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZcd {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZcf {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZcmop {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZfa {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZfh {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZfhmin {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZfinx {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZhinx {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZicbom {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZicboz {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZicntr {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZicond {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZifencei {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZihpm {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZimop {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZknd {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZkne {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZknh {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZkr {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZksed {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZksh {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZmmul {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZvbb {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZvbc {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZvkb {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZvknha {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZvknhb {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigZvksh {
     pub supported: bool,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigMemory {
     pub pmp: ConfigPmp,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigPmp {
     pub grain: usize,
 }

@@ -640,6 +640,7 @@ module Codegen () = struct
                 name = enum_name;
                 generics = [];
                 fields =  List.map (fun id -> (id, None)) enum_fields; 
+                derive = default_copy_derive;
                 doc = [
                     enum_name;
                     "";
@@ -683,6 +684,7 @@ module Codegen () = struct
             name = id;
             generics = typequant_to_generics typq;
             fields = process_unions members;
+            derive = default_copy_derive;
             doc = [
                 id;
                 "";
@@ -699,6 +701,7 @@ module Codegen () = struct
             name = id;
             generics = typequant_to_generics typeq;
             fields = List.map to_rs_fields fields;
+            derive = default_copy_derive;
             doc = [
                 id;
                 "";
@@ -818,6 +821,7 @@ module Codegen () = struct
                 name = "Core";
                 generics = [];
                 fields = (gather_registers defs) @ config_field;
+                derive = ["Eq"; "PartialEq"; "Clone"; "Debug"];
                 doc = [
                     "The software core.";
                     "";
