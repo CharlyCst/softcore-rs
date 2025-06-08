@@ -8,7 +8,7 @@ use softcore_prelude::*;
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
 /// 
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
     pub mepc: xlenbits,
     pub sepc: xlenbits,
@@ -21,7 +21,7 @@ pub struct Core {
     pub config: Config,
 }
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug)]
+#[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Config {
 
 }

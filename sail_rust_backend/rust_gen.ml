@@ -129,6 +129,7 @@ type rs_enum = {
     name: string;
     generics: rs_generic list;
     fields: (string * rs_type option) list;
+    derive: string list;
     doc: string list;
 }
 
@@ -136,6 +137,7 @@ type rs_struct = {
     name: string;
     generics: rs_generic list;
     fields: (string * rs_type) list;
+    derive: string list;
     doc: string list;
 }
 
@@ -164,6 +166,9 @@ type rs_program =
     | RsProg of rs_obj list
 
 (* ————————————————————————————————— Utils —————————————————————————————————— *)
+
+let default_copy_derive = ["Eq"; "PartialEq"; "Clone"; "Copy"; "Debug"]
+let default_move_derive = ["Eq"; "PartialEq"; "Clone"; "Debug"]
 
 let merge_rs_prog (prog1: rs_program) (prog2: rs_program) : rs_program =
     let RsProg (fn1) = prog1 in
@@ -195,6 +200,7 @@ let mk_struct (name: string) (fields: (string * rs_type) list) : rs_obj =
         name = name;
         generics = [];
         fields = fields;
+        derive = default_move_derive;
         doc = [];
     }
 
@@ -263,6 +269,11 @@ let rec string_of_doc (doc: string list) : string =
     match doc with
     | head :: [] -> "/// " ^ head ^ "\n"
     | head :: tail -> "/// " ^ head ^ "\n" ^ (string_of_doc tail)
+    | [] -> ""
+
+let string_of_derive (derive: string list) : string =
+    match derive with
+    | head :: tail -> "#[derive(" ^ (String.concat ", " derive) ^ ")]\n"
     | [] -> ""
 
 let string_of_generics (generics: string list) : string =
@@ -549,8 +560,6 @@ let remove_last_char (s: string) : string =
     else
         String.sub s 0 (String.length s - 1)
 
-let enum_attribute () : string = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]"
-
 let parse_enum_fields (entries: (string * rs_type option) list) : string = 
     let field_typ (typ : rs_type option) : string =
         match typ with
@@ -562,7 +571,7 @@ let parse_enum_fields (entries: (string * rs_type option) list) : string =
 
 let string_of_rs_enum (enum: rs_enum) : string = 
     let doc = string_of_doc enum.doc in
-    Printf.sprintf "%s%s\npub enum %s%s {\n%s\n}" doc (enum_attribute ()) enum.name (string_of_generics_parameters enum.generics) (parse_enum_fields enum.fields)
+    Printf.sprintf "%s%spub enum %s%s {\n%s\n}" doc (string_of_derive enum.derive) enum.name (string_of_generics_parameters enum.generics) (parse_enum_fields enum.fields)
 
 let parse_struct_fields (entries: (string * rs_type)  list) : string = 
     let prefixed_entries = List.map (fun s -> "    pub " ^ (fst s) ^ ": " ^ string_of_rs_type (snd s) ^ ",\n") entries in
@@ -571,9 +580,9 @@ let parse_struct_fields (entries: (string * rs_type)  list) : string =
 
 let string_of_rs_struct (struc: rs_struct) : string = 
     let generics = string_of_generics_parameters struc.generics in
-    let attributes = "#[derive(Eq, PartialEq, Clone, Copy, Debug)]" in
+    let attributes = string_of_derive struc.derive in
     Printf.sprintf
-        "%s%s\npub struct %s%s {\n%s\n}"
+        "%s%spub struct %s%s {\n%s\n}"
         (string_of_doc struc.doc)
         attributes
         struc.name
