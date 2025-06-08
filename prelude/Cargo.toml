@@ -2,3 +2,10 @@
 name = "softcore-prelude"
 version = "0.1.0"
 edition = "2024"
+authors = ["Charly Castes", "François Costa"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/CharlyCst/softcore-rs"
+description = "The common functions used by the softcore-rs ecosystem"
+keywords = ["specification"]
+categories = ["emulators", "development-tools::testing"]
+readme = "readme.md"
