@@ -43,7 +43,7 @@ pub type xlenbits = BitVector<xlen>;
 
 /// extension
 /// 
-/// Generated from the Sail sources at `sail_arch/config.sail` L12.
+/// Generated from the Sail sources at `tests/config/arch.sail` L12.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum extension {
     Ext_U,
@@ -52,7 +52,7 @@ pub enum extension {
 
 /// hartSupports
 /// 
-/// Generated from the Sail sources at `sail_arch/config.sail` L18.
+/// Generated from the Sail sources at `tests/config/arch.sail` L18.
 pub fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
     match merge_hashtag_var {
         extension::Ext_U => {core_ctx.config.extensions.U.supported}
@@ -65,7 +65,7 @@ pub type regbits = BitVector<5>;
 
 /// ast
 /// 
-/// Generated from the Sail sources at `sail_arch/config.sail` L32.
+/// Generated from the Sail sources at `tests/config/arch.sail` L32.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     TEST(())
@@ -73,7 +73,7 @@ pub enum ast {
 
 /// execute_TEST
 /// 
-/// Generated from the Sail sources at `sail_arch/config.sail` L37-41.
+/// Generated from the Sail sources at `tests/config/arch.sail` L37-41.
 pub fn execute_TEST(core_ctx: &mut Core) {
     if {hartSupports(core_ctx, extension::Ext_U)} {
         ()

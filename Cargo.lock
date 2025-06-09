@@ -31,6 +31,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "decoder"
+version = "0.1.0"
+dependencies = [
+ "softcore-prelude",
+]
+
+[[package]]
 name = "hoisting"
 version = "0.1.0"
 dependencies = [

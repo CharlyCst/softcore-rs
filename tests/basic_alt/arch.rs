@@ -31,7 +31,7 @@ pub type regbits = BitVector<5>;
 
 /// iop
 /// 
-/// Generated from the Sail sources at `sail_arch/basic_alt.sail` L61.
+/// Generated from the Sail sources at `tests/basic_alt/arch.sail` L61.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
     RISCV_ADDI,
@@ -44,7 +44,7 @@ pub enum iop {
 
 /// ast
 /// 
-/// Generated from the Sail sources at `sail_arch/basic_alt.sail` L63.
+/// Generated from the Sail sources at `tests/basic_alt/arch.sail` L63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     ITYPE((BitVector<12>, BitVector<5>, BitVector<5>, iop)),
