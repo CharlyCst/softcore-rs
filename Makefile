@@ -1,4 +1,4 @@
-TEST_ARCHS = basic basic_alt trap types mret csr wfi config hoisting
+TEST_ARCHS = basic basic_alt trap types mret csr wfi config hoisting decoder
 TEST_ARCH_RUST = $(addsuffix /arch.rs, $(addprefix tests/, $(TEST_ARCHS)))
 
 .PHONY: tests test test2 clean
@@ -23,7 +23,7 @@ build:
 	dune build --release
 
 # Translate the test Sail architectures to Rust
-tests/%/arch.rs: sail_arch/%.sail build
+tests/%/arch.rs: tests/%/arch.sail build
 	@echo "Processing $< to $@"
 	./sail_to_rust $< -o $@
 

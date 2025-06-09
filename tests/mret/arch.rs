@@ -36,7 +36,7 @@ pub type priv_level = BitVector<2>;
 
 /// Privilege
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L40.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L40.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
     User,
@@ -46,14 +46,14 @@ pub enum Privilege {
 
 /// haveUsrMode
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L43.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L43.
 pub fn haveUsrMode(unit_arg: ()) -> bool {
     true
 }
 
 /// privLevel_to_bits
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L46-51.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L46-51.
 pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
     match p {
         Privilege::User => {BitVector::<2>::new(0b00)}
@@ -65,7 +65,7 @@ pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
 
 /// privLevel_of_bits
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L54-60.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L54-60.
 pub fn privLevel_of_bits(p: BitVector<2>) -> Privilege {
     match p {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {Privilege::User}
@@ -78,7 +78,7 @@ pub fn privLevel_of_bits(p: BitVector<2>) -> Privilege {
 
 /// pc_alignment_mask
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L62-63.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L62-63.
 pub fn pc_alignment_mask(unit_arg: ()) -> BitVector<64> {
     !(BitVector::<2>::new(0b10).zero_extend::<64>())
 }
@@ -91,7 +91,7 @@ pub type csreg = BitVector<12>;
 
 /// Mstatus
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L81-105.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L81-105.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
     pub bits: BitVector<64>,
@@ -113,21 +113,21 @@ pub fn _get_Mstatus_MPP(v: Mstatus) -> BitVector<2> {
 
 /// set_next_pc
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L142-144.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L142-144.
 pub fn set_next_pc(core_ctx: &mut Core, pc: BitVector<64>) {
     core_ctx.nextPC = pc
 }
 
 /// handle_illegal
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L146-149.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L146-149.
 pub fn handle_illegal(unit_arg: ()) {
     
 }
 
 /// get_xret_target
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L152-157.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L152-157.
 pub fn get_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<64> {
     match p {
         Privilege::Machine => {core_ctx.mepc}
@@ -139,14 +139,14 @@ pub fn get_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<64> {
 
 /// prepare_xret_target
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L171-172.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L171-172.
 pub fn prepare_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<64> {
     get_xret_target(core_ctx, p)
 }
 
 /// exception_handler
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L174-184.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L174-184.
 pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitVector<64>) -> BitVector<64> {
     let prev_priv = core_ctx.cur_privilege;
     core_ctx.mstatus.bits = {
@@ -185,7 +185,7 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitVector
 
 /// Retired
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L188.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L188.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
@@ -194,7 +194,7 @@ pub enum Retired {
 
 /// ast
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L190.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L190.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     MRET(())
@@ -202,21 +202,21 @@ pub enum ast {
 
 /// ext_check_xret_priv
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L204.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L204.
 pub fn ext_check_xret_priv(p: Privilege) -> bool {
     true
 }
 
 /// ext_fail_xret_priv
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L206.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L206.
 pub fn ext_fail_xret_priv(unit_arg: ()) {
     ()
 }
 
 /// execute_MRET
 /// 
-/// Generated from the Sail sources at `sail_arch/mret.sail` L208-217.
+/// Generated from the Sail sources at `tests/mret/arch.sail` L208-217.
 pub fn execute_MRET(core_ctx: &mut Core) -> Retired {
     if {(core_ctx.cur_privilege != Privilege::Machine)} {
         handle_illegal(());

@@ -10,12 +10,6 @@ use softcore_prelude::*;
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
-    pub PC: xlenbits,
-    pub nextPC: xlenbits,
-    pub mscratch: xlenbits,
-    pub sscratch: xlenbits,
-    pub cur_privilege: Privilege,
-    pub Xs: [xlenbits;32],
     pub config: Config,
 }
 
@@ -34,7 +28,7 @@ pub type priv_level = BitVector<2>;
 
 /// Privilege
 /// 
-/// Generated from the Sail sources at `tests/csr/arch.sail` L34.
+/// Generated from the Sail sources at `tests/decoder/arch.sail` L34.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
     User,
@@ -50,7 +44,7 @@ pub type csreg = BitVector<12>;
 
 /// iop
 /// 
-/// Generated from the Sail sources at `tests/csr/arch.sail` L99.
+/// Generated from the Sail sources at `tests/decoder/arch.sail` L58.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
     RISCV_ADDI,
@@ -63,7 +57,7 @@ pub enum iop {
 
 /// csrop
 /// 
-/// Generated from the Sail sources at `tests/csr/arch.sail` L100.
+/// Generated from the Sail sources at `tests/decoder/arch.sail` L59.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum csrop {
     CSRRW,
@@ -73,7 +67,7 @@ pub enum csrop {
 
 /// Retired
 /// 
-/// Generated from the Sail sources at `tests/csr/arch.sail` L101.
+/// Generated from the Sail sources at `tests/decoder/arch.sail` L60.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
@@ -82,11 +76,16 @@ pub enum Retired {
 
 /// ast
 /// 
-/// Generated from the Sail sources at `tests/csr/arch.sail` L103.
+/// Generated from the Sail sources at `tests/decoder/arch.sail` L62.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    ITYPE((BitVector<12>, regidx, regidx, iop)),
-    CSR((BitVector<12>, regidx, regidx, bool, csrop))
+    CSR((BitVector<12>, regidx, regidx, bool, csrop)),
+    MRET(()),
+    SRET(()),
+    WFI(()),
+    SFENCE_VMA((BitVector<5>, BitVector<5>)),
+    HFENCE_VVMA((BitVector<5>, BitVector<5>)),
+    HFENCE_GVMA((BitVector<5>, BitVector<5>))
 }
 
 pub type csrRW = BitVector<2>;

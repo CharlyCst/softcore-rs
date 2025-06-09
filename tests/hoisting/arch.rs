@@ -29,7 +29,7 @@ pub type regbits = BitVector<5>;
 
 /// ast
 /// 
-/// Generated from the Sail sources at `sail_arch/hoisting.sail` L19.
+/// Generated from the Sail sources at `tests/hoisting/arch.sail` L19.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
     TEST(())
@@ -37,7 +37,7 @@ pub enum ast {
 
 /// execute_TEST
 /// 
-/// Generated from the Sail sources at `sail_arch/hoisting.sail` L24-34.
+/// Generated from the Sail sources at `tests/hoisting/arch.sail` L24-34.
 pub fn execute_TEST() {
     if {let foo_var_1 = BitVector::<3>::new(0b101);
     (BitVector::<3>::new(0b101) != foo_var_1)} {
