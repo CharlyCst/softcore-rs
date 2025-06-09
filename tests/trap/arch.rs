@@ -53,13 +53,9 @@ pub fn bool_to_bit(x: bool) -> bool {
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L28.
 pub fn bool_to_bits(x: bool) -> BitVector<1> {
-    let mut __generated_vector: BitVector<1> = BitVector::<1>::new_empty();
-    {
-        let var_1 = 0;
-        let var_2 = bool_to_bit(x);
-        __generated_vector.set_vector_entry(var_1, var_2)
-    };
-    __generated_vector
+    let var_1 = 0;
+    let var_2 = bool_to_bit(x);
+    BitVector::new(0).set_bit(var_1, var_2)
 }
 
 pub const xlen: usize = 64;

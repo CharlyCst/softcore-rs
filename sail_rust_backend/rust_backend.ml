@@ -326,7 +326,8 @@ module Codegen () = struct
             | E_for (id, E_aux (E_lit lit1, _), E_aux (E_lit lit2, _) , exp3, order, exp4) ->  assert(string_of_exp exp3 ="1"); assert(parse_order order = "inc");
                RsFor (RsTypId(string_of_id id), process_lit lit1, process_lit lit2, process_exp ctx exp4 )(* TODO: Implement a more general for loop*)
             | E_for (_,_,_,_,_,_) -> RsTodo "E_for"
-            | E_vector (exp_list) -> process_vector ctx exp_list
+            | E_vector (exp_list) -> 
+                process_vector ctx exp_list typ
             | E_vector_access (exp1, exp2) -> RsTodo "E_vector_access"
             | E_vector_subrange (exp1, exp2, exp3) -> RsTodo "E_vector_subrange"
             | E_vector_update (exp1, exp2, exp3) -> RsTodo "E_vector_update"
@@ -437,8 +438,7 @@ module Codegen () = struct
                 ))
     
 
-    (* todo: Currently we assume that all vectors are vector of bits, in the future we should make this function more general*)
-    and process_vector (ctx: context) (items: 'a exp list) : rs_exp =
+    and process_vector (ctx: context) (items: 'a exp list) (typ: typ) : rs_exp =
         let is_only_bits acc exp = match exp with
             | E_aux (E_lit(L_aux(lit, _)), _) -> (match lit with
                 | L_zero -> acc
@@ -446,7 +446,7 @@ module Codegen () = struct
                 | _ -> false)
             | _ -> false
         in
-        let is_literral = (List.fold_left is_only_bits true items) in
+        let is_literal = (List.fold_left is_only_bits true items) in
         let string_of_bit (E_aux (exp, _)) = match exp with
             | E_lit (L_aux (lit, _)) -> (match lit with
                 | L_zero -> "0"
@@ -454,24 +454,28 @@ module Codegen () = struct
                 | _ -> "x")
             | _ -> "X"
         in
-        let vector_length = List.length items in
-        let vector_length_exp = RsLit (RsLitNum (Int64.of_int vector_length)) in
-        let rec parse_arguments (idx: int) (elements: 'a exp list) : rs_exp list = match elements with
-            | e1 :: e -> RsMethodApp {
-                    exp = RsId "__generated_vector";
-                    name ="set_vector_entry";
-                    generics = [];
-                    args = [RsLit(RsLitNum (Int64.of_int idx)); process_exp ctx e1]
-                } :: parse_arguments (idx+1) (e)
-            | [] -> []
-        in 
-        if is_literral then
-            (* Generate a bitvector *)
+        let is_bitvector = match typ with
+            | Typ_aux (Typ_app (id, args), _) when string_of_id id = "bitvector"-> true
+            | _ -> false
+        in
+        if is_literal then
+            (* Generate a bitvector literal *)
+            let vector_length = List.length items in
+            let vector_length_exp = RsLit (RsLitNum (Int64.of_int vector_length)) in
             RsStaticApp(RsTypGenericParam ("BitVector::", [RsTypParamNum vector_length_exp]), "new", [RsLit(RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items))))])
+        else if is_bitvector then
+            (* Generate a bitvector from individual bits *)
+            let rec set_bits bits idx exp = match bits with
+                | head :: tail -> 
+                        let new_exp = mk_method_app exp "set_bit" [mk_num idx; process_exp ctx head] in
+                        set_bits tail (idx + 1) new_exp
+                | [] -> exp
+            in
+            let new_vec = RsStaticApp (RsTypId "BitVector", "new", [mk_num 0]) in
+            set_bits items 0 new_vec
         else 
-            let init_type = RsId (Printf.sprintf "BitVector::<%d>::new_empty()" vector_length) in
-            let init_expr = RsInstrList ((parse_arguments 0 items) @ [ RsId "__generated_vector"]) in
-            RsBlock[RsLet (RsPatType (RsTypGenericParam ("vector", [RsTypParamNum vector_length_exp]), RsPatId "mut __generated_vector"), init_type, init_expr)]
+            (* Generate other kinds of vectors *)
+            RsArray (List.map (process_exp ctx) items)
     and process_fexp_entries (ctx: context) (fexps: 'a Libsail.Ast.fexp list) : (string * rs_exp) list =
         match fexps with
         | (FE_aux (FE_fexp (id, exp), _)) :: r -> (string_of_id id, process_exp ctx exp) :: process_fexp_entries ctx r

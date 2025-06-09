@@ -85,6 +85,7 @@ and rs_exp =
     | RsIf of rs_exp * rs_exp * rs_exp
     | RsMatch of rs_exp * rs_pexp list
     | RsTuple of rs_exp list
+    | RsArray of rs_exp list
     | RsAssign of rs_lexp * rs_exp
     | RsIndex of rs_exp * rs_exp
     | RsBinop of rs_exp * rs_binop * rs_exp
@@ -203,6 +204,12 @@ let mk_struct (name: string) (fields: (string * rs_type) list) : rs_obj =
         derive = default_move_derive;
         doc = [];
     }
+
+let mk_num (n: int) : rs_exp =
+    RsLit (RsLitNum (Int64.of_int n))
+
+let mk_num64 (n: int64) : rs_exp =
+    RsLit (RsLitNum n)
 
 (** Removes the generic parameters from a type
 
@@ -451,6 +458,8 @@ and string_of_rs_exp (n: int) (exp: rs_exp) : string =
                 (indent n)
         | RsTuple exps ->
             Printf.sprintf "(%s)" (String.concat ", " (List.map (string_of_rs_exp n) exps))
+        | RsArray exps ->
+            Printf.sprintf "[%s]" (String.concat ", " (List.map (string_of_rs_exp n) exps))
         | RsAssign (exp1, exp2) ->
             Printf.sprintf "%s = %s"
                 (string_of_rs_lexp n exp1)
