@@ -109,6 +109,9 @@ and transform_exp (ct: expr_type_transform) (ctx: context) (exp: rs_exp) : rs_ex
         | RsTuple exps ->
             (RsTuple
                 (List.map (transform_exp ct ctx) exps))
+        | RsArray exps ->
+            (RsArray
+                (List.map (transform_exp ct ctx) exps))
         | RsAssign (lexp, exp) ->
             (RsAssign (
                 (transform_lexp ct ctx lexp),
@@ -612,6 +615,7 @@ let rec rename_in_exp (rn: string * string) (exp: rs_exp) : rs_exp =
                 List.map (rename_in_pexp rn) pexps
             )
         | RsTuple exps -> RsTuple (rename_in_exps exps)
+        | RsArray exps -> RsArray (rename_in_exps exps)
         | RsAssign (lexp, exp) -> RsAssign (rename_in_lexp rn lexp, rename_in_exp exp)
         | RsIndex (exp1, exp2) -> RsIndex (rename_in_exp exp1, rename_in_exp exp2)
         | RsBinop (exp1, op, exp2) -> RsBinop (rename_in_exp exp1, op, rename_in_exp exp2)

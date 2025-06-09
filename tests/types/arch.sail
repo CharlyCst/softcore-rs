@@ -76,6 +76,14 @@ function parse_hex_bits(n, s) = {
 val hex_bits_backwards : forall 'm, 'm > 0. (int('m), string) -> bits('m)
 function hex_bits_backwards(m, str) = parse_hex_bits(m, str)
 
+val validDoubleRegs : forall 'n, 'n > 0. (implicit('n), vector('n, bits(5))) -> bool
+function validDoubleRegs(n, regs) = {
+    foreach (i from 0 to (n - 1)) {
+        if (regs[i][0] == bitone) then return false;
+    };
+    true
+}
+
 union Access_kind('arch_ak : Type) = {
   AK_ttw : unit, // Translation table walk
   AK_arch : 'arch_ak // Architecture specific type of access.
@@ -146,6 +154,8 @@ function clause execute TEST() = {
     foreach (i from 0 to 3) {
         let idx = i;
     };
+
+    let ok = validDoubleRegs([0b11011, 0b01111]);
 
     let s : My_struct = struct {
         field1 = 0b11111,

@@ -220,13 +220,14 @@ impl<const N: usize> BitVector<N> {
         BitVector { bits: self.bits }
     }
 
-    pub fn set_vector_entry(&mut self, idx: usize, value: bool) {
+    pub fn set_bit(self, idx: usize, value: bool) -> Self {
         assert!(idx < N, "Out of bounds array check");
-        if value {
-            self.bits |= 1u64 << idx;
+        let new_value = if value {
+            self.bits | 1u64 << idx
         } else {
-            self.bits &= !(1u64 << idx);
-        }
+            self.bits & !(1u64 << idx)
+        };
+        BitVector { bits: new_value }
     }
 
     pub const fn subrange<const A: usize, const B: usize, const C: usize>(self) -> BitVector<C> {
@@ -259,11 +260,7 @@ impl<const N: usize> BitVector<N> {
     const fn bit_mask() -> u64 {
         assert!(N <= 64);
 
-        if N == 64 {
-            u64::MAX
-        } else {
-            (1 << N) - 1
-        }
+        if N == 64 { u64::MAX } else { (1 << N) - 1 }
     }
 }
 
@@ -634,20 +631,20 @@ mod tests {
     }
 
     #[test]
-    fn test_set_vector_entry() {
+    fn test_set_bit() {
         const SIZE: usize = 60;
 
         let mut v = BitVector::<SIZE>::new(0);
         let mut val: u64 = 0;
         for idx in 0..SIZE {
             val |= 1u64 << idx;
-            v.set_vector_entry(idx, true);
+            v = v.set_bit(idx, true);
 
             assert_eq!(v.bits, val);
         }
 
         for i in 0..SIZE {
-            v.set_vector_entry(i, false);
+            v = v.set_bit(i, false);
         }
 
         assert_eq!(v.bits, 0);
