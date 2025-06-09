@@ -761,7 +761,7 @@ let pexp_hoister (ctx: context) (pexp: rs_pexp) : rs_pexp =
             let (cond, defs) = hoist_let_exp cond in
             let rec build_cond exp defs =
                 match defs with
-                    | (pat, binding) :: tail -> RsLet (pat, binding, exp)
+                    | (pat, binding) :: tail -> RsLet (pat, binding, build_cond exp tail)
                     | [] -> exp
             in
             let cond = build_cond cond defs in
@@ -784,7 +784,7 @@ let expr_hoister (ctx: context) (exp: rs_exp) : rs_exp =
             let (cond, defs) = hoist_let_exp cond in
             let rec build_cond exp defs =
                 match defs with
-                    | (pat, binding) :: tail -> RsLet (pat, binding, exp)
+                    | (pat, binding) :: tail -> RsLet (pat, binding, build_cond exp tail)
                     | [] -> exp
             in
             let cond = build_cond cond defs in
