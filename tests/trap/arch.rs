@@ -89,7 +89,7 @@ pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
 /// haveSupMode
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L66.
-pub fn haveSupMode(unit_arg: ()) -> bool {
+pub const fn haveSupMode(unit_arg: ()) -> bool {
     true
 }
 

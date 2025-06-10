@@ -609,6 +609,7 @@ module Codegen () = struct
             signature = signature;
             body = rs_exp;
             use_sail_ctx = ctx.uses_sail_ctx;
+            const = false;
             doc = 
                 [ name ] @
                 begin match doc_comment with | Some c -> [""; c] | None -> [] end @

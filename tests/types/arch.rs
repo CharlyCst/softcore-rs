@@ -104,7 +104,7 @@ pub enum ast {
 /// zeros
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L66.
-pub fn zeros<const N: usize>(n: usize) -> BitVector<N> {
+pub const fn zeros<const N: usize>(n: usize) -> BitVector<N> {
     sail_zeros(n)
 }
 

@@ -47,7 +47,7 @@ pub enum Privilege {
 /// haveUsrMode
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L43.
-pub fn haveUsrMode(unit_arg: ()) -> bool {
+pub const fn haveUsrMode(unit_arg: ()) -> bool {
     true
 }
 
@@ -203,14 +203,14 @@ pub enum ast {
 /// ext_check_xret_priv
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L204.
-pub fn ext_check_xret_priv(p: Privilege) -> bool {
+pub const fn ext_check_xret_priv(p: Privilege) -> bool {
     true
 }
 
 /// ext_fail_xret_priv
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L206.
-pub fn ext_fail_xret_priv(unit_arg: ()) {
+pub const fn ext_fail_xret_priv(unit_arg: ()) {
     ()
 }
 

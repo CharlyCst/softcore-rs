@@ -122,6 +122,7 @@ type rs_fn = {
     signature: rs_fn_type;
     args: rs_pat list;
     body: rs_exp;
+    const: bool;
     doc: string list;
     mutable use_sail_ctx: bool;
 }
@@ -279,6 +280,12 @@ let rec string_of_doc (doc: string list) : string =
     | head :: [] -> "/// " ^ head ^ "\n"
     | head :: tail -> "/// " ^ head ^ "\n" ^ (string_of_doc tail)
     | [] -> ""
+
+let string_of_const (const: bool) : string = 
+    if const then
+        "const "
+    else
+        ""
 
 let string_of_derive (derive: string list) : string =
     match derive with
@@ -549,6 +556,7 @@ let string_of_rs_fn_args (fn: rs_fn) : string =
 
 let string_of_rs_fn (fn: rs_fn) : string =
     let doc = string_of_doc fn.doc in
+    let const = string_of_const fn.const in
     let args = string_of_rs_fn_args fn in
     let ret_type = match fn.signature.ret with
         | RsTypUnit -> ""
@@ -556,7 +564,7 @@ let string_of_rs_fn (fn: rs_fn) : string =
     in
     (* For now we assume all generics are const usize *)
     let generics = string_of_generics_parameters fn.signature.generics in
-    let signature = Printf.sprintf "%spub fn %s%s(%s)%s {\n%s" doc fn.name generics args ret_type (indent 1) in
+    let signature = Printf.sprintf "%spub %sfn %s%s(%s)%s {\n%s" doc const fn.name generics args ret_type (indent 1) in
     let stmts = (match fn.body with
         | RsBlock exps
             -> String.concat
