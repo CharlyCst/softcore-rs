@@ -18,11 +18,11 @@ pub struct Config {
     pub unknown_at_compile_time: usize,
 }
 
-pub const xlen: usize = 64;
-
 pub const xlen_bytes: usize = 8;
 
 pub type xlenbits = BitVector<xlen>;
+
+pub const xlen: usize = 64;
 
 /// ExceptionType
 /// 

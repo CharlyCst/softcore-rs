@@ -258,6 +258,10 @@ let transform_obj (ct: expr_type_transform) (ctx: context) (obj: rs_obj) : rs_ob
                 | Some typ -> (name, Some (transform_type ct ctx typ)))
             enum.fields)
         }
+        | RsConst const -> RsConst { const with
+                value = transform_exp ct ctx const.value;
+                typ = transform_type ct ctx const.typ;
+            }
         | _ -> obj
 
 let rust_transform_expr (ct: expr_type_transform) (ctx: context) (RsProg objs) : rs_program =
