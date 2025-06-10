@@ -376,7 +376,7 @@ module Codegen () = struct
                 ))
             | E_sizeof nexp -> RsTodo "E_sizeof"
             | E_return exp -> RsReturn (process_exp ctx exp)
-            | E_exit exp -> RsApp(RsId "__exit" , [], [])
+            | E_exit exp -> RsApp(RsId "panic!", [], [RsLit(RsLitStr "exit")]) (* How should we handle exits? *)
             | E_ref id -> RsTodo "E_ref"
             | E_throw exp -> RsApp(RsId "panic!", [], [RsLit(RsLitStr "todo_process_panic_type")])
             | E_try (exp, pexp_list) -> RsTodo "E_try"
