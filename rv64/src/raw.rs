@@ -553,21 +553,21 @@ pub fn hex_bits_12_backwards_matches(arg_hashtag_: &'static str) -> bool {
 /// get_config_print_platform
 /// 
 /// Generated from the Sail sources at `prelude.sail` L75.
-pub fn get_config_print_platform(unit_arg: ()) -> bool {
+pub const fn get_config_print_platform(unit_arg: ()) -> bool {
     false
 }
 
 /// zeros
 /// 
 /// Generated from the Sail sources at `prelude.sail` L84.
-pub fn zeros<const N: usize>(n: usize) -> BitVector<N> {
+pub const fn zeros<const N: usize>(n: usize) -> BitVector<N> {
     sail_zeros(n)
 }
 
 /// ones
 /// 
 /// Generated from the Sail sources at `prelude.sail` L87.
-pub fn ones<const N: usize>(n: usize) -> BitVector<N> {
+pub const fn ones<const N: usize>(n: usize) -> BitVector<N> {
     sail_ones(n)
 }
 
@@ -2750,7 +2750,7 @@ pub const default_write_acc: ext_access_type = Data;
 /// trap_callback
 /// 
 /// Generated from the Sail sources at `riscv_callbacks.sail` L32.
-pub fn trap_callback(unit_arg: ()) {
+pub const fn trap_callback(unit_arg: ()) {
     ()
 }
 
@@ -4065,7 +4065,7 @@ pub type ext_exception = ();
 /// handle_trap_extension
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L18.
-pub fn handle_trap_extension(p: Privilege, pc: BitVector<{
+pub const fn handle_trap_extension(p: Privilege, pc: BitVector<{
     (usize::pow(2, 3) * 8)
 }>, u: Option<()>) {
     ()

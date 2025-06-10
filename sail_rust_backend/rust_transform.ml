@@ -1021,6 +1021,29 @@ let enum_binder : expr_type_transform = {
     obj = id_obj;
 }
   
+(* ———————————————————————————— Const Functions ————————————————————————————— *)
+
+(* Constant prelude functions *)
+let const_prelude_func: SSet.t = SSet.of_list ([
+        "sail_ones";
+        "sail_zeros";
+    ])
+
+(* For now we use very simple heuristics *)
+let should_be_const (body: rs_exp) : bool =
+    match body with
+        | RsLit _ -> true
+        | RsApp (RsId id, _, _) when SSet.mem id const_prelude_func-> true 
+        | _ -> false
+
+let const_functions (ctx: context) (func: rs_fn): rs_fn = {
+    func with
+    const = should_be_const func.body
+}
+
+let const_fn_rewriter = {
+  func = const_functions
+}
 
 (* ———————————————————————— Operator rewriter function side  ————————————————————————— *)
 
@@ -1285,6 +1308,7 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
   let rust_program = rust_transform_expr sail_context_arg_inserter ctx rust_program in
   let rust_program = rust_transform_expr expr_type_hoister ctx rust_program in 
   let rust_program = rust_transform_expr expr_type_operator_rewriter ctx rust_program in
+  let rust_program = rust_transform_func const_fn_rewriter ctx rust_program in
   let rust_program = rust_transform_func operator_rewriter ctx rust_program in
 
   (* Optimizer: Dead code elimination *)
