@@ -213,10 +213,7 @@ pub fn execute_TEST(core_ctx: &mut Core) {
     let d = handle_retired(());
     let e = handle_union(());
     let f = hex_bits_backwards(8, "00");
-    let g = {
-        let var_2 = physaddr::Physaddr(BitVector::<64>::new(0b0000000000000000000000000000000011011110101011011011111011101111));
-        pmpMatchAddr(var_2)
-    };
+    let g = pmpMatchAddr(physaddr::Physaddr(BitVector::<64>::new(0b0000000000000000000000000000000011011110101011011011111011101111)));
     if {(f != BitVector::<8>::new(0b00000000))} {
         assert!(false, "failed to parse hex)")
     } else {
@@ -240,9 +237,6 @@ pub fn execute_TEST(core_ctx: &mut Core) {
     let G: usize = core_ctx.config.unknown_at_compile_time;
     let mask: xlenbits = sail_ones::<64>(min_int(G, 64)).zero_extend::<64>();
     let mask2 = sail_ones::<8>(8);
-    let value = {
-        let var_1 = ExceptionType::E_Fetch_Addr_Align(());
-        exceptionType_to_bits(var_1)
-    };
+    let value = exceptionType_to_bits(ExceptionType::E_Fetch_Addr_Align(()));
     ()
 }

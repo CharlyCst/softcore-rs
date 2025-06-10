@@ -3628,16 +3628,10 @@ pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<{
     (usize::pow(2, 3) * 8)
 }>> {
     let base: xlenbits = bitvector_concat::<62, 2, 64>(_get_Mtvec_Base(m), BitVector::<2>::new(0b00));
-    match {
-        let var_2 = _get_Mtvec_Mode(m);
-        trapVectorMode_of_bits(var_2)
-    } {
+    match trapVectorMode_of_bits(_get_Mtvec_Mode(m)) {
         TrapVectorMode::TV_Direct => {Some(base)}
         TrapVectorMode::TV_Vector => {if {(_get_Mcause_IsInterrupt(c) == BitVector::<1>::new(0b1))} {
-            Some({
-                let var_1 = (_get_Mcause_Cause(c).zero_extend::<64>() << 2);
-                base.wrapped_add(var_1)
-            })
+            Some(base.wrapped_add((_get_Mcause_Cause(c).zero_extend::<64>() << 2)))
         } else {
             Some(base)
         }}
@@ -3712,17 +3706,11 @@ pub fn pmpReadAddrReg(core_ctx: &mut Core, n: usize) -> BitVector<{
     let addr = core_ctx.pmpaddr_n[n];
     match bitvector_access(match_type, 1) {
         true if {(G >= 2)} => {{
-            let mask: xlenbits = {
-                let var_1 = min_int((G - 1), xlen);
-                ones::<64>(var_1)
-            }.zero_extend::<64>();
+            let mask: xlenbits = ones::<64>(min_int((G - 1), xlen)).zero_extend::<64>();
             (addr | mask)
         }}
         false if {(G >= 1)} => {{
-            let mask: xlenbits = {
-                let var_2 = min_int(G, xlen);
-                ones::<64>(var_2)
-            }.zero_extend::<64>();
+            let mask: xlenbits = ones::<64>(min_int(G, xlen)).zero_extend::<64>();
             (addr & !(mask))
         }}
         _ => {addr}
@@ -3741,10 +3729,7 @@ pub fn pmpLocked(cfg: Pmpcfg_ent) -> bool {
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L95-96.
 pub fn pmpTORLocked(cfg: Pmpcfg_ent) -> bool {
-    ((_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1)) && ({
-        let var_1 = _get_Pmpcfg_ent_A(cfg);
-        pmpAddrMatchType_of_bits(var_1)
-    } == PmpAddrMatchType::TOR))
+    ((_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1)) && (pmpAddrMatchType_of_bits(_get_Pmpcfg_ent_A(cfg)) == PmpAddrMatchType::TOR))
 }
 
 /// pmpWriteCfg
@@ -3754,32 +3739,14 @@ pub fn pmpWriteCfg(core_ctx: &mut Core, n: usize, cfg: Pmpcfg_ent, v: BitVector<
     if {pmpLocked(cfg)} {
         cfg
     } else {
-        let cfg = {
-            let var_8 = (v & BitVector::<8>::new(0b10011111));
-            Mk_Pmpcfg_ent(var_8)
-        };
+        let cfg = Mk_Pmpcfg_ent((v & BitVector::<8>::new(0b10011111)));
         let cfg = if {((_get_Pmpcfg_ent_W(cfg) == BitVector::<1>::new(0b1)) && (_get_Pmpcfg_ent_R(cfg) == BitVector::<1>::new(0b0)))} {
-            {
-                let var_4 = {
-                    let var_6 = _update_Pmpcfg_ent_X(cfg, BitVector::<1>::new(0b0));
-                    let var_7 = BitVector::<1>::new(0b0);
-                    _update_Pmpcfg_ent_W(var_6, var_7)
-                };
-                let var_5 = BitVector::<1>::new(0b0);
-                _update_Pmpcfg_ent_R(var_4, var_5)
-            }
+            _update_Pmpcfg_ent_R(_update_Pmpcfg_ent_W(_update_Pmpcfg_ent_X(cfg, BitVector::<1>::new(0b0)), BitVector::<1>::new(0b0)), BitVector::<1>::new(0b0))
         } else {
             cfg
         };
-        let cfg = if {((sys_pmp_grain(core_ctx, ()) >= 1) && ({
-            let var_3 = _get_Pmpcfg_ent_A(cfg);
-            pmpAddrMatchType_of_bits(var_3)
-        } == PmpAddrMatchType::NA4))} {
-            {
-                let var_1 = cfg;
-                let var_2 = pmpAddrMatchType_to_bits(PmpAddrMatchType::OFF);
-                _update_Pmpcfg_ent_A(var_1, var_2)
-            }
+        let cfg = if {((sys_pmp_grain(core_ctx, ()) >= 1) && (pmpAddrMatchType_of_bits(_get_Pmpcfg_ent_A(cfg)) == PmpAddrMatchType::NA4))} {
+            _update_Pmpcfg_ent_A(cfg, pmpAddrMatchType_to_bits(PmpAddrMatchType::OFF))
         } else {
             cfg
         };
@@ -3796,23 +3763,13 @@ pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: usize, v: BitVector<{
     if {(xlen == 32)} {
         for i in 0..=3 {
             let idx = ((n * 4) + i);
-            core_ctx.pmpcfg_n[idx] = {
-                let var_4 = idx;
-                let var_5 = core_ctx.pmpcfg_n[idx];
-                let var_6 = subrange_bits(v, ((8 * i) + 7), (8 * i));
-                pmpWriteCfg(core_ctx, var_4, var_5, var_6)
-            }
+            core_ctx.pmpcfg_n[idx] = pmpWriteCfg(core_ctx, idx, core_ctx.pmpcfg_n[idx], subrange_bits(v, ((8 * i) + 7), (8 * i)))
         }
     } else {
         assert!(((n % 2) == 0), "Unexpected pmp config reg write");
         for i in 0..=7 {
             let idx = ((n * 4) + i);
-            core_ctx.pmpcfg_n[idx] = {
-                let var_1 = idx;
-                let var_2 = core_ctx.pmpcfg_n[idx];
-                let var_3 = subrange_bits(v, ((8 * i) + 7), (8 * i));
-                pmpWriteCfg(core_ctx, var_1, var_2, var_3)
-            }
+            core_ctx.pmpcfg_n[idx] = pmpWriteCfg(core_ctx, idx, core_ctx.pmpcfg_n[idx], subrange_bits(v, ((8 * i) + 7), (8 * i)))
         }
     }
 }
@@ -3849,15 +3806,12 @@ pub fn pmpWriteAddrReg(core_ctx: &mut Core, n: usize, v: BitVector<{
     (usize::pow(2, 3) * 8)
 }>) {
     core_ctx.pmpaddr_n[n] = {
-        let var_1 = pmpLocked(core_ctx.pmpcfg_n[n]);
-        let var_2 = if {((n + 1) < 64)} {
+        let var_1 = if {((n + 1) < 64)} {
             pmpTORLocked(core_ctx.pmpcfg_n[(n + 1)])
         } else {
             false
         };
-        let var_3 = core_ctx.pmpaddr_n[n];
-        let var_4 = v;
-        pmpWriteAddr(var_1, var_2, var_3, var_4)
+        pmpWriteAddr(pmpLocked(core_ctx.pmpcfg_n[n]), var_1, core_ctx.pmpaddr_n[n], v)
     }
 }
 
@@ -3909,46 +3863,25 @@ pub fn pmpMatchAddr(core_ctx: &mut Core, physaddr::Physaddr(addr): physaddr, wid
 }>) -> pmpAddrMatch {
     let addr = addr.as_usize();
     let width = width.as_usize();
-    match {
-        let var_13 = _get_Pmpcfg_ent_A(ent);
-        pmpAddrMatchType_of_bits(var_13)
-    } {
+    match pmpAddrMatchType_of_bits(_get_Pmpcfg_ent_A(ent)) {
         PmpAddrMatchType::OFF => {pmpAddrMatch::PMP_NoMatch}
         PmpAddrMatchType::TOR => {{
             if {_operator_biggerequal_u_(prev_pmpaddr, pmpaddr)} {
                 pmpAddrMatch::PMP_NoMatch
             } else {
-                {
-                    let var_1 = (prev_pmpaddr.as_usize() * 4);
-                    let var_2 = (pmpaddr.as_usize() * 4);
-                    let var_3 = addr;
-                    let var_4 = width;
-                    pmpRangeMatch((var_1 as u128), (var_2 as u128), (var_3 as u128), (var_4 as u128))
-                }
+                pmpRangeMatch(((prev_pmpaddr.as_usize() * 4) as u128), ((pmpaddr.as_usize() * 4) as u128), (addr as u128), (width as u128))
             }
         }}
         PmpAddrMatchType::NA4 => {{
             assert!((sys_pmp_grain(core_ctx, ()) < 1), "NA4 cannot be selected when PMP grain G >= 1.");
             let begin = (pmpaddr.as_usize() * 4);
-            {
-                let var_5 = begin;
-                let var_6 = (begin + 4);
-                let var_7 = addr;
-                let var_8 = width;
-                pmpRangeMatch((var_5 as u128), (var_6 as u128), (var_7 as u128), (var_8 as u128))
-            }
+            pmpRangeMatch((begin as u128), ((begin + 4) as u128), (addr as u128), (width as u128))
         }}
         PmpAddrMatchType::NAPOT => {{
             let mask = (pmpaddr ^ (pmpaddr + 1));
             let begin_words = (pmpaddr & !(mask)).as_usize();
             let end_words = ((begin_words + mask.as_usize()) + 1);
-            {
-                let var_9 = (begin_words * 4);
-                let var_10 = (end_words * 4);
-                let var_11 = addr;
-                let var_12 = width;
-                pmpRangeMatch((var_9 as u128), (var_10 as u128), (var_11 as u128), (var_12 as u128))
-            }
+            pmpRangeMatch(((begin_words * 4) as u128), ((end_words * 4) as u128), (addr as u128), (width as u128))
         }}
         _ => {panic!("Unreachable code")}
     }
@@ -4006,22 +3939,13 @@ pub fn pmpCheck<const N: usize>(core_ctx: &mut Core, addr: physaddr, width: usiz
     let width: xlenbits = to_bits(xlen, width);
     for i in 0..=63 {
         let prev_pmpaddr = if {gt_int(i, 0)} {
-            {
-                let var_8 = (i - 1);
-                pmpReadAddrReg(core_ctx, var_8)
-            }
+            pmpReadAddrReg(core_ctx, (i - 1))
         } else {
             zeros(64)
         };
         match {
-            let var_1 = addr;
-            let var_2 = width;
-            let var_3 = acc;
-            let var_4 = _priv_;
-            let var_5 = core_ctx.pmpcfg_n[i];
-            let var_6 = pmpReadAddrReg(core_ctx, i);
-            let var_7 = prev_pmpaddr;
-            pmpMatchEntry(core_ctx, var_1, var_2, var_3, var_4, var_5, var_6, var_7)
+            let var_1 = pmpReadAddrReg(core_ctx, i);
+            pmpMatchEntry(core_ctx, addr, width, acc, _priv_, core_ctx.pmpcfg_n[i], var_1, prev_pmpaddr)
         } {
             pmpMatch::PMP_Success => {{
                 return None;
@@ -4311,28 +4235,22 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
     };
     match del_priv {
         Privilege::Machine => {{
-            core_ctx.mcause.bits = {
-                let var_1 = bool_to_bits(intr);
-                core_ctx.mcause.bits.set_subrange::<63, 64, 1>(var_1)
-            };
-            core_ctx.mcause.bits = {
-                let var_2 = c.zero_extend::<63>();
-                core_ctx.mcause.bits.set_subrange::<0, 63, 63>(var_2)
-            };
+            core_ctx.mcause.bits = core_ctx.mcause.bits.set_subrange::<63, 64, 1>(bool_to_bits(intr));
+            core_ctx.mcause.bits = core_ctx.mcause.bits.set_subrange::<0, 63, 63>(c.zero_extend::<63>());
             core_ctx.mstatus.bits = {
-                let var_3 = {
-                    let var_4 = core_ctx.mstatus;
-                    _get_Mstatus_MIE(var_4)
+                let var_1 = {
+                    let var_2 = core_ctx.mstatus;
+                    _get_Mstatus_MIE(var_2)
                 };
-                core_ctx.mstatus.bits.set_subrange::<7, 8, 1>(var_3)
+                core_ctx.mstatus.bits.set_subrange::<7, 8, 1>(var_1)
             };
             core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<3, 4, 1>(BitVector::<1>::new(0b0));
             core_ctx.mstatus.bits = {
-                let var_5 = {
-                    let var_6 = core_ctx.cur_privilege;
-                    privLevel_to_bits(var_6)
+                let var_3 = {
+                    let var_4 = core_ctx.cur_privilege;
+                    privLevel_to_bits(var_4)
                 };
-                core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_5)
+                core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_3)
             };
             core_ctx.mtval = tval(info);
             core_ctx.mepc = pc;
@@ -4340,27 +4258,20 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
             handle_trap_extension(del_priv, pc, ext);
             track_trap(core_ctx, del_priv);
             {
-                let var_7 = del_priv;
-                let var_8 = core_ctx.mcause;
-                prepare_trap_vector(core_ctx, var_7, var_8)
+                let var_5 = core_ctx.mcause;
+                prepare_trap_vector(core_ctx, del_priv, var_5)
             }
         }}
         Privilege::Supervisor => {{
             assert!(currentlyEnabled(core_ctx, extension::Ext_S), "no supervisor mode present for delegation");
-            core_ctx.scause.bits = {
-                let var_9 = bool_to_bits(intr);
-                core_ctx.scause.bits.set_subrange::<63, 64, 1>(var_9)
-            };
-            core_ctx.scause.bits = {
-                let var_10 = c.zero_extend::<63>();
-                core_ctx.scause.bits.set_subrange::<0, 63, 63>(var_10)
-            };
+            core_ctx.scause.bits = core_ctx.scause.bits.set_subrange::<63, 64, 1>(bool_to_bits(intr));
+            core_ctx.scause.bits = core_ctx.scause.bits.set_subrange::<0, 63, 63>(c.zero_extend::<63>());
             core_ctx.mstatus.bits = {
-                let var_11 = {
-                    let var_12 = core_ctx.mstatus;
-                    _get_Mstatus_SIE(var_12)
+                let var_6 = {
+                    let var_7 = core_ctx.mstatus;
+                    _get_Mstatus_SIE(var_7)
                 };
-                core_ctx.mstatus.bits.set_subrange::<5, 6, 1>(var_11)
+                core_ctx.mstatus.bits.set_subrange::<5, 6, 1>(var_6)
             };
             core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<1, 2, 1>(BitVector::<1>::new(0b0));
             core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<8, 9, 1>(match core_ctx.cur_privilege {
@@ -4375,9 +4286,8 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
             handle_trap_extension(del_priv, pc, ext);
             track_trap(core_ctx, del_priv);
             {
-                let var_13 = del_priv;
-                let var_14 = core_ctx.scause;
-                prepare_trap_vector(core_ctx, var_13, var_14)
+                let var_8 = core_ctx.scause;
+                prepare_trap_vector(core_ctx, del_priv, var_8)
             }
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 273, "Invalid privilege level")}

@@ -251,7 +251,7 @@ module Codegen () = struct
                 let id = (sanitize_id (string_of_id id)) in
                 if SSet.mem id ctx.registers then
                     let _ = ctx.uses_sail_ctx <- true in (* set flag *)
-                    RsField (RsId "core_ctx", id)
+                    RsField (RsId core_ctx, id)
                 else
                     RsId id
             | E_lit lit -> RsLit (process_lit lit)
@@ -394,14 +394,14 @@ module Codegen () = struct
                     | [] -> expr
                 in
                 ctx.uses_sail_ctx <- true; (* set flag *)
-                construct_fields (RsField (RsId "core_ctx", "config")) cfgs
+                construct_fields (RsField (RsId core_ctx, "config")) cfgs
     and process_lexp (ctx: context) (LE_aux (lexp, annot)) : rs_lexp =
         match lexp with
             | LE_id id ->
                 let id = (sanitize_id (string_of_id id)) in
                 if SSet.mem id ctx.registers then
                     let _ = ctx.uses_sail_ctx <- true in (* set flag *)
-                    RsLexpField (RsId "core_ctx", id)
+                    RsLexpField (RsId core_ctx, id)
                 else
                     RsLexpId id
             | LE_vector (lexp, idx) ->

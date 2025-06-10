@@ -657,28 +657,36 @@ and rename_in_lexp (rn: string * string) (lexp: rs_lexp) : rs_lexp =
         | RsLexpTodo -> RsLexpTodo
 
 
-(* TODO: This is enough for our use case, but we might need to refactor this condition for the full sail transpilation *)
-let rec should_hoist (exp: rs_exp list) : bool = 
+(* Wehter an expression should be hoisted. *)
+let rec should_hoist_exp (is_nested: bool) (exp: rs_exp) : bool =
+    let core_ctx = RsId core_ctx in
     match exp with
-        | [] -> false
-        | RsApp _ :: _ -> true  
-        | RsMethodApp _ :: _ -> true
-        | RsIf (_,_,_) :: _ -> true
-        | RsField (e,e2) :: _ -> true
-        | RsBinop (e1, op, e2) :: _ -> true
-        | _ :: tail -> should_hoist tail 
+        | RsApp (exp, generics, args) -> List.mem core_ctx args || should_hoist_args args
+        | RsMethodApp app -> should_hoist_exp true app.exp || List.mem core_ctx app.args || should_hoist_args app.args
+        | RsIf (_,_,_) -> true
+        | RsField (e,e2) -> should_hoist_exp true e
+        | RsBinop (e1, op, e2) -> (should_hoist_exp true e1) || (should_hoist_exp true e2)
+        | e when e = core_ctx && is_nested -> true
+        | _ -> false
+
+(* Whether at least one argument should be hoisted *)
+and should_hoist_args (args: rs_exp list) : bool = 
+    List.fold_left (fun acc arg -> acc || should_hoist_exp false arg) false args
     
 let rec hoist (exp: rs_exp list) : rs_exp list * rs_exp list = 
     match exp with
-    | e :: arr -> 
+    | e :: arr  when should_hoist_exp false e -> 
         let ident = !variable_generator () in
         let (l1, l2) = hoist arr in
         (RsLet (RsPatId ident, e, RsTodo "hoist") :: l1, RsId ident :: l2)
+    | e :: arr ->
+        let (l1, l2) = hoist arr in
+        (l1, e :: l2)
     | [] -> ([], [])
 
-let rec generate_hoistised_block (exp: rs_exp list) (app) : rs_exp = 
+let rec generate_hoisted_block (exp: rs_exp list) (app) : rs_exp = 
     match exp with
-        | RsLet (pat, exp2, _) :: arr -> RsLet(pat, exp2, generate_hoistised_block arr app)
+        | RsLet (pat, exp2, _) :: arr -> RsLet(pat, exp2, generate_hoisted_block arr app)
         | [] -> app
         | _ -> failwith "Unreachable code"
 
@@ -775,15 +783,15 @@ let pexp_hoister (ctx: context) (pexp: rs_pexp) : rs_pexp =
 let expr_hoister (ctx: context) (exp: rs_exp) : rs_exp = 
     match exp with
         (* We dont need to hoist external functions & some macro might not work with hoisting (for example: format!)*)
-        | RsApp (RsId name, generics, args) when should_hoist args && not(SSet.mem name external_func) -> let ret = hoist args in 
-            RsBlock[generate_hoistised_block (fst ret) (RsApp (RsId name, generics, snd ret))]
-        | RsMethodApp {exp; name; generics; args} when should_hoist args -> let ret = hoist args in 
-        RsBlock[generate_hoistised_block (fst ret) (RsMethodApp {
-            exp = exp;
-            name = name;
-            generics = generics;
-            args = snd ret
-        })]
+        | RsApp (RsId name, generics, args) when should_hoist_args args && not(SSet.mem name external_func) -> let ret = hoist args in 
+            RsBlock[generate_hoisted_block (fst ret) (RsApp (RsId name, generics, snd ret))]
+        | RsMethodApp {exp; name; generics; args} when should_hoist_args args -> let ret = hoist args in 
+            RsBlock[generate_hoisted_block (fst ret) (RsMethodApp {
+                exp = exp;
+                name = name;
+                generics = generics;
+                args = snd ret
+            })]
         | RsIf (cond, if_branch, else_branch) ->
             let (cond, defs) = hoist_let_exp cond in
             let rec build_cond exp defs =
@@ -929,7 +937,7 @@ let sail_context_inserter (ctx: context) (func: rs_fn): rs_fn =
     if func.use_sail_ctx then
         { 
             func with 
-            args = RsPatId "core_ctx" :: func.args;
+            args = RsPatId core_ctx :: func.args;
             signature = { func.signature with args = RsTypId "&mut Core" :: func.signature.args }
         }
     else
@@ -1168,10 +1176,10 @@ let sail_context_arg_inserter_exp (ctx: context) (exp: rs_exp) : rs_exp =
     | RsApp (RsId app_id, generics, args) when not(SSet.mem app_id external_func) && not(is_enum app_id) -> 
         begin match ctx_fun app_id ctx  with
             | Some(fn) when not fn.use_sail_ctx -> exp
-            | Some(fn) -> let args = RsId "core_ctx" :: args in RsApp (RsId app_id, generics, args)
+            | Some(fn) -> let args = RsId core_ctx :: args in RsApp (RsId app_id, generics, args)
             | _ ->
                 Reporting.simple_warn (Printf.sprintf "Could not find function '%s' in context" app_id);
-                let args = RsId "core_ctx" :: args in RsApp (RsId app_id, generics, args)
+                let args = RsId core_ctx :: args in RsApp (RsId app_id, generics, args)
         end
     | _ -> exp
     
@@ -1262,7 +1270,6 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
   let rust_program = rust_transform_expr native_func_transform ctx rust_program in
   let rust_program = fix_point (rust_transform_expr expression_optimizer ctx) rust_program 10 in
   let rust_program = rust_transform_expr bitvec_transform ctx rust_program in
-  let rust_program = rust_transform_expr expr_type_hoister ctx rust_program in 
   let rust_program = rust_transform_expr normalize_generics ctx rust_program in
   let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in
   let rust_program = rust_transform_expr enum_binder ctx rust_program in
@@ -1272,6 +1279,7 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
   let rust_program = rust_transform_expr transform_basic_types ctx rust_program in
   let rust_program = rust_transform_expr add_wildcard_match ctx rust_program in
   let rust_program = rust_transform_expr sail_context_arg_inserter ctx rust_program in
+  let rust_program = rust_transform_expr expr_type_hoister ctx rust_program in 
   let rust_program = rust_transform_expr expr_type_operator_rewriter ctx rust_program in
   let rust_program = rust_transform_func operator_rewriter ctx rust_program in
 

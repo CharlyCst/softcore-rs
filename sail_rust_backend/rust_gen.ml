@@ -168,6 +168,7 @@ type rs_program =
 
 (* ————————————————————————————————— Utils —————————————————————————————————— *)
 
+let core_ctx = "core_ctx"
 let default_copy_derive = ["Eq"; "PartialEq"; "Clone"; "Copy"; "Debug"]
 let default_move_derive = ["Eq"; "PartialEq"; "Clone"; "Debug"]
 
