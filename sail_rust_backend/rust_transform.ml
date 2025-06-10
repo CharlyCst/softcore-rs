@@ -7,6 +7,7 @@ open Libsail
 
 module SSet = Call_set.SSet
 module SMap = Call_set.SMap
+module Big_int = Libsail.Ast_util.Big_int
 
 (* ————————————————————————— List of external expressions —————————————————————————— *)
 
@@ -160,28 +161,6 @@ and transform_app (ct: expr_type_transform) (ctx: context) (fn: rs_exp) (generic
         | (RsId "Some", [exp]) -> RsSome(exp)
         | (RsId "None", _) -> RsNone 
 
-        (* Custom RISC-V bit extension functions *)
-        | (RsId "EXTZ", (RsLit (RsLitNum n))::value::[]) ->
-            (* The zero_extend method is defined for bitvectors in the Rust prelude *)
-            if n > 64L then
-                Printf.printf "Warning: unsupported EXTZ bit width (%d)\n" (Int64.to_int n);
-            RsMethodApp {
-                exp = value;
-                name = "zero_extend";
-                generics = [Int64.to_string n];
-                args = [];
-            }
-        | (RsId "EXTS", (RsLit (RsLitNum n))::value::[]) ->
-            (match n with
-                | 8L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 8L))]), RsTypId "new"), generics, [mk_method_app value "bits" []])
-                | 16L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 16L))]), RsTypId "new"), generics, [mk_method_app value "bits" []])
-                | 32L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 32L))]), RsTypId "new"), generics, [mk_method_app value "bits" []])
-                | 64L -> RsApp(RsPathSeparator(RsTypGenericParam ("BitVector::", [RsTypParamNum (RsLit (RsLitNum 64L))]), RsTypId "new"), generics, [mk_method_app value "bits" []])
-                | _ -> 
-                    Printf.printf "Warning: unsupported EXTS bit width (%d)\n" (Int64.to_int n);
-                    RsAs (value, RsTypId "InvalidUSigned")
-            )
-
         (* Unsigned is used for array indexing *)
         | (RsId "unsigned", value::[]) -> mk_method_app value "as_usize" []
 
@@ -306,32 +285,33 @@ let parse_first_tuple_entry(values: rs_pexp list) : rs_pat list =
         | _ -> failwith "Code should be unreachable"
   
 let bitvec_transform_exp (ctx: context) (exp: rs_exp) : rs_exp =
+    let one = Big_int.of_int 1 in
     match exp with
         | RsApp (RsId "subrange_bits", generics, [RsField (bitvec, "bits"); RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
-            let r_end = Int64.add r_end Int64.one in
-            let r_size = Int64.sub r_end r_start in
+            let r_end = Big_int.add r_end (Big_int.of_int 1) in
+            let r_size = Big_int.sub r_end r_start in
             RsMethodApp {
                 exp = RsField (bitvec, "bits");
                 name = "subrange";
-                generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
+                generics = [Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size];
                 args = [];
             }
         | RsApp (RsId "subrange_bits", generics, [RsId id; RsLit RsLitNum r_end; RsLit RsLitNum r_start]) ->
-            let r_end = Int64.add r_end Int64.one in
-            let r_size = Int64.sub r_end r_start in
+            let r_end = Big_int.add r_end (Big_int.of_int 1) in
+            let r_size = Big_int.sub r_end r_start in
             RsMethodApp {
                 exp = RsId id;
                 name = "subrange";
-                generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
+                generics = [Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size];
                 args = [];
             }
         | RsAssign (RsLexpIndexRange (RsLexpField (fexp, "bits"), RsLit RsLitNum r_end, RsLit RsLitNum r_start), exp) ->
-            let r_end = Int64.add r_end Int64.one in
-            let r_size = Int64.sub r_end r_start in
+            let r_end = Big_int.add r_end one in
+            let r_size = Big_int.sub r_end r_start in
             let method_app = {
                 exp = RsField (fexp, "bits");
                 name = "set_subrange";
-                generics = [Int64.to_string r_start; Int64.to_string r_end; Int64.to_string r_size];
+                generics = [Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size];
                 args = [exp];
             } in
             RsAssign (RsLexpField (fexp, "bits"), RsMethodApp method_app)
@@ -339,7 +319,7 @@ let bitvec_transform_exp (ctx: context) (exp: rs_exp) : rs_exp =
             RsMethodApp {
                 exp = e;
                 name = "zero_extend";
-                generics = [Printf.sprintf "%Lu" size];
+                generics = [Big_int.to_string size];
                 args = [];
             }
         | RsMatch (exp, pat::pats) when is_bitvec_lit pat ->
@@ -373,7 +353,7 @@ let rec bitvec_transform_type (ctx: context) (typ: rs_type) : rs_type =
         | RsTypGenericParam ("vector", t) -> RsTypGenericParam ("BitVector", t)
         
         (* TODO: once we resolve type aliasing we can remove those manual conversions *)
-        | RsTypId "regbits" -> RsTypGenericParam ("BitVector", [RsTypParamNum (RsLit (RsLitNum 5L))])
+        | RsTypId "regbits" -> RsTypGenericParam ("BitVector", [RsTypParamNum (mk_num 5)])
 
         (* Otherwise keep as is *)
         | _ -> typ
@@ -389,36 +369,29 @@ let bitvec_transform = {
 
 (* —————————————————————————— Expression Optimizer —————————————————————————— *)
 
-let rec int_pow (n: int64) (m: int64) : int64 =
-    match m with
-    | 0L -> 1L
-    | 1L -> n
-    | _ ->
-        let x = int_pow n (Int64.div m 2L) in
-        let xx = Int64.mul x x in
-        let reminder =if (Int64.rem m 2L) = 0L then 1L else n in 
-        Int64.mul xx reminder
-
 (** Simplifies rust expression by applying basic optimisations.
 
  For now, this mostly includes arithmetic operators.**)
 let rec simplify_rs_exp (ctx: context) (rs_exp: rs_exp) : rs_exp =
     match rs_exp with
         | RsBinop (RsLit (RsLitNum a), RsBinopAdd, RsLit (RsLitNum b)) -> 
-            RsLit (RsLitNum (Int64.add a b))
+            RsLit (RsLitNum (Big_int.add a b))
         | RsBinop (RsLit (RsLitNum a), RsBinopSub, RsLit (RsLitNum b)) -> 
-            RsLit (RsLitNum (Int64.sub a b))
+            RsLit (RsLitNum (Big_int.sub a b))
         | RsBinop (RsLit (RsLitNum a), RsBinopMult, RsLit (RsLitNum b)) -> 
-            RsLit (RsLitNum (Int64.mul a b))
-        | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [], [RsLit (RsLitNum n); RsLit (RsLitNum m)])
-        | RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum n); RsLit (RsLitNum m)])->
-            RsLit (RsLitNum (int_pow n m))
+            RsLit (RsLitNum (Big_int.mul a b))
+        | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [], [RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _)])
+        | RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _)])->
+            mk_big_num (Big_int.pow_int n (Big_int.to_int m))
         | RsBlock exps ->
             let is_not_unit exp = match exp with
                 | RsLit RsLitUnit -> false
                 | _ -> true
                 in
             RsBlock (List.filter is_not_unit exps)
+        | RsId id when SMap.mem id ctx.defs.num_constants ->
+            let n = SMap.find id ctx.defs.num_constants in
+            mk_big_num n
         | _ -> rs_exp
 
 
@@ -492,7 +465,7 @@ let native_func_transform_exp (ctx: context) (exp : rs_exp) : rs_exp =
     (*| RsApp (RsId "min_int", gens, _) -> RsId "BUILTIN_min_int_TODO" *)
     | RsApp (RsId "tdiv_int", gens, _) -> RsId "BUILTIN_tdiv_int_TODO"
     | RsApp (RsId "tmod_int", gens, _) -> RsId "BUILTIN_tmod_int_TODO"
-    | RsApp (RsId "pow2", [], [n]) -> RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [], [RsLit (RsLitNum (Int64.of_int 2)); n])
+    | RsApp (RsId "pow2", [], [n]) -> RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [], [mk_num 2; RsAs(n, RsTypId "u32")])
     (* | RsApp (RsId "zeros", gens, _) -> RsId "BUILTIN_zeros_TODO" *)
     (*| RsApp (RsId "ones", gens, e) -> RsApp (RsId "ones", e) Handled by the integrated library *) 
     (* Implemented in lib.sail *)
@@ -1096,7 +1069,7 @@ let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List
 
 (* ———————————————————————— prelude_func_filter  ————————————————————————— *)
 
-let prelude_func: SSet.t = SSet.of_list (["EXTZ";"EXTS";"not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"; "hex_bits_12_backwards"; "parse_hex_bits"])
+let prelude_func: SSet.t = SSet.of_list (["not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"; "hex_bits_12_backwards"; "parse_hex_bits"])
 
 let rust_prelude_func_filter_alias (obj: rs_obj) : rs_program = 
     match obj with
@@ -1222,9 +1195,9 @@ let sail_context_arg_inserter: expr_type_transform = {
 (* TODO: This is a very (almost useless) basic dead code remover only for our use case. Extend it in the future *)
 (* ———————————————————————— Dead code remover  ————————————————————————— *)
 
-let filter_different_litterals (lit: int64) (pexp: rs_pexp) : bool =
+let filter_different_litterals (lit: Big_int.num) (pexp: rs_pexp) : bool =
     match pexp with 
-        | RsPexp (RsPatTuple [e; RsPatLit(RsLitNum n)],e2) when n <>lit -> false
+        | RsPexp (RsPatTuple [e; RsPatLit(RsLitNum n)],e2) when n <> lit -> false
         | RsPexpWhen (RsPatTuple [e; RsPatLit(RsLitNum n)],e2, e3) when n <> lit -> false
         | _ -> true
 
@@ -1234,7 +1207,7 @@ let dead_code_remover_exp (ctx: context) (exp: rs_exp) : rs_exp =
         | RsMatch (RsTuple [e; RsLit(RsLitNum n)], pexps) -> 
             RsMatch (RsTuple [e; RsLit(RsLitNum n)], List.filter (filter_different_litterals n) pexps)
         | RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), then_exp, else_exp) when n1 <> n2 ->
-            RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), RsApp(RsId "panic!", [], [RsId "\"unreachable code\""]), else_exp) 
+            RsIf (RsBinop (RsLit(RsLitNum n1),RsBinopEq, RsLit(RsLitNum n2)), RsApp(RsId "panic!", [], [RsLit (RsLitStr "unreachable code")]), else_exp) 
         | _ -> exp
     
 let dead_code_remover: expr_type_transform = {
@@ -1278,12 +1251,30 @@ let is_supported_obj (obj: rs_obj) : bool =
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
 
 (** Computes the fix point of a function. **)
-let rec fix_point fn args limit =
-    let new_args = fn args in
-    if new_args = args || limit = 0 then
+let rec fix_point fn rs_program ctx limit =
+    let new_args = fn rs_program ctx in
+    if new_args = rs_program || limit = 0 then
         new_args
     else
-        fix_point fn new_args (limit - 1)
+        fix_point fn new_args ctx (limit - 1)
+
+let optimizer (rust_program: rs_program) (ctx: context) : rs_program =
+    let get_num_constants (RsProg obj : rs_program) : (string * Big_int.num) list = 
+        let rec constants obj = 
+            match obj with
+                | RsConst {value = RsLit (RsLitNum n); name;} :: tail ->
+                    (name, n) :: constants tail
+                | head :: tail -> constants tail
+                | [] -> []
+            in
+            constants obj
+    in
+    let constants = get_num_constants rust_program in
+    let defs = { ctx.defs with
+        num_constants = SMap.of_list constants;
+      } in
+      let ctx = { ctx with defs = defs } in
+    rust_transform_expr expression_optimizer ctx rust_program
 
 let transform (rust_program: rs_program) (ctx: context) : rs_program =
 
@@ -1295,7 +1286,7 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
   let rust_program = rust_transform_func virt_context_transform ctx rust_program in
   let rust_program = rust_transform_expr nested_block_remover ctx rust_program in
   let rust_program = rust_transform_expr native_func_transform ctx rust_program in
-  let rust_program = fix_point (rust_transform_expr expression_optimizer ctx) rust_program 10 in
+  let rust_program = fix_point optimizer rust_program ctx 10 in
   let rust_program = rust_transform_expr bitvec_transform ctx rust_program in
   let rust_program = rust_transform_expr normalize_generics ctx rust_program in
   let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in

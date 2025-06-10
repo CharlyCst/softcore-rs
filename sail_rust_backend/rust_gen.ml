@@ -1,6 +1,7 @@
 (** Rust generation module **)
 
 module SSet = Call_set.SSet
+module Big_int = Libsail.Ast_util.Big_int
 
 type rs_type =
     | RsTypId of string
@@ -25,7 +26,7 @@ and rs_lit =
     | RsLitUnit
     | RsLitTrue
     | RsLitFalse
-    | RsLitNum of int64
+    | RsLitNum of Big_int.num
     | RsLitBin of string
     | RsLitHex of string
     | RsLitStr of string
@@ -209,9 +210,9 @@ let mk_struct (name: string) (fields: (string * rs_type) list) : rs_obj =
     }
 
 let mk_num (n: int) : rs_exp =
-    RsLit (RsLitNum (Int64.of_int n))
+    RsLit (RsLitNum (Big_int.of_int n))
 
-let mk_num64 (n: int64) : rs_exp =
+let mk_big_num (n: Big_int.num) : rs_exp =
     RsLit (RsLitNum n)
 
 (** Removes the generic parameters from a type
@@ -338,7 +339,7 @@ and string_of_rs_lit (lit: rs_lit) : string =
         | RsLitUnit -> "()"
         | RsLitTrue -> "true"
         | RsLitFalse -> "false"
-        | RsLitNum n -> Printf.sprintf "%Li" n
+        | RsLitNum n -> Printf.sprintf "%s" (Big_int.to_string n)
         | RsLitBin n -> n
         | RsLitHex n -> n
         | RsLitStr s -> Printf.sprintf "\"%s\"" s

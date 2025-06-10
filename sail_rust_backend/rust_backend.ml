@@ -53,6 +53,7 @@ module Codegen () = struct
         unions = SMap.empty;
         funmap = SMap.empty;
         constants = SSet.empty;
+        num_constants = SMap.empty;
     }
     
     let defs_merge (a: defs) (b: defs) : defs =
@@ -61,6 +62,7 @@ module Codegen () = struct
             unions = map_union a.unions b.unions;
             funmap = map_union a.funmap b.funmap;
             constants = SSet.union a.constants b.constants;
+            num_constants = map_union a.num_constants b.num_constants;
         }
     
     let defs_add_union (defs: defs) (union: unionmap) : defs =
@@ -70,19 +72,13 @@ module Codegen () = struct
         }
     
     let defs_from_union (union: unionmap) : defs = 
-        {
-            fun_typs = SMap.empty;
+        { defs_empty with
             unions = union;
-            funmap = SMap.empty;
-            constants = SSet.empty;
         }
     
     let defs_from_funs (funs: defmap) : defs =
-        {
+        { defs_empty with
             fun_typs = funs;
-            unions = SMap.empty;
-            funmap = SMap.empty;
-            constants = SSet.empty;
         }
 
     (* —————————————————————————————— Other Utils ——————————————————————————————— *)
@@ -187,7 +183,7 @@ module Codegen () = struct
             | L_one -> RsLitTrue
             | L_true -> RsLitTrue
             | L_false -> RsLitFalse
-            | L_num n -> RsLitNum (Big_int.to_int64 n)
+            | L_num n -> RsLitNum n
             | L_hex s -> RsLitHex s
             | L_bin s -> RsLitBin s
             | L_string s -> RsLitStr s
@@ -465,8 +461,7 @@ module Codegen () = struct
         if is_literal then
             (* Generate a bitvector literal *)
             let vector_length = List.length items in
-            let vector_length_exp = RsLit (RsLitNum (Int64.of_int vector_length)) in
-            RsStaticApp(RsTypGenericParam ("BitVector::", [RsTypParamNum vector_length_exp]), "new", [RsLit(RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items))))])
+            RsStaticApp(RsTypGenericParam ("BitVector::", [RsTypParamNum (mk_num vector_length)]), "new", [RsLit(RsLitBin (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items))))])
         else if is_bitvector then
             (* Generate a bitvector from individual bits *)
             let rec set_bits bits idx exp = match bits with
@@ -734,9 +729,13 @@ module Codegen () = struct
                 RsProg [RsAlias (alias)] (* TODO *)
             (* NOTE: we should create a constant for numeral types only if there is no constant with the same name already defined. *)
             | TD_abbrev (id, typq, A_aux (A_nexp nexp, _)) when not (SSet.mem (string_of_id id) s.defs.constants) ->
+                let value = match big_int_of_nexp nexp with
+                    | Some n -> mk_big_num n
+                    | None -> nexp_to_rs_exp nexp
+                in
                 let const = {
                     name = string_of_id id;
-                    value = nexp_to_rs_exp nexp;
+                    value = value;
                     typ = RsTypId "usize";
                 } in
                 RsProg [RsConst const]
@@ -746,12 +745,13 @@ module Codegen () = struct
     and toplevel_let_to_rust (LB_aux (LB_val (pat, exp), aux)) (ctx: context) : rs_program =
         let pat = process_pat pat in
         let exp = process_exp ctx exp in
+        let exp = Rust_transform.simplify_rs_exp ctx exp in
         match pat with
             | RsPatId id ->
                 let const = { name = id; value = exp; typ = RsTypId "usize"} in
                 RsProg [RsConst const]
             | RsPatType (typ, RsPatId id) ->
-                    let const = { name = id; value = exp; typ = typ } in
+                let const = { name = id; value = exp; typ = typ } in
                 RsProg [RsConst const]
             | _ -> RsProg []
         
@@ -870,23 +870,24 @@ module Codegen () = struct
             | NC_false -> RsLit (RsLitFalse)
             | _ -> RsTodo "TodoNConstraint"
     
-    and nexp_to_rs_exp (Nexp_aux (nexp, _)): rs_exp =
-         match nexp with
-            | Nexp_constant n -> RsLit (RsLitNum (Nat_big_num.to_int64 n))
-            | Nexp_times (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopMult, nexp_to_rs_exp m)
-            | Nexp_sum   (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopAdd, nexp_to_rs_exp m)
-            | Nexp_minus (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopSub, nexp_to_rs_exp m)
-            | Nexp_exp n -> (* exponential, it seems it is always 2 ^ n *)
-                let n_exp = match nexp_to_rs_exp n with
-                    | RsLit n -> RsLit n (* Types is inferred automatically for literals *)
-                    | n_exp -> RsAs (n_exp, RsTypId "u32") (* For all other types we do the conversion manually *)
-                in
-                RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum (Int64.of_int 2)); n_exp])
-            | Nexp_neg n -> RsUnop (RsUnopNeg, nexp_to_rs_exp n)
-            | Nexp_id id -> RsId (string_of_id id)
-            | Nexp_var kid  -> RsId (sanitize_generic_id (string_of_kid kid)) (* variable *)
-            | Nexp_app (fn, args) -> RsTodo "TodoAppExpr" (* app *)
-            | Nexp_if (cond, if_block, else_block) -> RsTodo "TodoIfExpr" (* if-then-else *)
+    and nexp_to_rs_exp (nexp: nexp): rs_exp =
+        let Nexp_aux (nexp, l) = nexp_simp nexp in
+        match nexp with
+           | Nexp_constant n -> mk_big_num n
+           | Nexp_times (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopMult, nexp_to_rs_exp m)
+           | Nexp_sum   (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopAdd, nexp_to_rs_exp m)
+           | Nexp_minus (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopSub, nexp_to_rs_exp m)
+           | Nexp_exp n -> (* exponential, it seems it is always 2 ^ n *)
+               let n_exp = match nexp_to_rs_exp n with
+                   | RsLit n -> RsLit n (* Types is inferred automatically for literals *)
+                   | n_exp -> RsAs (n_exp, RsTypId "u32") (* For all other types we do the conversion manually *)
+               in
+               RsStaticApp (RsTypId "usize", "pow", [mk_num 2; RsAs (n_exp, RsTypId "u32")])
+           | Nexp_neg n -> RsUnop (RsUnopNeg, nexp_to_rs_exp n)
+           | Nexp_id id -> RsId (string_of_id id)
+           | Nexp_var kid  -> RsId (sanitize_generic_id (string_of_kid kid)) (* variable *)
+           | Nexp_app (fn, args) -> RsTodo "TodoAppExpr" (* app *)
+           | Nexp_if (cond, if_block, else_block) -> RsTodo "TodoIfExpr" (* if-then-else *)
      
     and get_first_two_elements lst =
         assert ((List.length lst) = 2);
@@ -916,7 +917,7 @@ module Codegen () = struct
             | A_bool b -> RsTypParamTyp (RsTypId "TodoBoolType")
     and extract_type_nexp (Nexp_aux (nexp, l)): rs_type_param =
         match nexp with
-            | Nexp_constant n -> RsTypParamNum (RsLit (RsLitNum (Nat_big_num.to_int64 n)))
+            | Nexp_constant n -> RsTypParamNum (mk_big_num n)
             | Nexp_app (Id_aux (_, _), _) -> RsTypParamTyp (RsTypId "TodoNexpTypeApp")
             | Nexp_id id -> RsTypParamTyp (RsTypId (string_of_id id))
             | Nexp_var var -> RsTypParamTyp (RsTypId (capitalize_after_removal (string_of_kid var))) 

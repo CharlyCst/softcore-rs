@@ -3,11 +3,11 @@ $include <prelude.sail>
 
 // ———————————————————————————————— Predule ————————————————————————————————— //
 
-val EXTZ : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
-function EXTZ(m, v) = sail_zero_extend(v, m)
+val zero_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
+function zero_extend(m, v) = sail_zero_extend(v, m)
 
-val EXTS : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
-function EXTS(m, v) = sail_sign_extend(v, m)
+val signed_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
+function signed_extend(m, v) = sail_sign_extend(v, m)
 
 val not : forall ('p : Bool). bool('p) -> bool(not('p))
 function not(p) = not_bool(p)
@@ -60,7 +60,7 @@ function privLevel_of_bits (p) =
   }
 
 function pc_alignment_mask() -> xlenbits =
-  ~(EXTZ(0b10))
+  ~(zero_extend(0b10))
 
 // ——————————————————————————————— Registers ———————————————————————————————— //
 
@@ -115,7 +115,7 @@ register Xs : vector(32, dec, xlenbits)
 val rX : regidx -> xlenbits
 function rX(r) =
     match r {
-        0b00000 => EXTZ(0x0),
+        0b00000 => zero_extend(0x0),
         _ => Xs[unsigned(r)]
     }
 
