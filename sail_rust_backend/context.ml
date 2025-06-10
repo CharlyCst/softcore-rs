@@ -3,12 +3,14 @@ open Rust_gen
 type defmap = rs_fn_type Call_set.SMap.t
 type unionmap = rs_type Call_set.SMap.t
 type funmap = rs_fn Call_set.SMap.t
+type nummap = Libsail.Ast_util.Big_int.num Call_set.SMap.t
 
 type defs = {
     fun_typs : defmap;
     unions: unionmap;
     funmap: funmap;
     constants: SSet.t;
+    num_constants: nummap;
 }
 
 type context = {

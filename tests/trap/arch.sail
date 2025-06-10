@@ -3,11 +3,11 @@ $include <prelude.sail>
 
 // ———————————————————————————————— Predule ————————————————————————————————— //
 
-val EXTZ : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
-function EXTZ(m, v) = sail_zero_extend(v, m)
+val zero_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
+function zero_extend(m, v) = sail_zero_extend(v, m)
 
-val EXTS : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
-function EXTS(m, v) = sail_sign_extend(v, m)
+val signed_extend : forall 'n 'm, 'm >= 'n. (implicit('m), bits('n)) -> bits('m)
+function signed_extend(m, v) = sail_sign_extend(v, m)
 
 val not : forall ('p : Bool). bool('p) -> bool(not('p))
 function not(p) = not_bool(p)
@@ -167,7 +167,7 @@ register Xs : vector(32, dec, xlenbits)
 val rX : regidx -> xlenbits
 function rX(r) =
     match r {
-        0b00000 => EXTZ(0x0),
+        0b00000 => zero_extend(0x0),
         _ => Xs[unsigned(r)]
     }
 
@@ -274,7 +274,7 @@ function set_next_pc(pc) = {
 function tval(excinfo : option(xlenbits)) -> xlenbits = {
   match (excinfo) {
     Some(e) => e,
-    None()  => EXTZ(0b0)
+    None()  => zero_extend(0b0)
   }
 }
 
@@ -292,7 +292,7 @@ function tvec_addr(m : Mtvec, c : Mcause) -> option(xlenbits) = {
   match (trapVectorMode_of_bits(m[Mode])) {
     TV_Direct => Some(base),
     TV_Vector => if   c[IsInterrupt] == 0b1
-                 then Some(base + (EXTZ(c[Cause]) << 2))
+                 then Some(base + (zero_extend(c[Cause]) << 2))
                  else Some(base),
     TV_Reserved => None()
   }
@@ -316,7 +316,7 @@ function trap_handler(del_priv : Privilege, intr : bool, c : exc_code, pc : xlen
   match (del_priv) {
     Machine => {
        mcause[IsInterrupt] = bool_to_bits(intr);
-       mcause[Cause]       = EXTZ(c);
+       mcause[Cause]       = zero_extend(c);
 
        mstatus[MPIE] = mstatus[MIE];
        mstatus[MIE]  = 0b0;
@@ -332,7 +332,7 @@ function trap_handler(del_priv : Privilege, intr : bool, c : exc_code, pc : xlen
        assert (haveSupMode(), "no supervisor mode present for delegation");
 
        scause[IsInterrupt] = bool_to_bits(intr);
-       scause[Cause]       = EXTZ(c);
+       scause[Cause]       = zero_extend(c);
 
        mstatus[SPIE] = mstatus[SIE];
        mstatus[SIE]  = 0b0;
@@ -350,7 +350,7 @@ function trap_handler(del_priv : Privilege, intr : bool, c : exc_code, pc : xlen
     },
     User => {
        ucause[IsInterrupt] = bool_to_bits(intr);
-       ucause[Cause]       = EXTZ(c);
+       ucause[Cause]       = zero_extend(c);
 
        mstatus[UPIE] = mstatus[UIE];
        mstatus[UIE]  = 0b0;
@@ -416,7 +416,7 @@ mapping clause encdec = ITYPE(imm, rs1, rd, RISCV_ADDI)
 
 function clause execute (ITYPE (imm, rs1, rd, RISCV_ADDI)) = {
     let rs1_val = X(rs1) in
-    let imm_ext : xlenbits = EXTS(imm) in
+    let imm_ext : xlenbits = signed_extend(imm) in
     let result = rs1_val + imm_ext in
     X(rd) = result;
     RETIRE_SUCCESS
@@ -459,7 +459,7 @@ function readCSR csr : csreg -> xlenbits = {
   match (csr, sizeof(xlen)) {
     (0x340,  _) => mscratch,
     (0x140,  _) => sscratch,
-    _ => EXTZ(0x0),
+    _ => zero_extend(0x0),
   };
   res
 }
@@ -474,7 +474,7 @@ function writeCSR (csr : csreg, value : xlenbits) -> unit = {
 }
 
 function clause execute CSR(csr, rs1, rd, is_imm, op) = {
-  let rs1_val : xlenbits = if is_imm then EXTZ(rs1) else X(rs1);
+  let rs1_val : xlenbits = if is_imm then zero_extend(rs1) else X(rs1);
   let isWrite : bool = match op {
     CSRRW  => true,
     _      => if is_imm then unsigned(rs1_val) != 0 else unsigned(rs1) != 0

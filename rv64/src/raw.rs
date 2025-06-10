@@ -636,7 +636,7 @@ pub const flen: usize = 64;
 
 pub const vlenmax: usize = 65536;
 
-pub const VLEN: usize = usize::pow(2, get_vlen_pow(core_ctx, ()));
+pub const VLEN: usize = usize::pow(2, (get_vlen_pow(core_ctx, ()) as u32));
 
 pub type physaddrbits = BitVector<physaddrbits_len>;
 
@@ -873,9 +873,9 @@ pub fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
         extension::Ext_Zca => {core_ctx.config.extensions.Zca.supported}
         extension::Ext_Zcb => {core_ctx.config.extensions.Zcb.supported}
         extension::Ext_Zcd => {core_ctx.config.extensions.Zcd.supported}
-        extension::Ext_Zcf => {((core_ctx.config.extensions.Zcf.supported as bool) && (xlen == 32))}
+        extension::Ext_Zcf => {((core_ctx.config.extensions.Zcf.supported as bool) && (64 == 32))}
         extension::Ext_Zcmop => {core_ctx.config.extensions.Zcmop.supported}
-        extension::Ext_C => {(hartSupports(core_ctx, extension::Ext_Zca) && ((hartSupports(core_ctx, extension::Ext_Zcf) || (!(hartSupports(core_ctx, extension::Ext_F)) || (xlen != 32))) && (hartSupports(core_ctx, extension::Ext_Zcd) || !(hartSupports(core_ctx, extension::Ext_D)))))}
+        extension::Ext_C => {(hartSupports(core_ctx, extension::Ext_Zca) && ((hartSupports(core_ctx, extension::Ext_Zcf) || (!(hartSupports(core_ctx, extension::Ext_F)) || (64 != 32))) && (hartSupports(core_ctx, extension::Ext_Zcd) || !(hartSupports(core_ctx, extension::Ext_D)))))}
         extension::Ext_Zba => {core_ctx.config.extensions.Zba.supported}
         extension::Ext_Zbb => {core_ctx.config.extensions.Zbb.supported}
         extension::Ext_Zbc => {core_ctx.config.extensions.Zbc.supported}
@@ -902,10 +902,10 @@ pub fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
         extension::Ext_Svnapot => {false}
         extension::Ext_Svpbmt => {false}
         extension::Ext_Svbare => {core_ctx.config.extensions.Svbare.supported}
-        extension::Ext_Sv32 => {((core_ctx.config.extensions.Sv32.supported as bool) && (xlen == 32))}
-        extension::Ext_Sv39 => {((core_ctx.config.extensions.Sv39.supported as bool) && (xlen == 64))}
-        extension::Ext_Sv48 => {((core_ctx.config.extensions.Sv48.supported as bool) && (xlen == 64))}
-        extension::Ext_Sv57 => {((core_ctx.config.extensions.Sv57.supported as bool) && (xlen == 64))}
+        extension::Ext_Sv32 => {((core_ctx.config.extensions.Sv32.supported as bool) && (64 == 32))}
+        extension::Ext_Sv39 => {((core_ctx.config.extensions.Sv39.supported as bool) && (64 == 64))}
+        extension::Ext_Sv48 => {((core_ctx.config.extensions.Sv48.supported as bool) && (64 == 64))}
+        extension::Ext_Sv57 => {((core_ctx.config.extensions.Sv57.supported as bool) && (64 == 64))}
         extension::Ext_Smcntrpmf => {core_ctx.config.extensions.Smcntrpmf.supported}
         _ => {panic!("Unreachable code")}
     }
@@ -923,11 +923,11 @@ pub type ext_ptw_error = ();
 
 pub type ext_exc_type = ();
 
-pub const xlen_max_unsigned: usize = (usize::pow(2, xlen) - 1);
+pub const xlen_max_unsigned: usize = 18446744073709551615;
 
-pub const xlen_max_signed: usize = (usize::pow(2, (xlen - 1)) - 1);
+pub const xlen_max_signed: usize = 9223372036854775807;
 
-pub const xlen_min_signed: usize = (0 - usize::pow(2, (xlen - 1)));
+pub const xlen_min_signed: usize = -9223372036854775808;
 
 pub type half = BitVector<16>;
 
@@ -3105,7 +3105,7 @@ pub const zero_freg: fregtype = zeros(64);
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Misa {
     pub bits: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>,
 }
 
@@ -3163,7 +3163,7 @@ pub struct MEnvcfg {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mcause {
     pub bits: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>,
 }
 
@@ -3181,7 +3181,7 @@ pub struct Medeleg {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Minterrupts {
     pub bits: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>,
 }
 
@@ -3199,7 +3199,7 @@ pub struct Mstatus {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mtvec {
     pub bits: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>,
 }
 
@@ -3233,7 +3233,7 @@ pub struct Pmpcfg_ent {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SEnvcfg {
     pub bits: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>,
 }
 
@@ -3259,7 +3259,7 @@ pub struct Satp64 {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Sinterrupts {
     pub bits: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>,
 }
 
@@ -3285,7 +3285,7 @@ pub struct Vcsr {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Vtype {
     pub bits: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>,
 }
 
@@ -3495,7 +3495,7 @@ pub fn currentlyEnabled(core_ctx: &mut Core, merge_hashtag_var: extension) -> bo
         } == BitVector::<1>::new(0b1)) && (({
             let var_7 = core_ctx.mstatus;
             _get_Mstatus_FS(var_7)
-        } != BitVector::<2>::new(0b00)) && (flen >= 64))))}
+        } != BitVector::<2>::new(0b00)) && (64 >= 64))))}
         extension::Ext_Zfinx => {hartSupports(core_ctx, extension::Ext_Zfinx)}
         extension::Ext_Smcntrpmf => {(hartSupports(core_ctx, extension::Ext_Smcntrpmf) && currentlyEnabled(core_ctx, extension::Ext_Zicntr))}
         extension::Ext_Svnapot => {false}
@@ -3521,7 +3521,7 @@ pub fn currentlyEnabled(core_ctx: &mut Core, merge_hashtag_var: extension) -> bo
         extension::Ext_Zfh => {(hartSupports(core_ctx, extension::Ext_Zfh) && currentlyEnabled(core_ctx, extension::Ext_F))}
         extension::Ext_Zfhmin => {((hartSupports(core_ctx, extension::Ext_Zfhmin) && currentlyEnabled(core_ctx, extension::Ext_F)) || currentlyEnabled(core_ctx, extension::Ext_Zfh))}
         extension::Ext_Zcf => {(hartSupports(core_ctx, extension::Ext_Zcf) && (currentlyEnabled(core_ctx, extension::Ext_F) && (currentlyEnabled(core_ctx, extension::Ext_Zca) && (currentlyEnabled(core_ctx, extension::Ext_C) || !(hartSupports(core_ctx, extension::Ext_C))))))}
-        extension::Ext_Zdinx => {(hartSupports(core_ctx, extension::Ext_Zdinx) && (flen >= 64))}
+        extension::Ext_Zdinx => {(hartSupports(core_ctx, extension::Ext_Zdinx) && (64 >= 64))}
         extension::Ext_Zcd => {(hartSupports(core_ctx, extension::Ext_Zcd) && (currentlyEnabled(core_ctx, extension::Ext_D) && (currentlyEnabled(core_ctx, extension::Ext_Zca) && (currentlyEnabled(core_ctx, extension::Ext_C) || !(hartSupports(core_ctx, extension::Ext_C))))))}
         extension::Ext_Svinval => {hartSupports(core_ctx, extension::Ext_Svinval)}
         extension::Ext_B => {(hartSupports(core_ctx, extension::Ext_B) && ({
@@ -3655,7 +3655,7 @@ pub fn _get_Mcause_IsInterrupt(v: Mcause) -> BitVector<1> {
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L529-538.
 pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>> {
     let base: xlenbits = bitvector_concat::<62, 2, 64>(_get_Mtvec_Base(m), BitVector::<2>::new(0b00));
     match trapVectorMode_of_bits(_get_Mtvec_Mode(m)) {
@@ -3729,18 +3729,18 @@ pub fn Mk_Pmpcfg_ent(v: BitVector<8>) -> Pmpcfg_ent {
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L69-89.
 pub fn pmpReadAddrReg(core_ctx: &mut Core, n: usize) -> BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }> {
     let G = sys_pmp_grain(core_ctx, ());
     let match_type = _get_Pmpcfg_ent_A(core_ctx.pmpcfg_n[n]);
     let addr = core_ctx.pmpaddr_n[n];
     match bitvector_access(match_type, 1) {
         true if {(G >= 2)} => {{
-            let mask: xlenbits = ones::<64>(min_int((G - 1), xlen)).zero_extend::<64>();
+            let mask: xlenbits = ones::<64>(min_int((G - 1), 64)).zero_extend::<64>();
             (addr | mask)
         }}
         false if {(G >= 1)} => {{
-            let mask: xlenbits = ones::<64>(min_int(G, xlen)).zero_extend::<64>();
+            let mask: xlenbits = ones::<64>(min_int(G, 64)).zero_extend::<64>();
             (addr & !(mask))
         }}
         _ => {addr}
@@ -3788,13 +3788,10 @@ pub fn pmpWriteCfg(core_ctx: &mut Core, n: usize, cfg: Pmpcfg_ent, v: BitVector<
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L119-134.
 pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: usize, v: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>) {
-    if {(xlen == 32)} {
-        for i in 0..=3 {
-            let idx = ((n * 4) + i);
-            core_ctx.pmpcfg_n[idx] = pmpWriteCfg(core_ctx, idx, core_ctx.pmpcfg_n[idx], subrange_bits(v, ((8 * i) + 7), (8 * i)))
-        }
+    if {(64 == 32)} {
+        panic!("unreachable code")
     } else {
         assert!(((n % 2) == 0), "Unexpected pmp config reg write");
         for i in 0..=7 {
@@ -3808,18 +3805,14 @@ pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: usize, v: BitVector<{
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L136-139.
 pub fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>, v: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>) -> BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }> {
-    if {(xlen == 32)} {
-        if {(locked || tor_locked)} {
-            reg
-        } else {
-            v
-        }
+    if {(64 == 32)} {
+        panic!("unreachable code")
     } else {
         if {(locked || tor_locked)} {
             reg
@@ -3833,7 +3826,7 @@ pub fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L141-148.
 pub fn pmpWriteAddrReg(core_ctx: &mut Core, n: usize, v: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>) {
     core_ctx.pmpaddr_n[n] = {
         let var_1 = if {((n + 1) < 64)} {
@@ -3885,11 +3878,11 @@ pub fn pmpRangeMatch(begin: nat, end_: nat, addr: nat, width: nat) -> pmpAddrMat
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L41-80.
 pub fn pmpMatchAddr(core_ctx: &mut Core, physaddr::Physaddr(addr): physaddr, width: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>, ent: Pmpcfg_ent, pmpaddr: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>, prev_pmpaddr: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>) -> pmpAddrMatch {
     let addr = addr.as_usize();
     let width = width.as_usize();
@@ -3931,11 +3924,11 @@ pub enum pmpMatch {
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L84-93.
 pub fn pmpMatchEntry(core_ctx: &mut Core, addr: physaddr, width: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>, acc: AccessType<()>, _priv_: Privilege, ent: Pmpcfg_ent, pmpaddr: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>, prev_pmpaddr: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>) -> pmpMatch {
     match pmpMatchAddr(core_ctx, addr, width, ent, pmpaddr, prev_pmpaddr) {
         pmpAddrMatch::PMP_NoMatch => {pmpMatch::PMP_Continue}
@@ -3966,7 +3959,7 @@ pub fn accessToFault(acc: AccessType<()>) -> ExceptionType {
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L105-118.
 pub fn pmpCheck<const N: usize>(core_ctx: &mut Core, addr: physaddr, width: usize, acc: AccessType<()>, _priv_: Privilege) -> Option<ExceptionType> {
-    let width: xlenbits = to_bits(xlen, width);
+    let width: xlenbits = to_bits(64, width);
     for i in 0..=63 {
         let prev_pmpaddr = if {gt_int(i, 0)} {
             pmpReadAddrReg(core_ctx, (i - 1))
@@ -4066,7 +4059,7 @@ pub type ext_exception = ();
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L18.
 pub const fn handle_trap_extension(p: Privilege, pc: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>, u: Option<()>) {
     ()
 }
@@ -4075,7 +4068,7 @@ pub const fn handle_trap_extension(p: Privilege, pc: BitVector<{
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L21-31.
 pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }> {
     let tvec: Mtvec = match p {
         Privilege::Machine => {core_ctx.mtvec}
@@ -4143,7 +4136,7 @@ pub enum fregno {
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L116-125.
 pub fn findPendingInterrupt(ip: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>) -> Option<InterruptType> {
     let ip = Mk_Minterrupts(ip);
     if {(_get_Minterrupts_MEI(ip) == BitVector::<1>::new(0b1))} {
@@ -4167,7 +4160,7 @@ pub fn findPendingInterrupt(ip: BitVector<{
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L135-148.
 pub fn getPendingSet(core_ctx: &mut Core, _priv_: Privilege) -> Option<(BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>, Privilege)> {
     assert!((currentlyEnabled(core_ctx, extension::Ext_S) || (core_ctx.mideleg.bits == zeros(64))), "riscv_sys_control.sail:137.58-137.59");
     let pending_m = (core_ctx.mip.bits & (core_ctx.mie.bits & !(core_ctx.mideleg.bits)));
@@ -4218,9 +4211,9 @@ pub enum ctl_result {
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L197-202.
 pub fn tval(excinfo: Option<BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>>) -> BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }> {
     match excinfo {
         Some(e) => {e}
@@ -4249,11 +4242,11 @@ pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L222-275.
 pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: BitVector<8>, pc: BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>, info: Option<BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }>>, ext: Option<()>) -> BitVector<{
-    (usize::pow(2, 3) * 8)
+    64
 }> {
     trap_callback(());
     if {get_config_print_platform(())} {
