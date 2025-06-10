@@ -53,9 +53,7 @@ pub fn bool_to_bit(x: bool) -> bool {
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L28.
 pub fn bool_to_bits(x: bool) -> BitVector<1> {
-    let var_1 = 0;
-    let var_2 = bool_to_bit(x);
-    BitVector::new(0).set_bit(var_1, var_2)
+    BitVector::new(0).set_bit(0, bool_to_bit(x))
 }
 
 pub const xlen: usize = 64;
@@ -272,16 +270,10 @@ pub fn trapVectorMode_of_bits(m: BitVector<2>) -> TrapVectorMode {
 /// Generated from the Sail sources at `tests/trap/arch.sail` L290-299.
 pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<64>> {
     let base: xlenbits = bitvector_concat::<62, 2, 64>(_get_Mtvec_Base(m), BitVector::<2>::new(0b00));
-    match {
-        let var_2 = _get_Mtvec_Mode(m);
-        trapVectorMode_of_bits(var_2)
-    } {
+    match trapVectorMode_of_bits(_get_Mtvec_Mode(m)) {
         TrapVectorMode::TV_Direct => {Some(base)}
         TrapVectorMode::TV_Vector => {if {(_get_Mcause_IsInterrupt(c) == BitVector::<1>::new(0b1))} {
-            Some({
-                let var_1 = (_get_Mcause_Cause(c).zero_extend::<64>() << 2);
-                base.wrapped_add(var_1)
-            })
+            Some(base.wrapped_add((_get_Mcause_Cause(c).zero_extend::<64>() << 2)))
         } else {
             Some(base)
         }}
@@ -313,54 +305,41 @@ pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> 
 pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: BitVector<8>, pc: BitVector<64>, info: Option<BitVector<64>>) -> BitVector<64> {
     match del_priv {
         Privilege::Machine => {{
-            core_ctx.mcause.bits = {
-                let var_1 = bool_to_bits(intr);
-                core_ctx.mcause.bits.set_subrange::<63, 64, 1>(var_1)
-            };
-            core_ctx.mcause.bits = {
-                let var_2 = c.zero_extend::<63>();
-                core_ctx.mcause.bits.set_subrange::<0, 63, 63>(var_2)
-            };
+            core_ctx.mcause.bits = core_ctx.mcause.bits.set_subrange::<63, 64, 1>(bool_to_bits(intr));
+            core_ctx.mcause.bits = core_ctx.mcause.bits.set_subrange::<0, 63, 63>(c.zero_extend::<63>());
             core_ctx.mstatus.bits = {
-                let var_3 = {
-                    let var_4 = core_ctx.mstatus;
-                    _get_Mstatus_MIE(var_4)
+                let var_1 = {
+                    let var_2 = core_ctx.mstatus;
+                    _get_Mstatus_MIE(var_2)
                 };
-                core_ctx.mstatus.bits.set_subrange::<7, 8, 1>(var_3)
+                core_ctx.mstatus.bits.set_subrange::<7, 8, 1>(var_1)
             };
             core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<3, 4, 1>(BitVector::<1>::new(0b0));
             core_ctx.mstatus.bits = {
-                let var_5 = {
-                    let var_6 = core_ctx.cur_privilege;
-                    privLevel_to_bits(var_6)
+                let var_3 = {
+                    let var_4 = core_ctx.cur_privilege;
+                    privLevel_to_bits(var_4)
                 };
-                core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_5)
+                core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_3)
             };
             core_ctx.mtval = tval(info);
             core_ctx.mepc = pc;
             core_ctx.cur_privilege = del_priv;
             {
-                let var_7 = del_priv;
-                let var_8 = core_ctx.mcause;
-                prepare_trap_vector(core_ctx, var_7, var_8)
+                let var_5 = core_ctx.mcause;
+                prepare_trap_vector(core_ctx, del_priv, var_5)
             }
         }}
         Privilege::Supervisor => {{
             assert!(haveSupMode(()), "no supervisor mode present for delegation");
-            core_ctx.scause.bits = {
-                let var_9 = bool_to_bits(intr);
-                core_ctx.scause.bits.set_subrange::<63, 64, 1>(var_9)
-            };
-            core_ctx.scause.bits = {
-                let var_10 = c.zero_extend::<63>();
-                core_ctx.scause.bits.set_subrange::<0, 63, 63>(var_10)
-            };
+            core_ctx.scause.bits = core_ctx.scause.bits.set_subrange::<63, 64, 1>(bool_to_bits(intr));
+            core_ctx.scause.bits = core_ctx.scause.bits.set_subrange::<0, 63, 63>(c.zero_extend::<63>());
             core_ctx.mstatus.bits = {
-                let var_11 = {
-                    let var_12 = core_ctx.mstatus;
-                    _get_Mstatus_SIE(var_12)
+                let var_6 = {
+                    let var_7 = core_ctx.mstatus;
+                    _get_Mstatus_SIE(var_7)
                 };
-                core_ctx.mstatus.bits.set_subrange::<5, 6, 1>(var_11)
+                core_ctx.mstatus.bits.set_subrange::<5, 6, 1>(var_6)
             };
             core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<1, 2, 1>(BitVector::<1>::new(0b0));
             core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<8, 9, 1>(match core_ctx.cur_privilege {
@@ -373,35 +352,27 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
             core_ctx.sepc = pc;
             core_ctx.cur_privilege = del_priv;
             {
-                let var_13 = del_priv;
-                let var_14 = core_ctx.scause;
-                prepare_trap_vector(core_ctx, var_13, var_14)
+                let var_8 = core_ctx.scause;
+                prepare_trap_vector(core_ctx, del_priv, var_8)
             }
         }}
         Privilege::User => {{
-            core_ctx.ucause.bits = {
-                let var_15 = bool_to_bits(intr);
-                core_ctx.ucause.bits.set_subrange::<63, 64, 1>(var_15)
-            };
-            core_ctx.ucause.bits = {
-                let var_16 = c.zero_extend::<63>();
-                core_ctx.ucause.bits.set_subrange::<0, 63, 63>(var_16)
-            };
+            core_ctx.ucause.bits = core_ctx.ucause.bits.set_subrange::<63, 64, 1>(bool_to_bits(intr));
+            core_ctx.ucause.bits = core_ctx.ucause.bits.set_subrange::<0, 63, 63>(c.zero_extend::<63>());
             core_ctx.mstatus.bits = {
-                let var_17 = {
-                    let var_18 = core_ctx.mstatus;
-                    _get_Mstatus_UIE(var_18)
+                let var_9 = {
+                    let var_10 = core_ctx.mstatus;
+                    _get_Mstatus_UIE(var_10)
                 };
-                core_ctx.mstatus.bits.set_subrange::<4, 5, 1>(var_17)
+                core_ctx.mstatus.bits.set_subrange::<4, 5, 1>(var_9)
             };
             core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<0, 1, 1>(BitVector::<1>::new(0b0));
             core_ctx.utval = tval(info);
             core_ctx.uepc = pc;
             core_ctx.cur_privilege = del_priv;
             {
-                let var_19 = del_priv;
-                let var_20 = core_ctx.ucause;
-                prepare_trap_vector(core_ctx, var_19, var_20)
+                let var_11 = core_ctx.ucause;
+                prepare_trap_vector(core_ctx, del_priv, var_11)
             }
         }}
         _ => {panic!("Unreachable code")}
