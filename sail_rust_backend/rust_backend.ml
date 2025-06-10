@@ -52,6 +52,7 @@ module Codegen () = struct
         fun_typs = SMap.empty;
         unions = SMap.empty;
         funmap = SMap.empty;
+        constants = SSet.empty;
     }
     
     let defs_merge (a: defs) (b: defs) : defs =
@@ -59,6 +60,7 @@ module Codegen () = struct
             fun_typs = map_union a.fun_typs b.fun_typs;
             unions = map_union a.unions b.unions;
             funmap = map_union a.funmap b.funmap;
+            constants = SSet.union a.constants b.constants;
         }
     
     let defs_add_union (defs: defs) (union: unionmap) : defs =
@@ -72,6 +74,7 @@ module Codegen () = struct
             fun_typs = SMap.empty;
             unions = union;
             funmap = SMap.empty;
+            constants = SSet.empty;
         }
     
     let defs_from_funs (funs: defmap) : defs =
@@ -79,6 +82,7 @@ module Codegen () = struct
             fun_typs = funs;
             unions = SMap.empty;
             funmap = SMap.empty;
+            constants = SSet.empty;
         }
 
     (* —————————————————————————————— Other Utils ——————————————————————————————— *)
@@ -713,7 +717,7 @@ module Codegen () = struct
             ];
         })
                  
-    and typdef_to_rust (TD_aux (typ, (l, _))) : rs_program = 
+    and typdef_to_rust (s: context) (TD_aux (typ, (l, _))) : rs_program = 
             match typ with
             | TD_enum (id, members, _) -> RsProg [RsEnum(enum_to_rust id members l)] 
             | TD_variant (id, typq, members, _) when string_of_id id = "option" -> RsProg [] (* Special semantics in rust *)
@@ -727,13 +731,27 @@ module Codegen () = struct
                     old_type = typ_to_rust typ;
                 } in
                 RsProg [RsAlias (alias)] (* TODO *)
-            | TD_abbrev (id, typq, A_aux (A_nexp nexp, _)) ->
+            (* NOTE: we should create a constant for numeral types only if there is no constant with the same name already defined. *)
+            | TD_abbrev (id, typq, A_aux (A_nexp nexp, _)) when not (SSet.mem (string_of_id id) s.defs.constants) ->
                 let const = {
                     name = string_of_id id;
-                    value = nexp_to_rs_exp nexp
+                    value = nexp_to_rs_exp nexp;
+                    typ = RsTypId "usize";
                 } in
                 RsProg [RsConst const]
             | TD_abbrev _ -> RsProg [] (* Ignore all other abbreviations *)
+            | _ -> RsProg []
+
+    and toplevel_let_to_rust (LB_aux (LB_val (pat, exp), aux)) (ctx: context) : rs_program =
+        let pat = process_pat pat in
+        let exp = process_exp ctx exp in
+        match pat with
+            | RsPatId id ->
+                let const = { name = id; value = exp; typ = RsTypId "usize"} in
+                RsProg [RsConst const]
+            | RsPatType (typ, RsPatId id) ->
+                    let const = { name = id; value = exp; typ = typ } in
+                RsProg [RsConst const]
             | _ -> RsProg []
         
     and def_to_rust (DEF_aux (def, annot)) (s: context) : rs_program =
@@ -742,7 +760,8 @@ module Codegen () = struct
             | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
             | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef s
             | DEF_impl funcl -> process_func funcl s
-            | DEF_type typ -> typdef_to_rust typ
+            | DEF_type typ -> typdef_to_rust s typ
+            | DEF_let binding -> toplevel_let_to_rust binding s
             | _ -> RsProg []
     
     and defs_to_rust defs (ctx: context): rs_program =
@@ -968,6 +987,12 @@ module Codegen () = struct
             | DEF_fundef (FD_aux (fundef, annot)) -> defs_empty
             | DEF_impl funcl -> defs_empty
             | DEF_type typ -> defs_from_union (type_def_fun_def typ)
+            | DEF_let (LB_aux (LB_val (pat, _), _)) ->
+                let pat = process_pat pat in
+                begin match pat with
+                    | RsPatId id | RsPatType (_, RsPatId id) -> { defs_empty with constants = SSet.of_list [id] }
+                    | _ -> defs_empty
+                end
             | _ -> defs_empty
     
     let rec collect_defs(defs: ('a, 'b) def list) : defs =

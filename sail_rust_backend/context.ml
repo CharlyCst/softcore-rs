@@ -8,6 +8,7 @@ type defs = {
     fun_typs : defmap;
     unions: unionmap;
     funmap: funmap;
+    constants: SSet.t;
 }
 
 type context = {
