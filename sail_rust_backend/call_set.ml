@@ -141,6 +141,7 @@ let node_call_set (DEF_aux (def, annot)) (ctx: sail_ctx) : sail_ctx =
         | DEF_scattered (SD_aux (scattered, annot)) -> ctx
         | DEF_fundef (FD_aux (fundef, annot)) -> fundef_call_set fundef ctx
         | DEF_impl funcl -> func_call_set funcl ctx
+        | DEF_let (LB_aux (LB_val (pat, exp), aux)) -> exp_call_set exp ctx
         | _ -> ctx
 
 let rec defs_call_set (defs: (tannot, env) def list) (ctx: sail_ctx) : sail_ctx =
