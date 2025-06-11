@@ -12,7 +12,7 @@ use softcore_prelude::*;
 pub struct Core {
     pub PC: xlenbits,
     pub nextPC: xlenbits,
-    pub Xs: [xlenbits;32],
+    pub Xs: [xlenbits; (32 as usize)],
     pub config: Config,
 }
 
@@ -21,9 +21,9 @@ pub struct Config {
 
 }
 
-pub const xlen: usize = 64;
+pub const xlen: i128 = 64;
 
-pub const xlen_bytes: usize = 8;
+pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitVector<xlen>;
 

@@ -15,14 +15,14 @@ pub struct Core {
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Config {
-    pub unknown_at_compile_time: usize,
+    pub unknown_at_compile_time: i128,
 }
 
-pub const xlen_bytes: usize = 8;
+pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitVector<xlen>;
 
-pub const xlen: usize = 64;
+pub const xlen: i128 = 64;
 
 /// ExceptionType
 /// 
@@ -33,7 +33,7 @@ pub enum ExceptionType {
     E_Fetch_Access_Fault(()),
     E_Illegal_Instr(()),
     E_Breakpoint(()),
-    E_Extension(usize)
+    E_Extension(i128)
 }
 
 /// physaddr
@@ -54,21 +54,21 @@ pub fn pmpMatchAddr(physaddr::Physaddr(addr): physaddr) -> bool {
 /// handle_int
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L33-35.
-pub fn handle_int(a1: usize) -> usize {
+pub fn handle_int(a1: i128) -> i128 {
     (a1 + 4)
 }
 
 /// handle_int_int
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L37-39.
-pub fn handle_int_int(a1: usize, a2: usize) -> bool {
+pub fn handle_int_int(a1: i128, a2: i128) -> bool {
     false
 }
 
 /// handle_int_int_bool_int
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L41-43.
-pub fn handle_int_int_bool_int(a1: usize, a2: usize, a3: bool, a4: usize) -> usize {
+pub fn handle_int_int_bool_int(a1: i128, a2: i128, a3: bool, a4: i128) -> i128 {
     131
 }
 
@@ -104,21 +104,21 @@ pub enum ast {
 /// zeros
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L66.
-pub const fn zeros<const N: usize>(n: usize) -> BitVector<N> {
+pub const fn zeros<const N: i128>(n: i128) -> BitVector<N> {
     sail_zeros(n)
 }
 
 /// hex_bits_backwards
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L77.
-pub fn hex_bits_backwards<const M: usize>(m: usize, str: &'static str) -> BitVector<M> {
+pub fn hex_bits_backwards<const M: i128>(m: i128, str: &'static str) -> BitVector<M> {
     parse_hex_bits(m, str)
 }
 
 /// validDoubleRegs
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L80-85.
-pub fn validDoubleRegs<const N: usize>(n: usize, regs: [BitVector<5>;N]) -> bool {
+pub fn validDoubleRegs<const N: usize>(n: i128, regs: [BitVector<5>; N]) -> bool {
     todo!("E_for");
     true
 }
@@ -136,11 +136,11 @@ pub enum Access_kind<ARCH_AK> {
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L92-98.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct Mem_read_request<const N: usize, const VASIZE: usize, PA, ARCH_AK> {
+pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, ARCH_AK> {
     pub access_kind: Access_kind<ARCH_AK>,
     pub va: Option<BitVector<VASIZE>>,
     pub pa: PA,
-    pub size: usize,
+    pub size: i128,
     pub tag: bool,
 }
 
@@ -175,7 +175,7 @@ pub enum exception {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct {
     pub field1: BitVector<5>,
-    pub field2: usize,
+    pub field2: i128,
     pub field3: &'static str,
 }
 
@@ -183,7 +183,7 @@ pub struct My_struct {
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L122-124.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct My_struct_generic<const N: usize> {
+pub struct My_struct_generic<const N: i128> {
     pub foo: BitVector<N>,
 }
 
@@ -234,7 +234,7 @@ pub fn execute_TEST(core_ctx: &mut Core) {
     let s2: My_struct_generic<4> = My_struct_generic {
         foo: BitVector::<4>::new(0b1010)
     };
-    let G: usize = core_ctx.config.unknown_at_compile_time;
+    let G: i128 = core_ctx.config.unknown_at_compile_time;
     let mask: xlenbits = sail_ones::<64>(min_int(G, 64)).zero_extend::<64>();
     let mask2 = sail_ones::<8>(8);
     let value = exceptionType_to_bits(ExceptionType::E_Fetch_Addr_Align(()));

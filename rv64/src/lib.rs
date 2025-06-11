@@ -54,12 +54,12 @@ impl Core {
 
     /// Set the `pmpaddr<index>` register to the given value.
     pub fn set_pmpaddr(&mut self, index: usize, val: u64) {
-        raw::pmpWriteAddrReg(self, index, BitVector::new(val));
+        raw::pmpWriteAddrReg(self, index as i128, BitVector::new(val));
     }
 
     /// Set the `pmpcfg<index>` register to the given value.
     pub fn set_pmpcfg(&mut self, index: usize, val: u64) {
-        raw::pmpWriteCfgReg(self, index, BitVector::new(val));
+        raw::pmpWriteCfgReg(self, index as i128, BitVector::new(val));
     }
 
     /// Check if an 8 byte access is allowed with the current mode and PMP configuration.
@@ -269,7 +269,7 @@ pub const fn new_core(config: raw::Config) -> Core {
         htif_exit_code: BitVector::new(0),
         htif_cmd_write: false,
         htif_payload_writes: BitVector::new(0),
-        tlb: [DEFAULT_TLB_ENTRY; raw::num_tlb_entries],
+        tlb: [DEFAULT_TLB_ENTRY; raw::num_tlb_entries as usize],
         satp: BitVector::new(0),
         hart_state: raw::HartState::HART_ACTIVE(()),
         config,

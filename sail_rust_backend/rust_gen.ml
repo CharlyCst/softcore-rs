@@ -19,8 +19,7 @@ and  rs_type_param =
 
 and rs_generic =
     | RsGenTyp of string
-    | RsGenNum of string
-    | RsGenBool of string
+    | RsGenConst of string * string (* variable name, generic type *)
 
 and rs_lit =
     | RsLitUnit
@@ -175,6 +174,11 @@ let core_ctx = "core_ctx"
 let default_copy_derive = ["Eq"; "PartialEq"; "Clone"; "Copy"; "Debug"]
 let default_move_derive = ["Eq"; "PartialEq"; "Clone"; "Debug"]
 
+let nat_typ = RsTypId "u128"
+let int_typ = RsTypId "i128"
+let bool_typ = RsTypId "bool"
+let usize_typ = RsTypId "usize"
+
 let merge_rs_prog (prog1: rs_program) (prog2: rs_program) : rs_program =
     let RsProg (fn1) = prog1 in
     let RsProg (fn2) = prog2 in
@@ -306,8 +310,7 @@ let string_of_generics_turbofish (generics: string list) : string =
 let string_of_generics_parameters(generics: rs_generic list) : string =
     let string_of_generic generic = match generic with
         | RsGenTyp s -> s
-        | RsGenNum s -> Printf.sprintf "const %s: usize" s
-        | RsGenBool s -> Printf.sprintf "const %s: bool" s
+        | RsGenConst (s, typ) -> Printf.sprintf "const %s: %s" s typ
     in
     let generics = List.map string_of_generic generics in
     match generics with
@@ -326,7 +329,7 @@ let rec string_of_rs_type (typ: rs_type) : string =
             Printf.sprintf "%s<%s>"
                 id
                 (String.concat ", " (List.map string_of_rs_type_param params))
-        | RsTypArray (typ, size) -> Printf.sprintf "[%s;%s]" (string_of_rs_type_param typ) (string_of_rs_type_param size)
+        | RsTypArray (typ, size) -> Printf.sprintf "[%s; %s]" (string_of_rs_type_param typ) (string_of_rs_type_param size)
         | RsTypOption param -> Printf.sprintf "Option<%s>" (string_of_rs_type_param param)
         | RsTypTodo e -> e
 and string_of_rs_type_param (typ: rs_type_param) : string =
@@ -563,7 +566,6 @@ let string_of_rs_fn (fn: rs_fn) : string =
         | RsTypUnit -> ""
         | ret_type -> Printf.sprintf " -> %s" (string_of_rs_type ret_type)
     in
-    (* For now we assume all generics are const usize *)
     let generics = string_of_generics_parameters fn.signature.generics in
     let signature = Printf.sprintf "%spub %sfn %s%s(%s)%s {\n%s" doc const fn.name generics args ret_type (indent 1) in
     let stmts = (match fn.body with

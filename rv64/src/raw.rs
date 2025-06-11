@@ -79,8 +79,8 @@ pub struct Core {
     pub vstart: BitVector<16>,
     pub vl: xlenbits,
     pub vtype: Vtype,
-    pub pmpcfg_n: [Pmpcfg_ent;64],
-    pub pmpaddr_n: [xlenbits;64],
+    pub pmpcfg_n: [Pmpcfg_ent; (64 as usize)],
+    pub pmpaddr_n: [xlenbits; (64 as usize)],
     pub vr0: vregtype,
     pub vr1: vregtype,
     pub vr2: vregtype,
@@ -114,8 +114,8 @@ pub struct Core {
     pub vr30: vregtype,
     pub vr31: vregtype,
     pub vcsr: Vcsr,
-    pub mhpmevent: [HpmEvent;32],
-    pub mhpmcounter: [BitVector<64>;32],
+    pub mhpmevent: [HpmEvent; (32 as usize)],
+    pub mhpmcounter: [BitVector<64>; (32 as usize)],
     pub float_result: BitVector<64>,
     pub float_fflags: BitVector<64>,
     pub f0: fregtype,
@@ -160,7 +160,7 @@ pub struct Core {
     pub htif_exit_code: BitVector<64>,
     pub htif_cmd_write: bool,
     pub htif_payload_writes: BitVector<4>,
-    pub tlb: [Option<TLB_Entry>;num_tlb_entries],
+    pub tlb: [Option<TLB_Entry>; (num_tlb_entries as usize)],
     pub satp: xlenbits,
     pub hart_state: HartState,
     pub config: Config,
@@ -310,7 +310,7 @@ pub struct ConfigU {
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigV {
     pub supported: bool,
-    pub vlen_exp: usize,
+    pub vlen_exp: i128,
 }
 
 #[derive(Eq, PartialEq, Clone, Debug)]
@@ -520,7 +520,7 @@ pub struct ConfigMemory {
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigPmp {
-    pub grain: usize,
+    pub grain: i128,
 }
 
 pub type xlenbits = BitVector<xlen>;
@@ -536,7 +536,7 @@ pub enum virtaddr {
 /// hex_bits_backwards
 /// 
 /// Generated from the Sail sources at `sail/lib/hex_bits.sail` L65.
-pub fn hex_bits_backwards<const N: usize>(n: usize, str: &'static str) -> BitVector<N> {
+pub fn hex_bits_backwards<const N: i128>(n: i128, str: &'static str) -> BitVector<N> {
     parse_hex_bits(n, str)
 }
 
@@ -561,14 +561,14 @@ pub const fn get_config_print_platform(unit_arg: ()) -> bool {
 /// zeros
 /// 
 /// Generated from the Sail sources at `prelude.sail` L84.
-pub const fn zeros<const N: usize>(n: usize) -> BitVector<N> {
+pub const fn zeros<const N: i128>(n: i128) -> BitVector<N> {
     sail_zeros(n)
 }
 
 /// ones
 /// 
 /// Generated from the Sail sources at `prelude.sail` L87.
-pub const fn ones<const N: usize>(n: usize) -> BitVector<N> {
+pub const fn ones<const N: i128>(n: i128) -> BitVector<N> {
     sail_ones(n)
 }
 
@@ -593,20 +593,20 @@ pub fn bool_to_bits(x: bool) -> BitVector<1> {
 /// to_bits
 /// 
 /// Generated from the Sail sources at `prelude.sail` L117.
-pub fn to_bits<const L: usize>(l: usize, n: usize) -> BitVector<L> {
+pub fn to_bits<const L: i128>(l: i128, n: i128) -> BitVector<L> {
     get_slice_int(l, n, 0)
 }
 
 /// (operator >=_u)
 /// 
 /// Generated from the Sail sources at `prelude.sail` L144.
-pub fn _operator_biggerequal_u_<const N: usize>(x: BitVector<N>, y: BitVector<N>) -> bool {
+pub fn _operator_biggerequal_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.as_usize() >= y.as_usize())
 }
 
-pub const max_mem_access: usize = 4096;
+pub const max_mem_access: i128 = 4096;
 
-pub type mem_access_width = usize;
+pub type mem_access_width = i128;
 
 /// exception
 /// 
@@ -617,38 +617,38 @@ pub enum exception {
     Error_internal_error(())
 }
 
-pub const log2_xlen: usize = 6;
+pub const log2_xlen: i128 = 6;
 
-pub const log2_xlen_bytes: usize = 3;
+pub const log2_xlen_bytes: i128 = 3;
 
-pub const xlen_bytes: usize = 8;
+pub const xlen_bytes: i128 = 8;
 
-pub const xlen: usize = 64;
+pub const xlen: i128 = 64;
 
-pub const asidlen: usize = 16;
+pub const asidlen: i128 = 16;
 
 pub type asidbits = BitVector<asidlen>;
 
 pub type flenbits = BitVector<flen>;
 
-pub const flen_bytes: usize = 8;
+pub const flen_bytes: i128 = 8;
 
-pub const flen: usize = 64;
+pub const flen: i128 = 64;
 
 /// get_vlen_pow
 /// 
 /// Generated from the Sail sources at `riscv_vlen.sail` L16.
-pub const fn get_vlen_pow(unit_arg: ()) -> usize {
+pub const fn get_vlen_pow(unit_arg: ()) -> i128 {
     3
 }
 
-pub const vlenmax: usize = 65536;
+pub const vlenmax: i128 = 65536;
 
-pub const VLEN: usize = usize::pow(2, (get_vlen_pow(()) as u32));
+pub const VLEN: i128 = i128::pow(2, (get_vlen_pow(()) as u32));
 
 pub type physaddrbits = BitVector<physaddrbits_len>;
 
-pub const physaddrbits_len: usize = 64;
+pub const physaddrbits_len: i128 = 64;
 
 /// physaddr
 /// 
@@ -715,12 +715,12 @@ pub enum Access_kind<ARCH_AK> {
 /// 
 /// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L93-104.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-pub struct Mem_read_request<const N: usize, const VASIZE: usize, PA, TS, ARCH_AK> {
+pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, TS, ARCH_AK> {
     pub access_kind: Access_kind<ARCH_AK>,
     pub va: Option<BitVector<VASIZE>>,
     pub pa: PA,
     pub translation: TS,
-    pub size: usize,
+    pub size: i128,
     pub tag: bool,
 }
 
@@ -931,11 +931,11 @@ pub type ext_ptw_error = ();
 
 pub type ext_exc_type = ();
 
-pub const xlen_max_unsigned: usize = 18446744073709551615;
+pub const xlen_max_unsigned: i128 = 18446744073709551615;
 
-pub const xlen_max_signed: usize = 9223372036854775807;
+pub const xlen_max_signed: i128 = 9223372036854775807;
 
-pub const xlen_min_signed: isize = -9223372036854775808;
+pub const xlen_min_signed: i128 = -9223372036854775808;
 
 pub type half = BitVector<16>;
 
@@ -943,7 +943,7 @@ pub type word = BitVector<32>;
 
 pub type instbits = BitVector<32>;
 
-pub const pagesize_bits: usize = 12;
+pub const pagesize_bits: i128 = 12;
 
 /// regidx
 /// 
@@ -968,7 +968,7 @@ pub type csreg = BitVector<12>;
 /// Generated from the Sail sources at `riscv_types.sail` L34.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum regno {
-    Regno(usize)
+    Regno(i128)
 }
 
 pub const zreg: regidx = regidx::Regidx(BitVector::<5>::new(0b00000));
@@ -1994,7 +1994,7 @@ pub enum vregidx {
 
 /// zvkfunct6
 /// 
-/// Generated from the Sail sources at `riscv_zvk_utils.sail` L24.
+/// Generated from the Sail sources at `riscv_zvk_utils.sail` L28.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum zvkfunct6 {
     ZVK_VSHA2CH,
@@ -2747,7 +2747,7 @@ pub enum SATPMode {
 
 pub type csrRW = BitVector<2>;
 
-pub type level_range<const V: usize> = usize;
+pub type level_range<const V: i128> = i128;
 
 pub type ext_access_type = ();
 
@@ -3442,7 +3442,7 @@ pub fn _get_Pmpcfg_ent_X(v: Pmpcfg_ent) -> BitVector<1> {
 /// sys_pmp_grain
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L97.
-pub fn sys_pmp_grain(core_ctx: &mut Core, unit_arg: ()) -> usize {
+pub fn sys_pmp_grain(core_ctx: &mut Core, unit_arg: ()) -> i128 {
     core_ctx.config.memory.pmp.grain
 }
 
@@ -3736,12 +3736,12 @@ pub fn Mk_Pmpcfg_ent(v: BitVector<8>) -> Pmpcfg_ent {
 /// pmpReadAddrReg
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L69-89.
-pub fn pmpReadAddrReg(core_ctx: &mut Core, n: usize) -> BitVector<{
+pub fn pmpReadAddrReg(core_ctx: &mut Core, n: i128) -> BitVector<{
     64
 }> {
     let G = sys_pmp_grain(core_ctx, ());
-    let match_type = _get_Pmpcfg_ent_A(core_ctx.pmpcfg_n[n]);
-    let addr = core_ctx.pmpaddr_n[n];
+    let match_type = _get_Pmpcfg_ent_A(core_ctx.pmpcfg_n[(n as usize)]);
+    let addr = core_ctx.pmpaddr_n[(n as usize)];
     match bitvector_access(match_type, 1) {
         true if {(G >= 2)} => {{
             let mask: xlenbits = ones::<64>(min_int((G - 1), 64)).zero_extend::<64>();
@@ -3773,7 +3773,7 @@ pub fn pmpTORLocked(cfg: Pmpcfg_ent) -> bool {
 /// pmpWriteCfg
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L98-117.
-pub fn pmpWriteCfg(core_ctx: &mut Core, n: usize, cfg: Pmpcfg_ent, v: BitVector<8>) -> Pmpcfg_ent {
+pub fn pmpWriteCfg(core_ctx: &mut Core, n: i128, cfg: Pmpcfg_ent, v: BitVector<8>) -> Pmpcfg_ent {
     if {pmpLocked(cfg)} {
         cfg
     } else {
@@ -3795,7 +3795,7 @@ pub fn pmpWriteCfg(core_ctx: &mut Core, n: usize, cfg: Pmpcfg_ent, v: BitVector<
 /// pmpWriteCfgReg
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L119-134.
-pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: usize, v: BitVector<{
+pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: i128, v: BitVector<{
     64
 }>) {
     if {(64 == 32)} {
@@ -3804,7 +3804,7 @@ pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: usize, v: BitVector<{
         assert!(((n % 2) == 0), "Unexpected pmp config reg write");
         for i in 0..=7 {
             let idx = ((n * 4) + i);
-            core_ctx.pmpcfg_n[idx] = pmpWriteCfg(core_ctx, idx, core_ctx.pmpcfg_n[idx], subrange_bits(v, ((8 * i) + 7), (8 * i)))
+            core_ctx.pmpcfg_n[(idx as usize)] = pmpWriteCfg(core_ctx, idx, core_ctx.pmpcfg_n[(idx as usize)], subrange_bits(v, ((8 * i) + 7), (8 * i)))
         }
     }
 }
@@ -3833,16 +3833,16 @@ pub fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
 /// pmpWriteAddrReg
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L141-148.
-pub fn pmpWriteAddrReg(core_ctx: &mut Core, n: usize, v: BitVector<{
+pub fn pmpWriteAddrReg(core_ctx: &mut Core, n: i128, v: BitVector<{
     64
 }>) {
-    core_ctx.pmpaddr_n[n] = {
+    core_ctx.pmpaddr_n[(n as usize)] = {
         let var_1 = if {((n + 1) < 64)} {
-            pmpTORLocked(core_ctx.pmpcfg_n[(n + 1)])
+            pmpTORLocked(core_ctx.pmpcfg_n[((n + 1) as usize)])
         } else {
             false
         };
-        pmpWriteAddr(pmpLocked(core_ctx.pmpcfg_n[n]), var_1, core_ctx.pmpaddr_n[n], v)
+        pmpWriteAddr(pmpLocked(core_ctx.pmpcfg_n[(n as usize)]), var_1, core_ctx.pmpaddr_n[(n as usize)], v)
     }
 }
 
@@ -3966,7 +3966,7 @@ pub fn accessToFault(acc: AccessType<()>) -> ExceptionType {
 /// pmpCheck
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L105-118.
-pub fn pmpCheck<const N: usize>(core_ctx: &mut Core, addr: physaddr, width: usize, acc: AccessType<()>, _priv_: Privilege) -> Option<ExceptionType> {
+pub fn pmpCheck<const N: i128>(core_ctx: &mut Core, addr: physaddr, width: i128, acc: AccessType<()>, _priv_: Privilege) -> Option<ExceptionType> {
     let width: xlenbits = to_bits(64, width);
     for i in 0..=63 {
         let prev_pmpaddr = if {gt_int(i, 0)} {
@@ -3976,7 +3976,7 @@ pub fn pmpCheck<const N: usize>(core_ctx: &mut Core, addr: physaddr, width: usiz
         };
         match {
             let var_1 = pmpReadAddrReg(core_ctx, i);
-            pmpMatchEntry(core_ctx, addr, width, acc, _priv_, core_ctx.pmpcfg_n[i], var_1, prev_pmpaddr)
+            pmpMatchEntry(core_ctx, addr, width, acc, _priv_, core_ctx.pmpcfg_n[(i as usize)], var_1, prev_pmpaddr)
         } {
             pmpMatch::PMP_Success => {{
                 return None;
@@ -4056,7 +4056,7 @@ pub enum maskfunct3 {
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L10.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregno {
-    Vregno(usize)
+    Vregno(i128)
 }
 
 pub const zvreg: vregidx = vregidx::Vregidx(BitVector::<5>::new(0b00000));
@@ -4101,7 +4101,7 @@ pub struct sync_exception {
     pub ext: Option<ext_exception>,
 }
 
-pub type hpmidx = usize;
+pub type hpmidx = i128;
 
 /// seed_opst
 /// 
@@ -4137,7 +4137,7 @@ pub type bits_LU = BitVector<64>;
 /// Generated from the Sail sources at `riscv_fdext_regs.sail` L56.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum fregno {
-    Fregno(usize)
+    Fregno(i128)
 }
 
 /// findPendingInterrupt
@@ -4373,9 +4373,9 @@ pub enum PTE_Check {
     PTE_Check_Failure((ext_ptw, ext_ptw_fail))
 }
 
-pub const tlb_vpn_bits: usize = 45;
+pub const tlb_vpn_bits: i128 = 45;
 
-pub const tlb_ppn_bits: usize = 44;
+pub const tlb_ppn_bits: i128 = 44;
 
 /// TLB_Entry
 /// 
@@ -4391,9 +4391,9 @@ pub struct TLB_Entry {
     pub pteAddr: physaddr,
 }
 
-pub const num_tlb_entries: usize = 64;
+pub const num_tlb_entries: i128 = 64;
 
-pub type tlb_index_range = usize;
+pub type tlb_index_range = i128;
 
 /// TR_Result
 /// 
@@ -4404,13 +4404,13 @@ pub enum TR_Result<PADDR, FAILURE> {
     TR_Failure((FAILURE, ext_ptw))
 }
 
-pub const sm4_sbox_table: [BitVector<8>;256] = [BitVector::<8>::new(0b11010110), BitVector::<8>::new(0b10010000), BitVector::<8>::new(0b11101001), BitVector::<8>::new(0b11111110), BitVector::<8>::new(0b11001100), BitVector::<8>::new(0b11100001), BitVector::<8>::new(0b00111101), BitVector::<8>::new(0b10110111), BitVector::<8>::new(0b00010110), BitVector::<8>::new(0b10110110), BitVector::<8>::new(0b00010100), BitVector::<8>::new(0b11000010), BitVector::<8>::new(0b00101000), BitVector::<8>::new(0b11111011), BitVector::<8>::new(0b00101100), BitVector::<8>::new(0b00000101), BitVector::<8>::new(0b00101011), BitVector::<8>::new(0b01100111), BitVector::<8>::new(0b10011010), BitVector::<8>::new(0b01110110), BitVector::<8>::new(0b00101010), BitVector::<8>::new(0b10111110), BitVector::<8>::new(0b00000100), BitVector::<8>::new(0b11000011), BitVector::<8>::new(0b10101010), BitVector::<8>::new(0b01000100), BitVector::<8>::new(0b00010011), BitVector::<8>::new(0b00100110), BitVector::<8>::new(0b01001001), BitVector::<8>::new(0b10000110), BitVector::<8>::new(0b00000110), BitVector::<8>::new(0b10011001), BitVector::<8>::new(0b10011100), BitVector::<8>::new(0b01000010), BitVector::<8>::new(0b01010000), BitVector::<8>::new(0b11110100), BitVector::<8>::new(0b10010001), BitVector::<8>::new(0b11101111), BitVector::<8>::new(0b10011000), BitVector::<8>::new(0b01111010), BitVector::<8>::new(0b00110011), BitVector::<8>::new(0b01010100), BitVector::<8>::new(0b00001011), BitVector::<8>::new(0b01000011), BitVector::<8>::new(0b11101101), BitVector::<8>::new(0b11001111), BitVector::<8>::new(0b10101100), BitVector::<8>::new(0b01100010), BitVector::<8>::new(0b11100100), BitVector::<8>::new(0b10110011), BitVector::<8>::new(0b00011100), BitVector::<8>::new(0b10101001), BitVector::<8>::new(0b11001001), BitVector::<8>::new(0b00001000), BitVector::<8>::new(0b11101000), BitVector::<8>::new(0b10010101), BitVector::<8>::new(0b10000000), BitVector::<8>::new(0b11011111), BitVector::<8>::new(0b10010100), BitVector::<8>::new(0b11111010), BitVector::<8>::new(0b01110101), BitVector::<8>::new(0b10001111), BitVector::<8>::new(0b00111111), BitVector::<8>::new(0b10100110), BitVector::<8>::new(0b01000111), BitVector::<8>::new(0b00000111), BitVector::<8>::new(0b10100111), BitVector::<8>::new(0b11111100), BitVector::<8>::new(0b11110011), BitVector::<8>::new(0b01110011), BitVector::<8>::new(0b00010111), BitVector::<8>::new(0b10111010), BitVector::<8>::new(0b10000011), BitVector::<8>::new(0b01011001), BitVector::<8>::new(0b00111100), BitVector::<8>::new(0b00011001), BitVector::<8>::new(0b11100110), BitVector::<8>::new(0b10000101), BitVector::<8>::new(0b01001111), BitVector::<8>::new(0b10101000), BitVector::<8>::new(0b01101000), BitVector::<8>::new(0b01101011), BitVector::<8>::new(0b10000001), BitVector::<8>::new(0b10110010), BitVector::<8>::new(0b01110001), BitVector::<8>::new(0b01100100), BitVector::<8>::new(0b11011010), BitVector::<8>::new(0b10001011), BitVector::<8>::new(0b11111000), BitVector::<8>::new(0b11101011), BitVector::<8>::new(0b00001111), BitVector::<8>::new(0b01001011), BitVector::<8>::new(0b01110000), BitVector::<8>::new(0b01010110), BitVector::<8>::new(0b10011101), BitVector::<8>::new(0b00110101), BitVector::<8>::new(0b00011110), BitVector::<8>::new(0b00100100), BitVector::<8>::new(0b00001110), BitVector::<8>::new(0b01011110), BitVector::<8>::new(0b01100011), BitVector::<8>::new(0b01011000), BitVector::<8>::new(0b11010001), BitVector::<8>::new(0b10100010), BitVector::<8>::new(0b00100101), BitVector::<8>::new(0b00100010), BitVector::<8>::new(0b01111100), BitVector::<8>::new(0b00111011), BitVector::<8>::new(0b00000001), BitVector::<8>::new(0b00100001), BitVector::<8>::new(0b01111000), BitVector::<8>::new(0b10000111), BitVector::<8>::new(0b11010100), BitVector::<8>::new(0b00000000), BitVector::<8>::new(0b01000110), BitVector::<8>::new(0b01010111), BitVector::<8>::new(0b10011111), BitVector::<8>::new(0b11010011), BitVector::<8>::new(0b00100111), BitVector::<8>::new(0b01010010), BitVector::<8>::new(0b01001100), BitVector::<8>::new(0b00110110), BitVector::<8>::new(0b00000010), BitVector::<8>::new(0b11100111), BitVector::<8>::new(0b10100000), BitVector::<8>::new(0b11000100), BitVector::<8>::new(0b11001000), BitVector::<8>::new(0b10011110), BitVector::<8>::new(0b11101010), BitVector::<8>::new(0b10111111), BitVector::<8>::new(0b10001010), BitVector::<8>::new(0b11010010), BitVector::<8>::new(0b01000000), BitVector::<8>::new(0b11000111), BitVector::<8>::new(0b00111000), BitVector::<8>::new(0b10110101), BitVector::<8>::new(0b10100011), BitVector::<8>::new(0b11110111), BitVector::<8>::new(0b11110010), BitVector::<8>::new(0b11001110), BitVector::<8>::new(0b11111001), BitVector::<8>::new(0b01100001), BitVector::<8>::new(0b00010101), BitVector::<8>::new(0b10100001), BitVector::<8>::new(0b11100000), BitVector::<8>::new(0b10101110), BitVector::<8>::new(0b01011101), BitVector::<8>::new(0b10100100), BitVector::<8>::new(0b10011011), BitVector::<8>::new(0b00110100), BitVector::<8>::new(0b00011010), BitVector::<8>::new(0b01010101), BitVector::<8>::new(0b10101101), BitVector::<8>::new(0b10010011), BitVector::<8>::new(0b00110010), BitVector::<8>::new(0b00110000), BitVector::<8>::new(0b11110101), BitVector::<8>::new(0b10001100), BitVector::<8>::new(0b10110001), BitVector::<8>::new(0b11100011), BitVector::<8>::new(0b00011101), BitVector::<8>::new(0b11110110), BitVector::<8>::new(0b11100010), BitVector::<8>::new(0b00101110), BitVector::<8>::new(0b10000010), BitVector::<8>::new(0b01100110), BitVector::<8>::new(0b11001010), BitVector::<8>::new(0b01100000), BitVector::<8>::new(0b11000000), BitVector::<8>::new(0b00101001), BitVector::<8>::new(0b00100011), BitVector::<8>::new(0b10101011), BitVector::<8>::new(0b00001101), BitVector::<8>::new(0b01010011), BitVector::<8>::new(0b01001110), BitVector::<8>::new(0b01101111), BitVector::<8>::new(0b11010101), BitVector::<8>::new(0b11011011), BitVector::<8>::new(0b00110111), BitVector::<8>::new(0b01000101), BitVector::<8>::new(0b11011110), BitVector::<8>::new(0b11111101), BitVector::<8>::new(0b10001110), BitVector::<8>::new(0b00101111), BitVector::<8>::new(0b00000011), BitVector::<8>::new(0b11111111), BitVector::<8>::new(0b01101010), BitVector::<8>::new(0b01110010), BitVector::<8>::new(0b01101101), BitVector::<8>::new(0b01101100), BitVector::<8>::new(0b01011011), BitVector::<8>::new(0b01010001), BitVector::<8>::new(0b10001101), BitVector::<8>::new(0b00011011), BitVector::<8>::new(0b10101111), BitVector::<8>::new(0b10010010), BitVector::<8>::new(0b10111011), BitVector::<8>::new(0b11011101), BitVector::<8>::new(0b10111100), BitVector::<8>::new(0b01111111), BitVector::<8>::new(0b00010001), BitVector::<8>::new(0b11011001), BitVector::<8>::new(0b01011100), BitVector::<8>::new(0b01000001), BitVector::<8>::new(0b00011111), BitVector::<8>::new(0b00010000), BitVector::<8>::new(0b01011010), BitVector::<8>::new(0b11011000), BitVector::<8>::new(0b00001010), BitVector::<8>::new(0b11000001), BitVector::<8>::new(0b00110001), BitVector::<8>::new(0b10001000), BitVector::<8>::new(0b10100101), BitVector::<8>::new(0b11001101), BitVector::<8>::new(0b01111011), BitVector::<8>::new(0b10111101), BitVector::<8>::new(0b00101101), BitVector::<8>::new(0b01110100), BitVector::<8>::new(0b11010000), BitVector::<8>::new(0b00010010), BitVector::<8>::new(0b10111000), BitVector::<8>::new(0b11100101), BitVector::<8>::new(0b10110100), BitVector::<8>::new(0b10110000), BitVector::<8>::new(0b10001001), BitVector::<8>::new(0b01101001), BitVector::<8>::new(0b10010111), BitVector::<8>::new(0b01001010), BitVector::<8>::new(0b00001100), BitVector::<8>::new(0b10010110), BitVector::<8>::new(0b01110111), BitVector::<8>::new(0b01111110), BitVector::<8>::new(0b01100101), BitVector::<8>::new(0b10111001), BitVector::<8>::new(0b11110001), BitVector::<8>::new(0b00001001), BitVector::<8>::new(0b11000101), BitVector::<8>::new(0b01101110), BitVector::<8>::new(0b11000110), BitVector::<8>::new(0b10000100), BitVector::<8>::new(0b00011000), BitVector::<8>::new(0b11110000), BitVector::<8>::new(0b01111101), BitVector::<8>::new(0b11101100), BitVector::<8>::new(0b00111010), BitVector::<8>::new(0b11011100), BitVector::<8>::new(0b01001101), BitVector::<8>::new(0b00100000), BitVector::<8>::new(0b01111001), BitVector::<8>::new(0b11101110), BitVector::<8>::new(0b01011111), BitVector::<8>::new(0b00111110), BitVector::<8>::new(0b11010111), BitVector::<8>::new(0b11001011), BitVector::<8>::new(0b00111001), BitVector::<8>::new(0b01001000)];
+pub const sm4_sbox_table: [BitVector<8>; (256 as usize)] = [BitVector::<8>::new(0b11010110), BitVector::<8>::new(0b10010000), BitVector::<8>::new(0b11101001), BitVector::<8>::new(0b11111110), BitVector::<8>::new(0b11001100), BitVector::<8>::new(0b11100001), BitVector::<8>::new(0b00111101), BitVector::<8>::new(0b10110111), BitVector::<8>::new(0b00010110), BitVector::<8>::new(0b10110110), BitVector::<8>::new(0b00010100), BitVector::<8>::new(0b11000010), BitVector::<8>::new(0b00101000), BitVector::<8>::new(0b11111011), BitVector::<8>::new(0b00101100), BitVector::<8>::new(0b00000101), BitVector::<8>::new(0b00101011), BitVector::<8>::new(0b01100111), BitVector::<8>::new(0b10011010), BitVector::<8>::new(0b01110110), BitVector::<8>::new(0b00101010), BitVector::<8>::new(0b10111110), BitVector::<8>::new(0b00000100), BitVector::<8>::new(0b11000011), BitVector::<8>::new(0b10101010), BitVector::<8>::new(0b01000100), BitVector::<8>::new(0b00010011), BitVector::<8>::new(0b00100110), BitVector::<8>::new(0b01001001), BitVector::<8>::new(0b10000110), BitVector::<8>::new(0b00000110), BitVector::<8>::new(0b10011001), BitVector::<8>::new(0b10011100), BitVector::<8>::new(0b01000010), BitVector::<8>::new(0b01010000), BitVector::<8>::new(0b11110100), BitVector::<8>::new(0b10010001), BitVector::<8>::new(0b11101111), BitVector::<8>::new(0b10011000), BitVector::<8>::new(0b01111010), BitVector::<8>::new(0b00110011), BitVector::<8>::new(0b01010100), BitVector::<8>::new(0b00001011), BitVector::<8>::new(0b01000011), BitVector::<8>::new(0b11101101), BitVector::<8>::new(0b11001111), BitVector::<8>::new(0b10101100), BitVector::<8>::new(0b01100010), BitVector::<8>::new(0b11100100), BitVector::<8>::new(0b10110011), BitVector::<8>::new(0b00011100), BitVector::<8>::new(0b10101001), BitVector::<8>::new(0b11001001), BitVector::<8>::new(0b00001000), BitVector::<8>::new(0b11101000), BitVector::<8>::new(0b10010101), BitVector::<8>::new(0b10000000), BitVector::<8>::new(0b11011111), BitVector::<8>::new(0b10010100), BitVector::<8>::new(0b11111010), BitVector::<8>::new(0b01110101), BitVector::<8>::new(0b10001111), BitVector::<8>::new(0b00111111), BitVector::<8>::new(0b10100110), BitVector::<8>::new(0b01000111), BitVector::<8>::new(0b00000111), BitVector::<8>::new(0b10100111), BitVector::<8>::new(0b11111100), BitVector::<8>::new(0b11110011), BitVector::<8>::new(0b01110011), BitVector::<8>::new(0b00010111), BitVector::<8>::new(0b10111010), BitVector::<8>::new(0b10000011), BitVector::<8>::new(0b01011001), BitVector::<8>::new(0b00111100), BitVector::<8>::new(0b00011001), BitVector::<8>::new(0b11100110), BitVector::<8>::new(0b10000101), BitVector::<8>::new(0b01001111), BitVector::<8>::new(0b10101000), BitVector::<8>::new(0b01101000), BitVector::<8>::new(0b01101011), BitVector::<8>::new(0b10000001), BitVector::<8>::new(0b10110010), BitVector::<8>::new(0b01110001), BitVector::<8>::new(0b01100100), BitVector::<8>::new(0b11011010), BitVector::<8>::new(0b10001011), BitVector::<8>::new(0b11111000), BitVector::<8>::new(0b11101011), BitVector::<8>::new(0b00001111), BitVector::<8>::new(0b01001011), BitVector::<8>::new(0b01110000), BitVector::<8>::new(0b01010110), BitVector::<8>::new(0b10011101), BitVector::<8>::new(0b00110101), BitVector::<8>::new(0b00011110), BitVector::<8>::new(0b00100100), BitVector::<8>::new(0b00001110), BitVector::<8>::new(0b01011110), BitVector::<8>::new(0b01100011), BitVector::<8>::new(0b01011000), BitVector::<8>::new(0b11010001), BitVector::<8>::new(0b10100010), BitVector::<8>::new(0b00100101), BitVector::<8>::new(0b00100010), BitVector::<8>::new(0b01111100), BitVector::<8>::new(0b00111011), BitVector::<8>::new(0b00000001), BitVector::<8>::new(0b00100001), BitVector::<8>::new(0b01111000), BitVector::<8>::new(0b10000111), BitVector::<8>::new(0b11010100), BitVector::<8>::new(0b00000000), BitVector::<8>::new(0b01000110), BitVector::<8>::new(0b01010111), BitVector::<8>::new(0b10011111), BitVector::<8>::new(0b11010011), BitVector::<8>::new(0b00100111), BitVector::<8>::new(0b01010010), BitVector::<8>::new(0b01001100), BitVector::<8>::new(0b00110110), BitVector::<8>::new(0b00000010), BitVector::<8>::new(0b11100111), BitVector::<8>::new(0b10100000), BitVector::<8>::new(0b11000100), BitVector::<8>::new(0b11001000), BitVector::<8>::new(0b10011110), BitVector::<8>::new(0b11101010), BitVector::<8>::new(0b10111111), BitVector::<8>::new(0b10001010), BitVector::<8>::new(0b11010010), BitVector::<8>::new(0b01000000), BitVector::<8>::new(0b11000111), BitVector::<8>::new(0b00111000), BitVector::<8>::new(0b10110101), BitVector::<8>::new(0b10100011), BitVector::<8>::new(0b11110111), BitVector::<8>::new(0b11110010), BitVector::<8>::new(0b11001110), BitVector::<8>::new(0b11111001), BitVector::<8>::new(0b01100001), BitVector::<8>::new(0b00010101), BitVector::<8>::new(0b10100001), BitVector::<8>::new(0b11100000), BitVector::<8>::new(0b10101110), BitVector::<8>::new(0b01011101), BitVector::<8>::new(0b10100100), BitVector::<8>::new(0b10011011), BitVector::<8>::new(0b00110100), BitVector::<8>::new(0b00011010), BitVector::<8>::new(0b01010101), BitVector::<8>::new(0b10101101), BitVector::<8>::new(0b10010011), BitVector::<8>::new(0b00110010), BitVector::<8>::new(0b00110000), BitVector::<8>::new(0b11110101), BitVector::<8>::new(0b10001100), BitVector::<8>::new(0b10110001), BitVector::<8>::new(0b11100011), BitVector::<8>::new(0b00011101), BitVector::<8>::new(0b11110110), BitVector::<8>::new(0b11100010), BitVector::<8>::new(0b00101110), BitVector::<8>::new(0b10000010), BitVector::<8>::new(0b01100110), BitVector::<8>::new(0b11001010), BitVector::<8>::new(0b01100000), BitVector::<8>::new(0b11000000), BitVector::<8>::new(0b00101001), BitVector::<8>::new(0b00100011), BitVector::<8>::new(0b10101011), BitVector::<8>::new(0b00001101), BitVector::<8>::new(0b01010011), BitVector::<8>::new(0b01001110), BitVector::<8>::new(0b01101111), BitVector::<8>::new(0b11010101), BitVector::<8>::new(0b11011011), BitVector::<8>::new(0b00110111), BitVector::<8>::new(0b01000101), BitVector::<8>::new(0b11011110), BitVector::<8>::new(0b11111101), BitVector::<8>::new(0b10001110), BitVector::<8>::new(0b00101111), BitVector::<8>::new(0b00000011), BitVector::<8>::new(0b11111111), BitVector::<8>::new(0b01101010), BitVector::<8>::new(0b01110010), BitVector::<8>::new(0b01101101), BitVector::<8>::new(0b01101100), BitVector::<8>::new(0b01011011), BitVector::<8>::new(0b01010001), BitVector::<8>::new(0b10001101), BitVector::<8>::new(0b00011011), BitVector::<8>::new(0b10101111), BitVector::<8>::new(0b10010010), BitVector::<8>::new(0b10111011), BitVector::<8>::new(0b11011101), BitVector::<8>::new(0b10111100), BitVector::<8>::new(0b01111111), BitVector::<8>::new(0b00010001), BitVector::<8>::new(0b11011001), BitVector::<8>::new(0b01011100), BitVector::<8>::new(0b01000001), BitVector::<8>::new(0b00011111), BitVector::<8>::new(0b00010000), BitVector::<8>::new(0b01011010), BitVector::<8>::new(0b11011000), BitVector::<8>::new(0b00001010), BitVector::<8>::new(0b11000001), BitVector::<8>::new(0b00110001), BitVector::<8>::new(0b10001000), BitVector::<8>::new(0b10100101), BitVector::<8>::new(0b11001101), BitVector::<8>::new(0b01111011), BitVector::<8>::new(0b10111101), BitVector::<8>::new(0b00101101), BitVector::<8>::new(0b01110100), BitVector::<8>::new(0b11010000), BitVector::<8>::new(0b00010010), BitVector::<8>::new(0b10111000), BitVector::<8>::new(0b11100101), BitVector::<8>::new(0b10110100), BitVector::<8>::new(0b10110000), BitVector::<8>::new(0b10001001), BitVector::<8>::new(0b01101001), BitVector::<8>::new(0b10010111), BitVector::<8>::new(0b01001010), BitVector::<8>::new(0b00001100), BitVector::<8>::new(0b10010110), BitVector::<8>::new(0b01110111), BitVector::<8>::new(0b01111110), BitVector::<8>::new(0b01100101), BitVector::<8>::new(0b10111001), BitVector::<8>::new(0b11110001), BitVector::<8>::new(0b00001001), BitVector::<8>::new(0b11000101), BitVector::<8>::new(0b01101110), BitVector::<8>::new(0b11000110), BitVector::<8>::new(0b10000100), BitVector::<8>::new(0b00011000), BitVector::<8>::new(0b11110000), BitVector::<8>::new(0b01111101), BitVector::<8>::new(0b11101100), BitVector::<8>::new(0b00111010), BitVector::<8>::new(0b11011100), BitVector::<8>::new(0b01001101), BitVector::<8>::new(0b00100000), BitVector::<8>::new(0b01111001), BitVector::<8>::new(0b11101110), BitVector::<8>::new(0b01011111), BitVector::<8>::new(0b00111110), BitVector::<8>::new(0b11010111), BitVector::<8>::new(0b11001011), BitVector::<8>::new(0b00111001), BitVector::<8>::new(0b01001000)];
 
-pub const aes_sbox_fwd_table: [BitVector<8>;256] = [BitVector::<8>::new(0b01100011), BitVector::<8>::new(0b01111100), BitVector::<8>::new(0b01110111), BitVector::<8>::new(0b01111011), BitVector::<8>::new(0b11110010), BitVector::<8>::new(0b01101011), BitVector::<8>::new(0b01101111), BitVector::<8>::new(0b11000101), BitVector::<8>::new(0b00110000), BitVector::<8>::new(0b00000001), BitVector::<8>::new(0b01100111), BitVector::<8>::new(0b00101011), BitVector::<8>::new(0b11111110), BitVector::<8>::new(0b11010111), BitVector::<8>::new(0b10101011), BitVector::<8>::new(0b01110110), BitVector::<8>::new(0b11001010), BitVector::<8>::new(0b10000010), BitVector::<8>::new(0b11001001), BitVector::<8>::new(0b01111101), BitVector::<8>::new(0b11111010), BitVector::<8>::new(0b01011001), BitVector::<8>::new(0b01000111), BitVector::<8>::new(0b11110000), BitVector::<8>::new(0b10101101), BitVector::<8>::new(0b11010100), BitVector::<8>::new(0b10100010), BitVector::<8>::new(0b10101111), BitVector::<8>::new(0b10011100), BitVector::<8>::new(0b10100100), BitVector::<8>::new(0b01110010), BitVector::<8>::new(0b11000000), BitVector::<8>::new(0b10110111), BitVector::<8>::new(0b11111101), BitVector::<8>::new(0b10010011), BitVector::<8>::new(0b00100110), BitVector::<8>::new(0b00110110), BitVector::<8>::new(0b00111111), BitVector::<8>::new(0b11110111), BitVector::<8>::new(0b11001100), BitVector::<8>::new(0b00110100), BitVector::<8>::new(0b10100101), BitVector::<8>::new(0b11100101), BitVector::<8>::new(0b11110001), BitVector::<8>::new(0b01110001), BitVector::<8>::new(0b11011000), BitVector::<8>::new(0b00110001), BitVector::<8>::new(0b00010101), BitVector::<8>::new(0b00000100), BitVector::<8>::new(0b11000111), BitVector::<8>::new(0b00100011), BitVector::<8>::new(0b11000011), BitVector::<8>::new(0b00011000), BitVector::<8>::new(0b10010110), BitVector::<8>::new(0b00000101), BitVector::<8>::new(0b10011010), BitVector::<8>::new(0b00000111), BitVector::<8>::new(0b00010010), BitVector::<8>::new(0b10000000), BitVector::<8>::new(0b11100010), BitVector::<8>::new(0b11101011), BitVector::<8>::new(0b00100111), BitVector::<8>::new(0b10110010), BitVector::<8>::new(0b01110101), BitVector::<8>::new(0b00001001), BitVector::<8>::new(0b10000011), BitVector::<8>::new(0b00101100), BitVector::<8>::new(0b00011010), BitVector::<8>::new(0b00011011), BitVector::<8>::new(0b01101110), BitVector::<8>::new(0b01011010), BitVector::<8>::new(0b10100000), BitVector::<8>::new(0b01010010), BitVector::<8>::new(0b00111011), BitVector::<8>::new(0b11010110), BitVector::<8>::new(0b10110011), BitVector::<8>::new(0b00101001), BitVector::<8>::new(0b11100011), BitVector::<8>::new(0b00101111), BitVector::<8>::new(0b10000100), BitVector::<8>::new(0b01010011), BitVector::<8>::new(0b11010001), BitVector::<8>::new(0b00000000), BitVector::<8>::new(0b11101101), BitVector::<8>::new(0b00100000), BitVector::<8>::new(0b11111100), BitVector::<8>::new(0b10110001), BitVector::<8>::new(0b01011011), BitVector::<8>::new(0b01101010), BitVector::<8>::new(0b11001011), BitVector::<8>::new(0b10111110), BitVector::<8>::new(0b00111001), BitVector::<8>::new(0b01001010), BitVector::<8>::new(0b01001100), BitVector::<8>::new(0b01011000), BitVector::<8>::new(0b11001111), BitVector::<8>::new(0b11010000), BitVector::<8>::new(0b11101111), BitVector::<8>::new(0b10101010), BitVector::<8>::new(0b11111011), BitVector::<8>::new(0b01000011), BitVector::<8>::new(0b01001101), BitVector::<8>::new(0b00110011), BitVector::<8>::new(0b10000101), BitVector::<8>::new(0b01000101), BitVector::<8>::new(0b11111001), BitVector::<8>::new(0b00000010), BitVector::<8>::new(0b01111111), BitVector::<8>::new(0b01010000), BitVector::<8>::new(0b00111100), BitVector::<8>::new(0b10011111), BitVector::<8>::new(0b10101000), BitVector::<8>::new(0b01010001), BitVector::<8>::new(0b10100011), BitVector::<8>::new(0b01000000), BitVector::<8>::new(0b10001111), BitVector::<8>::new(0b10010010), BitVector::<8>::new(0b10011101), BitVector::<8>::new(0b00111000), BitVector::<8>::new(0b11110101), BitVector::<8>::new(0b10111100), BitVector::<8>::new(0b10110110), BitVector::<8>::new(0b11011010), BitVector::<8>::new(0b00100001), BitVector::<8>::new(0b00010000), BitVector::<8>::new(0b11111111), BitVector::<8>::new(0b11110011), BitVector::<8>::new(0b11010010), BitVector::<8>::new(0b11001101), BitVector::<8>::new(0b00001100), BitVector::<8>::new(0b00010011), BitVector::<8>::new(0b11101100), BitVector::<8>::new(0b01011111), BitVector::<8>::new(0b10010111), BitVector::<8>::new(0b01000100), BitVector::<8>::new(0b00010111), BitVector::<8>::new(0b11000100), BitVector::<8>::new(0b10100111), BitVector::<8>::new(0b01111110), BitVector::<8>::new(0b00111101), BitVector::<8>::new(0b01100100), BitVector::<8>::new(0b01011101), BitVector::<8>::new(0b00011001), BitVector::<8>::new(0b01110011), BitVector::<8>::new(0b01100000), BitVector::<8>::new(0b10000001), BitVector::<8>::new(0b01001111), BitVector::<8>::new(0b11011100), BitVector::<8>::new(0b00100010), BitVector::<8>::new(0b00101010), BitVector::<8>::new(0b10010000), BitVector::<8>::new(0b10001000), BitVector::<8>::new(0b01000110), BitVector::<8>::new(0b11101110), BitVector::<8>::new(0b10111000), BitVector::<8>::new(0b00010100), BitVector::<8>::new(0b11011110), BitVector::<8>::new(0b01011110), BitVector::<8>::new(0b00001011), BitVector::<8>::new(0b11011011), BitVector::<8>::new(0b11100000), BitVector::<8>::new(0b00110010), BitVector::<8>::new(0b00111010), BitVector::<8>::new(0b00001010), BitVector::<8>::new(0b01001001), BitVector::<8>::new(0b00000110), BitVector::<8>::new(0b00100100), BitVector::<8>::new(0b01011100), BitVector::<8>::new(0b11000010), BitVector::<8>::new(0b11010011), BitVector::<8>::new(0b10101100), BitVector::<8>::new(0b01100010), BitVector::<8>::new(0b10010001), BitVector::<8>::new(0b10010101), BitVector::<8>::new(0b11100100), BitVector::<8>::new(0b01111001), BitVector::<8>::new(0b11100111), BitVector::<8>::new(0b11001000), BitVector::<8>::new(0b00110111), BitVector::<8>::new(0b01101101), BitVector::<8>::new(0b10001101), BitVector::<8>::new(0b11010101), BitVector::<8>::new(0b01001110), BitVector::<8>::new(0b10101001), BitVector::<8>::new(0b01101100), BitVector::<8>::new(0b01010110), BitVector::<8>::new(0b11110100), BitVector::<8>::new(0b11101010), BitVector::<8>::new(0b01100101), BitVector::<8>::new(0b01111010), BitVector::<8>::new(0b10101110), BitVector::<8>::new(0b00001000), BitVector::<8>::new(0b10111010), BitVector::<8>::new(0b01111000), BitVector::<8>::new(0b00100101), BitVector::<8>::new(0b00101110), BitVector::<8>::new(0b00011100), BitVector::<8>::new(0b10100110), BitVector::<8>::new(0b10110100), BitVector::<8>::new(0b11000110), BitVector::<8>::new(0b11101000), BitVector::<8>::new(0b11011101), BitVector::<8>::new(0b01110100), BitVector::<8>::new(0b00011111), BitVector::<8>::new(0b01001011), BitVector::<8>::new(0b10111101), BitVector::<8>::new(0b10001011), BitVector::<8>::new(0b10001010), BitVector::<8>::new(0b01110000), BitVector::<8>::new(0b00111110), BitVector::<8>::new(0b10110101), BitVector::<8>::new(0b01100110), BitVector::<8>::new(0b01001000), BitVector::<8>::new(0b00000011), BitVector::<8>::new(0b11110110), BitVector::<8>::new(0b00001110), BitVector::<8>::new(0b01100001), BitVector::<8>::new(0b00110101), BitVector::<8>::new(0b01010111), BitVector::<8>::new(0b10111001), BitVector::<8>::new(0b10000110), BitVector::<8>::new(0b11000001), BitVector::<8>::new(0b00011101), BitVector::<8>::new(0b10011110), BitVector::<8>::new(0b11100001), BitVector::<8>::new(0b11111000), BitVector::<8>::new(0b10011000), BitVector::<8>::new(0b00010001), BitVector::<8>::new(0b01101001), BitVector::<8>::new(0b11011001), BitVector::<8>::new(0b10001110), BitVector::<8>::new(0b10010100), BitVector::<8>::new(0b10011011), BitVector::<8>::new(0b00011110), BitVector::<8>::new(0b10000111), BitVector::<8>::new(0b11101001), BitVector::<8>::new(0b11001110), BitVector::<8>::new(0b01010101), BitVector::<8>::new(0b00101000), BitVector::<8>::new(0b11011111), BitVector::<8>::new(0b10001100), BitVector::<8>::new(0b10100001), BitVector::<8>::new(0b10001001), BitVector::<8>::new(0b00001101), BitVector::<8>::new(0b10111111), BitVector::<8>::new(0b11100110), BitVector::<8>::new(0b01000010), BitVector::<8>::new(0b01101000), BitVector::<8>::new(0b01000001), BitVector::<8>::new(0b10011001), BitVector::<8>::new(0b00101101), BitVector::<8>::new(0b00001111), BitVector::<8>::new(0b10110000), BitVector::<8>::new(0b01010100), BitVector::<8>::new(0b10111011), BitVector::<8>::new(0b00010110)];
+pub const aes_sbox_fwd_table: [BitVector<8>; (256 as usize)] = [BitVector::<8>::new(0b01100011), BitVector::<8>::new(0b01111100), BitVector::<8>::new(0b01110111), BitVector::<8>::new(0b01111011), BitVector::<8>::new(0b11110010), BitVector::<8>::new(0b01101011), BitVector::<8>::new(0b01101111), BitVector::<8>::new(0b11000101), BitVector::<8>::new(0b00110000), BitVector::<8>::new(0b00000001), BitVector::<8>::new(0b01100111), BitVector::<8>::new(0b00101011), BitVector::<8>::new(0b11111110), BitVector::<8>::new(0b11010111), BitVector::<8>::new(0b10101011), BitVector::<8>::new(0b01110110), BitVector::<8>::new(0b11001010), BitVector::<8>::new(0b10000010), BitVector::<8>::new(0b11001001), BitVector::<8>::new(0b01111101), BitVector::<8>::new(0b11111010), BitVector::<8>::new(0b01011001), BitVector::<8>::new(0b01000111), BitVector::<8>::new(0b11110000), BitVector::<8>::new(0b10101101), BitVector::<8>::new(0b11010100), BitVector::<8>::new(0b10100010), BitVector::<8>::new(0b10101111), BitVector::<8>::new(0b10011100), BitVector::<8>::new(0b10100100), BitVector::<8>::new(0b01110010), BitVector::<8>::new(0b11000000), BitVector::<8>::new(0b10110111), BitVector::<8>::new(0b11111101), BitVector::<8>::new(0b10010011), BitVector::<8>::new(0b00100110), BitVector::<8>::new(0b00110110), BitVector::<8>::new(0b00111111), BitVector::<8>::new(0b11110111), BitVector::<8>::new(0b11001100), BitVector::<8>::new(0b00110100), BitVector::<8>::new(0b10100101), BitVector::<8>::new(0b11100101), BitVector::<8>::new(0b11110001), BitVector::<8>::new(0b01110001), BitVector::<8>::new(0b11011000), BitVector::<8>::new(0b00110001), BitVector::<8>::new(0b00010101), BitVector::<8>::new(0b00000100), BitVector::<8>::new(0b11000111), BitVector::<8>::new(0b00100011), BitVector::<8>::new(0b11000011), BitVector::<8>::new(0b00011000), BitVector::<8>::new(0b10010110), BitVector::<8>::new(0b00000101), BitVector::<8>::new(0b10011010), BitVector::<8>::new(0b00000111), BitVector::<8>::new(0b00010010), BitVector::<8>::new(0b10000000), BitVector::<8>::new(0b11100010), BitVector::<8>::new(0b11101011), BitVector::<8>::new(0b00100111), BitVector::<8>::new(0b10110010), BitVector::<8>::new(0b01110101), BitVector::<8>::new(0b00001001), BitVector::<8>::new(0b10000011), BitVector::<8>::new(0b00101100), BitVector::<8>::new(0b00011010), BitVector::<8>::new(0b00011011), BitVector::<8>::new(0b01101110), BitVector::<8>::new(0b01011010), BitVector::<8>::new(0b10100000), BitVector::<8>::new(0b01010010), BitVector::<8>::new(0b00111011), BitVector::<8>::new(0b11010110), BitVector::<8>::new(0b10110011), BitVector::<8>::new(0b00101001), BitVector::<8>::new(0b11100011), BitVector::<8>::new(0b00101111), BitVector::<8>::new(0b10000100), BitVector::<8>::new(0b01010011), BitVector::<8>::new(0b11010001), BitVector::<8>::new(0b00000000), BitVector::<8>::new(0b11101101), BitVector::<8>::new(0b00100000), BitVector::<8>::new(0b11111100), BitVector::<8>::new(0b10110001), BitVector::<8>::new(0b01011011), BitVector::<8>::new(0b01101010), BitVector::<8>::new(0b11001011), BitVector::<8>::new(0b10111110), BitVector::<8>::new(0b00111001), BitVector::<8>::new(0b01001010), BitVector::<8>::new(0b01001100), BitVector::<8>::new(0b01011000), BitVector::<8>::new(0b11001111), BitVector::<8>::new(0b11010000), BitVector::<8>::new(0b11101111), BitVector::<8>::new(0b10101010), BitVector::<8>::new(0b11111011), BitVector::<8>::new(0b01000011), BitVector::<8>::new(0b01001101), BitVector::<8>::new(0b00110011), BitVector::<8>::new(0b10000101), BitVector::<8>::new(0b01000101), BitVector::<8>::new(0b11111001), BitVector::<8>::new(0b00000010), BitVector::<8>::new(0b01111111), BitVector::<8>::new(0b01010000), BitVector::<8>::new(0b00111100), BitVector::<8>::new(0b10011111), BitVector::<8>::new(0b10101000), BitVector::<8>::new(0b01010001), BitVector::<8>::new(0b10100011), BitVector::<8>::new(0b01000000), BitVector::<8>::new(0b10001111), BitVector::<8>::new(0b10010010), BitVector::<8>::new(0b10011101), BitVector::<8>::new(0b00111000), BitVector::<8>::new(0b11110101), BitVector::<8>::new(0b10111100), BitVector::<8>::new(0b10110110), BitVector::<8>::new(0b11011010), BitVector::<8>::new(0b00100001), BitVector::<8>::new(0b00010000), BitVector::<8>::new(0b11111111), BitVector::<8>::new(0b11110011), BitVector::<8>::new(0b11010010), BitVector::<8>::new(0b11001101), BitVector::<8>::new(0b00001100), BitVector::<8>::new(0b00010011), BitVector::<8>::new(0b11101100), BitVector::<8>::new(0b01011111), BitVector::<8>::new(0b10010111), BitVector::<8>::new(0b01000100), BitVector::<8>::new(0b00010111), BitVector::<8>::new(0b11000100), BitVector::<8>::new(0b10100111), BitVector::<8>::new(0b01111110), BitVector::<8>::new(0b00111101), BitVector::<8>::new(0b01100100), BitVector::<8>::new(0b01011101), BitVector::<8>::new(0b00011001), BitVector::<8>::new(0b01110011), BitVector::<8>::new(0b01100000), BitVector::<8>::new(0b10000001), BitVector::<8>::new(0b01001111), BitVector::<8>::new(0b11011100), BitVector::<8>::new(0b00100010), BitVector::<8>::new(0b00101010), BitVector::<8>::new(0b10010000), BitVector::<8>::new(0b10001000), BitVector::<8>::new(0b01000110), BitVector::<8>::new(0b11101110), BitVector::<8>::new(0b10111000), BitVector::<8>::new(0b00010100), BitVector::<8>::new(0b11011110), BitVector::<8>::new(0b01011110), BitVector::<8>::new(0b00001011), BitVector::<8>::new(0b11011011), BitVector::<8>::new(0b11100000), BitVector::<8>::new(0b00110010), BitVector::<8>::new(0b00111010), BitVector::<8>::new(0b00001010), BitVector::<8>::new(0b01001001), BitVector::<8>::new(0b00000110), BitVector::<8>::new(0b00100100), BitVector::<8>::new(0b01011100), BitVector::<8>::new(0b11000010), BitVector::<8>::new(0b11010011), BitVector::<8>::new(0b10101100), BitVector::<8>::new(0b01100010), BitVector::<8>::new(0b10010001), BitVector::<8>::new(0b10010101), BitVector::<8>::new(0b11100100), BitVector::<8>::new(0b01111001), BitVector::<8>::new(0b11100111), BitVector::<8>::new(0b11001000), BitVector::<8>::new(0b00110111), BitVector::<8>::new(0b01101101), BitVector::<8>::new(0b10001101), BitVector::<8>::new(0b11010101), BitVector::<8>::new(0b01001110), BitVector::<8>::new(0b10101001), BitVector::<8>::new(0b01101100), BitVector::<8>::new(0b01010110), BitVector::<8>::new(0b11110100), BitVector::<8>::new(0b11101010), BitVector::<8>::new(0b01100101), BitVector::<8>::new(0b01111010), BitVector::<8>::new(0b10101110), BitVector::<8>::new(0b00001000), BitVector::<8>::new(0b10111010), BitVector::<8>::new(0b01111000), BitVector::<8>::new(0b00100101), BitVector::<8>::new(0b00101110), BitVector::<8>::new(0b00011100), BitVector::<8>::new(0b10100110), BitVector::<8>::new(0b10110100), BitVector::<8>::new(0b11000110), BitVector::<8>::new(0b11101000), BitVector::<8>::new(0b11011101), BitVector::<8>::new(0b01110100), BitVector::<8>::new(0b00011111), BitVector::<8>::new(0b01001011), BitVector::<8>::new(0b10111101), BitVector::<8>::new(0b10001011), BitVector::<8>::new(0b10001010), BitVector::<8>::new(0b01110000), BitVector::<8>::new(0b00111110), BitVector::<8>::new(0b10110101), BitVector::<8>::new(0b01100110), BitVector::<8>::new(0b01001000), BitVector::<8>::new(0b00000011), BitVector::<8>::new(0b11110110), BitVector::<8>::new(0b00001110), BitVector::<8>::new(0b01100001), BitVector::<8>::new(0b00110101), BitVector::<8>::new(0b01010111), BitVector::<8>::new(0b10111001), BitVector::<8>::new(0b10000110), BitVector::<8>::new(0b11000001), BitVector::<8>::new(0b00011101), BitVector::<8>::new(0b10011110), BitVector::<8>::new(0b11100001), BitVector::<8>::new(0b11111000), BitVector::<8>::new(0b10011000), BitVector::<8>::new(0b00010001), BitVector::<8>::new(0b01101001), BitVector::<8>::new(0b11011001), BitVector::<8>::new(0b10001110), BitVector::<8>::new(0b10010100), BitVector::<8>::new(0b10011011), BitVector::<8>::new(0b00011110), BitVector::<8>::new(0b10000111), BitVector::<8>::new(0b11101001), BitVector::<8>::new(0b11001110), BitVector::<8>::new(0b01010101), BitVector::<8>::new(0b00101000), BitVector::<8>::new(0b11011111), BitVector::<8>::new(0b10001100), BitVector::<8>::new(0b10100001), BitVector::<8>::new(0b10001001), BitVector::<8>::new(0b00001101), BitVector::<8>::new(0b10111111), BitVector::<8>::new(0b11100110), BitVector::<8>::new(0b01000010), BitVector::<8>::new(0b01101000), BitVector::<8>::new(0b01000001), BitVector::<8>::new(0b10011001), BitVector::<8>::new(0b00101101), BitVector::<8>::new(0b00001111), BitVector::<8>::new(0b10110000), BitVector::<8>::new(0b01010100), BitVector::<8>::new(0b10111011), BitVector::<8>::new(0b00010110)];
 
-pub const aes_sbox_inv_table: [BitVector<8>;256] = [BitVector::<8>::new(0b01010010), BitVector::<8>::new(0b00001001), BitVector::<8>::new(0b01101010), BitVector::<8>::new(0b11010101), BitVector::<8>::new(0b00110000), BitVector::<8>::new(0b00110110), BitVector::<8>::new(0b10100101), BitVector::<8>::new(0b00111000), BitVector::<8>::new(0b10111111), BitVector::<8>::new(0b01000000), BitVector::<8>::new(0b10100011), BitVector::<8>::new(0b10011110), BitVector::<8>::new(0b10000001), BitVector::<8>::new(0b11110011), BitVector::<8>::new(0b11010111), BitVector::<8>::new(0b11111011), BitVector::<8>::new(0b01111100), BitVector::<8>::new(0b11100011), BitVector::<8>::new(0b00111001), BitVector::<8>::new(0b10000010), BitVector::<8>::new(0b10011011), BitVector::<8>::new(0b00101111), BitVector::<8>::new(0b11111111), BitVector::<8>::new(0b10000111), BitVector::<8>::new(0b00110100), BitVector::<8>::new(0b10001110), BitVector::<8>::new(0b01000011), BitVector::<8>::new(0b01000100), BitVector::<8>::new(0b11000100), BitVector::<8>::new(0b11011110), BitVector::<8>::new(0b11101001), BitVector::<8>::new(0b11001011), BitVector::<8>::new(0b01010100), BitVector::<8>::new(0b01111011), BitVector::<8>::new(0b10010100), BitVector::<8>::new(0b00110010), BitVector::<8>::new(0b10100110), BitVector::<8>::new(0b11000010), BitVector::<8>::new(0b00100011), BitVector::<8>::new(0b00111101), BitVector::<8>::new(0b11101110), BitVector::<8>::new(0b01001100), BitVector::<8>::new(0b10010101), BitVector::<8>::new(0b00001011), BitVector::<8>::new(0b01000010), BitVector::<8>::new(0b11111010), BitVector::<8>::new(0b11000011), BitVector::<8>::new(0b01001110), BitVector::<8>::new(0b00001000), BitVector::<8>::new(0b00101110), BitVector::<8>::new(0b10100001), BitVector::<8>::new(0b01100110), BitVector::<8>::new(0b00101000), BitVector::<8>::new(0b11011001), BitVector::<8>::new(0b00100100), BitVector::<8>::new(0b10110010), BitVector::<8>::new(0b01110110), BitVector::<8>::new(0b01011011), BitVector::<8>::new(0b10100010), BitVector::<8>::new(0b01001001), BitVector::<8>::new(0b01101101), BitVector::<8>::new(0b10001011), BitVector::<8>::new(0b11010001), BitVector::<8>::new(0b00100101), BitVector::<8>::new(0b01110010), BitVector::<8>::new(0b11111000), BitVector::<8>::new(0b11110110), BitVector::<8>::new(0b01100100), BitVector::<8>::new(0b10000110), BitVector::<8>::new(0b01101000), BitVector::<8>::new(0b10011000), BitVector::<8>::new(0b00010110), BitVector::<8>::new(0b11010100), BitVector::<8>::new(0b10100100), BitVector::<8>::new(0b01011100), BitVector::<8>::new(0b11001100), BitVector::<8>::new(0b01011101), BitVector::<8>::new(0b01100101), BitVector::<8>::new(0b10110110), BitVector::<8>::new(0b10010010), BitVector::<8>::new(0b01101100), BitVector::<8>::new(0b01110000), BitVector::<8>::new(0b01001000), BitVector::<8>::new(0b01010000), BitVector::<8>::new(0b11111101), BitVector::<8>::new(0b11101101), BitVector::<8>::new(0b10111001), BitVector::<8>::new(0b11011010), BitVector::<8>::new(0b01011110), BitVector::<8>::new(0b00010101), BitVector::<8>::new(0b01000110), BitVector::<8>::new(0b01010111), BitVector::<8>::new(0b10100111), BitVector::<8>::new(0b10001101), BitVector::<8>::new(0b10011101), BitVector::<8>::new(0b10000100), BitVector::<8>::new(0b10010000), BitVector::<8>::new(0b11011000), BitVector::<8>::new(0b10101011), BitVector::<8>::new(0b00000000), BitVector::<8>::new(0b10001100), BitVector::<8>::new(0b10111100), BitVector::<8>::new(0b11010011), BitVector::<8>::new(0b00001010), BitVector::<8>::new(0b11110111), BitVector::<8>::new(0b11100100), BitVector::<8>::new(0b01011000), BitVector::<8>::new(0b00000101), BitVector::<8>::new(0b10111000), BitVector::<8>::new(0b10110011), BitVector::<8>::new(0b01000101), BitVector::<8>::new(0b00000110), BitVector::<8>::new(0b11010000), BitVector::<8>::new(0b00101100), BitVector::<8>::new(0b00011110), BitVector::<8>::new(0b10001111), BitVector::<8>::new(0b11001010), BitVector::<8>::new(0b00111111), BitVector::<8>::new(0b00001111), BitVector::<8>::new(0b00000010), BitVector::<8>::new(0b11000001), BitVector::<8>::new(0b10101111), BitVector::<8>::new(0b10111101), BitVector::<8>::new(0b00000011), BitVector::<8>::new(0b00000001), BitVector::<8>::new(0b00010011), BitVector::<8>::new(0b10001010), BitVector::<8>::new(0b01101011), BitVector::<8>::new(0b00111010), BitVector::<8>::new(0b10010001), BitVector::<8>::new(0b00010001), BitVector::<8>::new(0b01000001), BitVector::<8>::new(0b01001111), BitVector::<8>::new(0b01100111), BitVector::<8>::new(0b11011100), BitVector::<8>::new(0b11101010), BitVector::<8>::new(0b10010111), BitVector::<8>::new(0b11110010), BitVector::<8>::new(0b11001111), BitVector::<8>::new(0b11001110), BitVector::<8>::new(0b11110000), BitVector::<8>::new(0b10110100), BitVector::<8>::new(0b11100110), BitVector::<8>::new(0b01110011), BitVector::<8>::new(0b10010110), BitVector::<8>::new(0b10101100), BitVector::<8>::new(0b01110100), BitVector::<8>::new(0b00100010), BitVector::<8>::new(0b11100111), BitVector::<8>::new(0b10101101), BitVector::<8>::new(0b00110101), BitVector::<8>::new(0b10000101), BitVector::<8>::new(0b11100010), BitVector::<8>::new(0b11111001), BitVector::<8>::new(0b00110111), BitVector::<8>::new(0b11101000), BitVector::<8>::new(0b00011100), BitVector::<8>::new(0b01110101), BitVector::<8>::new(0b11011111), BitVector::<8>::new(0b01101110), BitVector::<8>::new(0b01000111), BitVector::<8>::new(0b11110001), BitVector::<8>::new(0b00011010), BitVector::<8>::new(0b01110001), BitVector::<8>::new(0b00011101), BitVector::<8>::new(0b00101001), BitVector::<8>::new(0b11000101), BitVector::<8>::new(0b10001001), BitVector::<8>::new(0b01101111), BitVector::<8>::new(0b10110111), BitVector::<8>::new(0b01100010), BitVector::<8>::new(0b00001110), BitVector::<8>::new(0b10101010), BitVector::<8>::new(0b00011000), BitVector::<8>::new(0b10111110), BitVector::<8>::new(0b00011011), BitVector::<8>::new(0b11111100), BitVector::<8>::new(0b01010110), BitVector::<8>::new(0b00111110), BitVector::<8>::new(0b01001011), BitVector::<8>::new(0b11000110), BitVector::<8>::new(0b11010010), BitVector::<8>::new(0b01111001), BitVector::<8>::new(0b00100000), BitVector::<8>::new(0b10011010), BitVector::<8>::new(0b11011011), BitVector::<8>::new(0b11000000), BitVector::<8>::new(0b11111110), BitVector::<8>::new(0b01111000), BitVector::<8>::new(0b11001101), BitVector::<8>::new(0b01011010), BitVector::<8>::new(0b11110100), BitVector::<8>::new(0b00011111), BitVector::<8>::new(0b11011101), BitVector::<8>::new(0b10101000), BitVector::<8>::new(0b00110011), BitVector::<8>::new(0b10001000), BitVector::<8>::new(0b00000111), BitVector::<8>::new(0b11000111), BitVector::<8>::new(0b00110001), BitVector::<8>::new(0b10110001), BitVector::<8>::new(0b00010010), BitVector::<8>::new(0b00010000), BitVector::<8>::new(0b01011001), BitVector::<8>::new(0b00100111), BitVector::<8>::new(0b10000000), BitVector::<8>::new(0b11101100), BitVector::<8>::new(0b01011111), BitVector::<8>::new(0b01100000), BitVector::<8>::new(0b01010001), BitVector::<8>::new(0b01111111), BitVector::<8>::new(0b10101001), BitVector::<8>::new(0b00011001), BitVector::<8>::new(0b10110101), BitVector::<8>::new(0b01001010), BitVector::<8>::new(0b00001101), BitVector::<8>::new(0b00101101), BitVector::<8>::new(0b11100101), BitVector::<8>::new(0b01111010), BitVector::<8>::new(0b10011111), BitVector::<8>::new(0b10010011), BitVector::<8>::new(0b11001001), BitVector::<8>::new(0b10011100), BitVector::<8>::new(0b11101111), BitVector::<8>::new(0b10100000), BitVector::<8>::new(0b11100000), BitVector::<8>::new(0b00111011), BitVector::<8>::new(0b01001101), BitVector::<8>::new(0b10101110), BitVector::<8>::new(0b00101010), BitVector::<8>::new(0b11110101), BitVector::<8>::new(0b10110000), BitVector::<8>::new(0b11001000), BitVector::<8>::new(0b11101011), BitVector::<8>::new(0b10111011), BitVector::<8>::new(0b00111100), BitVector::<8>::new(0b10000011), BitVector::<8>::new(0b01010011), BitVector::<8>::new(0b10011001), BitVector::<8>::new(0b01100001), BitVector::<8>::new(0b00010111), BitVector::<8>::new(0b00101011), BitVector::<8>::new(0b00000100), BitVector::<8>::new(0b01111110), BitVector::<8>::new(0b10111010), BitVector::<8>::new(0b01110111), BitVector::<8>::new(0b11010110), BitVector::<8>::new(0b00100110), BitVector::<8>::new(0b11100001), BitVector::<8>::new(0b01101001), BitVector::<8>::new(0b00010100), BitVector::<8>::new(0b01100011), BitVector::<8>::new(0b01010101), BitVector::<8>::new(0b00100001), BitVector::<8>::new(0b00001100), BitVector::<8>::new(0b01111101)];
+pub const aes_sbox_inv_table: [BitVector<8>; (256 as usize)] = [BitVector::<8>::new(0b01010010), BitVector::<8>::new(0b00001001), BitVector::<8>::new(0b01101010), BitVector::<8>::new(0b11010101), BitVector::<8>::new(0b00110000), BitVector::<8>::new(0b00110110), BitVector::<8>::new(0b10100101), BitVector::<8>::new(0b00111000), BitVector::<8>::new(0b10111111), BitVector::<8>::new(0b01000000), BitVector::<8>::new(0b10100011), BitVector::<8>::new(0b10011110), BitVector::<8>::new(0b10000001), BitVector::<8>::new(0b11110011), BitVector::<8>::new(0b11010111), BitVector::<8>::new(0b11111011), BitVector::<8>::new(0b01111100), BitVector::<8>::new(0b11100011), BitVector::<8>::new(0b00111001), BitVector::<8>::new(0b10000010), BitVector::<8>::new(0b10011011), BitVector::<8>::new(0b00101111), BitVector::<8>::new(0b11111111), BitVector::<8>::new(0b10000111), BitVector::<8>::new(0b00110100), BitVector::<8>::new(0b10001110), BitVector::<8>::new(0b01000011), BitVector::<8>::new(0b01000100), BitVector::<8>::new(0b11000100), BitVector::<8>::new(0b11011110), BitVector::<8>::new(0b11101001), BitVector::<8>::new(0b11001011), BitVector::<8>::new(0b01010100), BitVector::<8>::new(0b01111011), BitVector::<8>::new(0b10010100), BitVector::<8>::new(0b00110010), BitVector::<8>::new(0b10100110), BitVector::<8>::new(0b11000010), BitVector::<8>::new(0b00100011), BitVector::<8>::new(0b00111101), BitVector::<8>::new(0b11101110), BitVector::<8>::new(0b01001100), BitVector::<8>::new(0b10010101), BitVector::<8>::new(0b00001011), BitVector::<8>::new(0b01000010), BitVector::<8>::new(0b11111010), BitVector::<8>::new(0b11000011), BitVector::<8>::new(0b01001110), BitVector::<8>::new(0b00001000), BitVector::<8>::new(0b00101110), BitVector::<8>::new(0b10100001), BitVector::<8>::new(0b01100110), BitVector::<8>::new(0b00101000), BitVector::<8>::new(0b11011001), BitVector::<8>::new(0b00100100), BitVector::<8>::new(0b10110010), BitVector::<8>::new(0b01110110), BitVector::<8>::new(0b01011011), BitVector::<8>::new(0b10100010), BitVector::<8>::new(0b01001001), BitVector::<8>::new(0b01101101), BitVector::<8>::new(0b10001011), BitVector::<8>::new(0b11010001), BitVector::<8>::new(0b00100101), BitVector::<8>::new(0b01110010), BitVector::<8>::new(0b11111000), BitVector::<8>::new(0b11110110), BitVector::<8>::new(0b01100100), BitVector::<8>::new(0b10000110), BitVector::<8>::new(0b01101000), BitVector::<8>::new(0b10011000), BitVector::<8>::new(0b00010110), BitVector::<8>::new(0b11010100), BitVector::<8>::new(0b10100100), BitVector::<8>::new(0b01011100), BitVector::<8>::new(0b11001100), BitVector::<8>::new(0b01011101), BitVector::<8>::new(0b01100101), BitVector::<8>::new(0b10110110), BitVector::<8>::new(0b10010010), BitVector::<8>::new(0b01101100), BitVector::<8>::new(0b01110000), BitVector::<8>::new(0b01001000), BitVector::<8>::new(0b01010000), BitVector::<8>::new(0b11111101), BitVector::<8>::new(0b11101101), BitVector::<8>::new(0b10111001), BitVector::<8>::new(0b11011010), BitVector::<8>::new(0b01011110), BitVector::<8>::new(0b00010101), BitVector::<8>::new(0b01000110), BitVector::<8>::new(0b01010111), BitVector::<8>::new(0b10100111), BitVector::<8>::new(0b10001101), BitVector::<8>::new(0b10011101), BitVector::<8>::new(0b10000100), BitVector::<8>::new(0b10010000), BitVector::<8>::new(0b11011000), BitVector::<8>::new(0b10101011), BitVector::<8>::new(0b00000000), BitVector::<8>::new(0b10001100), BitVector::<8>::new(0b10111100), BitVector::<8>::new(0b11010011), BitVector::<8>::new(0b00001010), BitVector::<8>::new(0b11110111), BitVector::<8>::new(0b11100100), BitVector::<8>::new(0b01011000), BitVector::<8>::new(0b00000101), BitVector::<8>::new(0b10111000), BitVector::<8>::new(0b10110011), BitVector::<8>::new(0b01000101), BitVector::<8>::new(0b00000110), BitVector::<8>::new(0b11010000), BitVector::<8>::new(0b00101100), BitVector::<8>::new(0b00011110), BitVector::<8>::new(0b10001111), BitVector::<8>::new(0b11001010), BitVector::<8>::new(0b00111111), BitVector::<8>::new(0b00001111), BitVector::<8>::new(0b00000010), BitVector::<8>::new(0b11000001), BitVector::<8>::new(0b10101111), BitVector::<8>::new(0b10111101), BitVector::<8>::new(0b00000011), BitVector::<8>::new(0b00000001), BitVector::<8>::new(0b00010011), BitVector::<8>::new(0b10001010), BitVector::<8>::new(0b01101011), BitVector::<8>::new(0b00111010), BitVector::<8>::new(0b10010001), BitVector::<8>::new(0b00010001), BitVector::<8>::new(0b01000001), BitVector::<8>::new(0b01001111), BitVector::<8>::new(0b01100111), BitVector::<8>::new(0b11011100), BitVector::<8>::new(0b11101010), BitVector::<8>::new(0b10010111), BitVector::<8>::new(0b11110010), BitVector::<8>::new(0b11001111), BitVector::<8>::new(0b11001110), BitVector::<8>::new(0b11110000), BitVector::<8>::new(0b10110100), BitVector::<8>::new(0b11100110), BitVector::<8>::new(0b01110011), BitVector::<8>::new(0b10010110), BitVector::<8>::new(0b10101100), BitVector::<8>::new(0b01110100), BitVector::<8>::new(0b00100010), BitVector::<8>::new(0b11100111), BitVector::<8>::new(0b10101101), BitVector::<8>::new(0b00110101), BitVector::<8>::new(0b10000101), BitVector::<8>::new(0b11100010), BitVector::<8>::new(0b11111001), BitVector::<8>::new(0b00110111), BitVector::<8>::new(0b11101000), BitVector::<8>::new(0b00011100), BitVector::<8>::new(0b01110101), BitVector::<8>::new(0b11011111), BitVector::<8>::new(0b01101110), BitVector::<8>::new(0b01000111), BitVector::<8>::new(0b11110001), BitVector::<8>::new(0b00011010), BitVector::<8>::new(0b01110001), BitVector::<8>::new(0b00011101), BitVector::<8>::new(0b00101001), BitVector::<8>::new(0b11000101), BitVector::<8>::new(0b10001001), BitVector::<8>::new(0b01101111), BitVector::<8>::new(0b10110111), BitVector::<8>::new(0b01100010), BitVector::<8>::new(0b00001110), BitVector::<8>::new(0b10101010), BitVector::<8>::new(0b00011000), BitVector::<8>::new(0b10111110), BitVector::<8>::new(0b00011011), BitVector::<8>::new(0b11111100), BitVector::<8>::new(0b01010110), BitVector::<8>::new(0b00111110), BitVector::<8>::new(0b01001011), BitVector::<8>::new(0b11000110), BitVector::<8>::new(0b11010010), BitVector::<8>::new(0b01111001), BitVector::<8>::new(0b00100000), BitVector::<8>::new(0b10011010), BitVector::<8>::new(0b11011011), BitVector::<8>::new(0b11000000), BitVector::<8>::new(0b11111110), BitVector::<8>::new(0b01111000), BitVector::<8>::new(0b11001101), BitVector::<8>::new(0b01011010), BitVector::<8>::new(0b11110100), BitVector::<8>::new(0b00011111), BitVector::<8>::new(0b11011101), BitVector::<8>::new(0b10101000), BitVector::<8>::new(0b00110011), BitVector::<8>::new(0b10001000), BitVector::<8>::new(0b00000111), BitVector::<8>::new(0b11000111), BitVector::<8>::new(0b00110001), BitVector::<8>::new(0b10110001), BitVector::<8>::new(0b00010010), BitVector::<8>::new(0b00010000), BitVector::<8>::new(0b01011001), BitVector::<8>::new(0b00100111), BitVector::<8>::new(0b10000000), BitVector::<8>::new(0b11101100), BitVector::<8>::new(0b01011111), BitVector::<8>::new(0b01100000), BitVector::<8>::new(0b01010001), BitVector::<8>::new(0b01111111), BitVector::<8>::new(0b10101001), BitVector::<8>::new(0b00011001), BitVector::<8>::new(0b10110101), BitVector::<8>::new(0b01001010), BitVector::<8>::new(0b00001101), BitVector::<8>::new(0b00101101), BitVector::<8>::new(0b11100101), BitVector::<8>::new(0b01111010), BitVector::<8>::new(0b10011111), BitVector::<8>::new(0b10010011), BitVector::<8>::new(0b11001001), BitVector::<8>::new(0b10011100), BitVector::<8>::new(0b11101111), BitVector::<8>::new(0b10100000), BitVector::<8>::new(0b11100000), BitVector::<8>::new(0b00111011), BitVector::<8>::new(0b01001101), BitVector::<8>::new(0b10101110), BitVector::<8>::new(0b00101010), BitVector::<8>::new(0b11110101), BitVector::<8>::new(0b10110000), BitVector::<8>::new(0b11001000), BitVector::<8>::new(0b11101011), BitVector::<8>::new(0b10111011), BitVector::<8>::new(0b00111100), BitVector::<8>::new(0b10000011), BitVector::<8>::new(0b01010011), BitVector::<8>::new(0b10011001), BitVector::<8>::new(0b01100001), BitVector::<8>::new(0b00010111), BitVector::<8>::new(0b00101011), BitVector::<8>::new(0b00000100), BitVector::<8>::new(0b01111110), BitVector::<8>::new(0b10111010), BitVector::<8>::new(0b01110111), BitVector::<8>::new(0b11010110), BitVector::<8>::new(0b00100110), BitVector::<8>::new(0b11100001), BitVector::<8>::new(0b01101001), BitVector::<8>::new(0b00010100), BitVector::<8>::new(0b01100011), BitVector::<8>::new(0b01010101), BitVector::<8>::new(0b00100001), BitVector::<8>::new(0b00001100), BitVector::<8>::new(0b01111101)];
 
-pub type nfields = usize;
+pub type nfields = i128;
 
 /// cbie
 /// 

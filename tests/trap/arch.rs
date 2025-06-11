@@ -29,7 +29,7 @@ pub struct Core {
     pub stvec: Mtvec,
     pub utvec: Mtvec,
     pub cur_privilege: Privilege,
-    pub Xs: [xlenbits;32],
+    pub Xs: [xlenbits; (32 as usize)],
     pub config: Config,
 }
 
@@ -56,9 +56,9 @@ pub fn bool_to_bits(x: bool) -> BitVector<1> {
     BitVector::new(0).set_bit(0, bool_to_bit(x))
 }
 
-pub const xlen: usize = 64;
+pub const xlen: i128 = 64;
 
-pub const xlen_bytes: usize = 8;
+pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitVector<xlen>;
 

@@ -35,9 +35,9 @@ pub struct ConfigU {
     pub supported: bool,
 }
 
-pub const xlen: usize = 64;
+pub const xlen: i128 = 64;
 
-pub const xlen_bytes: usize = 8;
+pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitVector<xlen>;
 

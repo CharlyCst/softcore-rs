@@ -9,33 +9,33 @@ use std::cmp::min;
 // a better solution is needed.
 pub type nat = u128;
 
-pub fn sail_branch_announce(_value: usize, _pc: BitVector<64>) {}
+pub fn sail_branch_announce(_value: i128, _pc: BitVector<64>) {}
 
-pub fn lteq_int(e1: usize, e2: usize) -> bool {
+pub fn lteq_int(e1: i128, e2: i128) -> bool {
     e1 <= e2
 }
 
-pub fn gt_int(e1: usize, e2: usize) -> bool {
+pub fn gt_int(e1: i128, e2: i128) -> bool {
     e1 > e2
 }
 
-pub fn bitvector_length<const N: usize>(_e: BitVector<N>) -> usize {
+pub fn bitvector_length<const N: i128>(_e: BitVector<N>) -> i128 {
     N
 }
 
-pub fn parse_hex_bits<const N: usize>(_n: usize, _hex_str: &str) -> BitVector<N> {
+pub fn parse_hex_bits<const N: i128>(_n: i128, _hex_str: &str) -> BitVector<N> {
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
-pub fn bitvector_concat<const N: usize, const M: usize, const NM: usize>(
+pub fn bitvector_concat<const N: i128, const M: i128, const NM: i128>(
     e1: BitVector<N>,
     e2: BitVector<M>,
 ) -> BitVector<{ NM }> {
     BitVector::<{ NM }>::new((e1.bits() << M) | e2.bits())
 }
 
-pub fn get_slice_int<const L: usize>(l: usize, n: usize, start: usize) -> BitVector<L> {
-    let val = (n >> start) & (mask(l) as usize);
+pub fn get_slice_int<const L: i128>(l: i128, n: i128, start: i128) -> BitVector<L> {
+    let val = (n >> start) & (mask(l as usize) as i128);
     BitVector::new(val as u64)
 }
 
@@ -47,11 +47,11 @@ pub fn not_implemented<T>(_any: T) -> ! {
     panic!("Feature not implemented yet");
 }
 
-pub fn internal_error(_file: String, _line: usize, _s: String) -> ! {
+pub fn internal_error(_file: String, _line: i128, _s: String) -> ! {
     panic!("Softcore: internal error")
 }
 
-pub fn print_output<const N: usize>(text: String, _csr: BitVector<N>) {
+pub fn print_output<const N: i128>(text: String, _csr: BitVector<N>) {
     println!("{}", text)
 }
 
@@ -59,21 +59,21 @@ pub fn print_platform(text: String) {
     println!("{}", text)
 }
 
-pub fn bits_str<const N: usize>(val: BitVector<N>) -> String {
+pub fn bits_str<const N: i128>(val: BitVector<N>) -> String {
     format!("{:b}", val.bits())
 }
 
-pub fn bitvector_access<const N: usize>(vec: BitVector<N>, idx: usize) -> bool {
+pub fn bitvector_access<const N: i128>(vec: BitVector<N>, idx: i128) -> bool {
     (vec.bits() & (1 << idx)) > 0
 }
 
 // Todo: implement truncate for other sizes if required
-pub fn truncate(v: BitVector<64>, size: usize) -> BitVector<64> {
+pub fn truncate(v: BitVector<64>, size: i128) -> BitVector<64> {
     assert!(size == 64);
     v
 }
 
-pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVector<64> {
+pub fn sign_extend<const M: i128>(value: i128, input: BitVector<M>) -> BitVector<64> {
     assert!(
         value == 64,
         "handle the case where sign_extend has value not equal 64"
@@ -82,16 +82,16 @@ pub fn sign_extend<const M: usize>(value: usize, input: BitVector<M>) -> BitVect
     BitVector::<64>::new(extension | input.bits)
 }
 
-pub const fn sail_ones<const N: usize>(n: usize) -> BitVector<N> {
+pub const fn sail_ones<const N: i128>(n: i128) -> BitVector<N> {
     assert!(n <= 64);
-    BitVector::<N>::new(mask(n))
+    BitVector::<N>::new(mask(n as usize))
 }
 
-pub const fn sail_zeros<const N: usize>(_n: usize) -> BitVector<N> {
+pub const fn sail_zeros<const N: i128>(_n: i128) -> BitVector<N> {
     BitVector::<N>::new(0)
 }
 
-pub fn min_int(v1: usize, v2: usize) -> usize {
+pub fn min_int(v1: i128, v2: i128) -> i128 {
     min(v1, v2)
 }
 
@@ -107,23 +107,18 @@ pub fn hex_bits_12_backwards(_: &'static str) -> BitVector<12> {
     todo!("Implement this function")
 }
 
-pub fn subrange_bits<const IN: usize, const OUT: usize>(
+pub fn subrange_bits<const IN: i128, const OUT: i128>(
     vec: BitVector<IN>,
-    end: usize,
-    start: usize,
+    end: i128,
+    start: i128,
 ) -> BitVector<OUT> {
-    assert_eq!(end - start + 1, OUT);
+    assert_eq!((end - start + 1), OUT);
     assert!(OUT <= IN);
 
-    BitVector::new((vec.bits >> start) & mask(OUT))
+    BitVector::new((vec.bits >> start) & mask(OUT as usize))
 }
 
-pub fn subrange_bits_8(vec: BitVector<64>, end: usize, start: usize) -> BitVector<8> {
-    assert!(end - start + 1 == 8); // todo: In the future, we should improve the subrange bits function
-    BitVector::<8>::new((vec.bits >> start) & 0xFF)
-}
-
-pub fn update_subrange_bits<const N: usize, const M: usize>(
+pub fn update_subrange_bits<const N: i128, const M: i128>(
     bits: BitVector<N>,
     to: u64,
     from: u64,
@@ -140,37 +135,36 @@ pub fn update_subrange_bits<const N: usize, const M: usize>(
     BitVector::new((bits.bits & mask) | (value.bits() << from))
 }
 
-// TODO: Make this function more generic in the future.
-pub fn bitvector_update(v: BitVector<64>, pos: usize, value: bool) -> BitVector<64> {
+pub fn bitvector_update<const N: i128>(v: BitVector<N>, pos: i128, value: bool) -> BitVector<N> {
     let mask = 1 << pos;
-    BitVector::<64>::new((v.bits() & !mask) | (value as u64) << pos)
+    BitVector::new((v.bits() & !mask) | (value as u64) << pos)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
-pub struct BitVector<const N: usize> {
+pub struct BitVector<const N: i128> {
     bits: u64,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
-pub struct BitField<const T: usize> {
+pub struct BitField<const T: i128> {
     pub bits: BitVector<T>,
 }
 
-impl<const N: usize> BitField<N> {
+impl<const N: i128> BitField<N> {
     pub const fn new(value: u64) -> Self {
         BitField {
             bits: BitVector::new(value),
         }
     }
 
-    pub const fn subrange<const A: usize, const B: usize, const C: usize>(self) -> BitVector<C> {
+    pub const fn subrange<const A: i128, const B: i128, const C: i128>(self) -> BitVector<C> {
         assert!(B - A == C, "Invalid subrange parameters");
         assert!(B <= N, "Invalid subrange");
 
         self.bits.subrange::<A, B, C>()
     }
 
-    pub const fn set_subrange<const A: usize, const B: usize, const C: usize>(
+    pub const fn set_subrange<const A: i128, const B: i128, const C: i128>(
         self,
         bitvector: BitVector<C>,
     ) -> Self {
@@ -183,13 +177,13 @@ impl<const N: usize> BitField<N> {
     }
 }
 
-impl<const N: usize> PartialOrd for BitVector<N> {
+impl<const N: i128> PartialOrd for BitVector<N> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.bits.partial_cmp(&other.bits)
     }
 }
 
-impl<const N: usize> BitVector<N> {
+impl<const N: i128> BitVector<N> {
     pub const fn new(val: u64) -> Self {
         if N < 64 {
             Self {
@@ -212,7 +206,11 @@ impl<const N: usize> BitVector<N> {
         self.bits as usize
     }
 
-    pub const fn zero_extend<const M: usize>(self) -> BitVector<M> {
+    pub const fn as_i128(self) -> i128 {
+        self.bits as i128
+    }
+
+    pub const fn zero_extend<const M: i128>(self) -> BitVector<M> {
         assert!(M >= N, "Can not zero-extend to a smaller size!");
         assert!(M <= 64, "Maximum zero-extend supported size if 64");
 
@@ -220,7 +218,7 @@ impl<const N: usize> BitVector<N> {
         BitVector { bits: self.bits }
     }
 
-    pub fn set_bit(self, idx: usize, value: bool) -> Self {
+    pub fn set_bit(self, idx: i128, value: bool) -> Self {
         assert!(idx < N, "Out of bounds array check");
         let new_value = if value {
             self.bits | 1u64 << idx
@@ -230,7 +228,7 @@ impl<const N: usize> BitVector<N> {
         BitVector { bits: new_value }
     }
 
-    pub const fn subrange<const A: usize, const B: usize, const C: usize>(self) -> BitVector<C> {
+    pub const fn subrange<const A: i128, const B: i128, const C: i128>(self) -> BitVector<C> {
         assert!(B - A == C, "Invalid subrange parameters");
         assert!(B <= N, "Invalid subrange");
 
@@ -240,7 +238,7 @@ impl<const N: usize> BitVector<N> {
         BitVector::new(val)
     }
 
-    pub const fn set_subrange<const A: usize, const B: usize, const C: usize>(
+    pub const fn set_subrange<const A: i128, const B: i128, const C: i128>(
         self,
         bits: BitVector<C>,
     ) -> Self {
@@ -264,7 +262,7 @@ impl<const N: usize> BitVector<N> {
     }
 }
 
-impl<const N: usize> ops::BitAnd for BitVector<N> {
+impl<const N: i128> ops::BitAnd for BitVector<N> {
     type Output = Self;
 
     fn bitand(self, rhs: Self) -> Self::Output {
@@ -274,7 +272,7 @@ impl<const N: usize> ops::BitAnd for BitVector<N> {
     }
 }
 
-impl<const N: usize> ops::BitOr for BitVector<N> {
+impl<const N: i128> ops::BitOr for BitVector<N> {
     type Output = Self;
 
     fn bitor(self, rhs: Self) -> Self::Output {
@@ -284,7 +282,7 @@ impl<const N: usize> ops::BitOr for BitVector<N> {
     }
 }
 
-impl<const N: usize> ops::BitXor for BitVector<N> {
+impl<const N: i128> ops::BitXor for BitVector<N> {
     type Output = Self;
 
     fn bitxor(self, rhs: Self) -> Self::Output {
@@ -294,7 +292,7 @@ impl<const N: usize> ops::BitXor for BitVector<N> {
     }
 }
 
-impl<const N: usize> ops::Shl<usize> for BitVector<N> {
+impl<const N: i128> ops::Shl<usize> for BitVector<N> {
     type Output = Self;
 
     fn shl(self, rhs: usize) -> Self::Output {
@@ -304,7 +302,27 @@ impl<const N: usize> ops::Shl<usize> for BitVector<N> {
     }
 }
 
-impl<const N: usize> ops::Shr<usize> for BitVector<N> {
+impl<const N: i128> ops::Shl<i128> for BitVector<N> {
+    type Output = Self;
+
+    fn shl(self, rhs: i128) -> Self::Output {
+        Self {
+            bits: self.bits << rhs,
+        }
+    }
+}
+
+impl<const N: i128> ops::Shl<i32> for BitVector<N> {
+    type Output = Self;
+
+    fn shl(self, rhs: i32) -> Self::Output {
+        Self {
+            bits: self.bits << rhs,
+        }
+    }
+}
+
+impl<const N: i128> ops::Shr<usize> for BitVector<N> {
     type Output = Self;
 
     fn shr(self, rhs: usize) -> Self::Output {
@@ -314,7 +332,27 @@ impl<const N: usize> ops::Shr<usize> for BitVector<N> {
     }
 }
 
-impl<const N: usize> ops::Not for BitVector<N> {
+impl<const N: i128> ops::Shr<i128> for BitVector<N> {
+    type Output = Self;
+
+    fn shr(self, rhs: i128) -> Self::Output {
+        Self {
+            bits: self.bits >> rhs,
+        }
+    }
+}
+
+impl<const N: i128> ops::Shr<i32> for BitVector<N> {
+    type Output = Self;
+
+    fn shr(self, rhs: i32) -> Self::Output {
+        Self {
+            bits: self.bits >> rhs,
+        }
+    }
+}
+
+impl<const N: i128> ops::Not for BitVector<N> {
     type Output = Self;
 
     fn not(self) -> Self::Output {
@@ -322,7 +360,7 @@ impl<const N: usize> ops::Not for BitVector<N> {
     }
 }
 
-impl<const N: usize> std::ops::Add<i64> for BitVector<N> {
+impl<const N: i128> std::ops::Add<i64> for BitVector<N> {
     type Output = Self;
 
     fn add(self, rhs: i64) -> BitVector<N> {
@@ -591,6 +629,11 @@ mod tests {
         assert_eq!(v, !!v);
 
         for i in 0..30 {
+            assert_eq!(v, (v << (i as usize)) >> (i as usize));
+        }
+
+        // Test i32 shift operators
+        for i in 0i32..30i32 {
             assert_eq!(v, (v << i) >> i);
         }
     }
@@ -606,45 +649,45 @@ mod tests {
 
     #[test]
     fn test_bitvector_concat() {
-        const SIZE: usize = 20;
-        const NEW_SIZE: usize = 40;
+        const SIZE: i128 = 20;
+        const NEW_SIZE: i128 = 40;
 
-        for i in 0..(1 << SIZE) {
+        for i in 0..(1 << (SIZE as usize)) {
             let v = BitVector::<SIZE>::new(i);
             assert_eq!(
                 bitvector_concat::<SIZE, SIZE, NEW_SIZE>(v, v).bits,
-                i + (i << SIZE)
+                i + (i << (SIZE as usize))
             );
         }
     }
 
     #[test]
     fn test_bitvector_access() {
-        const SIZE: usize = 10;
+        const SIZE: i128 = 10;
 
-        for i in 0..(1 << SIZE) {
+        for i in 0..(1 << (SIZE as usize)) {
             let v = BitVector::<SIZE>::new(i);
-            for idx in 0..SIZE {
-                assert_eq!((i & (1 << idx)) > 0, bitvector_access(v, idx))
+            for idx in 0..(SIZE as usize) {
+                assert_eq!((i & (1 << idx)) > 0, bitvector_access(v, idx as i128))
             }
         }
     }
 
     #[test]
     fn test_set_bit() {
-        const SIZE: usize = 60;
+        const SIZE: i128 = 60;
 
         let mut v = BitVector::<SIZE>::new(0);
         let mut val: u64 = 0;
-        for idx in 0..SIZE {
+        for idx in 0..(SIZE as usize) {
             val |= 1u64 << idx;
-            v = v.set_bit(idx, true);
+            v = v.set_bit(idx as i128, true);
 
             assert_eq!(v.bits, val);
         }
 
-        for i in 0..SIZE {
-            v = v.set_bit(i, false);
+        for i in 0..(SIZE as usize) {
+            v = v.set_bit(i as i128, false);
         }
 
         assert_eq!(v.bits, 0);

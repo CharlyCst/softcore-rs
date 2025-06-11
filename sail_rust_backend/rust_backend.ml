@@ -40,9 +40,6 @@ module Codegen () = struct
         | FieldKindStruct of field_kind SMap.t
         | FieldKindLeaf of rs_type
 
-    (** The Rust representation of natural numbers **)
-    let nat_typ = RsTypId "u128"
-
     (* ——————————————————————————————— Type Utils ——————————————————————————————— *)
     
     let map_union (a: 'a SMap.t) (b: 'a SMap.t) : 'a SMap.t =
@@ -157,19 +154,6 @@ module Codegen () = struct
         match pretty_loc l with
             | Some loc -> "Generated from the Sail sources at " ^ loc ^ "."
             | None -> "Generated from the Sail sources."
-
-    (** Try to guess the type of a numerical expression by computing the value **)
-    let guess_numeric_type (exp: 'a exp) : rs_type option =
-        match destruct_numeric (typ_of exp) with
-            | Some (kids, constraints, nexp) -> begin match big_int_of_nexp nexp with
-                | Some n ->
-                    if Big_int.less n Big_int.zero then
-                        Some (RsTypId "isize")
-                    else
-                        Some (RsTypId "usize")
-                | None -> None
-                end
-            | None -> None
 
     (* ———————————————————————— Sail-to-Rust Conversion ————————————————————————— *)
     
@@ -442,7 +426,7 @@ module Codegen () = struct
             | LE_vector (lexp, idx) ->
                 (RsLexpIndex (
                     (process_lexp ctx lexp),
-                    (process_exp ctx idx)))
+                    (RsAs (process_exp ctx idx, usize_typ))))
             | LE_vector_range (lexp, range_start, range_end) ->
                 (* RsLexpTodo *) (* TODO: properly access subranges *)
                 (RsLexpIndexRange (
@@ -701,8 +685,8 @@ module Codegen () = struct
         in
         let into_generic (K_aux (kind, _)) id = match kind with 
             | K_type -> RsGenTyp id
-            | K_int -> RsGenNum id
-            | K_bool -> RsGenBool id
+            | K_int -> RsGenConst (id, "i128")
+            | K_bool -> RsGenConst (id, "bool")
         in
         let rec add_generic rest = match rest with
             | head :: tail -> (match tyvars_of_quant_item head with
@@ -771,7 +755,7 @@ module Codegen () = struct
                 let const = {
                     name = string_of_id id;
                     value = value;
-                    typ = RsTypId "usize";
+                    typ = int_typ;
                 } in
                 RsProg [RsConst const]
             | TD_abbrev _ -> RsProg [] (* Ignore all other abbreviations *)
@@ -783,11 +767,7 @@ module Codegen () = struct
         let rexp = Rust_transform.simplify_rs_exp ctx rexp in
         match pat with
             | RsPatId id ->
-                let typ = match guess_numeric_type exp with
-                    | Some typ -> typ
-                    | None -> RsTypId "usize"
-                in
-                let const = { name = id; value = rexp; typ = typ } in
+                let const = { name = id; value = rexp; typ = int_typ } in
                 RsProg [RsConst const]
             | RsPatType (typ, RsPatId id) ->
                 let const = { name = id; value = rexp; typ = typ } in
@@ -872,7 +852,7 @@ module Codegen () = struct
         in
         cfg_struct_to_rust cfg_struct ""
 
-    and generate_sail_virt_ctx defs (ctx: context): rs_program =
+    and generate_core_ctx defs (ctx: context): rs_program =
         let config_structs = build_config_structs ctx.config_map in
         let config_field = if List.length config_structs = 0 then
             []
@@ -921,7 +901,7 @@ module Codegen () = struct
                    | RsLit n -> RsLit n (* Types is inferred automatically for literals *)
                    | n_exp -> RsAs (n_exp, RsTypId "u32") (* For all other types we do the conversion manually *)
                in
-               RsStaticApp (RsTypId "usize", "pow", [mk_num 2; RsAs (n_exp, RsTypId "u32")])
+               RsStaticApp (int_typ, "pow", [mk_num 2; RsAs (n_exp, RsTypId "u32")])
            | Nexp_neg n -> RsUnop (RsUnopNeg, nexp_to_rs_exp n)
            | Nexp_id id -> RsId (string_of_id id)
            | Nexp_var kid  -> RsId (sanitize_generic_id (string_of_kid kid)) (* variable *)
@@ -943,7 +923,11 @@ module Codegen () = struct
             | Typ_fn _ -> RsTypId "TodoFnType"
             | Typ_app (id, params) -> if (string_of_id id) = "vector" then 
                     let (size, typ) = get_first_two_elements (List.map extract_type_arg params) in
-                    RsTypArray (typ,size)
+                    let size = match size with
+                        | RsTypParamNum n -> RsTypParamNum (RsAs (n, usize_typ))
+                        | _ -> size
+                    in
+                    RsTypArray (typ, size)
                 else 
                     RsTypGenericParam ((string_of_id id), (List.map extract_type_arg params))
             | Typ_internal_unknown -> RsTypId "TodoUnknownType"
@@ -958,7 +942,7 @@ module Codegen () = struct
         match nexp with
             | Nexp_constant n -> RsTypParamNum (mk_big_num n)
             | Nexp_app (Id_aux (_, _), _) -> RsTypParamTyp (RsTypId "TodoNexpTypeApp")
-            | Nexp_id id -> RsTypParamTyp (RsTypId (string_of_id id))
+            | Nexp_id id -> RsTypParamNum (RsId (string_of_id id))
             | Nexp_var var -> RsTypParamTyp (RsTypId (capitalize_after_removal (string_of_kid var))) 
             | Nexp_times (_, _)
             | Nexp_sum (_, _)
@@ -1071,7 +1055,7 @@ module Codegen () = struct
     (* ———————————————————————— Translation function  ————————————————————————— *)
     
     let sail_to_rust (ast: ('a, 'b) ast) (ctx: context) : rs_program =
-        merge_rs_prog_list [generate_sail_virt_ctx ast.defs ctx; defs_to_rust ast.defs ctx]
+        merge_rs_prog_list [generate_core_ctx ast.defs ctx; defs_to_rust ast.defs ctx]
 
     let get_funs (RsProg obj : rs_program) : (string * rs_fn) list =
         let rec funs obj =
@@ -1129,7 +1113,7 @@ module Codegen () = struct
       in 
       let replace_atom input =
           let regex = Str.regexp "atom<[A-Za-z0-9]*>" in
-        Str.global_replace regex "usize" input
+        Str.global_replace regex "i128" input
       in 
 
       let rust_program_string = replace_hashtags rust_program_string in

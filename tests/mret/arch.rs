@@ -17,7 +17,7 @@ pub struct Core {
     pub uepc: xlenbits,
     pub mstatus: Mstatus,
     pub cur_privilege: Privilege,
-    pub Xs: [xlenbits;32],
+    pub Xs: [xlenbits; (32 as usize)],
     pub config: Config,
 }
 
@@ -26,9 +26,9 @@ pub struct Config {
 
 }
 
-pub const xlen: usize = 64;
+pub const xlen: i128 = 64;
 
-pub const xlen_bytes: usize = 8;
+pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitVector<xlen>;
 

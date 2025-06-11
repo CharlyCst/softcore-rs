@@ -144,7 +144,7 @@ and transform_app (ct: expr_type_transform) (ctx: context) (fn: rs_exp) (generic
     let args = List.map (transform_exp ct ctx) args in
     match (fn, args) with
         (* Built-in elementary operations *)
-        | (RsId "plain_vector_access", [vector; item]) -> (RsIndex (vector, item))
+        | (RsId "plain_vector_access", [vector; item]) -> (RsIndex (vector, RsAs (item, usize_typ)))
         | (RsId "neq_int", [left; right]) -> (RsBinop (left, RsBinopNeq, right))
         | (RsId "neq_bits", [left; right]) -> (RsBinop (left, RsBinopNeq, right))
         | (RsId "eq_int", [left; right]) -> (RsBinop (left, RsBinopEq, right))
@@ -380,8 +380,8 @@ let rec simplify_rs_exp (ctx: context) (rs_exp: rs_exp) : rs_exp =
             RsLit (RsLitNum (Big_int.sub a b))
         | RsBinop (RsLit (RsLitNum a), RsBinopMult, RsLit (RsLitNum b)) -> 
             RsLit (RsLitNum (Big_int.mul a b))
-        | RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [], [RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _)])
-        | RsStaticApp (RsTypId "usize", "pow", [RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _)])->
+        | RsApp (RsPathSeparator (int_typ, RsTypId "pow"), [], [RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _)])
+        | RsStaticApp (int_typ, "pow", [RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _)])->
             mk_big_num (Big_int.pow_int n (Big_int.to_int m))
         | RsBlock exps ->
             let is_not_unit exp = match exp with
@@ -465,7 +465,7 @@ let native_func_transform_exp (ctx: context) (exp : rs_exp) : rs_exp =
     (*| RsApp (RsId "min_int", gens, _) -> RsId "BUILTIN_min_int_TODO" *)
     | RsApp (RsId "tdiv_int", gens, _) -> RsId "BUILTIN_tdiv_int_TODO"
     | RsApp (RsId "tmod_int", gens, _) -> RsId "BUILTIN_tmod_int_TODO"
-    | RsApp (RsId "pow2", [], [n]) -> RsApp (RsPathSeparator (RsTypId "usize", RsTypId "pow"), [], [mk_num 2; RsAs(n, RsTypId "u32")])
+    | RsApp (RsId "pow2", [], [n]) -> RsApp (RsPathSeparator (int_typ, RsTypId "pow"), [], [mk_num 2; RsAs(n, RsTypId "u32")])
     (* | RsApp (RsId "zeros", gens, _) -> RsId "BUILTIN_zeros_TODO" *)
     (*| RsApp (RsId "ones", gens, e) -> RsApp (RsId "ones", e) Handled by the integrated library *) 
     (* Implemented in lib.sail *)
@@ -805,14 +805,12 @@ let expr_type_hoister = {
 let sanitize_generic (generic: rs_generic) : rs_generic =
     let id = match generic with
         | RsGenTyp s -> s
-        | RsGenNum s -> s
-        | RsGenBool s -> s
+        | RsGenConst (s, _) -> s
     in
     let new_id = sanitize_generic_id id in
     match generic with
         | RsGenTyp _ -> RsGenTyp new_id
-        | RsGenNum _ -> RsGenNum new_id
-        | RsGenBool _ -> RsGenBool new_id
+        | RsGenConst (_, typ) -> RsGenConst (new_id, typ)
 
 let rec rewrite_generics (ctx: context) (typ: rs_type) : rs_type =
     match (typ : rs_type) with
@@ -950,6 +948,28 @@ let add_namespace_to_arg_pats (ctx: context) (func: rs_fn): rs_fn =
 
 let enum_arg_namespace : func_transform = {
   func = add_namespace_to_arg_pats;
+}
+
+(* ———————————————————————————— Fix Generic Type ———————————————————————————— *)
+
+let fix_generic_type_func (ctx: context) (func: rs_fn): rs_fn = 
+    let rec get_array_type_vars (typs: rs_type list) = match typs with
+        | RsTypArray (_, RsTypParamTyp (RsTypId n)) :: tail -> n :: get_array_type_vars tail
+        | head :: tail -> get_array_type_vars tail
+        | [] -> []
+    in
+    let set_array_generic_types (should_set: string list) (generic: rs_generic) =
+        match generic with
+            | RsGenConst (s, typ) when List.mem s should_set -> RsGenConst (s, "usize")
+            | _ -> generic
+    in
+    let array_type_vars = (get_array_type_vars func.signature.args) @ (get_array_type_vars [func.signature.ret]) in
+    let new_generics = List.map (set_array_generic_types array_type_vars) func.signature.generics in
+    let signature = { func.signature with generics = new_generics } in
+    { func with signature = signature }
+
+let fix_generic_type : func_transform = {
+  func = fix_generic_type_func;
 }
 
 (* ———————————————————————— Enumeration binder ————————————————————————— *)
@@ -1122,11 +1142,11 @@ let transform_basic_types_pexp (ctx: context) (pexp: rs_pexp) : rs_pexp = pexp
 let transform_basic_types_type (ctx: context) (typ: rs_type) : rs_type = 
   match typ with
     | RsTypId "string" -> RsTypId "&\'static str"
-    | RsTypId "int" -> RsTypId "usize"
-    | RsTypId "bit" -> RsTypId "bool" 
+    | RsTypId "int" -> int_typ
+    | RsTypId "bit" -> bool_typ
     (* TODO: Is this transformation legal? Should we add an assertion at some place in the code? *)
-    | RsTypGenericParam ("range", _) -> RsTypId "usize" 
-    | RsTypGenericParam ("implicit", _) -> RsTypId "usize"
+    | RsTypGenericParam ("range", _) -> int_typ
+    | RsTypGenericParam ("implicit", _) -> int_typ
     | _ -> typ
 
 let transform_basic_types_pat (ctx: context) (pat: rs_pat) : rs_pat =
@@ -1290,6 +1310,7 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
   let rust_program = rust_transform_expr bitvec_transform ctx rust_program in
   let rust_program = rust_transform_expr normalize_generics ctx rust_program in
   let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in
+  let rust_program = rust_transform_func fix_generic_type ctx rust_program in
   let rust_program = rust_transform_expr enum_binder ctx rust_program in
   let rust_program = rust_remove_type_bits rust_program in
   let rust_program = rust_prelude_func_filter rust_program in
