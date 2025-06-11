@@ -101,6 +101,22 @@ module Codegen () = struct
             | Ord_aux (Ord_dec, _) -> "dec"
 
 
+    (** Note: This function is already available as part of Sail, but there was
+        a bug in the implementation.
+        Once the bugfix is merged and a new version is release, we should
+        remove the function from here and use the upstream version.
+
+        See https://github.com/rems-project/sail/pull/1347
+     **)
+    let rec big_int_of_nexp (Nexp_aux (nexp, _)) =
+        match nexp with
+        | Nexp_constant c -> Some c
+        | Nexp_times (n1, n2) -> Util.option_binop Big_int.mul (big_int_of_nexp n1) (big_int_of_nexp n2)
+        | Nexp_sum (n1, n2) -> Util.option_binop Big_int.add (big_int_of_nexp n1) (big_int_of_nexp n2)
+        | Nexp_minus (n1, n2) -> Util.option_binop Big_int.sub (big_int_of_nexp n1) (big_int_of_nexp n2)
+        | Nexp_exp n -> Option.map (fun n -> Big_int.pow_int_positive 2 (Big_int.to_int n)) (big_int_of_nexp n)
+        | _ -> None
+
     (** Format a location in a human readeable format. **)
     let rec pretty_loc (l: l) =
         (* Some files have the full path in thei file location, this removes the prefix *)
@@ -141,6 +157,19 @@ module Codegen () = struct
         match pretty_loc l with
             | Some loc -> "Generated from the Sail sources at " ^ loc ^ "."
             | None -> "Generated from the Sail sources."
+
+    (** Try to guess the type of a numerical expression by computing the value **)
+    let guess_numeric_type (exp: 'a exp) : rs_type option =
+        match destruct_numeric (typ_of exp) with
+            | Some (kids, constraints, nexp) -> begin match big_int_of_nexp nexp with
+                | Some n ->
+                    if Big_int.less n Big_int.zero then
+                        Some (RsTypId "isize")
+                    else
+                        Some (RsTypId "usize")
+                | None -> None
+                end
+            | None -> None
 
     (* ———————————————————————— Sail-to-Rust Conversion ————————————————————————— *)
     
@@ -750,14 +779,18 @@ module Codegen () = struct
 
     and toplevel_let_to_rust (LB_aux (LB_val (pat, exp), aux)) (ctx: context) : rs_program =
         let pat = process_pat pat in
-        let exp = process_exp ctx exp in
-        let exp = Rust_transform.simplify_rs_exp ctx exp in
+        let rexp = process_exp ctx exp in
+        let rexp = Rust_transform.simplify_rs_exp ctx rexp in
         match pat with
             | RsPatId id ->
-                let const = { name = id; value = exp; typ = RsTypId "usize"} in
+                let typ = match guess_numeric_type exp with
+                    | Some typ -> typ
+                    | None -> RsTypId "usize"
+                in
+                let const = { name = id; value = rexp; typ = typ } in
                 RsProg [RsConst const]
             | RsPatType (typ, RsPatId id) ->
-                let const = { name = id; value = exp; typ = typ } in
+                let const = { name = id; value = rexp; typ = typ } in
                 RsProg [RsConst const]
             | _ -> RsProg []
         

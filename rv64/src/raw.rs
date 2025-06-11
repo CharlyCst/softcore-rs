@@ -935,7 +935,7 @@ pub const xlen_max_unsigned: usize = 18446744073709551615;
 
 pub const xlen_max_signed: usize = 9223372036854775807;
 
-pub const xlen_min_signed: usize = -9223372036854775808;
+pub const xlen_min_signed: isize = -9223372036854775808;
 
 pub type half = BitVector<16>;
 
@@ -3900,12 +3900,12 @@ pub fn pmpMatchAddr(core_ctx: &mut Core, physaddr::Physaddr(addr): physaddr, wid
             if {_operator_biggerequal_u_(prev_pmpaddr, pmpaddr)} {
                 pmpAddrMatch::PMP_NoMatch
             } else {
-                pmpRangeMatch(((prev_pmpaddr.as_usize() * 4) as u128), ((pmpaddr.as_usize() * 4) as u128), (addr as u128), (width as u128))
+                pmpRangeMatch((((prev_pmpaddr.as_usize() as u128) * (4 as u128)) as u128), (((pmpaddr.as_usize() as u128) * (4 as u128)) as u128), (addr as u128), (width as u128))
             }
         }}
         PmpAddrMatchType::NA4 => {{
             assert!((sys_pmp_grain(core_ctx, ()) < 1), "NA4 cannot be selected when PMP grain G >= 1.");
-            let begin = (pmpaddr.as_usize() * 4);
+            let begin = ((pmpaddr.as_usize() as u128) * (4 as u128));
             pmpRangeMatch((begin as u128), ((begin + 4) as u128), (addr as u128), (width as u128))
         }}
         PmpAddrMatchType::NAPOT => {{
