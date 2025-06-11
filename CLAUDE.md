@@ -37,6 +37,8 @@ A key objective is to use softcore for low-level software testing and verificati
 - Run all tests: `just test`
 - Run rust tests on generated code: `cargo test`
   This is useful when working on the Rust prelude.
+- Translating the RISC-V 64 model to rust: `just rv64`
+  This re-builds the compiler and translate the RISC-V model with the new version.
 
 ### Compilation Pipeline
 

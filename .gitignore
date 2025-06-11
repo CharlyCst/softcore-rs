@@ -11,3 +11,8 @@ out.rs
 /sail_prelude/target
 /sail_prelude/cargo.lock
 .aider*
+
+# Ignore all contents of sail_models except .gitkeep and README.md
+/sail_models/*
+!/sail_models/*.patch
+!/sail_models/README.md

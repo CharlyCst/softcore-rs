@@ -1,0 +1,29 @@
+diff --git a/model/CMakeLists.txt b/model/CMakeLists.txt
+index 560606dd..849ce559 100644
+--- a/model/CMakeLists.txt
++++ b/model/CMakeLists.txt
+@@ -236,6 +236,24 @@ foreach (xlen IN ITEMS 32 64)
+                     set(coverage_args)
+                 endif()
+ 
++                add_custom_command(
++                    DEPENDS ${sail_srcs}
++                    OUTPUT /tmp/raw-${arch}.rs
++                    VERBATIM
++                    COMMENT "Building Rust code from Sail model (${arch})"
++                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
++                    COMMAND
++                        ${SAIL_BIN}
++                        # Output file (without extension).
++                        -o ${CMAKE_SOURCE_DIR}/../../rv64/src/raw.rs
++                        -plugin ${CMAKE_SOURCE_DIR}/../../_build/default/sail_rust_backend/sail_plugin_rust.cmxs
++                        -rust
++                        # Input files.
++                        ${sail_srcs}
++                )
++
++                add_custom_target(generated_rust_${arch} DEPENDS /tmp/raw-${arch}.rs)
++
+                 add_custom_command(
+                     DEPENDS ${sail_srcs}
+                     OUTPUT ${c_model} ${branch_info_file}
