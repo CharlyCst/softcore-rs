@@ -310,6 +310,7 @@ pub struct ConfigU {
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigV {
     pub supported: bool,
+    pub vlen_exp: usize,
 }
 
 #[derive(Eq, PartialEq, Clone, Debug)]
@@ -633,6 +634,13 @@ pub type flenbits = BitVector<flen>;
 pub const flen_bytes: usize = 8;
 
 pub const flen: usize = 64;
+
+/// get_vlen_pow
+/// 
+/// Generated from the Sail sources at `riscv_vlen.sail` L16.
+pub fn get_vlen_pow(core_ctx: &mut Core, unit_arg: ()) -> usize {
+    core_ctx.config.extensions.V.vlen_exp
+}
 
 pub const vlenmax: usize = 65536;
 
