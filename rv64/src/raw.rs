@@ -638,13 +638,13 @@ pub const flen: usize = 64;
 /// get_vlen_pow
 /// 
 /// Generated from the Sail sources at `riscv_vlen.sail` L16.
-pub fn get_vlen_pow(core_ctx: &mut Core, unit_arg: ()) -> usize {
-    core_ctx.config.extensions.V.vlen_exp
+pub const fn get_vlen_pow(unit_arg: ()) -> usize {
+    3
 }
 
 pub const vlenmax: usize = 65536;
 
-pub const VLEN: usize = usize::pow(2, (get_vlen_pow(core_ctx, ()) as u32));
+pub const VLEN: usize = usize::pow(2, (get_vlen_pow(()) as u32));
 
 pub type physaddrbits = BitVector<physaddrbits_len>;
 

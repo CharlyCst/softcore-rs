@@ -14,6 +14,7 @@ open Anf
 
 open Rust_gen
 open Call_set
+open Core_config
 
 module Big_int = Nat_big_num
 
@@ -388,13 +389,18 @@ module Codegen () = struct
             | E_internal_value value -> RsTodo "E_internal_value"
             | E_internal_assume (n_constraint, exp) -> RsTodo "E_internal_assume"
             | E_constraint n_constraint -> RsTodo "E_constraint"
-            | E_config cfgs ->
-                let rec construct_fields (expr: rs_exp) (fields: string list) : rs_exp = match fields with
-                    | head :: tail -> construct_fields (RsField (expr, head)) tail
-                    | [] -> expr
-                in
-                ctx.uses_sail_ctx <- true; (* set flag *)
-                construct_fields (RsField (RsId core_ctx, "config")) cfgs
+            | E_config cfgs -> begin match config_find rv64_config cfgs with
+                (* known values are inlined directly *)
+                | Some value -> mk_num value
+                (* All other values are retrieved from the core context *)
+                | None ->
+                    let rec construct_fields (expr: rs_exp) (fields: string list) : rs_exp = match fields with
+                        | head :: tail -> construct_fields (RsField (expr, head)) tail
+                        | [] -> expr
+                    in
+                    ctx.uses_sail_ctx <- true; (* set flag *)
+                    construct_fields (RsField (RsId core_ctx, "config")) cfgs
+                end
     and process_lexp (ctx: context) (LE_aux (lexp, annot)) : rs_lexp =
         match lexp with
             | LE_id id ->
