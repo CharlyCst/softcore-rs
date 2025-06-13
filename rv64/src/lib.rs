@@ -22,7 +22,7 @@ pub mod config;
 /// [2]: https://github.com/rems-project/sail
 pub mod raw;
 
-pub use raw::{Privilege, Core};
+pub use raw::{Core, Privilege, ast};
 use softcore_prelude::BitVector;
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
@@ -45,6 +45,11 @@ impl Core {
     /// Set the privilege mode
     pub fn set_mode(&mut self, mode: Privilege) {
         self.cur_privilege = mode
+    }
+
+    /// Decode an instruction
+    pub fn decode_instr(&mut self, instr: u32) -> ast {
+        raw::encdec_backwards(self, BitVector::new(instr as u64))
     }
 
     /// Return the `pmpaddr<index>` register.
@@ -278,8 +283,8 @@ pub const fn new_core(config: raw::Config) -> Core {
 
 #[cfg(test)]
 mod tests {
-    use crate::raw::*;
     use super::*;
+    use crate::raw::*;
 
     #[test]
     fn pmp_check() {
@@ -308,6 +313,70 @@ mod tests {
         assert!(
             ctx.pmp_check(addr, access).is_none(),
             "PMP allow read access"
+        );
+    }
+
+    #[test]
+    fn decoder() {
+        let mut ctx = new_core(config::U74);
+
+        let x0 = regidx::Regidx(BitVector::new(0));
+        let x14 = regidx::Regidx(BitVector::new(14));
+        let x15 = regidx::Regidx(BitVector::new(15));
+        let uimm0 = BitVector::new(0);
+
+        // Load/Store
+
+        assert_eq!(
+            ctx.decode_instr(0xff87b703),
+            ast::LOAD((
+                BitVector::new(0xFFF - 7), // immediate is -8
+                x15,
+                x14,
+                false,
+                word_width::DOUBLE,
+                false,
+                false
+            ))
+        );
+
+        // CSR instructions
+
+        // csrrw x0, mstatus, x0
+        assert_eq!(
+            ctx.decode_instr(0x30001073),
+            ast::CSRReg((BitVector::new(0x300), x0, x0, csrop::CSRRW))
+        );
+        // csrrs x0, mstatus, x0
+        assert_eq!(
+            ctx.decode_instr(0x30002073),
+            ast::CSRReg((BitVector::new(0x300), x0, x0, csrop::CSRRS))
+        );
+        // csrrc x0, mstatus, x0
+        assert_eq!(
+            ctx.decode_instr(0x30003073),
+            ast::CSRReg((BitVector::new(0x300), x0, x0, csrop::CSRRC))
+        );
+        // csrrwi x0, mstatus, 0
+        assert_eq!(
+            ctx.decode_instr(0x30005073),
+            ast::CSRImm((BitVector::new(0x300), uimm0, x0, csrop::CSRRW))
+        );
+        // csrrsi x0, mstatus, 0
+        assert_eq!(
+            ctx.decode_instr(0x30006073),
+            ast::CSRImm((BitVector::new(0x300), uimm0, x0, csrop::CSRRS))
+        );
+        // csrrci x0, mstatus, 0
+        assert_eq!(
+            ctx.decode_instr(0x30007073),
+            ast::CSRImm((BitVector::new(0x300), uimm0, x0, csrop::CSRRC))
+        );
+
+        // Illegal
+        assert_eq!(
+            ctx.decode_instr(0x30001072),
+            ast::ILLEGAL(BitVector::new(0x30001072))
         );
     }
 }

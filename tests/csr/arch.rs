@@ -48,6 +48,29 @@ pub type cregidx = BitVector<3>;
 
 pub type csreg = BitVector<12>;
 
+/// bool_bits_backwards
+/// 
+/// Generated from the Sail sources.
+pub fn bool_bits_backwards(arg_hashtag_: BitVector<1>) -> bool {
+    match arg_hashtag_ {
+        b__0 if {(b__0 == BitVector::<1>::new(0b1))} => {true}
+        _ => {false}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// bool_bits_backwards_matches
+/// 
+/// Generated from the Sail sources.
+pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector<1>) -> bool {
+    match arg_hashtag_ {
+        b__0 if {(b__0 == BitVector::<1>::new(0b1))} => {true}
+        b__1 if {(b__1 == BitVector::<1>::new(0b0))} => {true}
+        _ => {false}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// iop
 /// 
 /// Generated from the Sail sources at `tests/csr/arch.sail` L99.
@@ -89,4 +112,61 @@ pub enum ast {
     CSR((BitVector<12>, regidx, regidx, bool, csrop))
 }
 
+/// encdec_csrop_backwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_csrop_backwards(arg_hashtag_: BitVector<2>) -> csrop {
+    match arg_hashtag_ {
+        b__0 if {(b__0 == BitVector::<2>::new(0b01))} => {csrop::CSRRW}
+        b__1 if {(b__1 == BitVector::<2>::new(0b10))} => {csrop::CSRRS}
+        b__2 if {(b__2 == BitVector::<2>::new(0b11))} => {csrop::CSRRC}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// encdec_csrop_backwards_matches
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector<2>) -> bool {
+    match arg_hashtag_ {
+        b__0 if {(b__0 == BitVector::<2>::new(0b01))} => {true}
+        b__1 if {(b__1 == BitVector::<2>::new(0b10))} => {true}
+        b__2 if {(b__2 == BitVector::<2>::new(0b11))} => {true}
+        _ => {false}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 pub type csrRW = BitVector<2>;
+
+/// encdec_backwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_backwards(arg_hashtag_: BitVector<32>) -> ast {
+    let head_exp_hashtag_ = arg_hashtag_;
+    match match head_exp_hashtag_ {
+        v__0 if {((v__0.subrange::<12, 15, 3>() == BitVector::<3>::new(0b000)) && (v__0.subrange::<0, 7, 7>() == BitVector::<7>::new(0b0010011)))} => {let imm: BitVector<12> = v__0.subrange::<20, 32, 12>();
+        let rs1: regidx = v__0.subrange::<15, 20, 5>();
+        let rd: regidx = v__0.subrange::<7, 12, 5>();
+        let imm: BitVector<12> = v__0.subrange::<20, 32, 12>();
+        Some(ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)))}
+        v__3 if {let mapping1_hashtag__var_1: BitVector<2> = v__3.subrange::<12, 14, 2>();
+        let mapping0_hashtag__var_2: BitVector<1> = v__3.subrange::<14, 15, 1>();
+        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__3.subrange::<0, 7, 7>() == BitVector::<7>::new(0b1110011)))} => {let csr: BitVector<12> = v__3.subrange::<20, 32, 12>();
+        let rs1: BitVector<5> = v__3.subrange::<15, 20, 5>();
+        let rd: BitVector<5> = v__3.subrange::<7, 12, 5>();
+        let mapping1_hashtag_: BitVector<2> = v__3.subrange::<12, 14, 2>();
+        let mapping0_hashtag_: BitVector<1> = v__3.subrange::<14, 15, 1>();
+        let csr: BitVector<12> = v__3.subrange::<20, 32, 12>();
+        match (bool_bits_backwards(mapping0_hashtag_), encdec_csrop_backwards(mapping1_hashtag_)) {
+            (is_imm, op) => {Some(ast::CSR((csr, rs1, rd, is_imm, op)))}
+            _ => {None}
+            _ => {panic!("Unreachable code")}
+        }}
+        _ => {None}
+        _ => {panic!("Unreachable code")}
+    } {
+        Some(result) => {result}
+        _ => {panic!("Unreachable code")}
+    }
+}

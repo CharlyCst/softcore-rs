@@ -174,7 +174,7 @@ let rec get_call_set (ast: (tannot, env) ast) : sail_ctx =
         "SFENCE_VMA";
         "HFENCE_VVMA";
         "HFENCE_GVMA";
-        (* "encdec_backwards" (1* Decoder *1) *)
+        "encdec_backwards" (* Decoder *)
     ] in
     let sail_ctx = {
         call_set = call_set;

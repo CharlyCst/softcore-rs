@@ -200,6 +200,16 @@ pub enum ast {
     MRET(())
 }
 
+/// encdec_backwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_backwards(arg_hashtag_: BitVector<32>) -> ast {
+    match arg_hashtag_ {
+        v__0 if {(v__0 == BitVector::<32>::new(0b00110000001000000000000001110011))} => {ast::MRET(())}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// ext_check_xret_priv
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L204.

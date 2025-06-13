@@ -110,6 +110,16 @@ pub enum ast {
     WFI(())
 }
 
+/// encdec_backwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_backwards(arg_hashtag_: BitVector<32>) -> ast {
+    match arg_hashtag_ {
+        v__0 if {(v__0 == BitVector::<32>::new(0b00010000010100000000000001110011))} => {ast::WFI(())}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// execute_WFI
 /// 
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L102-109.
