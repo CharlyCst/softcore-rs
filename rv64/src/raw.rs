@@ -601,7 +601,7 @@ pub fn to_bits<const L: i128>(l: i128, n: i128) -> BitVector<L> {
 /// 
 /// Generated from the Sail sources at `prelude.sail` L144.
 pub fn _operator_biggerequal_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
-    (x.as_usize() >= y.as_usize())
+    (x.unsigned() >= y.unsigned())
 }
 
 pub const max_mem_access: i128 = 4096;
@@ -3801,7 +3801,7 @@ pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: i128, v: BitVector<{
     if {(64 == 32)} {
         panic!("unreachable code")
     } else {
-        assert!(((n % 2) == 0), "Unexpected pmp config reg write");
+        assert!((((n as usize) % (2 as usize)) == 0), "Unexpected pmp config reg write");
         for i in 0..=7 {
             let idx = ((n * 4) + i);
             core_ctx.pmpcfg_n[(idx as usize)] = pmpWriteCfg(core_ctx, idx, core_ctx.pmpcfg_n[(idx as usize)], subrange_bits(v, ((8 * i) + 7), (8 * i)))
@@ -3892,26 +3892,26 @@ pub fn pmpMatchAddr(core_ctx: &mut Core, physaddr::Physaddr(addr): physaddr, wid
 }>, prev_pmpaddr: BitVector<{
     64
 }>) -> pmpAddrMatch {
-    let addr = addr.as_usize();
-    let width = width.as_usize();
+    let addr = addr.unsigned();
+    let width = width.unsigned();
     match pmpAddrMatchType_of_bits(_get_Pmpcfg_ent_A(ent)) {
         PmpAddrMatchType::OFF => {pmpAddrMatch::PMP_NoMatch}
         PmpAddrMatchType::TOR => {{
             if {_operator_biggerequal_u_(prev_pmpaddr, pmpaddr)} {
                 pmpAddrMatch::PMP_NoMatch
             } else {
-                pmpRangeMatch((((prev_pmpaddr.as_usize() as u128) * (4 as u128)) as u128), (((pmpaddr.as_usize() as u128) * (4 as u128)) as u128), (addr as u128), (width as u128))
+                pmpRangeMatch((((prev_pmpaddr.unsigned() as u128) * (4 as u128)) as u128), (((pmpaddr.unsigned() as u128) * (4 as u128)) as u128), (addr as u128), (width as u128))
             }
         }}
         PmpAddrMatchType::NA4 => {{
             assert!((sys_pmp_grain(core_ctx, ()) < 1), "NA4 cannot be selected when PMP grain G >= 1.");
-            let begin = ((pmpaddr.as_usize() as u128) * (4 as u128));
+            let begin = ((pmpaddr.unsigned() as u128) * (4 as u128));
             pmpRangeMatch((begin as u128), ((begin + 4) as u128), (addr as u128), (width as u128))
         }}
         PmpAddrMatchType::NAPOT => {{
             let mask = (pmpaddr ^ (pmpaddr + 1));
-            let begin_words = (pmpaddr & !(mask)).as_usize();
-            let end_words = ((begin_words + mask.as_usize()) + 1);
+            let begin_words = (pmpaddr & !(mask)).unsigned();
+            let end_words = ((begin_words + mask.unsigned()) + 1);
             pmpRangeMatch(((begin_words * 4) as u128), ((end_words * 4) as u128), (addr as u128), (width as u128))
         }}
         _ => {panic!("Unreachable code")}

@@ -57,6 +57,7 @@ and rs_binop =
     | RsBinopAdd 
     | RsBinopSub 
     | RsBinopMult 
+    | RsBinopDiv
     | RsBinopShiftLeft
     | RsBinopShiftRight
     | RsBinopMod
@@ -380,6 +381,7 @@ and string_of_rs_binop (binop: rs_binop) : string =
         | RsBinopAdd -> "+"
         | RsBinopSub -> "-"
         | RsBinopMult -> "*"
+        | RsBinopDiv -> "/"
         | RsBinopShiftLeft -> "<<"
         | RsBinopShiftRight -> ">>"
         | RsBinopMod -> "%"

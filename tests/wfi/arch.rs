@@ -30,7 +30,7 @@ pub struct Config {
 /// 
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L9.
 pub fn _operator_smaller_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
-    (x.as_usize() < y.as_usize())
+    (x.unsigned() < y.unsigned())
 }
 
 pub const xlen: i128 = 64;

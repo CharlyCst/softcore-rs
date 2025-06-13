@@ -202,6 +202,15 @@ impl<const N: i128> BitVector<N> {
         self.bits
     }
 
+    /// Get the bits as an integer.
+    ///
+    /// The bitvector is interpreted as unsigned.
+    pub const fn unsigned(self) -> i128 {
+        // Note that bits is unsigned, so converting to a bigger i128 guarantees the result is
+        // still positive.
+        self.bits as i128
+    }
+
     pub const fn as_usize(self) -> usize {
         self.bits as usize
     }

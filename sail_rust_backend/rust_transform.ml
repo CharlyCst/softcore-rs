@@ -162,7 +162,7 @@ and transform_app (ct: expr_type_transform) (ctx: context) (fn: rs_exp) (generic
         | (RsId "None", _) -> RsNone 
 
         (* Unsigned is used for array indexing *)
-        | (RsId "unsigned", value::[]) -> mk_method_app value "as_usize" []
+        | (RsId "unsigned", value::[]) -> mk_method_app value "unsigned" []
 
         (* Otherwise keep as is *)
         | _ -> (RsApp (fn, generics, args))
@@ -443,8 +443,8 @@ let native_func_transform_exp (ctx: context) (exp : rs_exp) : rs_exp =
     | RsApp (RsId "sub_atom", gens, [e1;e2]) -> RsBinop(e1,RsBinopSub,e2)
     | RsApp (RsId "negate_atom", gens, _) -> RsId "BUILTIN_atom_negate_TODO" 
     | RsApp (RsId "ediv_int", gens, _) -> RsId "BUILTIN_atom_ediv_TODO" 
-    | RsApp (RsId "emod_int", gens, [e1; e2]) -> RsBinop(e1, RsBinopMod, e2)
-    | RsApp (RsId "abs_int_atom", gens, _) -> RsId "BUILTIN_atom_abs_int_TODO" 
+    | RsApp (RsId "emod_int", gens, [e1; e2]) -> RsBinop(RsAs (e1, usize_typ), RsBinopMod, RsAs (e2, usize_typ))
+    | RsApp (RsId "abs_int_atom", gens, [e]) -> RsStaticApp (int_typ, "abs", [e])
     | RsApp (RsId "not_vec", gens, [v]) -> RsUnop(RsUnopNeg, v)
     | RsApp (RsId "eq_bit", gens, [e1; e2]) -> RsBinop(e1, RsBinopEq, e2) (* TODO Is it correct to compare like that? *)
     | RsApp (RsId "eq_bool", gens, _) -> RsId "BUILTIN_eq_bool_TODO"
@@ -466,6 +466,7 @@ let native_func_transform_exp (ctx: context) (exp : rs_exp) : rs_exp =
     | RsApp (RsId "tdiv_int", gens, _) -> RsId "BUILTIN_tdiv_int_TODO"
     | RsApp (RsId "tmod_int", gens, _) -> RsId "BUILTIN_tmod_int_TODO"
     | RsApp (RsId "pow2", [], [n]) -> RsApp (RsPathSeparator (int_typ, RsTypId "pow"), [], [mk_num 2; RsAs(n, RsTypId "u32")])
+    | RsApp (RsId "quot_positive_round_zero", [], [a; b]) -> RsBinop (a, RsBinopDiv, b)
     (* | RsApp (RsId "zeros", gens, _) -> RsId "BUILTIN_zeros_TODO" *)
     (*| RsApp (RsId "ones", gens, e) -> RsApp (RsId "ones", e) Handled by the integrated library *) 
     (* Implemented in lib.sail *)
