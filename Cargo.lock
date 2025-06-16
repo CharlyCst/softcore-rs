@@ -53,11 +53,11 @@ dependencies = [
 
 [[package]]
 name = "softcore-prelude"
-version = "0.1.0"
+version = "0.2.0"
 
 [[package]]
 name = "softcore-rv64"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "softcore-prelude",
 ]
