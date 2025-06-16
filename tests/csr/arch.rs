@@ -24,6 +24,13 @@ pub struct Config {
 
 }
 
+/// EXTZ
+/// 
+/// Generated from the Sail sources at `tests/csr/arch.sail` L7.
+pub fn EXTZ<const N: i128, const M: i128>(m: i128, v: BitVector<N>) -> BitVector<M> {
+    v.zero_extend()
+}
+
 pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
@@ -47,6 +54,28 @@ pub type regidx = BitVector<5>;
 pub type cregidx = BitVector<3>;
 
 pub type csreg = BitVector<12>;
+
+/// rX
+/// 
+/// Generated from the Sail sources at `tests/csr/arch.sail` L67-71.
+pub fn rX(core_ctx: &mut Core, r: BitVector<5>) -> BitVector<64> {
+    match r {
+        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {EXTZ(64, BitVector::<4>::new(0b0000))}
+        _ => {core_ctx.Xs[(r.unsigned() as usize)]}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// wX
+/// 
+/// Generated from the Sail sources at `tests/csr/arch.sail` L74-77.
+pub fn wX(core_ctx: &mut Core, r: BitVector<5>, v: BitVector<64>) {
+    if {(r != BitVector::<5>::new(0b00000))} {
+        core_ctx.Xs[(r.unsigned() as usize)] = v
+    } else {
+        ()
+    }
+}
 
 /// bool_bits_backwards
 /// 

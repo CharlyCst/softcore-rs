@@ -315,11 +315,27 @@ let bitvec_transform_exp (ctx: context) (exp: rs_exp) : rs_exp =
                 args = [exp];
             } in
             RsAssign (RsLexpField (fexp, "bits"), RsMethodApp method_app)
-        | RsApp (RsId "zero_extend", generics, RsLit RsLitNum size :: [e] ) ->  
+        | RsApp (RsId "zero_extend", generics, [RsLit RsLitNum size; e] ) ->  
             RsMethodApp {
                 exp = e;
                 name = "zero_extend";
                 generics = [Big_int.to_string size];
+                args = [];
+            }
+        (* The size is given as a constant, force the return dimension with a generic *)
+        | RsApp (RsId "sail_zero_extend", generics, [e; RsLit RsLitNum size] ) ->  
+            RsMethodApp {
+                exp = e;
+                name = "zero_extend";
+                generics = [Big_int.to_string size];
+                args = [];
+            }
+        (* If the size is not a constant, then rely on Rust type inference *)
+        | RsApp (RsId "sail_zero_extend", generics, [e; size] ) ->  
+            RsMethodApp {
+                exp = e;
+                name = "zero_extend";
+                generics = [];
                 args = [];
             }
         | RsMatch (exp, pat::pats) when is_bitvec_lit pat ->
@@ -1090,7 +1106,7 @@ let rust_remove_type_bits (RsProg objs) : rs_program =  merge_rs_prog_list (List
 
 (* ———————————————————————— prelude_func_filter  ————————————————————————— *)
 
-let prelude_func: SSet.t = SSet.of_list (["not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"; "hex_bits_12_backwards"; "parse_hex_bits"])
+let prelude_func: SSet.t = SSet.of_list (["not"; "plain_vector_access"; "neq_int"; "neq_bits"; "eq_int"; "eq_bool"; "eq_bits"; "eq_anything"; "neq_anything"; "or_vec"; "and_vec"; "xor_vec"; "add_bits"; "and_bool"; "or_bool"; "zero_extend"; "sail_zero_extend"; "sign_extend"; "sail_ones"; "internal_error"; "hex_bits_12_forwards"; "hex_bits_12_backwards"; "parse_hex_bits"])
 
 let rust_prelude_func_filter_alias (obj: rs_obj) : rs_program = 
     match obj with

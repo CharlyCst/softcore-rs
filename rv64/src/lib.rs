@@ -25,6 +25,7 @@ pub mod raw;
 
 pub use raw::{Core, Privilege, ast};
 use softcore_prelude::BitVector;
+use registers::GeneralRegister;
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
 
@@ -38,6 +39,22 @@ const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
 const ZEROES: BitVector<64> = BitVector::new(0);
 
 impl Core {
+    /// Get the value of a general purpose register.
+    pub fn get(&mut self, reg: GeneralRegister) -> u64 {
+        let reg = match reg {
+            raw::regidx::Regidx(reg) => reg.bits() as i128,
+        };
+        raw::rX(self, raw::regno::Regno(reg)).bits()
+    }
+
+    /// Set the value of a general purpose register.
+    pub fn set(&mut self, reg: GeneralRegister, value: u64) {
+        let reg = match reg {
+            raw::regidx::Regidx(reg) => reg.bits() as i128,
+        };
+        raw::wX(self, raw::regno::Regno(reg), BitVector::new(value));
+    }
+
     /// Return the current privilege mode.
     pub fn mode(&self) -> Privilege {
         self.cur_privilege
@@ -376,5 +393,55 @@ mod tests {
             ctx.decode_instr(0x30001072),
             ast::ILLEGAL(BitVector::new(0x30001072))
         );
+    }
+
+    #[test]
+    fn general_purpose_registers() {
+        let mut ctx = new_core(config::U74);
+
+        // Test X0 (ZERO) - should always be hardwired to 0
+        assert_eq!(ctx.get(X0), 0, "X0 should be hardwired to 0");
+        assert_eq!(ctx.get(ZERO), 0, "ZERO should be hardwired to 0");
+        
+        // Try to write to X0 - should remain 0
+        ctx.set(X0, 0xDEADBEEF);
+        assert_eq!(ctx.get(X0), 0, "X0 should remain 0 after write attempt");
+        
+        // Test some other registers using ABI names
+        ctx.set(RA, 0x12345678);
+        assert_eq!(ctx.get(RA), 0x12345678, "RA register should store value");
+        assert_eq!(ctx.get(X1), 0x12345678, "X1 and RA should be the same");
+        
+        ctx.set(SP, 0x87654321);
+        assert_eq!(ctx.get(SP), 0x87654321, "SP register should store value");
+        assert_eq!(ctx.get(X2), 0x87654321, "X2 and SP should be the same");
+        
+        // Test function argument registers
+        ctx.set(A0, 0xAAAAAAAA);
+        ctx.set(A1, 0xBBBBBBBB);
+        assert_eq!(ctx.get(A0), 0xAAAAAAAA, "A0 register should store value");
+        assert_eq!(ctx.get(A1), 0xBBBBBBBB, "A1 register should store value");
+        assert_eq!(ctx.get(X10), 0xAAAAAAAA, "X10 and A0 should be the same");
+        assert_eq!(ctx.get(X11), 0xBBBBBBBB, "X11 and A1 should be the same");
+        
+        // Test saved registers
+        ctx.set(S0, 0xCCCCCCCC);
+        ctx.set(S1, 0xDDDDDDDD);
+        assert_eq!(ctx.get(S0), 0xCCCCCCCC, "S0 register should store value");
+        assert_eq!(ctx.get(S1), 0xDDDDDDDD, "S1 register should store value");
+        assert_eq!(ctx.get(FP), 0xCCCCCCCC, "FP and S0 should be the same");
+        assert_eq!(ctx.get(X8), 0xCCCCCCCC, "X8 and S0 should be the same");
+        assert_eq!(ctx.get(X9), 0xDDDDDDDD, "X9 and S1 should be the same");
+        
+        // Test temporary registers
+        ctx.set(T0, 0xEEEEEEEE);
+        ctx.set(T6, 0xFFFFFFFF);
+        assert_eq!(ctx.get(T0), 0xEEEEEEEE, "T0 register should store value");
+        assert_eq!(ctx.get(T6), 0xFFFFFFFF, "T6 register should store value");
+        assert_eq!(ctx.get(X5), 0xEEEEEEEE, "X5 and T0 should be the same");
+        assert_eq!(ctx.get(X31), 0xFFFFFFFF, "X31 and T6 should be the same");
+        
+        // Verify X0 is still 0 after all the other operations
+        assert_eq!(ctx.get(X0), 0, "X0 should still be 0 after other register operations");
     }
 }
