@@ -3,6 +3,9 @@
 use crate::raw::regidx;
 use softcore_prelude::BitVector;
 
+/// The type of general purpose registers
+pub type GeneralRegister = regidx;
+
 /// The X0 register.
 ///
 /// This register is hardwired to zero.

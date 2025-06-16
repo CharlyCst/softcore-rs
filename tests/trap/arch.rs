@@ -188,6 +188,28 @@ pub fn _get_Mtvec_Mode(v: Mtvec) -> BitVector<2> {
     v.bits.subrange::<0, 2, 2>()
 }
 
+/// rX
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L168-172.
+pub fn rX(core_ctx: &mut Core, r: BitVector<5>) -> BitVector<64> {
+    match r {
+        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
+        _ => {core_ctx.Xs[(r.unsigned() as usize)]}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// wX
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L175-178.
+pub fn wX(core_ctx: &mut Core, r: BitVector<5>, v: BitVector<64>) {
+    if {(r != BitVector::<5>::new(0b00000))} {
+        core_ctx.Xs[(r.unsigned() as usize)] = v
+    } else {
+        ()
+    }
+}
+
 /// bool_bits_backwards
 /// 
 /// Generated from the Sail sources.

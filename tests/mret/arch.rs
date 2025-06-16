@@ -111,6 +111,28 @@ pub fn _get_Mstatus_MPP(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<11, 13, 2>()
 }
 
+/// rX
+/// 
+/// Generated from the Sail sources at `tests/mret/arch.sail` L116-120.
+pub fn rX(core_ctx: &mut Core, r: BitVector<5>) -> BitVector<64> {
+    match r {
+        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
+        _ => {core_ctx.Xs[(r.unsigned() as usize)]}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// wX
+/// 
+/// Generated from the Sail sources at `tests/mret/arch.sail` L123-126.
+pub fn wX(core_ctx: &mut Core, r: BitVector<5>, v: BitVector<64>) {
+    if {(r != BitVector::<5>::new(0b00000))} {
+        core_ctx.Xs[(r.unsigned() as usize)] = v
+    } else {
+        ()
+    }
+}
+
 /// set_next_pc
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L142-144.
