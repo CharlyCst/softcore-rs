@@ -1,12 +1,12 @@
 # Softcore-rs
 
-Softcore-rs is a collection of Rust cores from different architectures, translated from the ISA specification.
+Softcore-rs is a collection of CPU cores implemented as Rust libraries, translated directly from their respective ISA specifications.
 Currently, only a subset of RISC-V 64 is available.
 
 > **Warning:** The project is currently under development. The generated code does not provide any guarantees regarding completeness or correctness.
 
 The soft cores are translated from the ISA specifications written in [Sail](https://github.com/rems-project/sail) through a custom Sail-to-Rust backend hosted in this repository.
-Because the Rust implementation is directly translated from the specification, the resulting cores are be used as a reference for testing low-level Rust software.
+Because the Rust implementation is directly translated from the specification, the resulting cores can be used as a reference for testing low-level Rust software.
 
 ## Cores
 
