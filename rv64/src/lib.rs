@@ -11,6 +11,7 @@
 //! [1]: https://github.com/riscv/sail-riscv
 
 pub mod config;
+pub mod registers;
 
 /// The raw translation of the official RISC-V executable specification.
 ///
@@ -285,6 +286,7 @@ pub const fn new_core(config: raw::Config) -> Core {
 mod tests {
     use super::*;
     use crate::raw::*;
+    use crate::registers::*;
 
     #[test]
     fn pmp_check() {
@@ -319,10 +321,6 @@ mod tests {
     #[test]
     fn decoder() {
         let mut ctx = new_core(config::U74);
-
-        let x0 = regidx::Regidx(BitVector::new(0));
-        let x14 = regidx::Regidx(BitVector::new(14));
-        let x15 = regidx::Regidx(BitVector::new(15));
         let uimm0 = BitVector::new(0);
 
         // Load/Store
@@ -331,8 +329,8 @@ mod tests {
             ctx.decode_instr(0xff87b703),
             ast::LOAD((
                 BitVector::new(0xFFF - 7), // immediate is -8
-                x15,
-                x14,
+                X15,
+                X14,
                 false,
                 word_width::DOUBLE,
                 false,
@@ -345,32 +343,32 @@ mod tests {
         // csrrw x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30001073),
-            ast::CSRReg((BitVector::new(0x300), x0, x0, csrop::CSRRW))
+            ast::CSRReg((BitVector::new(0x300), X0, X0, csrop::CSRRW))
         );
         // csrrs x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30002073),
-            ast::CSRReg((BitVector::new(0x300), x0, x0, csrop::CSRRS))
+            ast::CSRReg((BitVector::new(0x300), X0, X0, csrop::CSRRS))
         );
         // csrrc x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30003073),
-            ast::CSRReg((BitVector::new(0x300), x0, x0, csrop::CSRRC))
+            ast::CSRReg((BitVector::new(0x300), X0, X0, csrop::CSRRC))
         );
         // csrrwi x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30005073),
-            ast::CSRImm((BitVector::new(0x300), uimm0, x0, csrop::CSRRW))
+            ast::CSRImm((BitVector::new(0x300), uimm0, X0, csrop::CSRRW))
         );
         // csrrsi x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30006073),
-            ast::CSRImm((BitVector::new(0x300), uimm0, x0, csrop::CSRRS))
+            ast::CSRImm((BitVector::new(0x300), uimm0, X0, csrop::CSRRS))
         );
         // csrrci x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30007073),
-            ast::CSRImm((BitVector::new(0x300), uimm0, x0, csrop::CSRRC))
+            ast::CSRImm((BitVector::new(0x300), uimm0, X0, csrop::CSRRC))
         );
 
         // Illegal
