@@ -6,7 +6,8 @@
 //! This is especially helpful to test or verify low-level software, such as kernels, hypervisors,
 //! or firmware.
 //!
-//! The raw translation is exposed in the [raw] module.
+//! The raw translation is exposed in the [raw] module. A more polished (and slightly more stable)
+//! interface is exposed through the [Core] methods.
 //!
 //! [1]: https://github.com/riscv/sail-riscv
 
@@ -307,30 +308,30 @@ mod tests {
 
     #[test]
     fn pmp_check() {
-        let mut ctx = new_core(config::U74);
+        let mut core = new_core(config::U74);
         let addr = 0x8000_0000;
         let access = raw::AccessType::Read(());
 
         // Check the default access rights
         assert!(
-            ctx.pmp_check(addr, access).is_none(),
+            core.pmp_check(addr, access).is_none(),
             "M-mode can access all memory by default"
         );
 
-        ctx.set_mode(Privilege::User);
+        core.set_mode(Privilege::User);
         assert_eq!(
-            ctx.pmp_check(addr, access),
+            core.pmp_check(addr, access),
             Some(ExceptionType::E_Load_Access_Fault(())),
             "U-mode has no access by default"
         );
 
         // Now let's add a PMP entry to allow reads from U-mode
         let pmp_addr = addr >> 2; // There is a shift of 2 in the pmpaddr registers
-        ctx.set_pmpaddr(0, pmp_addr);
-        ctx.set_pmpaddr(1, 2 * pmp_addr);
-        ctx.set_pmpcfg(0, 0b0000_1001 << 8); // Entry 1, Read-only access, ToR matching mode
+        core.set_pmpaddr(0, pmp_addr);
+        core.set_pmpaddr(1, 2 * pmp_addr);
+        core.set_pmpcfg(0, 0b0000_1001 << 8); // Entry 1, Read-only access, ToR matching mode
         assert!(
-            ctx.pmp_check(addr, access).is_none(),
+            core.pmp_check(addr, access).is_none(),
             "PMP allow read access"
         );
     }
