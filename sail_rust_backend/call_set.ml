@@ -181,6 +181,7 @@ let rec get_call_set (ast: (tannot, env) ast) : sail_ctx =
         (* Registers *)
         "rX";
         "wX";
+        "is_CSR_defined";
     ] in
     let sail_ctx = {
         call_set = call_set;

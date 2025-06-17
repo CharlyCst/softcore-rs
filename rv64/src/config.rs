@@ -69,6 +69,7 @@ pub const MINIMAL: raw::Config = raw::Config {
     },
     memory: raw::ConfigMemory {
         pmp: raw::ConfigPmp {
+            count: 0,
             grain: 0,
         },
     },
@@ -136,6 +137,7 @@ pub const U74: raw::Config = raw::Config {
     },
     memory: raw::ConfigMemory {
         pmp: raw::ConfigPmp {
+            count: 16,
             grain: 10,
         },
     },

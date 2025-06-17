@@ -71,6 +71,11 @@ impl Core {
         raw::encdec_backwards(self, BitVector::new(instr as u64))
     }
 
+    /// Return true if the CSR is defined (and enabled) on the core
+    pub fn is_csr_defined(&mut self, csr_id: usize) -> bool {
+        raw::is_CSR_defined(self, BitVector::new(csr_id as u64))
+    }
+
     /// Return the `pmpaddr<index>` register.
     pub fn get_pmpaddr(&self, index: usize) -> u64 {
         self.pmpaddr_n[index].bits()
@@ -310,7 +315,7 @@ mod tests {
     fn pmp_check() {
         let mut core = new_core(config::U74);
         let addr = 0x8000_0000;
-        let access = raw::AccessType::Read(());
+        let access = AccessType::Read(());
 
         // Check the default access rights
         assert!(
@@ -444,5 +449,48 @@ mod tests {
         
         // Verify X0 is still 0 after all the other operations
         assert_eq!(ctx.get(X0), 0, "X0 should still be 0 after other register operations");
+    }
+
+    #[test]
+    fn csr_defined() {
+        let mut core = new_core(config::U74);
+
+        // Test standard machine-level CSRs that should exist
+        assert!(core.is_csr_defined(0x300), "mstatus should be defined");
+        assert!(core.is_csr_defined(0x301), "misa should be defined");
+        assert!(core.is_csr_defined(0x304), "mie should be defined");
+        assert!(core.is_csr_defined(0x305), "mtvec should be defined");
+        assert!(core.is_csr_defined(0x341), "mepc should be defined");
+        assert!(core.is_csr_defined(0x342), "mcause should be defined");
+        assert!(core.is_csr_defined(0x343), "mtval should be defined");
+        assert!(core.is_csr_defined(0x344), "mip should be defined");
+
+        // Test PMP configuration registers
+        // U74 core has 16 PMP entries, so pmpcfg0, pmpcfg2, pmpcfg4, pmpcfg6, etc. (even ones) should exist
+        assert!(core.is_csr_defined(0x3A0), "pmpcfg0 should be defined");
+        assert!(core.is_csr_defined(0x3A2), "pmpcfg2 should be defined");
+        assert!(core.is_csr_defined(0x3A4), "pmpcfg4 should be defined");
+        assert!(core.is_csr_defined(0x3A6), "pmpcfg6 should be defined");
+
+        // Test that odd pmpcfg registers don't exist (RV64 uses even pmpcfg registers only)
+        assert!(!core.is_csr_defined(0x3A1), "pmpcfg1 should not be defined on RV64");
+        assert!(!core.is_csr_defined(0x3A3), "pmpcfg3 should not be defined on RV64");
+        assert!(!core.is_csr_defined(0x3A5), "pmpcfg5 should not be defined on RV64");
+
+        // Test PMP address registers
+        // U74 core has 16 PMP entries, so pmpaddr0-pmpaddr15 should exist
+        assert!(core.is_csr_defined(0x3B0), "pmpaddr0 should be defined");
+        assert!(core.is_csr_defined(0x3B5), "pmpaddr5 should be defined");
+        assert!(core.is_csr_defined(0x3BF), "pmpaddr15 should be defined");
+
+        // Test that PMP address registers beyond 16 don't exist on U74
+        assert!(!core.is_csr_defined(0x3C0), "pmpaddr16 should not be defined on U74");
+        assert!(!core.is_csr_defined(0x3C8), "pmpaddr24 should not be defined on U74");
+        assert!(!core.is_csr_defined(0x3CF), "pmpaddr31 should not be defined on U74");
+
+        // Test some CSRs that definitely shouldn't exist
+        assert!(!core.is_csr_defined(0x000), "CSR 0x000 should not be defined");
+        assert!(!core.is_csr_defined(0xFFF), "CSR 0xFFF should not be defined");
+        assert!(!core.is_csr_defined(0x200), "CSR 0x200 should not be defined");
     }
 }

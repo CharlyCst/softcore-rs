@@ -523,3 +523,15 @@ pub fn encdec_backwards(arg_hashtag_: BitVector<32>) -> ast {
         _ => {panic!("Unreachable code")}
     }
 }
+
+/// is_CSR_defined
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L442-447.
+pub fn is_CSR_defined(csr: BitVector<12>, p: Privilege) -> bool {
+    match csr {
+        b__0 if {(b__0 == BitVector::<12>::new(0b001101000000))} => {(p == Privilege::Machine)}
+        b__1 if {(b__1 == BitVector::<12>::new(0b000101000000))} => {((p == Privilege::Machine) || (p == Privilege::Supervisor))}
+        _ => {false}
+        _ => {panic!("Unreachable code")}
+    }
+}
