@@ -24,9 +24,9 @@ pub mod registers;
 /// [2]: https://github.com/rems-project/sail
 pub mod raw;
 
-pub use raw::{Core, Privilege, ast};
-use softcore_prelude::BitVector;
+pub use raw::{Core, ExceptionType, Privilege, ast};
 use registers::GeneralRegister;
+use softcore_prelude::BitVector;
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
 
@@ -74,6 +74,26 @@ impl Core {
     /// Return true if the CSR is defined (and enabled) on the core
     pub fn is_csr_defined(&mut self, csr_id: usize) -> bool {
         raw::is_CSR_defined(self, BitVector::new(csr_id as u64))
+    }
+
+    /// Inject an exception, triggerring the appropriate trap handler
+    ///
+    /// The target privilege mode depends on the current execution mode and the *deleg CSR
+    /// registers.
+    /// The `tval` is the trap value, which depends on the exception type. Memory access fault will
+    /// usually provide the faulting address.
+    pub fn inject_exception(&mut self, exception: ExceptionType, tval: u64) {
+        let current_level = self.cur_privilege;
+        let target_level = raw::exception_delegatee(self, exception, current_level);
+        raw::trap_handler(
+            self,
+            target_level,
+            false,
+            raw::exceptionType_to_bits(exception),
+            self.PC,
+            Some(BitVector::new(tval)),
+            None,
+        );
     }
 
     /// Return the `pmpaddr<index>` register.
@@ -408,20 +428,20 @@ mod tests {
         // Test X0 (ZERO) - should always be hardwired to 0
         assert_eq!(ctx.get(X0), 0, "X0 should be hardwired to 0");
         assert_eq!(ctx.get(ZERO), 0, "ZERO should be hardwired to 0");
-        
+
         // Try to write to X0 - should remain 0
         ctx.set(X0, 0xDEADBEEF);
         assert_eq!(ctx.get(X0), 0, "X0 should remain 0 after write attempt");
-        
+
         // Test some other registers using ABI names
         ctx.set(RA, 0x12345678);
         assert_eq!(ctx.get(RA), 0x12345678, "RA register should store value");
         assert_eq!(ctx.get(X1), 0x12345678, "X1 and RA should be the same");
-        
+
         ctx.set(SP, 0x87654321);
         assert_eq!(ctx.get(SP), 0x87654321, "SP register should store value");
         assert_eq!(ctx.get(X2), 0x87654321, "X2 and SP should be the same");
-        
+
         // Test function argument registers
         ctx.set(A0, 0xAAAAAAAA);
         ctx.set(A1, 0xBBBBBBBB);
@@ -429,7 +449,7 @@ mod tests {
         assert_eq!(ctx.get(A1), 0xBBBBBBBB, "A1 register should store value");
         assert_eq!(ctx.get(X10), 0xAAAAAAAA, "X10 and A0 should be the same");
         assert_eq!(ctx.get(X11), 0xBBBBBBBB, "X11 and A1 should be the same");
-        
+
         // Test saved registers
         ctx.set(S0, 0xCCCCCCCC);
         ctx.set(S1, 0xDDDDDDDD);
@@ -438,7 +458,7 @@ mod tests {
         assert_eq!(ctx.get(FP), 0xCCCCCCCC, "FP and S0 should be the same");
         assert_eq!(ctx.get(X8), 0xCCCCCCCC, "X8 and S0 should be the same");
         assert_eq!(ctx.get(X9), 0xDDDDDDDD, "X9 and S1 should be the same");
-        
+
         // Test temporary registers
         ctx.set(T0, 0xEEEEEEEE);
         ctx.set(T6, 0xFFFFFFFF);
@@ -446,9 +466,13 @@ mod tests {
         assert_eq!(ctx.get(T6), 0xFFFFFFFF, "T6 register should store value");
         assert_eq!(ctx.get(X5), 0xEEEEEEEE, "X5 and T0 should be the same");
         assert_eq!(ctx.get(X31), 0xFFFFFFFF, "X31 and T6 should be the same");
-        
+
         // Verify X0 is still 0 after all the other operations
-        assert_eq!(ctx.get(X0), 0, "X0 should still be 0 after other register operations");
+        assert_eq!(
+            ctx.get(X0),
+            0,
+            "X0 should still be 0 after other register operations"
+        );
     }
 
     #[test]
@@ -473,9 +497,18 @@ mod tests {
         assert!(core.is_csr_defined(0x3A6), "pmpcfg6 should be defined");
 
         // Test that odd pmpcfg registers don't exist (RV64 uses even pmpcfg registers only)
-        assert!(!core.is_csr_defined(0x3A1), "pmpcfg1 should not be defined on RV64");
-        assert!(!core.is_csr_defined(0x3A3), "pmpcfg3 should not be defined on RV64");
-        assert!(!core.is_csr_defined(0x3A5), "pmpcfg5 should not be defined on RV64");
+        assert!(
+            !core.is_csr_defined(0x3A1),
+            "pmpcfg1 should not be defined on RV64"
+        );
+        assert!(
+            !core.is_csr_defined(0x3A3),
+            "pmpcfg3 should not be defined on RV64"
+        );
+        assert!(
+            !core.is_csr_defined(0x3A5),
+            "pmpcfg5 should not be defined on RV64"
+        );
 
         // Test PMP address registers
         // U74 core has 16 PMP entries, so pmpaddr0-pmpaddr15 should exist
@@ -484,13 +517,68 @@ mod tests {
         assert!(core.is_csr_defined(0x3BF), "pmpaddr15 should be defined");
 
         // Test that PMP address registers beyond 16 don't exist on U74
-        assert!(!core.is_csr_defined(0x3C0), "pmpaddr16 should not be defined on U74");
-        assert!(!core.is_csr_defined(0x3C8), "pmpaddr24 should not be defined on U74");
-        assert!(!core.is_csr_defined(0x3CF), "pmpaddr31 should not be defined on U74");
+        assert!(
+            !core.is_csr_defined(0x3C0),
+            "pmpaddr16 should not be defined on U74"
+        );
+        assert!(
+            !core.is_csr_defined(0x3C8),
+            "pmpaddr24 should not be defined on U74"
+        );
+        assert!(
+            !core.is_csr_defined(0x3CF),
+            "pmpaddr31 should not be defined on U74"
+        );
 
         // Test some CSRs that definitely shouldn't exist
-        assert!(!core.is_csr_defined(0x000), "CSR 0x000 should not be defined");
-        assert!(!core.is_csr_defined(0xFFF), "CSR 0xFFF should not be defined");
-        assert!(!core.is_csr_defined(0x200), "CSR 0x200 should not be defined");
+        assert!(
+            !core.is_csr_defined(0x000),
+            "CSR 0x000 should not be defined"
+        );
+        assert!(
+            !core.is_csr_defined(0xFFF),
+            "CSR 0xFFF should not be defined"
+        );
+        assert!(
+            !core.is_csr_defined(0x200),
+            "CSR 0x200 should not be defined"
+        );
+    }
+
+    #[test]
+    fn inject_exception() {
+        let mut core = new_core(config::U74);
+
+        // Set initial state
+        core.set_mode(Privilege::User);
+        core.PC = BitVector::new(0x1000);
+        let initial_pc = core.PC.bits();
+
+        assert_eq!(core.mode(), Privilege::User, "Initial mode should be User");
+
+        // Inject a load access fault exception
+        let fault_addr = 0x8000_0000;
+        core.inject_exception(ExceptionType::E_Load_Access_Fault(()), fault_addr);
+
+        // After exception, should be in Machine mode
+        assert_eq!(
+            core.mode(),
+            Privilege::Machine,
+            "Mode should be Machine after exception"
+        );
+
+        // Check that mepc was set to the PC at the time of the exception
+        assert_eq!(
+            core.mepc.bits(),
+            initial_pc,
+            "mepc should contain the PC when exception occurred"
+        );
+
+        // Check that mtval contains the fault address
+        assert_eq!(
+            core.mtval.bits(),
+            fault_addr,
+            "mtval should contain the fault address"
+        );
     }
 }

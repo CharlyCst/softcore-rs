@@ -182,6 +182,11 @@ let rec get_call_set (ast: (tannot, env) ast) : sail_ctx =
         "rX";
         "wX";
         "is_CSR_defined";
+
+        (* Trap handling *)
+        "trap_handler";
+        "exception_delegatee";
+        "exceptionType_to_bits";
     ] in
     let sail_ctx = {
         call_set = call_set;

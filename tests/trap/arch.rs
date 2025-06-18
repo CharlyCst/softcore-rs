@@ -38,6 +38,17 @@ pub struct Config {
 
 }
 
+/// bit_to_bool
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L19-22.
+pub fn bit_to_bool(b: bool) -> bool {
+    match b {
+        true => {true}
+        false => {false}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// bool_to_bit
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L25.
@@ -54,6 +65,13 @@ pub fn bool_to_bit(x: bool) -> bool {
 /// Generated from the Sail sources at `tests/trap/arch.sail` L28.
 pub fn bool_to_bits(x: bool) -> BitVector<1> {
     BitVector::new(0).set_bit(0, bool_to_bit(x))
+}
+
+/// (operator <_u)
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L45.
+pub fn _operator_smaller_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
+    (x.unsigned() < y.unsigned())
 }
 
 pub const xlen: i128 = 64;
@@ -90,6 +108,13 @@ pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L66.
 pub const fn haveSupMode(unit_arg: ()) -> bool {
+    true
+}
+
+/// haveUsrMode
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L67.
+pub const fn haveUsrMode(unit_arg: ()) -> bool {
     true
 }
 
@@ -258,6 +283,56 @@ pub enum ExceptionType {
 
 pub type exc_code = BitVector<8>;
 
+/// num_of_ExceptionType
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L215-233.
+pub fn num_of_ExceptionType(e: ExceptionType) -> i128 {
+    match e {
+        ExceptionType::E_Fetch_Addr_Align(()) => {0}
+        ExceptionType::E_Fetch_Access_Fault(()) => {1}
+        ExceptionType::E_Illegal_Instr(()) => {2}
+        ExceptionType::E_Breakpoint(()) => {3}
+        ExceptionType::E_Load_Addr_Align(()) => {4}
+        ExceptionType::E_Load_Access_Fault(()) => {5}
+        ExceptionType::E_SAMO_Addr_Align(()) => {6}
+        ExceptionType::E_SAMO_Access_Fault(()) => {7}
+        ExceptionType::E_U_EnvCall(()) => {8}
+        ExceptionType::E_S_EnvCall(()) => {9}
+        ExceptionType::E_Reserved_10(()) => {10}
+        ExceptionType::E_M_EnvCall(()) => {11}
+        ExceptionType::E_Fetch_Page_Fault(()) => {12}
+        ExceptionType::E_Load_Page_Fault(()) => {13}
+        ExceptionType::E_Reserved_14(()) => {14}
+        ExceptionType::E_SAMO_Page_Fault(()) => {15}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// exceptionType_to_bits
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L236-254.
+pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<8> {
+    match e {
+        ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::<8>::new(0b00000000)}
+        ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::<8>::new(0b00000001)}
+        ExceptionType::E_Illegal_Instr(()) => {BitVector::<8>::new(0b00000010)}
+        ExceptionType::E_Breakpoint(()) => {BitVector::<8>::new(0b00000011)}
+        ExceptionType::E_Load_Addr_Align(()) => {BitVector::<8>::new(0b00000100)}
+        ExceptionType::E_Load_Access_Fault(()) => {BitVector::<8>::new(0b00000101)}
+        ExceptionType::E_SAMO_Addr_Align(()) => {BitVector::<8>::new(0b00000110)}
+        ExceptionType::E_SAMO_Access_Fault(()) => {BitVector::<8>::new(0b00000111)}
+        ExceptionType::E_U_EnvCall(()) => {BitVector::<8>::new(0b00001000)}
+        ExceptionType::E_S_EnvCall(()) => {BitVector::<8>::new(0b00001001)}
+        ExceptionType::E_Reserved_10(()) => {BitVector::<8>::new(0b00001010)}
+        ExceptionType::E_M_EnvCall(()) => {BitVector::<8>::new(0b00001011)}
+        ExceptionType::E_Fetch_Page_Fault(()) => {BitVector::<8>::new(0b00001100)}
+        ExceptionType::E_Load_Page_Fault(()) => {BitVector::<8>::new(0b00001101)}
+        ExceptionType::E_Reserved_14(()) => {BitVector::<8>::new(0b00001110)}
+        ExceptionType::E_SAMO_Page_Fault(()) => {BitVector::<8>::new(0b00001111)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// sync_exception
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L256-259.
@@ -421,6 +496,30 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
             }
         }}
         _ => {panic!("Unreachable code")}
+    }
+}
+
+/// exception_delegatee
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L370-380.
+pub fn exception_delegatee(core_ctx: &mut Core, e: ExceptionType, p: Privilege) -> Privilege {
+    let idx = num_of_ExceptionType(e);
+    let _super_ = {
+        let var_1 = bitvector_access(core_ctx.medeleg.bits, idx);
+        bit_to_bool(var_1)
+    };
+    let user = false;
+    let deleg = if {(haveUsrMode(()) && user)} {
+        Privilege::User
+    } else if {(haveSupMode(()) && _super_)} {
+        Privilege::Supervisor
+    } else {
+        Privilege::Machine
+    };
+    if {_operator_smaller_u_(privLevel_to_bits(deleg), privLevel_to_bits(p))} {
+        p
+    } else {
+        deleg
     }
 }
 

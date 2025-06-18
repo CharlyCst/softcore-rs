@@ -7,6 +7,7 @@ share_root: [
   "_build/install/default/share/libsail/plugins/sail_plugin_rust.cmxs" {"libsail/plugins/sail_plugin_rust.cmxs"}
 ]
 doc: [
+  "_build/install/default/doc/sail_rust_backend/CHANGELOG.md"
   "_build/install/default/doc/sail_rust_backend/LICENSE-APACHE"
   "_build/install/default/doc/sail_rust_backend/LICENSE-MIT"
 ]
