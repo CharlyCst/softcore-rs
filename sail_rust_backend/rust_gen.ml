@@ -115,7 +115,12 @@ type rs_block = rs_exp list
 type rs_fn_type = {
     generics: rs_generic list;
     args: rs_type list;
-    ret: rs_type
+    ret: rs_type;
+
+    (* Sail passes type variables as standard arguments in some circumstances.
+       In those cases, we need to relate the resulting generic variable with
+       the corresponding argument.*)
+    linked_gen_args: (int * int) list; (* (generic_idx, arg_idx) *)
 }
 
 type rs_fn = {
@@ -195,6 +200,15 @@ let mk_fn_typ (args: rs_type list) (ret: rs_type) : rs_fn_type =
         generics = [];
         args = args;
         ret = ret;
+        linked_gen_args = [];
+    }
+
+let mk_fn_typ_gen (args: rs_type list) (ret: rs_type) (generics: rs_generic list) : rs_fn_type =
+    {
+        generics = generics;
+        args = args;
+        ret = ret;
+        linked_gen_args = [];
     }
 
 let mk_method_app (exp: rs_exp) (name: string) (args: rs_exp list) : rs_exp =
