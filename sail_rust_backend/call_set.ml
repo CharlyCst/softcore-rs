@@ -165,10 +165,6 @@ let rec get_call_set (ast: (tannot, env) ast) : sail_ctx =
         "TEST";
         "WFI";
         "EBREAK";
-        "trap_handler";
-        "pmpCheck";
-        "pmpWriteAddrReg";
-        "pmpWriteCfgReg";
         "dispatchInterrupt";
         "step_interrupts_only";
         "SFENCE_VMA";
@@ -183,10 +179,18 @@ let rec get_call_set (ast: (tannot, env) ast) : sail_ctx =
         "wX";
         "is_CSR_defined";
 
+        (* PMP checks *)
+        "pmpCheck";
+        "pmpWriteAddrReg";
+        "pmpWriteCfgReg";
+
         (* Trap handling *)
         "trap_handler";
         "exception_delegatee";
         "exceptionType_to_bits";
+
+        (* CSRs *)
+        "read_CSR";
     ] in
     let sail_ctx = {
         call_set = call_set;
