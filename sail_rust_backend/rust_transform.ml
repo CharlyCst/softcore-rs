@@ -464,6 +464,13 @@ let rec simplify_rs_exp (ctx: context) (rs_exp: rs_exp) : rs_exp =
         | RsId id when SMap.mem id ctx.defs.num_constants ->
             let n = SMap.find id ctx.defs.num_constants in
             mk_big_num n
+        (* If a let binding is defined right before returning a boolean
+           literal, then we remove the binding as it is not used until the
+           binding expires.
+           Note that this assumes that the binding expression has no side
+           effects. *)
+        | RsLet (_, _, RsLit RsLitFalse) -> RsLit RsLitFalse
+        | RsLet (_, _, RsLit RsLitTrue) -> RsLit RsLitTrue
         | _ -> rs_exp
 
 
@@ -1346,7 +1353,12 @@ let is_supported_obj (obj: rs_obj) : bool =
 (** Computes the fix point of a function. **)
 let rec fix_point fn rs_program ctx limit =
     let new_args = fn rs_program ctx in
-    if new_args = rs_program || limit = 0 then
+    (* if new_args = rs_program || limit = 0 then *)
+    (*     new_args *)
+    (* else *)
+    (*     fix_point fn new_args ctx (limit - 1) *)
+
+    if limit = 0 then
         new_args
     else
         fix_point fn new_args ctx (limit - 1)
@@ -1395,6 +1407,7 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
   let rust_program = rust_transform_expr expr_type_operator_rewriter ctx rust_program in
   let rust_program = rust_transform_func const_fn_rewriter ctx rust_program in
   let rust_program = rust_transform_func operator_rewriter ctx rust_program in
+  let rust_program = fix_point optimizer rust_program ctx 5 in
 
   (* Optimizer: Dead code elimination *)
   let rust_program = rust_transform_expr dead_code_remover ctx rust_program in
