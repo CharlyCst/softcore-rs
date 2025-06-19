@@ -56,6 +56,13 @@ impl Core {
         raw::wX(self, raw::regno::Regno(reg), BitVector::new(value));
     }
 
+    /// Get the value of a CSR identified by its CSR index.
+    ///
+    /// This function panics if the CSR is not implemented given the core configuration.
+    pub fn get_csr(&mut self, csr: u64) -> u64 {
+        raw::read_CSR(self, BitVector::new(csr)).bits()
+    }
+
     /// Return the current privilege mode.
     pub fn mode(&self) -> Privilege {
         self.cur_privilege
