@@ -282,7 +282,11 @@ let parse_first_tuple_entry(values: rs_pexp list) : rs_pat list =
     match values with 
         | RsPexp(RsPatTuple t, _) :: rest -> t
         | RsPexpWhen(RsPatTuple t, _, _) :: rest -> t
-        | _ -> failwith "Code should be unreachable"
+        | _ ->
+            Reporting.simple_warn (
+                "Unexpected patterns: | " ^
+                (String.concat " | " (List.map (string_of_rs_pexp 0) values)));
+            failwith "Code should be unreachable"
   
 let bitvec_transform_exp (ctx: context) (exp: rs_exp) : rs_exp =
     let one = Big_int.of_int 1 in
@@ -396,6 +400,58 @@ let rec simplify_rs_exp (ctx: context) (rs_exp: rs_exp) : rs_exp =
             RsLit (RsLitNum (Big_int.sub a b))
         | RsBinop (RsLit (RsLitNum a), RsBinopMult, RsLit (RsLitNum b)) -> 
             RsLit (RsLitNum (Big_int.mul a b))
+        | RsBinop (RsLit (RsLitNum a), RsBinopEq, RsLit (RsLitNum b)) ->
+            if Big_int.equal a b then
+                RsLit RsLitTrue
+            else
+                RsLit RsLitFalse
+        | RsBinop (RsLit (RsLitNum a), RsBinopGe, RsLit (RsLitNum b)) ->
+            if Big_int.greater_equal a b then
+                RsLit RsLitTrue
+            else
+                RsLit RsLitFalse
+        (* NOTE: here we assume there is no side effects in the condition
+           checks. is it is expected that some expression should be performed
+           for their side effects, then this will introduce logic bugs. We
+           could imagine tracking function purity in the future to work around
+           that limitation. *)
+        | RsBinop (RsLit RsLitTrue, RsBinopLAnd, exp)
+        | RsBinop (exp, RsBinopLAnd, RsLit RsLitTrue) ->
+            exp
+        (* NOTE: here we assume there is no side effects in the condition
+           checks. is it is expected that some expression should be performed
+           for their side effects, then this will introduce logic bugs. We
+           could imagine tracking function purity in the future to work around
+           that limitation. *)
+        | RsBinop (RsLit RsLitFalse, RsBinopLAnd, exp)
+        | RsBinop (exp, RsBinopLAnd, RsLit RsLitFalse) ->
+            RsLit RsLitFalse
+        (* NOTE: here we assume there is no side effects in the condition
+           checks. is it is expected that some expression should be performed
+           for their side effects, then this will introduce logic bugs. We
+           could imagine tracking function purity in the future to work around
+           that limitation. *)
+        | RsBinop (RsLit RsLitTrue, RsBinopLOr, exp)
+        | RsBinop (exp, RsBinopLOr, RsLit RsLitTrue) ->
+            RsLit RsLitTrue
+        | RsBinop (RsLit RsLitFalse, RsBinopLOr, exp)
+        | RsBinop (exp, RsBinopLOr, RsLit RsLitFalse) ->
+            exp
+        | RsIf (RsLit RsLitTrue, if_branch, else_branch) ->
+            if_branch
+        | RsIf (RsLit RsLitFalse, if_branch, else_branch) ->
+            else_branch
+        | RsMatch (exp, branches) ->
+            let can_be_taken (branch: rs_pexp) = match branch with
+                | RsPexpWhen (_, RsLit RsLitFalse, _) -> false
+                | _ -> true
+            in
+            let branches = List.filter can_be_taken branches in
+            begin match branches with
+                | [] -> RsLit RsLitUnit
+                | [RsPexp (RsPatWildcard, exp)] -> exp
+                | _ -> RsMatch (exp, branches)
+            end
         | RsApp (RsPathSeparator (int_typ, RsTypId "pow"), [], [RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _)])
         | RsStaticApp (int_typ, "pow", [RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _)])->
             mk_big_num (Big_int.pow_int n (Big_int.to_int m))
