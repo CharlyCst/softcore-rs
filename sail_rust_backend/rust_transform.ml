@@ -212,7 +212,7 @@ let transform_fn (ct: expr_type_transform) (ctx: context) (fn: rs_fn) : rs_fn =
     {
         fn with
         args = (List.map (ct.pat ctx) fn.args);
-        signature = {generics; args; ret};
+        signature = mk_fn_typ_gen args ret generics;
         body = transform_exp ct ctx fn.body;
     }
 
@@ -1052,6 +1052,38 @@ let fix_generic_type : func_transform = {
   func = fix_generic_type_func;
 }
 
+(* ————————————————————————— Link Generics to Args —————————————————————————— *)
+(* In some cases Sail generics are determined by the value of an argument.    *)
+(* In Rust we emulate that by using both a generic and an argument.           *)
+(* Therefore, we need to ensure that both match.                              *)
+(* —————————————————————————————————————————————————————————————————————————— *)
+
+let link_generics_to_args_exp (ctx: context) (exp: rs_exp): rs_exp =
+    match exp with
+    | RsApp (RsId fn, [], args) when SMap.mem fn ctx.defs.fun_typs ->
+        let signature = SMap.find fn ctx.defs.fun_typs in
+        begin match (signature.linked_gen_args, signature.generics) with
+            (* We only support one genreic/argument pair right now *)
+            | ([(_, arg_idx)], [_]) ->
+                let arg = List.nth args arg_idx in
+                begin match arg with
+                    | RsLit (RsLitNum n) ->
+                        RsApp (RsId fn, [Big_int.to_string n], args)
+                    | _ -> exp
+                end
+            | _ -> exp
+        end
+    | _ -> exp
+
+let link_generics_to_args = {
+    exp = link_generics_to_args_exp;
+    lexp = id_lexp;
+    pexp = id_pexp;
+    typ = id_typ;
+    pat = id_pat;
+    obj = id_obj;
+}
+
 (* ———————————————————————— Enumeration binder ————————————————————————— *)
 
 let rec enum_prefix_inserter (key : string) (lst : (string * string) list) : string =
@@ -1396,6 +1428,7 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
   let rust_program = rust_transform_expr normalize_generics ctx rust_program in
   let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in
   let rust_program = rust_transform_func fix_generic_type ctx rust_program in
+  let rust_program = rust_transform_expr link_generics_to_args ctx rust_program in
   let rust_program = rust_transform_expr enum_binder ctx rust_program in
   let rust_program = rust_remove_type_bits rust_program in
   let rust_program = rust_prelude_func_filter rust_program in

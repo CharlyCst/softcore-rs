@@ -597,7 +597,7 @@ module Codegen () = struct
         let signature = match kind with
             | FunKindFunc -> (match ctx_fun_type name ctx with
                 | Some signature -> signature
-                | None -> {generics = []; args = [RsTypId "TodoNoSignature"]; ret = RsTypUnit})
+                | None -> mk_fn_typ [RsTypId "TodoNoSignature"] RsTypUnit)
             | FunKindUnion (func, union) ->
                 (* We look up the function definition to get the return type *)
                 let ret_type = match ctx_fun_type func ctx with
@@ -683,10 +683,12 @@ module Codegen () = struct
             | QI_id (KOpt_aux (KOpt_kind (kind, kid), _)) -> Some (kind, kid)
             | QI_constraint _ -> None
         in
-        let into_generic (K_aux (kind, _)) id = match kind with 
-            | K_type -> RsGenTyp id
-            | K_int -> RsGenConst (id, "i128")
-            | K_bool -> RsGenConst (id, "bool")
+        let into_generic (K_aux (kind, _)) id =
+            let id = sanitize_generic_id id in
+            match kind with 
+                | K_type -> RsGenTyp (id)
+                | K_int -> RsGenConst (id, "i128")
+                | K_bool -> RsGenConst (id, "bool")
         in
         let rec add_generic rest = match rest with
             | head :: tail -> (match tyvars_of_quant_item head with
@@ -917,8 +919,8 @@ module Codegen () = struct
     and typ_to_rust (Typ_aux (typ, _)): rs_type =
         match typ with
             | Typ_id id when string_of_id id = "unit" -> RsTypUnit
-            | Typ_id id -> RsTypId (string_of_id id)
-            | Typ_var (Kid_aux (Var x, _)) -> RsTypGeneric x
+            | Typ_id id -> RsTypId (sanitize_generic_id (string_of_id id))
+            | Typ_var (Kid_aux (Var x, _)) -> RsTypGeneric (sanitize_generic_id x)
             | Typ_tuple types -> RsTypTuple (List.map typ_to_rust types)
             | Typ_fn _ -> RsTypId "TodoFnType"
             | Typ_app (id, params) -> if (string_of_id id) = "vector" then 
@@ -942,7 +944,7 @@ module Codegen () = struct
         match nexp with
             | Nexp_constant n -> RsTypParamNum (mk_big_num n)
             | Nexp_app (Id_aux (_, _), _) -> RsTypParamTyp (RsTypId "TodoNexpTypeApp")
-            | Nexp_id id -> RsTypParamNum (RsId (string_of_id id))
+            | Nexp_id id -> RsTypParamNum (RsId (sanitize_generic_id (string_of_id id)))
             | Nexp_var var -> RsTypParamTyp (RsTypId (capitalize_after_removal (string_of_kid var))) 
             | Nexp_times (_, _)
             | Nexp_sum (_, _)
@@ -953,20 +955,31 @@ module Codegen () = struct
     
     (* ———————————————————————————— Value Definition ———————————————————————————— *)
     
+    let find_linked_gen_args (generics: rs_generic list) (args: rs_type list) (ret: rs_type) : (int * int) list =
+        (* For now we focus on simple function with one generic and one
+           argument that return a bitvector whose size is the argument. *)
+        match (generics, args, ret) with
+            | ([RsGenConst (x, _)],
+               [RsTypGenericParam (arg_t, [RsTypParamTyp (RsTypId y)])],
+               RsTypGenericParam ("bitvector", [RsTypParamTyp (RsTypId z)]))
+               when x = y && y = z && (arg_t = "atom" || arg_t = "implicit") ->
+                [(0, 0)]
+            | _ -> []
+
     let extract_types (TypSchm_aux (typeschm, _)) : rs_fn_type =
         (* We ignore the type quantifier for now, there is no `forall` on most types of interest *)
         let TypSchm_ts (typq, typ) = typeschm in
         let generics = typequant_to_generics typq in
-        let Typ_aux (typ, _) = typ in
+        let Typ_aux (typ, l) = typ in
         match typ with 
             (* When Sail infers type, it sometimes uses a single tuple as argument.
                In such cases, we flatten the tuple. *)
             | Typ_fn ([Typ_aux (Typ_tuple args, _)], ret) 
-            | Typ_fn (args, ret) ->  {
-                    generics = generics;
-                    args = List.map typ_to_rust args;
-                    ret = typ_to_rust ret
-                }
+            | Typ_fn (args, ret) ->
+                let args = List.map typ_to_rust args in
+                let ret = typ_to_rust ret in
+                let fn = mk_fn_typ_gen args ret generics in
+                { fn with linked_gen_args = find_linked_gen_args generics args ret }
             | _ -> mk_fn_typ [RsTypTodo "todo_extract_types"] (RsTypTodo "todo_extract_types")
     
     let val_fun_def (val_spec: val_spec_aux) : defmap =
