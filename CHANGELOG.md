@@ -2,7 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.2.0] - 2025-06-16
+## [unreleased]
+
+### RISC-V 64
+
+- Add support for `is_csr_defined`
+- Add support for exception injection
+- Add support for read_CSR
+
+### Compiler
+
+- Improve boolean expression simplification
+- Optimize match guards with let binding
+- Link parameters and generic arguments to help type inference
+
+## [0.2.0]
 
 ### RISC-V 64
 
@@ -24,7 +38,7 @@ All notable changes to this project will be documented in this file.
 - Use int128 to represent integers
 - Add support for remaining features required for the decoder
 
-## [0.1.0] - 2025-06-08
+## [0.1.0]
 
 ### RISC-V 64
 

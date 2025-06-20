@@ -21,8 +21,7 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
     ### {{ group | striptags | trim | upper_first }}
     {% for commit in commits %}
-        - {% if commit.scope %}*({{ commit.scope }})* {% endif %}\
-            {% if commit.breaking %}[**breaking**] {% endif %}\
+        - {% if commit.breaking %}[**breaking**] {% endif %}\
             {{ commit.message | upper_first }}\
     {% endfor %}
 {% endfor %}\n
@@ -74,8 +73,10 @@ protect_breaking_commits = false
 # Assigns commits to groups.
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
 commit_parsers = [
-    { message = "^rv64", group = "<!-- 0 --> RISC-V 64" },
-    { message = "^compiler", group = "<!-- 1 --> Compiler" },
+    { message = '^rv64',             group = "<!-- 0 --> RISC-V 64" },
+    { message = '^feat\(rv64\)',     group = "<!-- 0 --> RISC-V 64" },
+    { message = '^compiler',         group = "<!-- 1 --> Compiler" },
+    { message = '^feat\(compiler\)', group = "<!-- 1 --> Compiler" },
 ]
 
 # Exclude commits that are not matched by any commit parser.
