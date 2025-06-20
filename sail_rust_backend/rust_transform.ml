@@ -876,67 +876,6 @@ let expr_type_hoister = {
     obj = obj_hoister;
 }
 
-(* ——————————————————————————— Generic Rewriting ———————————————————————————— *)
-(* Sail uses apostrophes in generic names, which are parsed as lifetimes in   *)
-(* Rust. This transformation removes the apostrophes and format the generic   *)
-(* names.                                                                     *)
-(* —————————————————————————————————————————————————————————————————————————— *)
-
-let sanitize_generic (generic: rs_generic) : rs_generic =
-    let id = match generic with
-        | RsGenTyp s -> s
-        | RsGenConst (s, _) -> s
-    in
-    let new_id = sanitize_generic_id id in
-    match generic with
-        | RsGenTyp _ -> RsGenTyp new_id
-        | RsGenConst (_, typ) -> RsGenConst (new_id, typ)
-
-let rec rewrite_generics (ctx: context) (typ: rs_type) : rs_type =
-    match (typ : rs_type) with
-        | RsTypId id -> RsTypId (sanitize_generic_id id)
-        | RsTypGeneric id -> RsTypGeneric (sanitize_generic_id id)
-        | RsTypTuple typs -> RsTypTuple (List.map (rewrite_generics ctx) typs)
-        | RsTypUnit -> RsTypUnit
-        | RsTypGenericParam (typ, params) -> RsTypGenericParam (typ, List.map (rewrite_generic_params ctx) params)
-        | RsTypArray (n, m) -> RsTypArray (rewrite_generic_params ctx n, rewrite_generic_params ctx m)
-        | RsTypOption typ -> RsTypOption (rewrite_generic_params ctx typ)
-        | RsTypTodo s -> RsTypTodo s
-
-and rewrite_generic_params (ctx: context) (param: rs_type_param) : rs_type_param =
-    match param with 
-        | RsTypParamTyp typ -> RsTypParamTyp (rewrite_generics ctx typ)
-        | RsTypParamNum num -> param
-
-let rewrite_generics_obj (ctx: context) (obj: rs_obj) : rs_obj =
-    match (obj : rs_obj) with
-        | RsEnum enum -> RsEnum {
-            enum with
-            generics = List.map sanitize_generic enum.generics;
-        }
-        | RsStruct s -> RsStruct {
-            s with
-            generics = List.map sanitize_generic s.generics;
-        }
-        | RsAlias alias -> RsAlias {
-            alias with
-            generics = List.map sanitize_generic alias.generics;
-        }
-        | RsFn fn -> let generics = List.map sanitize_generic fn.signature.generics in
-            RsFn {fn with signature = {fn.signature with generics = generics}}
-        | _ -> obj
-
-
-let normalize_generics = {
-    exp = id_exp;
-    lexp = id_lexp;
-    pexp = id_pexp;
-    typ = rewrite_generics;
-    pat = id_pat;
-    obj = rewrite_generics_obj;
-}
-
-
 (* ————————————————————————— VirtContext Call Graph ————————————————————————— *)
 (* Infers which function needs to have the context as argument.               *)
 (* The initial Sail-to-Rust translation tracks usage of registers and         *)
@@ -1425,7 +1364,7 @@ let transform (rust_program: rs_program) (ctx: context) : rs_program =
   let rust_program = rust_transform_expr native_func_transform ctx rust_program in
   let rust_program = fix_point optimizer rust_program ctx 10 in
   let rust_program = rust_transform_expr bitvec_transform ctx rust_program in
-  let rust_program = rust_transform_expr normalize_generics ctx rust_program in
+  (* let rust_program = rust_transform_expr normalize_generics ctx rust_program in *)
   let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in
   let rust_program = rust_transform_func fix_generic_type ctx rust_program in
   let rust_program = rust_transform_expr link_generics_to_args ctx rust_program in
