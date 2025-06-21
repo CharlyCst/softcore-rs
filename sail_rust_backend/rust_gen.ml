@@ -280,6 +280,7 @@ let rec lexp_to_exp (lexp : rs_lexp) : rs_exp =
   match lexp with
   | RsLexpId id -> RsId id
   | RsLexpField (exp, field) -> RsField (exp, field)
+  | RsLexpIndex (lexp, exp) -> RsIndex (lexp_to_exp lexp, exp)
   | _ -> RsId "LexpToExpTodo"
 ;;
 

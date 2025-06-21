@@ -363,19 +363,19 @@ let bitvec_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
       }
   | RsAssign
       ( RsLexpIndexRange
-          (RsLexpField (fexp, "bits"), RsLit (RsLitNum r_end), RsLit (RsLitNum r_start))
+          (lexp, RsLit (RsLitNum r_end), RsLit (RsLitNum r_start))
       , exp ) ->
     let r_end = Big_int.add r_end one in
     let r_size = Big_int.sub r_end r_start in
     let method_app =
-      { exp = RsField (fexp, "bits")
+      { exp = lexp_to_exp lexp
       ; name = "set_subrange"
       ; generics =
           [ Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size ]
       ; args = [ exp ]
       }
     in
-    RsAssign (RsLexpField (fexp, "bits"), RsMethodApp method_app)
+    RsAssign (lexp, RsMethodApp method_app)
   | RsApp (RsId "zero_extend", generics, [ RsLit (RsLitNum size); e ]) ->
     RsMethodApp
       { exp = e; name = "zero_extend"; generics = [ Big_int.to_string size ]; args = [] }

@@ -93,6 +93,13 @@ module Codegen () = struct
     | Ord_aux (Ord_dec, _) -> "dec"
   ;;
 
+  (** Return true if the type is a bitvector **)
+  let is_bitvector (typ : typ) : bool =
+    match typ with
+    | Typ_aux (Typ_app (id, args), _) when string_of_id id = "bitvector" -> true
+    | _ -> false
+  ;;
+
   (** Note: This function is already available as part of Sail, but there was
         a bug in the implementation.
         Once the bugfix is merged and a new version is release, we should
@@ -478,8 +485,6 @@ module Codegen () = struct
     | LE_vector (lexp, idx) ->
       RsLexpIndex (process_lexp ctx lexp, RsAs (process_exp ctx idx, usize_typ))
     | LE_vector_range (lexp, range_start, range_end) ->
-      (* RsLexpTodo *)
-      (* TODO: properly access subranges *)
       RsLexpIndexRange
         (process_lexp ctx lexp, process_exp ctx range_start, process_exp ctx range_end)
     | LE_field (lexp, id) ->
@@ -516,11 +521,6 @@ module Codegen () = struct
          | _ -> "x")
       | _ -> "X"
     in
-    let is_bitvector =
-      match typ with
-      | Typ_aux (Typ_app (id, args), _) when string_of_id id = "bitvector" -> true
-      | _ -> false
-    in
     if is_literal
     then (
       (* Generate a bitvector literal *)
@@ -532,7 +532,7 @@ module Codegen () = struct
               (RsLitBin
                  (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items))))
           ] ))
-    else if is_bitvector
+    else if is_bitvector typ
     then (
       (* Generate a bitvector from individual bits *)
       let rec set_bits bits idx exp =
