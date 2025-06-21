@@ -12,6 +12,7 @@ test:
 # Format code
 fmt:
     dune fmt
+    cargo fmt
 
 # Build the rv64 model
 rv64:

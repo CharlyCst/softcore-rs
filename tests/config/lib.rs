@@ -1,3 +1,4 @@
+#[rustfmt::skip]
 mod arch;
 
 pub fn add(left: u64, right: u64) -> u64 {

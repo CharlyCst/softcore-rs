@@ -25,7 +25,10 @@ pub const MINIMAL: raw::Config = raw::Config {
         Svbare: raw::ConfigSvbare { supported: false },
         Svinval: raw::ConfigSvinval { supported: false },
         U: raw::ConfigU { supported: false },
-        V: raw::ConfigV { supported: false, vlen_exp: 3 },
+        V: raw::ConfigV {
+            supported: false,
+            vlen_exp: 3,
+        },
         Zaamo: raw::ConfigZaamo { supported: false },
         Zabha: raw::ConfigZabha { supported: false },
         Zalrsc: raw::ConfigZalrsc { supported: false },
@@ -68,10 +71,7 @@ pub const MINIMAL: raw::Config = raw::Config {
         Zvksh: raw::ConfigZvksh { supported: false },
     },
     memory: raw::ConfigMemory {
-        pmp: raw::ConfigPmp {
-            count: 0,
-            grain: 0,
-        },
+        pmp: raw::ConfigPmp { count: 0, grain: 0 },
     },
 };
 
@@ -93,7 +93,10 @@ pub const U74: raw::Config = raw::Config {
         Svbare: raw::ConfigSvbare { supported: false },
         Svinval: raw::ConfigSvinval { supported: false },
         U: raw::ConfigU { supported: true },
-        V: raw::ConfigV { supported: false, vlen_exp: 3 },
+        V: raw::ConfigV {
+            supported: false,
+            vlen_exp: 3,
+        },
         Zaamo: raw::ConfigZaamo { supported: false },
         Zabha: raw::ConfigZabha { supported: false },
         Zalrsc: raw::ConfigZalrsc { supported: false },

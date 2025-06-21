@@ -22,6 +22,7 @@ pub mod registers;
 ///
 /// [1]: https://github.com/riscv/sail-riscv
 /// [2]: https://github.com/rems-project/sail
+#[rustfmt::skip]
 pub mod raw;
 
 pub use raw::{Core, ExceptionType, Privilege, ast};
