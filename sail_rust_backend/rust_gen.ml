@@ -687,5 +687,5 @@ let string_of_rs_obj (obj : rs_obj) : string =
 
 let string_of_rs_prog (prog : rs_program) : string =
   let (RsProg funs) = prog in
-  String.concat "\n\n" (List.map string_of_rs_obj funs)
+  (String.concat "\n\n" (List.map string_of_rs_obj funs)) ^ "\n"
 ;;
