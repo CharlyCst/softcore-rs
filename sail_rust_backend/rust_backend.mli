@@ -1,5 +1,4 @@
 open Libsail
-
 open Type_check
 
 module Codegen () : sig

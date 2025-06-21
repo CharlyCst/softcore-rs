@@ -16,11 +16,12 @@ module SMap = Call_set.SMap
 type core_config = int SMap.t
 
 (** The RV64 static configuration **)
-let rv64_config : core_config = SMap.of_list [
-    ("extensions.V.vlen_exp", 3); (* Must be in range(3, 16) *)
-]
+let rv64_config : core_config =
+  SMap.of_list [ "extensions.V.vlen_exp", 3 (* Must be in range(3, 16) *) ]
+;;
 
 (** Returns the config value, if known at compile time. **)
-let config_find (cfg: core_config) (item: string list) : int option =
-    let key = String.concat "." item in
-    SMap.find_opt key cfg
+let config_find (cfg : core_config) (item : string list) : int option =
+  let key = String.concat "." item in
+  SMap.find_opt key cfg
+;;

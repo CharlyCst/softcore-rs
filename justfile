@@ -9,6 +9,10 @@ test:
     make -B tests
     cargo test
 
+# Format code
+fmt:
+    dune fmt
+
 # Build the rv64 model
 rv64:
     make build
