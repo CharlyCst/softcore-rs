@@ -567,13 +567,14 @@ let native_func_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
   | RsApp (RsId "emod_int", gens, [ e1; e2 ]) ->
     RsBinop (RsAs (e1, usize_typ), RsBinopMod, RsAs (e2, usize_typ))
   | RsApp (RsId "abs_int_atom", gens, [ e ]) -> RsStaticApp (int_typ, "abs", [ e ])
-  | RsApp (RsId "not_vec", gens, [ v ]) -> RsUnop (RsUnopNeg, v)
+  | RsApp (RsId "not_bool", gens, [ e ]) -> RsUnop (RsUnopNot, e)
+  | RsApp (RsId "not_vec", gens, [ v ]) -> RsUnop (RsUnopNot, v)
   | RsApp (RsId "eq_bit", gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopEq, e2) (* TODO Is it correct to compare like that? *)
   | RsApp (RsId "eq_bool", gens, _) -> RsId "BUILTIN_eq_bool_TODO"
   | RsApp (RsId "eq_string", gens, _) -> RsId "BUILTIN_eq_string_TODO"
   | RsApp (RsId "eq_int", gens, _) -> RsId "BUILTIN_eq_int_TODO"
-  | RsApp (RsId "not", gens, [ b ]) -> RsUnop (RsUnopNeg, b)
+  | RsApp (RsId "not", gens, [ b ]) -> RsUnop (RsUnopNot, b)
   | RsApp (RsId "lt", gens, _) -> RsId "BUILTIN_lt_TODO"
   | RsApp (RsId "lteq", gens, _) -> RsId "BUILTIN_lteq_TODO"
   | RsApp (RsId "lteq_int", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopLe, e2)

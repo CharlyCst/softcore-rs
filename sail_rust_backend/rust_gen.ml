@@ -62,7 +62,9 @@ and rs_binop =
   | RsBinopShiftRight
   | RsBinopMod
 
-and rs_unop = RsUnopNeg
+and rs_unop =
+  | RsUnopNeg
+  | RsUnopNot
 
 and rs_method_app =
   { exp : rs_exp
@@ -397,7 +399,8 @@ and string_of_rs_binop (binop : rs_binop) : string =
 
 and string_of_rs_unop (unop : rs_unop) : string =
   match unop with
-  | RsUnopNeg -> "!"
+  | RsUnopNeg -> "-"
+  | RsUnopNot -> "!"
 
 and indent (n : int) : string = String.make (n * 4) ' '
 
