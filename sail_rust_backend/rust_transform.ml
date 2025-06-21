@@ -430,6 +430,18 @@ let bitvec_transform =
 
 (* —————————————————————————— Expression Optimizer —————————————————————————— *)
 
+(** Try to find the matching branch for match expression with a known integer to match. **)
+let rec find_match_branch_opt (n : Big_int.num) (branches : rs_pexp list) =
+  match branches with
+  | branch :: tail ->
+    (match branch with
+     | RsPexp (RsPatLit (RsLitNum m), exp) when Big_int.equal n m -> Some exp
+     | RsPexpWhen (RsPatId id, RsBinop (RsId id', RsBinopEq, RsLit (RsLitNum m)), exp)
+       when id = id' && Big_int.equal n m -> Some exp
+     | _ -> find_match_branch_opt n tail)
+  | [] -> None
+;;
+
 (** Simplifies rust expression by applying basic optimisations.
 
  For now, this mostly includes arithmetic operators.**)
@@ -470,6 +482,10 @@ let rec simplify_rs_exp (ctx : context) (rs_exp : rs_exp) : rs_exp =
   | RsBinop (exp, RsBinopLOr, RsLit RsLitFalse) -> exp
   | RsIf (RsLit RsLitTrue, if_branch, else_branch) -> if_branch
   | RsIf (RsLit RsLitFalse, if_branch, else_branch) -> else_branch
+  | RsMatch (RsLit (RsLitNum n), branches) ->
+    (match find_match_branch_opt n branches with
+     | Some exp -> exp
+     | None -> rs_exp)
   | RsMatch (exp, branches) ->
     let can_be_taken (branch : rs_pexp) =
       match branch with
