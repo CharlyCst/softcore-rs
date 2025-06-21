@@ -1,0 +1,10 @@
+[package]
+name = "optimization"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+softcore-prelude = { path = "../../prelude" }
