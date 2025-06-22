@@ -1138,25 +1138,11 @@ module Codegen () = struct
 
   let type_def_fun_def (TD_aux (typ, _)) : unionmap =
     match typ with
-    | TD_abbrev (id, typquant, typ_arg) ->
-      print_string (string_of_id id);
-      print_endline " Abbrev";
-      SMap.empty
-    | TD_record (id, typquant, items, _) ->
-      print_string (string_of_id id);
-      print_endline " Record";
-      SMap.empty
-    | TD_variant (id, typquant, members, _) ->
-      print_string (string_of_id id);
-      print_endline " Variant";
-      type_union_defs members
-    | TD_enum (id, member, _) ->
-      print_string (string_of_id id);
-      print_endline " Enum";
-      SMap.empty
-    | TD_bitfield _ ->
-      print_endline "Bitfield";
-      SMap.empty
+    | TD_abbrev (id, typquant, typ_arg) -> SMap.empty
+    | TD_record (id, typquant, items, _) -> SMap.empty
+    | TD_variant (id, typquant, members, _) -> type_union_defs members
+    | TD_enum (id, member, _) -> SMap.empty
+    | TD_bitfield _ -> SMap.empty
     | _ ->
       print_endline "TypeFunDef: other";
       SMap.empty

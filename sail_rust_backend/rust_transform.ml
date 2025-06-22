@@ -362,9 +362,7 @@ let bitvec_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
       ; args = []
       }
   | RsAssign
-      ( RsLexpIndexRange
-          (lexp, RsLit (RsLitNum r_end), RsLit (RsLitNum r_start))
-      , exp ) ->
+      (RsLexpIndexRange (lexp, RsLit (RsLitNum r_end), RsLit (RsLitNum r_start)), exp) ->
     let r_end = Big_int.add r_end one in
     let r_size = Big_int.sub r_end r_start in
     let method_app =
@@ -1035,6 +1033,36 @@ let add_namespace_to_arg_pats (ctx : context) (func : rs_fn) : rs_fn =
 
 let enum_arg_namespace : func_transform = { func = add_namespace_to_arg_pats }
 
+(* ———————————————————————— Fix Scattered Functions ————————————————————————— *)
+(* Scattered functions are re-assembled as a single function composed of one  *)
+(* big match statement by Sail.                                               *)
+(* This can be a problem when matching over more than one argument, because   *)
+(* Sail treats all arguments as a single tuple, which our back-end flatten to *)
+(* fit the Rust model better. Therefore, the match will only match on the     *)
+(* first argument, instead of the whole tuple as it should.                   *)
+(* This transformation detects scattered functions matching one more than one *)
+(* argument and modify the match to encompass all the arguments of the        *)
+(* scattered function.                                                        *)
+(* —————————————————————————————————————————————————————————————————————————— *)
+
+let fix_scattered_func (ctx : context) (func : rs_fn) : rs_fn =
+  let get_if_missing_arg arg =
+    match arg with
+    | RsPatId x when String.starts_with ~prefix:"missing_arg_" x -> Some x
+    | _ -> None
+  in
+  let missing_args =
+    func.args |> List.filter_map get_if_missing_arg |> List.map (fun x -> RsId x)
+  in
+  match func.body with
+  | RsMatch (m_exp, branches) when List.length missing_args > 0 ->
+    let new_m_exp = RsTuple ([ m_exp ] @ missing_args) in
+    { func with body = RsMatch (new_m_exp, branches) }
+  | _ -> func
+;;
+
+let fix_scattered_func : func_transform = { func = fix_scattered_func }
+
 (* ———————————————————————————— Fix Generic Type ———————————————————————————— *)
 
 let fix_generic_type_func (ctx : context) (func : rs_fn) : rs_fn =
@@ -1487,8 +1515,8 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
   let rust_program = rust_transform_expr native_func_transform ctx rust_program in
   let rust_program = fix_point optimizer rust_program ctx 10 in
   let rust_program = rust_transform_expr bitvec_transform ctx rust_program in
-  (* let rust_program = rust_transform_expr normalize_generics ctx rust_program in *)
   let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in
+  let rust_program = rust_transform_func fix_scattered_func ctx rust_program in
   let rust_program = rust_transform_func fix_generic_type ctx rust_program in
   let rust_program = rust_transform_expr link_generics_to_args ctx rust_program in
   let rust_program = rust_transform_expr enum_binder ctx rust_program in
