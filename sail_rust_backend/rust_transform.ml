@@ -501,6 +501,8 @@ let rec simplify_rs_exp (ctx : context) (rs_exp : rs_exp) : rs_exp =
       , [ RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _) ] )
   | RsStaticApp (int_typ, "pow", [ RsLit (RsLitNum n); RsAs (RsLit (RsLitNum m), _) ]) ->
     mk_big_num (Big_int.pow_int n (Big_int.to_int m))
+  | RsApp (RsId id, _, _) when SMap.mem id ctx.defs.inline_fun ->
+    SMap.find id ctx.defs.inline_fun
   | RsBlock exps ->
     let is_not_unit exp =
       match exp with
@@ -1498,8 +1500,26 @@ let optimizer (rust_program : rs_program) (ctx : context) : rs_program =
     in
     constants obj
   in
+  let get_inline_funs (RsProg obj : rs_program) : (string * rs_exp) list =
+    let rec funs obj =
+      match obj with
+      | RsFn fn :: tail ->
+        (match fn.body with
+         | RsLit lit | RsBlock [ RsLit lit ] -> (fn.name, RsLit lit) :: funs tail
+         | _ -> funs tail)
+      | head :: tail -> funs tail
+      | [] -> []
+    in
+    funs obj
+  in
   let constants = get_num_constants rust_program in
-  let defs = { ctx.defs with num_constants = SMap.of_list constants } in
+  let inline_fun = get_inline_funs rust_program in
+  let defs =
+    { ctx.defs with
+      num_constants = SMap.of_list constants
+    ; inline_fun = SMap.of_list inline_fun
+    }
+  in
   let ctx = { ctx with defs } in
   rust_transform_expr expression_optimizer ctx rust_program
 ;;

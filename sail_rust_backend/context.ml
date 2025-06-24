@@ -4,6 +4,7 @@ type defmap = rs_fn_type Call_set.SMap.t
 type unionmap = rs_type Call_set.SMap.t
 type funmap = rs_fn Call_set.SMap.t
 type nummap = Libsail.Ast_util.Big_int.num Call_set.SMap.t
+type inline_fun = rs_exp Call_set.SMap.t
 
 type defs =
   { fun_typs : defmap
@@ -11,6 +12,7 @@ type defs =
   ; funmap : funmap
   ; constants : SSet.t
   ; num_constants : nummap
+  ; inline_fun : inline_fun
   }
 
 type context =

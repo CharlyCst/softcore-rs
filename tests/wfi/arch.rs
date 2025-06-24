@@ -133,14 +133,13 @@ pub fn execute_WFI(core_ctx: &mut Core) -> Retired {
             let var_1 = core_ctx.mstatus;
             _get_Mstatus_TW(var_1)
         } == BitVector::<1>::new(0b1))} {
-            handle_illegal(());
+            ();
             Retired::RETIRE_FAIL
         } else {
             platform_wfi(core_ctx, ());
             Retired::RETIRE_SUCCESS
         }}
         Privilege::User => {{
-            handle_illegal(());
             Retired::RETIRE_FAIL
         }}
         _ => {panic!("Unreachable code")}

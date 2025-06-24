@@ -205,11 +205,9 @@ pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<8> {
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L136-178.
 pub fn execute_TEST(core_ctx: &mut Core) {
-    handle_empty(());
-    handle_bool(true);
     let a = handle_int(1234);
-    let b = handle_int_int(1234, 12345);
-    let c = handle_int_int_bool_int(1234, 12345, false, 2);
+    let b = false;
+    let c = 131;
     let d = handle_retired(());
     let e = handle_union(());
     let f = hex_bits_backwards(8, "00");

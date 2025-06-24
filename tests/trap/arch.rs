@@ -451,7 +451,7 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
             }
         }}
         Privilege::Supervisor => {{
-            assert!(haveSupMode(()), "no supervisor mode present for delegation");
+            assert!(true, "no supervisor mode present for delegation");
             core_ctx.scause.bits = core_ctx.scause.bits.set_subrange::<63, 64, 1>(bool_to_bits(intr));
             core_ctx.scause.bits = core_ctx.scause.bits.set_subrange::<0, 63, 63>(c.zero_extend::<63>());
             core_ctx.mstatus.bits = {
@@ -509,9 +509,9 @@ pub fn exception_delegatee(core_ctx: &mut Core, e: ExceptionType, p: Privilege) 
         bit_to_bool(var_1)
     };
     let user = false;
-    let deleg = if {(haveUsrMode(()) && user)} {
+    let deleg = if {user} {
         Privilege::User
-    } else if {(haveSupMode(()) && _super_)} {
+    } else if {_super_} {
         Privilege::Supervisor
     } else {
         Privilege::Machine

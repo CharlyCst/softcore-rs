@@ -186,17 +186,7 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitVector
         };
         privLevel_of_bits(var_3)
     };
-    core_ctx.mstatus.bits = {
-        let var_5 = {
-            let var_6 = if {haveUsrMode(())} {
-                Privilege::User
-            } else {
-                Privilege::Machine
-            };
-            privLevel_to_bits(var_6)
-        };
-        core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(var_5)
-    };
+    core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(privLevel_to_bits(Privilege::User));
     if {(core_ctx.cur_privilege != Privilege::Machine)} {
         core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<17, 18, 1>(BitVector::<1>::new(0b0))
     } else {
@@ -251,10 +241,10 @@ pub const fn ext_fail_xret_priv(unit_arg: ()) {
 /// Generated from the Sail sources at `tests/mret/arch.sail` L208-217.
 pub fn execute_MRET(core_ctx: &mut Core) -> Retired {
     if {(core_ctx.cur_privilege != Privilege::Machine)} {
-        handle_illegal(());
+        ();
         Retired::RETIRE_FAIL
-    } else if {!(ext_check_xret_priv(Privilege::Machine))} {
-        ext_fail_xret_priv(());
+    } else if {!(true)} {
+        ();
         Retired::RETIRE_FAIL
     } else {
         {

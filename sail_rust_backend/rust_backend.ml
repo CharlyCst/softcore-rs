@@ -49,6 +49,7 @@ module Codegen () = struct
     ; funmap = SMap.empty
     ; constants = SSet.empty
     ; num_constants = SMap.empty
+    ; inline_fun = SMap.empty
     }
   ;;
 
@@ -58,6 +59,7 @@ module Codegen () = struct
     ; funmap = map_union a.funmap b.funmap
     ; constants = SSet.union a.constants b.constants
     ; num_constants = map_union a.num_constants b.num_constants
+    ; inline_fun = map_union a.inline_fun b.inline_fun
     }
   ;;
 
