@@ -508,10 +508,7 @@ pub fn exception_delegatee(core_ctx: &mut Core, e: ExceptionType, p: Privilege) 
         let var_1 = bitvector_access(core_ctx.medeleg.bits, idx);
         bit_to_bool(var_1)
     };
-    let user = false;
-    let deleg = if {user} {
-        Privilege::User
-    } else if {_super_} {
+    let deleg = if {_super_} {
         Privilege::Supervisor
     } else {
         Privilege::Machine

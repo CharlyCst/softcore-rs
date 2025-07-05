@@ -533,6 +533,111 @@ let expression_optimizer =
   }
 ;;
 
+(* —————————————————————————— Constant Propagation —————————————————————————— *)
+
+type bindings = rs_exp SMap.t
+
+let rec invalidate_bindings (ctx : bindings) (ids : string list) : bindings =
+  match ids with
+  | id :: tail ->
+    let ctx' = SMap.remove id ctx in
+    invalidate_bindings ctx' tail
+  | [] -> ctx
+;;
+
+let rec propagate_in_exp (ctx : bindings) (exp : rs_exp) : rs_exp =
+  (* Helpers for propagating one or more exps *)
+  let propagate exp = propagate_in_exp ctx exp in
+  let propagate_list exps = List.map propagate exps in
+  (* The actual constant propagation *)
+  match (exp : rs_exp) with
+  | RsId id ->
+    (match SMap.find_opt id ctx with
+     | Some exp' -> exp' (* The constant propagation happens here *)
+     | None -> RsId id)
+  | RsLet (RsPatId id, RsLit lit, next) ->
+    (* This binding is a Rust literal, we can remove it and inline the literal in the next expression *)
+    let ctx' = SMap.add id (RsLit lit) ctx in
+    (* We remove nested blocks here *)
+    let next =
+      match next with
+      | RsBlock [ next ] -> next
+      | _ -> next
+    in
+    propagate_in_exp ctx' next
+  | RsLet (pat, pat_exp, next) ->
+    (* We need to invalidate all bindings that are being re-defined *)
+    let new_ids = ids_of_pat pat in
+    let ctx' = invalidate_bindings ctx (SSet.to_list new_ids) in
+    (* We keep the old bindings in the let expression, but we use the new bindings in the body of the let expression *)
+    RsLet (pat, propagate pat_exp, propagate_in_exp ctx' next)
+  | RsApp (fn, generics, args) -> RsApp (propagate fn, generics, propagate_list args)
+  | RsMethodApp app ->
+    RsMethodApp { app with exp = propagate app.exp; args = propagate_list app.args }
+  | RsStaticApp (typ, name, args) -> RsStaticApp (typ, name, propagate_list args)
+  | RsLit lit -> RsLit lit
+  | RsField (exp, field) -> RsField (propagate exp, field)
+  | RsBlock exps -> RsBlock (propagate_list exps)
+  | RsConstBlock exps -> RsConstBlock (propagate_list exps)
+  | RsInstrList exps -> RsInstrList (propagate_list exps)
+  | RsIf (cond, if_branch, else_branch) ->
+    RsIf (propagate cond, propagate if_branch, propagate else_branch)
+  | RsMatch (exp, pexps) -> RsMatch (propagate exp, List.map (propagate_in_pexp ctx) pexps)
+  | RsTuple exps -> RsTuple (propagate_list exps)
+  | RsArray exps -> RsArray (propagate_list exps)
+  | RsAssign (lexp, exp) -> RsAssign (propagate_in_lexp ctx lexp, propagate exp)
+  | RsIndex (exp1, exp2) -> RsIndex (propagate exp1, propagate exp2)
+  | RsBinop (exp1, op, exp2) -> RsBinop (propagate exp1, op, propagate exp2)
+  | RsUnop (op, exp) -> RsUnop (op, propagate exp)
+  | RsAs (exp, typ) -> RsAs (propagate exp, typ)
+  | RsSome exp -> RsSome (propagate exp)
+  | RsNone -> RsNone
+  | RsPathSeparator (typ, typ') -> RsPathSeparator (typ, typ')
+  | RsFor (typ, lit, lit', exp) -> RsFor (typ, lit, lit', propagate exp)
+  | RsStruct (typ, fields) ->
+    RsStruct (typ, List.map (fun (s, exp) -> s, propagate exp) fields)
+  | RsStructAssign (st, field, value) ->
+    RsStructAssign (propagate st, field, propagate value)
+  | RsReturn exp -> RsReturn (propagate exp)
+  | RsTodo s -> RsTodo s
+
+and propagate_in_pexp (ctx : bindings) (pexp : rs_pexp) : rs_pexp =
+  match (pexp : rs_pexp) with
+  (* We need to invalidate bindings that are being re-defined *)
+  (* Note: we could further optimize patters of the form `x if x == y`, but for now we don't. *)
+  | RsPexp (pat, exp) ->
+    let new_ids = ids_of_pat pat in
+    let ctx' = invalidate_bindings ctx (SSet.to_list new_ids) in
+    RsPexp (pat, propagate_in_exp ctx' exp)
+  | RsPexpWhen (pat, cond, exp) ->
+    let new_ids = ids_of_pat pat in
+    let ctx' = invalidate_bindings ctx (SSet.to_list new_ids) in
+    RsPexpWhen (pat, propagate_in_exp ctx' cond, propagate_in_exp ctx' exp)
+
+and propagate_in_lexp (ctx : bindings) (lexp : rs_lexp) : rs_lexp =
+  let propagate lexp = propagate_in_lexp ctx lexp in
+  match (lexp : rs_lexp) with
+  | RsLexpId id -> RsLexpId id
+  | RsLexpField (fexp, field) -> RsLexpField (propagate_in_exp ctx fexp, field)
+  | RsLexpIndex (lexp, exp) -> RsLexpIndex (propagate lexp, propagate_in_exp ctx exp)
+  | RsLexpIndexRange (lexp, start, end') ->
+    RsLexpIndexRange
+      (propagate lexp, propagate_in_exp ctx start, propagate_in_exp ctx end')
+  | RsLexpTodo -> RsLexpTodo
+;;
+
+(** Perform constant propagation, inlining all variables bound to literal values. **)
+let constant_propagation (program : rs_program) : rs_program =
+  let propagate_in_fn fn = { fn with body = propagate_in_exp SMap.empty fn.body } in
+  let propagate obj =
+    match obj with
+    | RsFn fn -> RsFn (propagate_in_fn fn)
+    | _ -> obj
+  in
+  let (RsProg objs) = program in
+  RsProg (List.map propagate objs)
+;;
+
 (* ——————————————————————————— Nested Blocks remover ———————————————————————————— *)
 
 (** Sail often generates blocks in constructs such as if statements, for which
@@ -707,15 +812,15 @@ let rec rename_in_exp (rn : string * string) (exp : rs_exp) : rs_exp =
   let id, new_id = rn in
   match (exp : rs_exp) with
   | RsId id' -> if id' = id then RsId new_id (* Rename! *) else RsId id' (* No renaming *)
-  | RsLet (pat, cond, next) ->
+  | RsLet (pat, exp, next) ->
     let new_ids = ids_of_pat pat in
     if SSet.mem id new_ids
     then
       (* The ID is being shadowed, stop renaming at that point *)
-      exp
+      RsLet (pat, rename_in_exp exp, next)
     else
       (* The ID is not shadowed, so we need to continue the renaming *)
-      RsLet (pat, rename_in_exp cond, rename_in_exp next)
+      RsLet (pat, rename_in_exp exp, rename_in_exp next)
   | RsApp (fn, generics, args) -> RsApp (rename_in_exp fn, generics, rename_in_exps args)
   | RsMethodApp app ->
     RsMethodApp { app with exp = rename_in_exp app.exp; args = rename_in_exps app.args }
@@ -1521,7 +1626,7 @@ let optimizer (rust_program : rs_program) (ctx : context) : rs_program =
     }
   in
   let ctx = { ctx with defs } in
-  rust_transform_expr expression_optimizer ctx rust_program
+  rust_program |> rust_transform_expr expression_optimizer ctx |> constant_propagation
 ;;
 
 let transform (rust_program : rs_program) (ctx : context) : rs_program =
