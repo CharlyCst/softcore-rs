@@ -670,6 +670,7 @@ let unsupported_fun : SSet.t =
     ; "csr_id_write_callback"
     ; "csr_full_write_callback"
     ; "long_csr_write_callback"
+    ; "hex_bits_forwards"
     ]
 ;;
 
@@ -1363,6 +1364,7 @@ let prelude_func : SSet.t =
     ; "sign_extend"
     ; "sail_ones"
     ; "internal_error"
+    ; "hex_bits_forwards"
     ; "hex_bits_12_forwards"
     ; "hex_bits_12_backwards"
     ; "parse_hex_bits"

@@ -208,6 +208,8 @@ let rec get_call_set (ast : (tannot, env) ast) : sail_ctx =
       ; "exceptionType_to_bits"
       ; (* CSRs *)
         "read_CSR"
+      ; "write_CSR"
+      ; "doCSR"
       ]
   in
   let sail_ctx = { call_set; config_map = SMap.empty } in
