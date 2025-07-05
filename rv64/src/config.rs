@@ -6,6 +6,7 @@
 //! PRs to contribute new configurations for popular cores are welcome.
 
 use crate::raw;
+use softcore_prelude::BitVector;
 
 /// A configuration with all extensions disabled.
 pub const MINIMAL: raw::Config = raw::Config {
@@ -69,6 +70,11 @@ pub const MINIMAL: raw::Config = raw::Config {
         Zvknha: raw::ConfigZvknha { supported: false },
         Zvknhb: raw::ConfigZvknhb { supported: false },
         Zvksh: raw::ConfigZvksh { supported: false },
+    },
+    base: raw::ConfigBase {
+        writable_fiom: false,
+        writable_hpm_counters: BitVector::new(0),
+        writable_misa: false,
     },
     memory: raw::ConfigMemory {
         pmp: raw::ConfigPmp { count: 0, grain: 0 },
@@ -137,6 +143,11 @@ pub const U74: raw::Config = raw::Config {
         Zvknha: raw::ConfigZvknha { supported: false },
         Zvknhb: raw::ConfigZvknhb { supported: false },
         Zvksh: raw::ConfigZvksh { supported: false },
+    },
+    base: raw::ConfigBase {
+        writable_fiom: true,
+        writable_hpm_counters: BitVector::new(0), // TODO: check on a board
+        writable_misa: false,
     },
     memory: raw::ConfigMemory {
         pmp: raw::ConfigPmp {
