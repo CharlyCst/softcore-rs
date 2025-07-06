@@ -1,6 +1,6 @@
 [package]
 name = "softcore-rv64"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 authors = ["Charly Castes", "François Costa"]
 license = "MIT OR Apache-2.0"
@@ -11,4 +11,4 @@ categories = ["emulators", "development-tools::testing"]
 readme = "readme.md"
 
 [dependencies]
-softcore-prelude = { version = "0.2.0", path = "../prelude" }
+softcore-prelude = { version = "0.3.0", path = "../prelude" }
