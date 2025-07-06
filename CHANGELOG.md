@@ -2,19 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.3.0]
 
 ### RISC-V 64
 
 - Add support for `is_csr_defined`
 - Add support for exception injection
 - Add support for read_CSR
+- Full support for reading/writing CSRs
+- Add helper functions to perform CSR operations
 
 ### Compiler
 
 - Improve boolean expression simplification
 - Optimize match guards with let binding
 - Link parameters and generic arguments to help type inference
+- Add support for Sail's `not_bool`
+- Inline match arm when matching over known integers
+- More robus handling of bitvector range accesses
+- Support scattered functions with more than one argument
+- Add support for inligning constant functions
+- Add support for let binding constant propagation
 
 ## [0.2.0]
 
