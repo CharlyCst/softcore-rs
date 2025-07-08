@@ -211,6 +211,11 @@ impl<const N: i128> BitVector<N> {
         self.bits as i128
     }
 
+    /// Get the bits as an integer.
+    pub const fn signed(self) -> u128 {
+        self.bits as u128
+    }
+
     pub const fn as_usize(self) -> usize {
         self.bits as usize
     }

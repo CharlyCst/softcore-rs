@@ -43,7 +43,6 @@ let external_func : SSet.t =
     ; "plat_mtval_has_illegal_inst_bits"
     ; "truncate"
     ; "subrange_bits"
-    ; "gt_int"
     ; "internal_error"
     ; "bitvector_update"
     ; "hex_bits_12_forwards"
@@ -186,8 +185,8 @@ and transform_app
   | RsId "or_bool", [ left; right ] -> RsBinop (left, RsBinopLOr, right)
   | RsId "Some", [ exp ] -> RsSome exp
   | RsId "None", _ -> RsNone
-  (* Unsigned is used for array indexing *)
   | RsId "unsigned", value :: [] -> mk_method_app value "unsigned" []
+  | RsId "signed", value :: [] -> mk_method_app value "signed" []
   (* Otherwise keep as is *)
   | _ -> RsApp (fn, generics, args)
 
@@ -780,6 +779,7 @@ let native_func_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
   | RsApp (RsId "id", gens, _) -> RsId "BUILTIN_id_TODO"
   | RsApp (RsId "gteq_int", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopGe, e2)
   | RsApp (RsId "lt_int", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopLt, e2)
+  | RsApp (RsId "gt_int", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopGt, e2)
   | RsApp (RsId "internal_error", gens, [ file; line; message ]) ->
     RsApp (RsId "panic!", [], [ RsLit (RsLitStr "{}, l {}: {}"); file; line; message ])
   | RsApp (RsId id, gens, _) when SSet.mem id unsupported_fun -> RsLit RsLitUnit
