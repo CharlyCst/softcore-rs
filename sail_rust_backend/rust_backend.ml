@@ -167,8 +167,6 @@ module Codegen () = struct
 
   (* ———————————————————————— Sail-to-Rust Conversion ————————————————————————— *)
 
-  let process_register reg : rs_program = RsProg []
-
   let process_scattered scattered : rs_program =
     print_string "Scattered ";
     (match scattered with
@@ -884,7 +882,8 @@ module Codegen () = struct
 
   and def_to_rust (DEF_aux (def, annot)) (s : context) : rs_program =
     match def with
-    | DEF_register (DEC_aux (dec_spec, annot)) -> process_register dec_spec
+    | DEF_register (DEC_aux (dec_spec, annot)) ->
+      RsProg [] (* We handle registers in a previous pass *)
     | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
     | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef s
     | DEF_impl funcl -> process_func funcl s
@@ -899,25 +898,14 @@ module Codegen () = struct
 
   (* ———————————————————————— Sail Virtual Context Generator ————————————————————————— *)
 
-  and process_reg_name_type reg : string * rs_type =
-    let typ, id, exp =
-      match reg with
-      | DEC_reg (typ, id, exp) -> typ, id, exp
-    in
-    string_of_id id, typ_to_rust typ
+  and process_register (DEC_reg (typ, id, exp)) : string * rs_type * 'a exp option =
+    string_of_id id, typ_to_rust typ, exp
 
-  and process_if_register (DEF_aux (def, annot)) : string * rs_type * bool =
-    match def with
-    | DEF_register (DEC_aux (dec_spec, annot)) ->
-      let reg_name, reg_type = process_reg_name_type dec_spec in
-      reg_name, reg_type, true
-    | _ -> "", RsTypId "", false
-
-  and gather_registers defs : (string * rs_type) list =
+  and gather_registers defs : (string * rs_type * 'a exp option) list =
     match defs with
-    | h :: t ->
-      let value, typ, is_register = process_if_register h in
-      if is_register then (value, typ) :: gather_registers t else gather_registers t
+    | DEF_aux (DEF_register (DEC_aux (dec_spec, annot)), _) :: t ->
+      process_register dec_spec :: gather_registers t
+    | h :: t -> gather_registers t
     | [] -> []
 
   (** We decompose the configuration into multiple Rust struct to stay close
@@ -978,11 +966,12 @@ module Codegen () = struct
     let config_field =
       if List.length config_structs = 0 then [] else [ "config", RsTypId "Config" ]
     in
+    let registers = gather_registers defs |> List.map (fun (name, typ, _) -> name, typ) in
     RsProg
       ([ RsStruct
            { name = "Core"
            ; generics = []
-           ; fields = gather_registers defs @ config_field
+           ; fields = registers @ config_field
            ; derive = [ "Eq"; "PartialEq"; "Clone"; "Debug" ]
            ; doc =
                [ "The software core."
@@ -1000,8 +989,31 @@ module Codegen () = struct
        ]
        @ config_structs)
 
+  and genetare_registers_initialization defs (ctx : context) : rs_program =
+    let get_initializer ((name, typ, exp) : string * rs_type * tannot exp option) =
+      match exp with
+      | Some exp ->
+        let loc = exp_loc exp in
+        ctx.uses_sail_ctx <- false;
+        let exp = process_exp ctx exp in
+        let fn_typ = mk_fn_typ [] typ in
+        Some
+          (RsFn
+             { name = "_reset_" ^ name
+             ; signature = fn_typ
+             ; args = []
+             ; body = exp
+             ; const = false
+             ; doc = [ "Initialize the " ^ name ^ " register."; ""; loc_to_doc loc ]
+             ; use_sail_ctx = ctx.uses_sail_ctx
+             })
+      | None -> None
+    in
+    let registers_funs = gather_registers defs |> List.filter_map get_initializer in
+    RsProg registers_funs
+
   and gather_registers_list (ast : ('a, 'b) ast) : string list =
-    List.map (fun (x, _) -> x) (gather_registers ast.defs)
+    List.map (fun (x, _, _) -> x) (gather_registers ast.defs)
 
   (* ———————————————————————— Sail Types Generator ————————————————————————— *)
 
@@ -1216,7 +1228,11 @@ module Codegen () = struct
   (* ———————————————————————— Translation function  ————————————————————————— *)
 
   let sail_to_rust (ast : ('a, 'b) ast) (ctx : context) : rs_program =
-    merge_rs_prog_list [ generate_core_ctx ast.defs ctx; defs_to_rust ast.defs ctx ]
+    merge_rs_prog_list
+      [ generate_core_ctx ast.defs ctx
+      ; genetare_registers_initialization ast.defs ctx
+      ; defs_to_rust ast.defs ctx
+      ]
   ;;
 
   let get_funs (RsProg obj : rs_program) : (string * rs_fn) list =

@@ -153,9 +153,15 @@ let fundef_call_set
   funcl_call_set funcl ctx
 ;;
 
+let register_call_set (DEC_reg (_, _, exp)) (ctx : sail_ctx) : sail_ctx =
+  match exp with
+  | Some exp -> exp_call_set exp ctx
+  | None -> ctx
+;;
+
 let node_call_set (DEF_aux (def, annot)) (ctx : sail_ctx) : sail_ctx =
   match def with
-  | DEF_register (DEC_aux (dec_spec, annot)) -> ctx
+  | DEF_register (DEC_aux (dec_spec, annot)) -> register_call_set dec_spec ctx
   | DEF_scattered (SD_aux (scattered, annot)) -> ctx
   | DEF_fundef (FD_aux (fundef, annot)) -> fundef_call_set fundef ctx
   | DEF_impl funcl -> func_call_set funcl ctx

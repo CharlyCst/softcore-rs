@@ -1587,16 +1587,16 @@ let is_supported_obj (obj : rs_obj) : bool =
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
 
 (** Computes the fix point of a function. **)
-let rec fix_point fn rs_program ctx limit =
-  let new_args = fn rs_program ctx in
+let rec fix_point fn ctx rs_program limit =
+  let new_args = fn ctx rs_program in
   (* if new_args = rs_program || limit = 0 then *)
   (*     new_args *)
   (* else *)
   (*     fix_point fn new_args ctx (limit - 1) *)
-  if limit = 0 then new_args else fix_point fn new_args ctx (limit - 1)
+  if limit = 0 then new_args else fix_point fn ctx new_args (limit - 1)
 ;;
 
-let optimizer (rust_program : rs_program) (ctx : context) : rs_program =
+let optimizer (ctx : context) (rust_program : rs_program) : rs_program =
   let get_num_constants (RsProg obj : rs_program) : (string * Big_int.num) list =
     let rec constants obj =
       match obj with
@@ -1636,11 +1636,13 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
 
      We must first replace the Sail native function and perform a basic pass of optimization
      to detect some bitvec patterns properly *)
-  let rust_program = rust_transform_func virt_context_call_graph ctx rust_program in
+  let rust_program =
+    fix_point (rust_transform_func virt_context_call_graph) ctx rust_program 3
+  in
   let rust_program = rust_transform_func virt_context_transform ctx rust_program in
   let rust_program = rust_transform_expr nested_block_remover ctx rust_program in
   let rust_program = rust_transform_expr native_func_transform ctx rust_program in
-  let rust_program = fix_point optimizer rust_program ctx 10 in
+  let rust_program = fix_point optimizer ctx rust_program 10 in
   let rust_program = rust_transform_expr bitvec_transform ctx rust_program in
   let rust_program = rust_transform_func enum_arg_namespace ctx rust_program in
   let rust_program = rust_transform_func fix_scattered_func ctx rust_program in
@@ -1657,7 +1659,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
   let rust_program = rust_transform_expr expr_type_operator_rewriter ctx rust_program in
   let rust_program = rust_transform_func const_fn_rewriter ctx rust_program in
   let rust_program = rust_transform_func operator_rewriter ctx rust_program in
-  let rust_program = fix_point optimizer rust_program ctx 5 in
+  let rust_program = fix_point optimizer ctx rust_program 5 in
   (* Optimizer: Dead code elimination *)
   let rust_program = rust_transform_expr dead_code_remover ctx rust_program in
   (* Filter unsupported items *)
