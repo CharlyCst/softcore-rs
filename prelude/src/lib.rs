@@ -31,16 +31,16 @@ pub fn bitvector_concat<const N: i128, const M: i128, const NM: i128>(
     e1: BitVector<N>,
     e2: BitVector<M>,
 ) -> BitVector<{ NM }> {
-    BitVector::<{ NM }>::new((e1.bits() << M) | e2.bits())
+    bv::<{ NM }>((e1.bits() << M) | e2.bits())
 }
 
 pub fn get_slice_int<const L: i128>(l: i128, n: i128, start: i128) -> BitVector<L> {
     let val = (n >> start) & (mask(l as usize) as i128);
-    BitVector::new(val as u64)
+    bv(val as u64)
 }
 
 pub fn get_16_random_bits(_unit: ()) -> BitVector<16> {
-    BitVector::<16>::new(0)
+    bv::<16>(0)
 }
 
 pub fn not_implemented<T>(_any: T) -> ! {
@@ -79,16 +79,16 @@ pub fn sign_extend<const M: i128>(value: i128, input: BitVector<M>) -> BitVector
         "handle the case where sign_extend has value not equal 64"
     );
     let extension = ((1 << (64 - M)) - 1) << M;
-    BitVector::<64>::new(extension | input.bits)
+    bv::<64>(extension | input.bits)
 }
 
 pub const fn sail_ones<const N: i128>(n: i128) -> BitVector<N> {
     assert!(n <= 64);
-    BitVector::<N>::new(mask(n as usize))
+    bv::<N>(mask(n as usize))
 }
 
 pub const fn sail_zeros<const N: i128>(_n: i128) -> BitVector<N> {
-    BitVector::<N>::new(0)
+    bv::<N>(0)
 }
 
 pub fn min_int(v1: i128, v2: i128) -> i128 {
@@ -115,7 +115,7 @@ pub fn subrange_bits<const IN: i128, const OUT: i128>(
     assert_eq!((end - start + 1), OUT);
     assert!(OUT <= IN);
 
-    BitVector::new((vec.bits >> start) & mask(OUT as usize))
+    bv((vec.bits >> start) & mask(OUT as usize))
 }
 
 pub fn update_subrange_bits<const N: i128, const M: i128>(
@@ -132,12 +132,12 @@ pub fn update_subrange_bits<const N: i128, const M: i128>(
     mask = !(mask << from);
 
     // Now we can update and return the updated value
-    BitVector::new((bits.bits & mask) | (value.bits() << from))
+    bv((bits.bits & mask) | (value.bits() << from))
 }
 
 pub fn bitvector_update<const N: i128>(v: BitVector<N>, pos: i128, value: bool) -> BitVector<N> {
     let mask = 1 << pos;
-    BitVector::new((v.bits() & !mask) | (value as u64) << pos)
+    bv((v.bits() & !mask) | (value as u64) << pos)
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
@@ -152,9 +152,7 @@ pub struct BitField<const T: i128> {
 
 impl<const N: i128> BitField<N> {
     pub const fn new(value: u64) -> Self {
-        BitField {
-            bits: BitVector::new(value),
-        }
+        BitField { bits: bv(value) }
     }
 
     pub const fn subrange<const A: i128, const B: i128, const C: i128>(self) -> BitVector<C> {
@@ -181,6 +179,13 @@ impl<const N: i128> PartialOrd for BitVector<N> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.bits.partial_cmp(&other.bits)
     }
+}
+
+/// Create a fresh [BitVector].
+///
+/// This is equivalent to [BitVector::new], with a shorted syntax.
+pub const fn bv<const N: i128>(val: u64) -> BitVector<N> {
+    BitVector::new(val)
 }
 
 impl<const N: i128> BitVector<N> {
@@ -260,7 +265,7 @@ impl<const N: i128> BitVector<N> {
         let mut val = self.bits; // The current value
         val &= BitVector::<B>::bit_mask(); // Remove top bits
         val >>= A; // Shift all the bits
-        BitVector::new(val)
+        bv(val)
     }
 
     pub const fn set_subrange<const A: i128, const B: i128, const C: i128>(
@@ -272,11 +277,11 @@ impl<const N: i128> BitVector<N> {
 
         let mask = !(BitVector::<C>::bit_mask() << A);
         let new_bits = bits.bits() << A;
-        BitVector::new((self.bits & mask) | new_bits)
+        bv((self.bits & mask) | new_bits)
     }
 
     pub const fn wrapped_add(self, other: BitVector<N>) -> BitVector<N> {
-        BitVector::<N>::new(self.bits.wrapping_add(other.bits))
+        bv::<N>(self.bits.wrapping_add(other.bits))
     }
 
     /// Returns a bit mask with 1 for the first [N] bits.
@@ -381,7 +386,7 @@ impl<const N: i128> ops::Not for BitVector<N> {
     type Output = Self;
 
     fn not(self) -> Self::Output {
-        BitVector::new((!self.bits) & Self::bit_mask())
+        bv((!self.bits) & Self::bit_mask())
     }
 }
 
@@ -391,7 +396,7 @@ impl<const N: i128> std::ops::Add<i64> for BitVector<N> {
     fn add(self, rhs: i64) -> BitVector<N> {
         let result = self.bits as i64 + rhs;
         // If the result is out of bounds, we may want to handle overflow
-        BitVector::<N>::new(result as u64) // Returning the result as BitVector
+        bv::<N>(result as u64) // Returning the result as BitVector
     }
 }
 
@@ -422,15 +427,15 @@ mod tests {
 
     #[test]
     fn bitvec_not() {
-        assert_eq!((!BitVector::<1>::new(0b1)).bits(), 0b0);
-        assert_eq!((!BitVector::<1>::new(0b0)).bits(), 0b1);
-        assert_eq!((!BitVector::<2>::new(0b01)).bits(), 0b10);
-        assert_eq!((!BitVector::<2>::new(0b11)).bits(), 0b00);
+        assert_eq!((!bv::<1>(0b1)).bits(), 0b0);
+        assert_eq!((!bv::<1>(0b0)).bits(), 0b1);
+        assert_eq!((!bv::<2>(0b01)).bits(), 0b10);
+        assert_eq!((!bv::<2>(0b11)).bits(), 0b00);
     }
 
     #[test]
     fn subrange_bitvector() {
-        let v = BitVector::<32>::new(0b10110111);
+        let v = bv::<32>(0b10110111);
 
         assert_eq!(v.subrange::<0, 1, 1>().bits(), 0b1);
         assert_eq!(v.subrange::<0, 2, 2>().bits(), 0b11);
@@ -444,72 +449,41 @@ mod tests {
         assert_eq!(v.subrange::<2, 6, 4>().bits(), 0b1101);
         assert_eq!(v.subrange::<2, 7, 5>().bits(), 0b01101);
 
-        assert_eq!(
-            BitVector::<32>::new(0xffffffff)
-                .subrange::<7, 23, 16>()
-                .bits(),
-            0xffff
-        );
+        assert_eq!(bv::<32>(0xffffffff).subrange::<7, 23, 16>().bits(), 0xffff);
         assert_eq!(v.subrange::<2, 7, 5>().bits(), 0b01101);
 
-        let v = BitVector::<32>::new(0b10110111);
-        assert_eq!(
-            v.set_subrange::<0, 1, 1>(BitVector::new(0b0)).bits(),
-            0b10110110
-        );
-        assert_eq!(
-            v.set_subrange::<0, 1, 1>(BitVector::new(0b1)).bits(),
-            0b10110111
-        );
-        assert_eq!(
-            v.set_subrange::<0, 2, 2>(BitVector::new(0b00)).bits(),
-            0b10110100
-        );
-        assert_eq!(
-            v.set_subrange::<2, 5, 3>(BitVector::new(0b010)).bits(),
-            0b10101011
-        );
+        let v = bv::<32>(0b10110111);
+        assert_eq!(v.set_subrange::<0, 1, 1>(bv(0b0)).bits(), 0b10110110);
+        assert_eq!(v.set_subrange::<0, 1, 1>(bv(0b1)).bits(), 0b10110111);
+        assert_eq!(v.set_subrange::<0, 2, 2>(bv(0b00)).bits(), 0b10110100);
+        assert_eq!(v.set_subrange::<2, 5, 3>(bv(0b010)).bits(), 0b10101011);
 
         assert_eq!(
-            BitVector::<64>::new(0x0000000000000000)
-                .subrange::<60, 64, 4>()
-                .bits(),
+            bv::<64>(0x0000000000000000).subrange::<60, 64, 4>().bits(),
             0x0
         );
         assert_eq!(
-            BitVector::<64>::new(0xa000000000000000)
-                .subrange::<60, 64, 4>()
-                .bits(),
+            bv::<64>(0xa000000000000000).subrange::<60, 64, 4>().bits(),
             0xa
         );
         assert_eq!(
-            BitVector::<64>::new(0xb000000000000000)
-                .subrange::<60, 64, 4>()
-                .bits(),
+            bv::<64>(0xb000000000000000).subrange::<60, 64, 4>().bits(),
             0xb
         );
         assert_eq!(
-            BitVector::<64>::new(0xc000000000000000)
-                .subrange::<60, 64, 4>()
-                .bits(),
+            bv::<64>(0xc000000000000000).subrange::<60, 64, 4>().bits(),
             0xc
         );
         assert_eq!(
-            BitVector::<64>::new(0xd000000000000000)
-                .subrange::<60, 64, 4>()
-                .bits(),
+            bv::<64>(0xd000000000000000).subrange::<60, 64, 4>().bits(),
             0xd
         );
         assert_eq!(
-            BitVector::<64>::new(0xe000000000000000)
-                .subrange::<60, 64, 4>()
-                .bits(),
+            bv::<64>(0xe000000000000000).subrange::<60, 64, 4>().bits(),
             0xe
         );
         assert_eq!(
-            BitVector::<64>::new(0xf000000000000000)
-                .subrange::<60, 64, 4>()
-                .bits(),
+            bv::<64>(0xf000000000000000).subrange::<60, 64, 4>().bits(),
             0xf
         );
     }
@@ -531,122 +505,56 @@ mod tests {
         assert_eq!(bitfield.subrange::<2, 6, 4>().bits(), 0b1101);
         assert_eq!(bitfield.subrange::<2, 7, 5>().bits(), 0b01101);
 
-        let v = BitVector::<32>::new(0b10110111);
-        assert_eq!(
-            v.set_subrange::<0, 1, 1>(BitVector::new(0b0)).bits(),
-            0b10110110
-        );
-        assert_eq!(
-            v.set_subrange::<0, 1, 1>(BitVector::new(0b1)).bits(),
-            0b10110111
-        );
-        assert_eq!(
-            v.set_subrange::<0, 2, 2>(BitVector::new(0b00)).bits(),
-            0b10110100
-        );
-        assert_eq!(
-            v.set_subrange::<2, 5, 3>(BitVector::new(0b010)).bits(),
-            0b10101011
-        );
+        let v = bv::<32>(0b10110111);
+        assert_eq!(v.set_subrange::<0, 1, 1>(bv(0b0)).bits(), 0b10110110);
+        assert_eq!(v.set_subrange::<0, 1, 1>(bv(0b1)).bits(), 0b10110111);
+        assert_eq!(v.set_subrange::<0, 2, 2>(bv(0b00)).bits(), 0b10110100);
+        assert_eq!(v.set_subrange::<2, 5, 3>(bv(0b010)).bits(), 0b10101011);
     }
 
     #[test]
     fn test_update_subrange_bits() {
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b11111100),
-                1,
-                0,
-                BitVector::<2>::new(0b11)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b11111100), 1, 0, bv::<2>(0b11)).bits,
             0b11111111
         );
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b00000000),
-                0,
-                0,
-                BitVector::<1>::new(0b1)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b00000000), 0, 0, bv::<1>(0b1)).bits,
             0b00000001
         );
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b00000000),
-                1,
-                1,
-                BitVector::<1>::new(0b1)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b00000000), 1, 1, bv::<1>(0b1)).bits,
             0b00000010
         );
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b00000000),
-                2,
-                2,
-                BitVector::<1>::new(0b1)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b00000000), 2, 2, bv::<1>(0b1)).bits,
             0b00000100
         );
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b00000000),
-                3,
-                3,
-                BitVector::<1>::new(0b1)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b00000000), 3, 3, bv::<1>(0b1)).bits,
             0b00001000
         );
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b00000000),
-                4,
-                4,
-                BitVector::<1>::new(0b1)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b00000000), 4, 4, bv::<1>(0b1)).bits,
             0b00010000
         );
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b00000000),
-                5,
-                5,
-                BitVector::<1>::new(0b1)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b00000000), 5, 5, bv::<1>(0b1)).bits,
             0b00100000
         );
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b00000000),
-                6,
-                6,
-                BitVector::<1>::new(0b1)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b00000000), 6, 6, bv::<1>(0b1)).bits,
             0b01000000
         );
         assert_eq!(
-            update_subrange_bits(
-                BitVector::<8>::new(0b00000000),
-                7,
-                7,
-                BitVector::<1>::new(0b1)
-            )
-            .bits,
+            update_subrange_bits(bv::<8>(0b00000000), 7, 7, bv::<1>(0b1)).bits,
             0b10000000
         );
     }
 
     #[test]
     fn bitwise_operators() {
-        let v = BitVector::<32>::new(0b1);
+        let v = bv::<32>(0b1);
 
         assert_eq!(v, v | v);
         assert_eq!(v, v & v);
@@ -665,7 +573,7 @@ mod tests {
 
     #[test]
     fn test_zero_extend() {
-        let v = BitVector::<8>::new(0b1010);
+        let v = bv::<8>(0b1010);
 
         assert_eq!(v.bits, v.zero_extend::<16>().bits);
         assert_eq!(v.bits, v.zero_extend::<63>().bits);
@@ -678,7 +586,7 @@ mod tests {
         const NEW_SIZE: i128 = 40;
 
         for i in 0..(1 << (SIZE as usize)) {
-            let v = BitVector::<SIZE>::new(i);
+            let v = bv::<SIZE>(i);
             assert_eq!(
                 bitvector_concat::<SIZE, SIZE, NEW_SIZE>(v, v).bits,
                 i + (i << (SIZE as usize))
@@ -691,7 +599,7 @@ mod tests {
         const SIZE: i128 = 10;
 
         for i in 0..(1 << (SIZE as usize)) {
-            let v = BitVector::<SIZE>::new(i);
+            let v = bv::<SIZE>(i);
             for idx in 0..(SIZE as usize) {
                 assert_eq!((i & (1 << idx)) > 0, bitvector_access(v, idx as i128))
             }
@@ -702,7 +610,7 @@ mod tests {
     fn test_set_bit() {
         const SIZE: i128 = 60;
 
-        let mut v = BitVector::<SIZE>::new(0);
+        let mut v = bv::<SIZE>(0);
         let mut val: u64 = 0;
         for idx in 0..(SIZE as usize) {
             val |= 1u64 << idx;
@@ -721,83 +629,83 @@ mod tests {
     #[test]
     fn test_signed_interpretation() {
         // Test 1-bit signed values
-        assert_eq!(BitVector::<1>::new(0b0).signed(), 0);
-        assert_eq!(BitVector::<1>::new(0b1).signed(), -1);
+        assert_eq!(bv::<1>(0b0).signed(), 0);
+        assert_eq!(bv::<1>(0b1).signed(), -1);
 
         // Test 2-bit signed values
-        assert_eq!(BitVector::<2>::new(0b00).signed(), 0);
-        assert_eq!(BitVector::<2>::new(0b01).signed(), 1);
-        assert_eq!(BitVector::<2>::new(0b10).signed(), -2);
-        assert_eq!(BitVector::<2>::new(0b11).signed(), -1);
+        assert_eq!(bv::<2>(0b00).signed(), 0);
+        assert_eq!(bv::<2>(0b01).signed(), 1);
+        assert_eq!(bv::<2>(0b10).signed(), -2);
+        assert_eq!(bv::<2>(0b11).signed(), -1);
 
         // Test 3-bit signed values
-        assert_eq!(BitVector::<3>::new(0b000).signed(), 0);
-        assert_eq!(BitVector::<3>::new(0b001).signed(), 1);
-        assert_eq!(BitVector::<3>::new(0b010).signed(), 2);
-        assert_eq!(BitVector::<3>::new(0b011).signed(), 3);
-        assert_eq!(BitVector::<3>::new(0b100).signed(), -4);
-        assert_eq!(BitVector::<3>::new(0b101).signed(), -3);
-        assert_eq!(BitVector::<3>::new(0b110).signed(), -2);
-        assert_eq!(BitVector::<3>::new(0b111).signed(), -1);
+        assert_eq!(bv::<3>(0b000).signed(), 0);
+        assert_eq!(bv::<3>(0b001).signed(), 1);
+        assert_eq!(bv::<3>(0b010).signed(), 2);
+        assert_eq!(bv::<3>(0b011).signed(), 3);
+        assert_eq!(bv::<3>(0b100).signed(), -4);
+        assert_eq!(bv::<3>(0b101).signed(), -3);
+        assert_eq!(bv::<3>(0b110).signed(), -2);
+        assert_eq!(bv::<3>(0b111).signed(), -1);
 
         // Test 4-bit signed values
-        assert_eq!(BitVector::<4>::new(0b0000).signed(), 0);
-        assert_eq!(BitVector::<4>::new(0b0001).signed(), 1);
-        assert_eq!(BitVector::<4>::new(0b0111).signed(), 7);
-        assert_eq!(BitVector::<4>::new(0b1000).signed(), -8);
-        assert_eq!(BitVector::<4>::new(0b1001).signed(), -7);
-        assert_eq!(BitVector::<4>::new(0b1111).signed(), -1);
+        assert_eq!(bv::<4>(0b0000).signed(), 0);
+        assert_eq!(bv::<4>(0b0001).signed(), 1);
+        assert_eq!(bv::<4>(0b0111).signed(), 7);
+        assert_eq!(bv::<4>(0b1000).signed(), -8);
+        assert_eq!(bv::<4>(0b1001).signed(), -7);
+        assert_eq!(bv::<4>(0b1111).signed(), -1);
 
         // Test 8-bit signed values
-        assert_eq!(BitVector::<8>::new(0x00).signed(), 0);
-        assert_eq!(BitVector::<8>::new(0x01).signed(), 1);
-        assert_eq!(BitVector::<8>::new(0x7F).signed(), 127);
-        assert_eq!(BitVector::<8>::new(0x80).signed(), -128);
-        assert_eq!(BitVector::<8>::new(0xFF).signed(), -1);
+        assert_eq!(bv::<8>(0x00).signed(), 0);
+        assert_eq!(bv::<8>(0x01).signed(), 1);
+        assert_eq!(bv::<8>(0x7F).signed(), 127);
+        assert_eq!(bv::<8>(0x80).signed(), -128);
+        assert_eq!(bv::<8>(0xFF).signed(), -1);
 
         // Test 16-bit signed values
-        assert_eq!(BitVector::<16>::new(0x0000).signed(), 0);
-        assert_eq!(BitVector::<16>::new(0x0001).signed(), 1);
-        assert_eq!(BitVector::<16>::new(0x7FFF).signed(), 32767);
-        assert_eq!(BitVector::<16>::new(0x8000).signed(), -32768);
-        assert_eq!(BitVector::<16>::new(0xFFFF).signed(), -1);
+        assert_eq!(bv::<16>(0x0000).signed(), 0);
+        assert_eq!(bv::<16>(0x0001).signed(), 1);
+        assert_eq!(bv::<16>(0x7FFF).signed(), 32767);
+        assert_eq!(bv::<16>(0x8000).signed(), -32768);
+        assert_eq!(bv::<16>(0xFFFF).signed(), -1);
 
         // Test 32-bit signed values
-        assert_eq!(BitVector::<32>::new(0x00000000).signed(), 0);
-        assert_eq!(BitVector::<32>::new(0x00000001).signed(), 1);
-        assert_eq!(BitVector::<32>::new(0x7FFFFFFF).signed(), 2147483647);
-        assert_eq!(BitVector::<32>::new(0x80000000).signed(), -2147483648);
-        assert_eq!(BitVector::<32>::new(0xFFFFFFFF).signed(), -1);
+        assert_eq!(bv::<32>(0x00000000).signed(), 0);
+        assert_eq!(bv::<32>(0x00000001).signed(), 1);
+        assert_eq!(bv::<32>(0x7FFFFFFF).signed(), 2147483647);
+        assert_eq!(bv::<32>(0x80000000).signed(), -2147483648);
+        assert_eq!(bv::<32>(0xFFFFFFFF).signed(), -1);
 
         // Test 64-bit signed values
-        assert_eq!(BitVector::<64>::new(0x0000000000000000).signed(), 0);
-        assert_eq!(BitVector::<64>::new(0x0000000000000001).signed(), 1);
-        assert_eq!(BitVector::<64>::new(0x7FFFFFFFFFFFFFFF).signed(), 9223372036854775807);
-        assert_eq!(BitVector::<64>::new(0x8000000000000000).signed(), -9223372036854775808);
-        assert_eq!(BitVector::<64>::new(0xFFFFFFFFFFFFFFFF).signed(), -1);
+        assert_eq!(bv::<64>(0x0000000000000000).signed(), 0);
+        assert_eq!(bv::<64>(0x0000000000000001).signed(), 1);
+        assert_eq!(bv::<64>(0x7FFFFFFFFFFFFFFF).signed(), 9223372036854775807);
+        assert_eq!(bv::<64>(0x8000000000000000).signed(), -9223372036854775808);
+        assert_eq!(bv::<64>(0xFFFFFFFFFFFFFFFF).signed(), -1);
     }
 
     #[test]
     fn test_signed_vs_unsigned() {
         // Test that unsigned and signed give different results for negative values
-        let v = BitVector::<8>::new(0xFF);
+        let v = bv::<8>(0xFF);
         assert_eq!(v.unsigned(), 255);
         assert_eq!(v.signed(), -1);
 
-        let v = BitVector::<8>::new(0x80);
+        let v = bv::<8>(0x80);
         assert_eq!(v.unsigned(), 128);
         assert_eq!(v.signed(), -128);
 
-        let v = BitVector::<16>::new(0x8000);
+        let v = bv::<16>(0x8000);
         assert_eq!(v.unsigned(), 32768);
         assert_eq!(v.signed(), -32768);
 
         // Test that unsigned and signed give same results for positive values
-        let v = BitVector::<8>::new(0x7F);
+        let v = bv::<8>(0x7F);
         assert_eq!(v.unsigned(), 127);
         assert_eq!(v.signed(), 127);
 
-        let v = BitVector::<8>::new(0x00);
+        let v = bv::<8>(0x00);
         assert_eq!(v.unsigned(), 0);
         assert_eq!(v.signed(), 0);
     }

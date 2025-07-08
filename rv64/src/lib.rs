@@ -30,18 +30,14 @@ use raw::{cregidx, regidx};
 use registers::GeneralRegister;
 use registers::*;
 pub use softcore_prelude as prelude;
-use softcore_prelude::BitVector;
+use softcore_prelude::{BitVector, bv};
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
 
-const DEFAULT_PMP_CFG: raw::Pmpcfg_ent = raw::Pmpcfg_ent {
-    bits: BitVector::new(0),
-};
-const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent {
-    bits: BitVector::new(0),
-};
+const DEFAULT_PMP_CFG: raw::Pmpcfg_ent = raw::Pmpcfg_ent { bits: bv(0) };
+const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent { bits: bv(0) };
 const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
-const ZEROES: BitVector<64> = BitVector::new(0);
+const ZEROES: BitVector<64> = bv(0);
 
 // —————————————————————————— Core implementation ——————————————————————————— //
 
@@ -71,14 +67,14 @@ impl Core {
         let reg = match reg {
             raw::regidx::Regidx(reg) => reg.bits() as i128,
         };
-        raw::wX(self, raw::regno::Regno(reg), BitVector::new(value));
+        raw::wX(self, raw::regno::Regno(reg), bv(value));
     }
 
     /// Get the value of a CSR identified by its CSR index.
     ///
     /// This function panics if the CSR is not implemented given the core configuration.
     pub fn get_csr(&mut self, csr: u64) -> u64 {
-        raw::read_CSR(self, BitVector::new(csr)).bits()
+        raw::read_CSR(self, bv(csr)).bits()
     }
 
     /// Atomic Read and Write CSR
@@ -176,8 +172,8 @@ impl Core {
         op: raw::csrop,
         is_write: bool,
     ) -> Result<(), raw::ExecutionResult> {
-        let csr = BitVector::new(csr);
-        let val = BitVector::new(val);
+        let csr = bv(csr);
+        let val = bv(val);
         let res = raw::doCSR(self, csr, val, rd, op, is_write);
         match res {
             raw::ExecutionResult::Retire_Success(()) => Ok(()),
@@ -197,12 +193,12 @@ impl Core {
 
     /// Decode an instruction
     pub fn decode_instr(&mut self, instr: u32) -> ast {
-        raw::encdec_backwards(self, BitVector::new(instr as u64))
+        raw::encdec_backwards(self, bv(instr as u64))
     }
 
     /// Return true if the CSR is defined (and enabled) on the core
     pub fn is_csr_defined(&mut self, csr_id: usize) -> bool {
-        raw::is_CSR_defined(self, BitVector::new(csr_id as u64))
+        raw::is_CSR_defined(self, bv(csr_id as u64))
     }
 
     /// Inject an exception, triggerring the appropriate trap handler
@@ -220,7 +216,7 @@ impl Core {
             false,
             raw::exceptionType_to_bits(exception),
             self.PC,
-            Some(BitVector::new(tval)),
+            Some(bv(tval)),
             None,
         );
     }
@@ -232,12 +228,12 @@ impl Core {
 
     /// Set the `pmpaddr<index>` register to the given value.
     pub fn set_pmpaddr(&mut self, index: usize, val: u64) {
-        raw::pmpWriteAddrReg(self, index as i128, BitVector::new(val));
+        raw::pmpWriteAddrReg(self, index as i128, bv(val));
     }
 
     /// Set the `pmpcfg<index>` register to the given value.
     pub fn set_pmpcfg(&mut self, index: usize, val: u64) {
-        raw::pmpWriteCfgReg(self, index as i128, BitVector::new(val));
+        raw::pmpWriteCfgReg(self, index as i128, bv(val));
     }
 
     /// Check if an 8 byte access is allowed with the current mode and PMP configuration.
@@ -248,7 +244,7 @@ impl Core {
         addr: u64,
         access_kind: raw::AccessType<()>,
     ) -> Option<raw::ExceptionType> {
-        let addr = raw::physaddr::Physaddr(BitVector::new(addr));
+        let addr = raw::physaddr::Physaddr(bv(addr));
         let width = 8;
         raw::pmpCheck::<8>(self, addr, width, access_kind, self.cur_privilege)
     }
@@ -260,198 +256,158 @@ impl Core {
 /// [Core::reset] or update CSRs manually to ensure the core enters a valid starting state.
 pub const fn new_core(config: raw::Config) -> Core {
     Core {
-        PC: BitVector::new(0),
-        nextPC: BitVector::new(0),
-        x1: BitVector::new(0),
-        x2: BitVector::new(0),
-        x3: BitVector::new(0),
-        x4: BitVector::new(0),
-        x5: BitVector::new(0),
-        x6: BitVector::new(0),
-        x7: BitVector::new(0),
-        x8: BitVector::new(0),
-        x9: BitVector::new(0),
-        x10: BitVector::new(0),
-        x11: BitVector::new(0),
-        x12: BitVector::new(0),
-        x13: BitVector::new(0),
-        x14: BitVector::new(0),
-        x15: BitVector::new(0),
-        x16: BitVector::new(0),
-        x17: BitVector::new(0),
-        x18: BitVector::new(0),
-        x19: BitVector::new(0),
-        x20: BitVector::new(0),
-        x21: BitVector::new(0),
-        x22: BitVector::new(0),
-        x23: BitVector::new(0),
-        x24: BitVector::new(0),
-        x25: BitVector::new(0),
-        x26: BitVector::new(0),
-        x27: BitVector::new(0),
-        x28: BitVector::new(0),
-        x29: BitVector::new(0),
-        x30: BitVector::new(0),
-        x31: BitVector::new(0),
+        PC: bv(0),
+        nextPC: bv(0),
+        x1: bv(0),
+        x2: bv(0),
+        x3: bv(0),
+        x4: bv(0),
+        x5: bv(0),
+        x6: bv(0),
+        x7: bv(0),
+        x8: bv(0),
+        x9: bv(0),
+        x10: bv(0),
+        x11: bv(0),
+        x12: bv(0),
+        x13: bv(0),
+        x14: bv(0),
+        x15: bv(0),
+        x16: bv(0),
+        x17: bv(0),
+        x18: bv(0),
+        x19: bv(0),
+        x20: bv(0),
+        x21: bv(0),
+        x22: bv(0),
+        x23: bv(0),
+        x24: bv(0),
+        x25: bv(0),
+        x26: bv(0),
+        x27: bv(0),
+        x28: bv(0),
+        x29: bv(0),
+        x30: bv(0),
+        x31: bv(0),
         cur_privilege: raw::Privilege::Machine,
-        cur_inst: BitVector::new(0),
-        misa: raw::Misa {
-            bits: BitVector::new(0),
-        },
-        mstatus: raw::Mstatus {
-            bits: BitVector::new(0),
-        },
-        menvcfg: raw::MEnvcfg {
-            bits: BitVector::new(0),
-        },
-        senvcfg: raw::SEnvcfg {
-            bits: BitVector::new(0),
-        },
-        mie: raw::Minterrupts {
-            bits: BitVector::new(0),
-        },
-        mip: raw::Minterrupts {
-            bits: BitVector::new(0),
-        },
-        medeleg: raw::Medeleg {
-            bits: BitVector::new(0),
-        },
-        mideleg: raw::Minterrupts {
-            bits: BitVector::new(0),
-        },
-        mtvec: raw::Mtvec {
-            bits: BitVector::new(0),
-        },
-        mcause: raw::Mcause {
-            bits: BitVector::new(0),
-        },
-        mepc: BitVector::new(0),
-        mtval: BitVector::new(0),
-        mscratch: BitVector::new(0),
-        scounteren: raw::Counteren {
-            bits: BitVector::new(0),
-        },
-        mcounteren: raw::Counteren {
-            bits: BitVector::new(0),
-        },
-        mcountinhibit: raw::Counterin {
-            bits: BitVector::new(0),
-        },
-        mcycle: BitVector::new(0),
-        mtime: BitVector::new(0),
-        minstret: BitVector::new(0),
+        cur_inst: bv(0),
+        misa: raw::Misa { bits: bv(0) },
+        mstatus: raw::Mstatus { bits: bv(0) },
+        menvcfg: raw::MEnvcfg { bits: bv(0) },
+        senvcfg: raw::SEnvcfg { bits: bv(0) },
+        mie: raw::Minterrupts { bits: bv(0) },
+        mip: raw::Minterrupts { bits: bv(0) },
+        medeleg: raw::Medeleg { bits: bv(0) },
+        mideleg: raw::Minterrupts { bits: bv(0) },
+        mtvec: raw::Mtvec { bits: bv(0) },
+        mcause: raw::Mcause { bits: bv(0) },
+        mepc: bv(0),
+        mtval: bv(0),
+        mscratch: bv(0),
+        scounteren: raw::Counteren { bits: bv(0) },
+        mcounteren: raw::Counteren { bits: bv(0) },
+        mcountinhibit: raw::Counterin { bits: bv(0) },
+        mcycle: bv(0),
+        mtime: bv(0),
+        minstret: bv(0),
         minstret_increment: false,
-        mvendorid: BitVector::new(0),
-        mimpid: BitVector::new(0),
-        marchid: BitVector::new(0),
-        mhartid: BitVector::new(0),
-        mconfigptr: BitVector::new(0),
-        stvec: raw::Mtvec {
-            bits: BitVector::new(0),
-        },
-        sscratch: BitVector::new(0),
-        sepc: BitVector::new(0),
-        scause: raw::Mcause {
-            bits: BitVector::new(0),
-        },
-        stval: BitVector::new(0),
-        tselect: BitVector::new(0),
-        vstart: BitVector::new(0),
-        vl: BitVector::new(0),
-        vtype: raw::Vtype {
-            bits: BitVector::new(0),
-        },
+        mvendorid: bv(0),
+        mimpid: bv(0),
+        marchid: bv(0),
+        mhartid: bv(0),
+        mconfigptr: bv(0),
+        stvec: raw::Mtvec { bits: bv(0) },
+        sscratch: bv(0),
+        sepc: bv(0),
+        scause: raw::Mcause { bits: bv(0) },
+        stval: bv(0),
+        tselect: bv(0),
+        vstart: bv(0),
+        vl: bv(0),
+        vtype: raw::Vtype { bits: bv(0) },
         pmpcfg_n: [DEFAULT_PMP_CFG; 64],
         pmpaddr_n: [ZEROES; 64],
-        vr0: BitVector::new(0),
-        vr1: BitVector::new(0),
-        vr2: BitVector::new(0),
-        vr3: BitVector::new(0),
-        vr4: BitVector::new(0),
-        vr5: BitVector::new(0),
-        vr6: BitVector::new(0),
-        vr7: BitVector::new(0),
-        vr8: BitVector::new(0),
-        vr9: BitVector::new(0),
-        vr10: BitVector::new(0),
-        vr11: BitVector::new(0),
-        vr12: BitVector::new(0),
-        vr13: BitVector::new(0),
-        vr14: BitVector::new(0),
-        vr15: BitVector::new(0),
-        vr16: BitVector::new(0),
-        vr17: BitVector::new(0),
-        vr18: BitVector::new(0),
-        vr19: BitVector::new(0),
-        vr20: BitVector::new(0),
-        vr21: BitVector::new(0),
-        vr22: BitVector::new(0),
-        vr23: BitVector::new(0),
-        vr24: BitVector::new(0),
-        vr25: BitVector::new(0),
-        vr26: BitVector::new(0),
-        vr27: BitVector::new(0),
-        vr28: BitVector::new(0),
-        vr29: BitVector::new(0),
-        vr30: BitVector::new(0),
-        vr31: BitVector::new(0),
-        vcsr: raw::Vcsr {
-            bits: BitVector::new(0),
-        },
+        vr0: bv(0),
+        vr1: bv(0),
+        vr2: bv(0),
+        vr3: bv(0),
+        vr4: bv(0),
+        vr5: bv(0),
+        vr6: bv(0),
+        vr7: bv(0),
+        vr8: bv(0),
+        vr9: bv(0),
+        vr10: bv(0),
+        vr11: bv(0),
+        vr12: bv(0),
+        vr13: bv(0),
+        vr14: bv(0),
+        vr15: bv(0),
+        vr16: bv(0),
+        vr17: bv(0),
+        vr18: bv(0),
+        vr19: bv(0),
+        vr20: bv(0),
+        vr21: bv(0),
+        vr22: bv(0),
+        vr23: bv(0),
+        vr24: bv(0),
+        vr25: bv(0),
+        vr26: bv(0),
+        vr27: bv(0),
+        vr28: bv(0),
+        vr29: bv(0),
+        vr30: bv(0),
+        vr31: bv(0),
+        vcsr: raw::Vcsr { bits: bv(0) },
         mhpmevent: [DEFAULT_HPM_EVENT; 32],
         mhpmcounter: [ZEROES; 32],
-        float_result: BitVector::new(0),
-        float_fflags: BitVector::new(0),
-        f0: BitVector::new(0),
-        f1: BitVector::new(0),
-        f2: BitVector::new(0),
-        f3: BitVector::new(0),
-        f4: BitVector::new(0),
-        f5: BitVector::new(0),
-        f6: BitVector::new(0),
-        f7: BitVector::new(0),
-        f8: BitVector::new(0),
-        f9: BitVector::new(0),
-        f10: BitVector::new(0),
-        f11: BitVector::new(0),
-        f12: BitVector::new(0),
-        f13: BitVector::new(0),
-        f14: BitVector::new(0),
-        f15: BitVector::new(0),
-        f16: BitVector::new(0),
-        f17: BitVector::new(0),
-        f18: BitVector::new(0),
-        f19: BitVector::new(0),
-        f20: BitVector::new(0),
-        f21: BitVector::new(0),
-        f22: BitVector::new(0),
-        f23: BitVector::new(0),
-        f24: BitVector::new(0),
-        f25: BitVector::new(0),
-        f26: BitVector::new(0),
-        f27: BitVector::new(0),
-        f28: BitVector::new(0),
-        f29: BitVector::new(0),
-        f30: BitVector::new(0),
-        f31: BitVector::new(0),
-        fcsr: raw::Fcsr {
-            bits: BitVector::new(0),
-        },
-        mcyclecfg: raw::CountSmcntrpmf {
-            bits: BitVector::new(0),
-        },
-        minstretcfg: raw::CountSmcntrpmf {
-            bits: BitVector::new(0),
-        },
-        mtimecmp: BitVector::new(0),
-        stimecmp: BitVector::new(0),
-        htif_tohost: BitVector::new(0),
+        float_result: bv(0),
+        float_fflags: bv(0),
+        f0: bv(0),
+        f1: bv(0),
+        f2: bv(0),
+        f3: bv(0),
+        f4: bv(0),
+        f5: bv(0),
+        f6: bv(0),
+        f7: bv(0),
+        f8: bv(0),
+        f9: bv(0),
+        f10: bv(0),
+        f11: bv(0),
+        f12: bv(0),
+        f13: bv(0),
+        f14: bv(0),
+        f15: bv(0),
+        f16: bv(0),
+        f17: bv(0),
+        f18: bv(0),
+        f19: bv(0),
+        f20: bv(0),
+        f21: bv(0),
+        f22: bv(0),
+        f23: bv(0),
+        f24: bv(0),
+        f25: bv(0),
+        f26: bv(0),
+        f27: bv(0),
+        f28: bv(0),
+        f29: bv(0),
+        f30: bv(0),
+        f31: bv(0),
+        fcsr: raw::Fcsr { bits: bv(0) },
+        mcyclecfg: raw::CountSmcntrpmf { bits: bv(0) },
+        minstretcfg: raw::CountSmcntrpmf { bits: bv(0) },
+        mtimecmp: bv(0),
+        stimecmp: bv(0),
+        htif_tohost: bv(0),
         htif_done: false,
-        htif_exit_code: BitVector::new(0),
+        htif_exit_code: bv(0),
         htif_cmd_write: false,
-        htif_payload_writes: BitVector::new(0),
+        htif_payload_writes: bv(0),
         tlb: [DEFAULT_TLB_ENTRY; raw::num_tlb_entries as usize],
-        satp: BitVector::new(0),
+        satp: bv(0),
         hart_state: raw::HartState::HART_ACTIVE(()),
         config,
     }
@@ -527,14 +483,14 @@ mod tests {
     #[test]
     fn decoder() {
         let mut ctx = new_core(config::U74);
-        let uimm0 = BitVector::new(0);
+        let uimm0 = bv(0);
 
         // Load/Store
 
         assert_eq!(
             ctx.decode_instr(0xff87b703),
             ast::LOAD((
-                BitVector::new(0xFFF - 7), // immediate is -8
+                bv(0xFFF - 7), // immediate is -8
                 X15,
                 X14,
                 false,
@@ -549,39 +505,36 @@ mod tests {
         // csrrw x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30001073),
-            ast::CSRReg((BitVector::new(0x300), X0, X0, csrop::CSRRW))
+            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRW))
         );
         // csrrs x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30002073),
-            ast::CSRReg((BitVector::new(0x300), X0, X0, csrop::CSRRS))
+            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRS))
         );
         // csrrc x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30003073),
-            ast::CSRReg((BitVector::new(0x300), X0, X0, csrop::CSRRC))
+            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRC))
         );
         // csrrwi x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30005073),
-            ast::CSRImm((BitVector::new(0x300), uimm0, X0, csrop::CSRRW))
+            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRW))
         );
         // csrrsi x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30006073),
-            ast::CSRImm((BitVector::new(0x300), uimm0, X0, csrop::CSRRS))
+            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRS))
         );
         // csrrci x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30007073),
-            ast::CSRImm((BitVector::new(0x300), uimm0, X0, csrop::CSRRC))
+            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRC))
         );
 
         // Illegal
-        assert_eq!(
-            ctx.decode_instr(0x30001072),
-            ast::ILLEGAL(BitVector::new(0x30001072))
-        );
+        assert_eq!(ctx.decode_instr(0x30001072), ast::ILLEGAL(bv(0x30001072)));
     }
 
     #[test]
@@ -714,7 +667,7 @@ mod tests {
 
         // Set initial state
         core.set_mode(Privilege::User);
-        core.PC = BitVector::new(0x1000);
+        core.PC = bv(0x1000);
         let initial_pc = core.PC.bits();
 
         assert_eq!(core.mode(), Privilege::User, "Initial mode should be User");
