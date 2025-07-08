@@ -26,8 +26,10 @@ pub mod registers;
 pub mod raw;
 
 pub use raw::{Core, ExceptionType, Privilege, ast};
+use raw::{cregidx, regidx};
 use registers::GeneralRegister;
 use registers::*;
+pub use softcore_prelude as prelude;
 use softcore_prelude::BitVector;
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
@@ -40,6 +42,8 @@ const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent {
 };
 const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
 const ZEROES: BitVector<64> = BitVector::new(0);
+
+// —————————————————————————— Core implementation ——————————————————————————— //
 
 impl Core {
     /// Reset the core, initializing registers with specified reset values.
@@ -452,6 +456,38 @@ pub const fn new_core(config: raw::Config) -> Core {
         config,
     }
 }
+
+// ———————————————————————————————— Helpers ————————————————————————————————— //
+
+impl regidx {
+    /// Creates a new regidx from a register index
+    pub fn new(reg: u8) -> regidx {
+        regidx::Regidx(bv(reg as u64))
+    }
+
+    /// Return the register index as bits.
+    pub fn bits(self) -> u8 {
+        let regidx::Regidx(bits) = self;
+        bits.bits() as u8
+    }
+}
+
+impl cregidx {
+    /// Return the compressed register index as bits.
+    ///
+    /// Warning: this is not the same as the uncompressed register index.
+    pub fn bits(self) -> u8 {
+        let cregidx::Cregidx(bits) = self;
+        bits.bits() as u8
+    }
+
+    /// Convert a compressed register index into an uncompressed register index.
+    pub fn to_regidx(self) -> regidx {
+        raw::creg2reg_idx(self)
+    }
+}
+
+// ————————————————————————————————— Tests —————————————————————————————————— //
 
 #[cfg(test)]
 mod tests {
