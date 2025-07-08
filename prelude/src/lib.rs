@@ -212,8 +212,19 @@ impl<const N: i128> BitVector<N> {
     }
 
     /// Get the bits as an integer.
-    pub const fn signed(self) -> u128 {
-        self.bits as u128
+    ///
+    /// The bitvector is interpreted as signed
+    pub const fn signed(self) -> i128 {
+        let value = self.bits as u128;
+        let sign_bit_mask = 1 << (N - 1);
+        if value & sign_bit_mask == 0 {
+            // The number is positive, nothing to do
+            value as i128
+        } else {
+            // The number is negative, need to fill upper bits with 1s
+            let fill_mask = !((1 << N) - 1);
+            (value | fill_mask) as i128
+        }
     }
 
     pub const fn as_usize(self) -> usize {
@@ -705,5 +716,89 @@ mod tests {
         }
 
         assert_eq!(v.bits, 0);
+    }
+
+    #[test]
+    fn test_signed_interpretation() {
+        // Test 1-bit signed values
+        assert_eq!(BitVector::<1>::new(0b0).signed(), 0);
+        assert_eq!(BitVector::<1>::new(0b1).signed(), -1);
+
+        // Test 2-bit signed values
+        assert_eq!(BitVector::<2>::new(0b00).signed(), 0);
+        assert_eq!(BitVector::<2>::new(0b01).signed(), 1);
+        assert_eq!(BitVector::<2>::new(0b10).signed(), -2);
+        assert_eq!(BitVector::<2>::new(0b11).signed(), -1);
+
+        // Test 3-bit signed values
+        assert_eq!(BitVector::<3>::new(0b000).signed(), 0);
+        assert_eq!(BitVector::<3>::new(0b001).signed(), 1);
+        assert_eq!(BitVector::<3>::new(0b010).signed(), 2);
+        assert_eq!(BitVector::<3>::new(0b011).signed(), 3);
+        assert_eq!(BitVector::<3>::new(0b100).signed(), -4);
+        assert_eq!(BitVector::<3>::new(0b101).signed(), -3);
+        assert_eq!(BitVector::<3>::new(0b110).signed(), -2);
+        assert_eq!(BitVector::<3>::new(0b111).signed(), -1);
+
+        // Test 4-bit signed values
+        assert_eq!(BitVector::<4>::new(0b0000).signed(), 0);
+        assert_eq!(BitVector::<4>::new(0b0001).signed(), 1);
+        assert_eq!(BitVector::<4>::new(0b0111).signed(), 7);
+        assert_eq!(BitVector::<4>::new(0b1000).signed(), -8);
+        assert_eq!(BitVector::<4>::new(0b1001).signed(), -7);
+        assert_eq!(BitVector::<4>::new(0b1111).signed(), -1);
+
+        // Test 8-bit signed values
+        assert_eq!(BitVector::<8>::new(0x00).signed(), 0);
+        assert_eq!(BitVector::<8>::new(0x01).signed(), 1);
+        assert_eq!(BitVector::<8>::new(0x7F).signed(), 127);
+        assert_eq!(BitVector::<8>::new(0x80).signed(), -128);
+        assert_eq!(BitVector::<8>::new(0xFF).signed(), -1);
+
+        // Test 16-bit signed values
+        assert_eq!(BitVector::<16>::new(0x0000).signed(), 0);
+        assert_eq!(BitVector::<16>::new(0x0001).signed(), 1);
+        assert_eq!(BitVector::<16>::new(0x7FFF).signed(), 32767);
+        assert_eq!(BitVector::<16>::new(0x8000).signed(), -32768);
+        assert_eq!(BitVector::<16>::new(0xFFFF).signed(), -1);
+
+        // Test 32-bit signed values
+        assert_eq!(BitVector::<32>::new(0x00000000).signed(), 0);
+        assert_eq!(BitVector::<32>::new(0x00000001).signed(), 1);
+        assert_eq!(BitVector::<32>::new(0x7FFFFFFF).signed(), 2147483647);
+        assert_eq!(BitVector::<32>::new(0x80000000).signed(), -2147483648);
+        assert_eq!(BitVector::<32>::new(0xFFFFFFFF).signed(), -1);
+
+        // Test 64-bit signed values
+        assert_eq!(BitVector::<64>::new(0x0000000000000000).signed(), 0);
+        assert_eq!(BitVector::<64>::new(0x0000000000000001).signed(), 1);
+        assert_eq!(BitVector::<64>::new(0x7FFFFFFFFFFFFFFF).signed(), 9223372036854775807);
+        assert_eq!(BitVector::<64>::new(0x8000000000000000).signed(), -9223372036854775808);
+        assert_eq!(BitVector::<64>::new(0xFFFFFFFFFFFFFFFF).signed(), -1);
+    }
+
+    #[test]
+    fn test_signed_vs_unsigned() {
+        // Test that unsigned and signed give different results for negative values
+        let v = BitVector::<8>::new(0xFF);
+        assert_eq!(v.unsigned(), 255);
+        assert_eq!(v.signed(), -1);
+
+        let v = BitVector::<8>::new(0x80);
+        assert_eq!(v.unsigned(), 128);
+        assert_eq!(v.signed(), -128);
+
+        let v = BitVector::<16>::new(0x8000);
+        assert_eq!(v.unsigned(), 32768);
+        assert_eq!(v.signed(), -32768);
+
+        // Test that unsigned and signed give same results for positive values
+        let v = BitVector::<8>::new(0x7F);
+        assert_eq!(v.unsigned(), 127);
+        assert_eq!(v.signed(), 127);
+
+        let v = BitVector::<8>::new(0x00);
+        assert_eq!(v.unsigned(), 0);
+        assert_eq!(v.signed(), 0);
     }
 }
