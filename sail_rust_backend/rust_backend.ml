@@ -304,33 +304,36 @@ module Codegen () = struct
     | E_app (id, exp_list) when string_of_id id = "bitvector_concat" ->
       (* We need to infer the vectors dimensions. To do so we look-up the type variable bindings in the typing context. *)
       let bindings = instantiation_of (E_aux (exp, aux)) in
-      let n = KBindings.find (as_kid "n") bindings in
-      let m = KBindings.find (as_kid "m") bindings in
-      let as_int64 (A_aux (typ, l)) =
-        match typ with
-        | A_nexp nexp ->
-          (match big_int_of_nexp nexp with
-           | Some n -> Big_int.to_int64 n
-           | None ->
+      let n = KBindings.find_opt (as_kid "n") bindings in
+      let m = KBindings.find_opt (as_kid "m") bindings in
+      (match n, m with
+       | Some n, Some m ->
+         let as_int64 (A_aux (typ, l)) =
+           match typ with
+           | A_nexp nexp ->
+             (match big_int_of_nexp nexp with
+              | Some n -> Big_int.to_int64 n
+              | None ->
+                Reporting.warn
+                  "Could not infer 'bitvector_concat' type"
+                  l
+                  (Printf.sprintf "found %s" (string_of_typ_arg (A_aux (typ, l))));
+                64L)
+           | _ ->
              Reporting.warn
                "Could not infer 'bitvector_concat' type"
                l
                (Printf.sprintf "found %s" (string_of_typ_arg (A_aux (typ, l))));
-             64L)
-        | _ ->
-          Reporting.warn
-            "Could not infer 'bitvector_concat' type"
-            l
-            (Printf.sprintf "found %s" (string_of_typ_arg (A_aux (typ, l))));
-          64L
-      in
-      let nm = Int64.to_string (Int64.add (as_int64 n) (as_int64 m)) in
-      let n = Int64.to_string (as_int64 n) in
-      let m = Int64.to_string (as_int64 m) in
-      RsApp
-        ( RsId (sanitize_id (string_of_id id))
-        , [ n; m; nm ]
-        , List.map (process_exp ctx) exp_list )
+             64L
+         in
+         let nm = Int64.to_string (Int64.add (as_int64 n) (as_int64 m)) in
+         let n = Int64.to_string (as_int64 n) in
+         let m = Int64.to_string (as_int64 m) in
+         RsApp
+           ( RsId (sanitize_id (string_of_id id))
+           , [ n; m; nm ]
+           , List.map (process_exp ctx) exp_list )
+       | _ -> RsTodo "Could not infer sizes of `bitvector_concat`")
     | E_app (id, exp_list)
       when let sid = string_of_id id in
            sid = "ones" || sid = "sail_ones" ->
@@ -361,9 +364,16 @@ module Codegen () = struct
             (* First, we find the type variables and contraints *)
             let kind_ids, constraints =
               match typ with
-              | Typ_aux (Typ_exist (kinded_ids, constriants, ret_typ), _) ->
-                kinded_ids, constriants
-              | Typ_aux (_, l) -> Reporting.unreachable l __POS__ "Unexpected type"
+              | Typ_aux (Typ_exist (kinded_ids, constraints, ret_typ), _) ->
+                kinded_ids, constraints
+              | Typ_aux (_, l) ->
+                Reporting.warn
+                  ("Found an unexpected type while processing `" ^ id ^ "`")
+                  l
+                  ("Found type type: " ^ string_of_typ typ);
+                ( []
+                , nc_true
+                  (* This is a placeholder, the output will most likely be invalid *) )
             in
             (* Then we add them to the current environment *)
             let env = add_existential (fst aux) kind_ids constraints env in
