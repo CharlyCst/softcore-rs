@@ -50,6 +50,7 @@ impl Core {
     /// This function should be called on a fresh core to ensure the core starts in a sensible
     /// state.
     pub fn reset(&mut self) {
+        raw::_reset_all_registers(self);
         raw::reset_sys(self, ());
     }
 

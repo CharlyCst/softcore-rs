@@ -79,6 +79,12 @@ pub const MINIMAL: raw::Config = raw::Config {
     memory: raw::ConfigMemory {
         pmp: raw::ConfigPmp { count: 0, grain: 0 },
     },
+    platform: raw::ConfigPlatform {
+        archid: 0,
+        hartid: 0,
+        impid: 0,
+        vendorid: 0,
+    },
 };
 
 /// The SiFive U74 core configuration.
@@ -154,5 +160,11 @@ pub const U74: raw::Config = raw::Config {
             count: 16,
             grain: 10,
         },
+    },
+    platform: raw::ConfigPlatform {
+        archid: 0,
+        hartid: 0,
+        impid: 0,
+        vendorid: 0,
     },
 };
