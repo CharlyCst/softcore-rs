@@ -18,6 +18,13 @@ pub struct Config {
 
 }
 
+/// Initialize all registers.
+/// 
+/// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
+pub fn _reset_all_registers() {
+    
+}
+
 pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitVector<xlen>;

@@ -35,6 +35,13 @@ pub struct ConfigU {
     pub supported: bool,
 }
 
+/// Initialize all registers.
+/// 
+/// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
+pub fn _reset_all_registers() {
+    
+}
+
 pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
