@@ -204,6 +204,7 @@ let rec get_call_set (ast : (tannot, env) ast) : sail_ctx =
         "rX"
       ; "wX"
       ; "is_CSR_defined"
+      ; "creg2reg_idx"
       ; (* PMP checks *)
         "pmpCheck"
       ; "pmpWriteAddrReg"

@@ -21,6 +21,13 @@ pub struct Config {
 
 }
 
+/// Initialize all registers.
+/// 
+/// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
+pub fn _reset_all_registers() {
+    
+}
+
 /// EXTZ
 /// 
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L7.
