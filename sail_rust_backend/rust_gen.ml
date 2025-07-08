@@ -88,6 +88,7 @@ and rs_exp =
   | RsMatch of rs_exp * rs_pexp list
   | RsTuple of rs_exp list
   | RsArray of rs_exp list
+  | RsArraySize of rs_exp * rs_exp
   | RsAssign of rs_lexp * rs_exp
   | RsIndex of rs_exp * rs_exp
   | RsBinop of rs_exp * rs_binop * rs_exp
@@ -494,6 +495,8 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
     Printf.sprintf "(%s)" (String.concat ", " (List.map (string_of_rs_exp n) exps))
   | RsArray exps ->
     Printf.sprintf "[%s]" (String.concat ", " (List.map (string_of_rs_exp n) exps))
+  | RsArraySize (exp, size) ->
+      Printf.sprintf "[%s; %s]" (string_of_rs_exp n exp) (string_of_rs_exp n size)
   | RsAssign (exp1, exp2) ->
     Printf.sprintf "%s = %s" (string_of_rs_lexp n exp1) (string_of_rs_exp n exp2)
   | RsIndex (exp1, exp2) ->

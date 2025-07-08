@@ -137,6 +137,8 @@ and transform_exp (ct : expr_type_transform) (ctx : context) (exp : rs_exp) : rs
     RsMatch (transform_exp ct ctx exp, List.map (transform_pexp ct ctx) pexps)
   | RsTuple exps -> RsTuple (List.map (transform_exp ct ctx) exps)
   | RsArray exps -> RsArray (List.map (transform_exp ct ctx) exps)
+  | RsArraySize (exp, size) ->
+    RsArraySize (transform_exp ct ctx exp, transform_exp ct ctx size)
   | RsAssign (lexp, exp) -> RsAssign (transform_lexp ct ctx lexp, transform_exp ct ctx exp)
   | RsIndex (exp1, exp2) -> RsIndex (transform_exp ct ctx exp1, transform_exp ct ctx exp2)
   | RsBinop (exp1, binop, exp2) ->
@@ -585,6 +587,7 @@ let rec propagate_in_exp (ctx : bindings) (exp : rs_exp) : rs_exp =
   | RsMatch (exp, pexps) -> RsMatch (propagate exp, List.map (propagate_in_pexp ctx) pexps)
   | RsTuple exps -> RsTuple (propagate_list exps)
   | RsArray exps -> RsArray (propagate_list exps)
+  | RsArraySize (exp, size) -> RsArraySize (propagate exp, propagate size)
   | RsAssign (lexp, exp) -> RsAssign (propagate_in_lexp ctx lexp, propagate exp)
   | RsIndex (exp1, exp2) -> RsIndex (propagate exp1, propagate exp2)
   | RsBinop (exp1, op, exp2) -> RsBinop (propagate exp1, op, propagate exp2)
@@ -836,6 +839,7 @@ let rec rename_in_exp (rn : string * string) (exp : rs_exp) : rs_exp =
   | RsMatch (exp, pexps) -> RsMatch (rename_in_exp exp, List.map (rename_in_pexp rn) pexps)
   | RsTuple exps -> RsTuple (rename_in_exps exps)
   | RsArray exps -> RsArray (rename_in_exps exps)
+  | RsArraySize (exp, size) -> RsArraySize (rename_in_exp exp, rename_in_exp size)
   | RsAssign (lexp, exp) -> RsAssign (rename_in_lexp rn lexp, rename_in_exp exp)
   | RsIndex (exp1, exp2) -> RsIndex (rename_in_exp exp1, rename_in_exp exp2)
   | RsBinop (exp1, op, exp2) -> RsBinop (rename_in_exp exp1, op, rename_in_exp exp2)

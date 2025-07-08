@@ -377,6 +377,8 @@ module Codegen () = struct
                 "Could not prove that the bit width is less or equal to 64")
        (* We found the type variable, but it is not a nexp! *)
        | Some (A_aux (_, l)) -> Reporting.unreachable l __POS__ "Expected a nexp")
+    | E_app (id, [ size; item ]) when string_of_id id = "vector_init" ->
+      RsArraySize (process_exp ctx item, process_exp ctx size)
     | E_app (id, exp_list) ->
       RsApp (RsId (sanitize_id (string_of_id id)), [], List.map (process_exp ctx) exp_list)
     | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
