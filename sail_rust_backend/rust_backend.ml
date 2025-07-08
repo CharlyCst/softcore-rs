@@ -1011,8 +1011,35 @@ module Codegen () = struct
              })
       | None -> None
     in
-    let registers_funs = gather_registers defs |> List.filter_map get_initializer in
-    RsProg registers_funs
+    let registers = gather_registers defs in
+    let registers_funs = List.filter_map get_initializer registers in
+    let global_initializer =
+      let fn_typ = mk_fn_typ [] RsTypUnit in
+      let core = RsId core_ctx in
+      let initialize_reg (name, _, exp) =
+        match exp with
+        | Some exp ->
+          let app = RsApp (RsId ("_reset_" ^ name), [], []) in
+          Some (RsAssign (RsLexpField (core, name), app))
+        | None -> None
+      in
+      let body = List.filter_map initialize_reg registers in
+      RsFn
+        { name = "_reset_all_registers"
+        ; signature = fn_typ
+        ; args = []
+        ; body = RsBlock body
+        ; const = false
+        ; doc =
+            [ "Initialize all registers."
+            ; ""
+            ; "This function should be called before using a fresh core, otherwise the \
+               core might not be in a valid state."
+            ]
+        ; use_sail_ctx = false
+        }
+    in
+    RsProg (global_initializer :: registers_funs)
 
   and gather_registers_list (ast : ('a, 'b) ast) : string list =
     List.map (fun (x, _, _) -> x) (gather_registers ast.defs)
