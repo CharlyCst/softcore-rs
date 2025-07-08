@@ -210,6 +210,8 @@ let rec get_call_set (ast : (tannot, env) ast) : sail_ctx =
         "read_CSR"
       ; "write_CSR"
       ; "doCSR"
+      ; (* System reset *)
+        "reset_sys"
       ]
   in
   let sail_ctx = { call_set; config_map = SMap.empty } in

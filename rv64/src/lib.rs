@@ -42,6 +42,17 @@ const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
 const ZEROES: BitVector<64> = BitVector::new(0);
 
 impl Core {
+    /// Reset the core, initializing registers with specified reset values.
+    ///
+    /// This does not reset all registers and CSRs of the core, it only performs the minimal reset
+    /// required by the specification.
+    ///
+    /// This function should be called on a fresh core to ensure the core starts in a sensible
+    /// state.
+    pub fn reset(&mut self) {
+        raw::reset_sys(self, ());
+    }
+
     /// Get the value of a general purpose register.
     pub fn get(&mut self, reg: GeneralRegister) -> u64 {
         let reg = match reg {
@@ -239,6 +250,9 @@ impl Core {
 }
 
 /// Returns a fresh core instance with the provided configuration.
+///
+/// IMPORTANT: The freshtly created core is not guaranteed to be in a valid state. Call
+/// [Core::reset] or update CSRs manually to ensure the core enters a valid starting state.
 pub const fn new_core(config: raw::Config) -> Core {
     Core {
         PC: BitVector::new(0),
