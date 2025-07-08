@@ -71,9 +71,9 @@ impl Core {
     /// the PC on success and trapping on failure.
     pub fn csrrw(
         &mut self,
-        rs1: GeneralRegister,
-        csr: u64,
         rd: GeneralRegister,
+        csr: u64,
+        rs1: GeneralRegister,
     ) -> Result<(), raw::ExecutionResult> {
         let val = self.get(rs1);
         self.do_csr(val, csr, rd, raw::csrop::CSRRW, true)
@@ -85,9 +85,9 @@ impl Core {
     /// the PC on success and trapping on failure.
     pub fn csrrs(
         &mut self,
-        rs1: GeneralRegister,
-        csr: u64,
         rd: GeneralRegister,
+        csr: u64,
+        rs1: GeneralRegister,
     ) -> Result<(), raw::ExecutionResult> {
         let val = self.get(rs1);
         self.do_csr(val, csr, rd, raw::csrop::CSRRS, rs1 != X0)
@@ -99,9 +99,9 @@ impl Core {
     /// the PC on success and trapping on failure.
     pub fn csrrc(
         &mut self,
-        rs1: GeneralRegister,
-        csr: u64,
         rd: GeneralRegister,
+        csr: u64,
+        rs1: GeneralRegister,
     ) -> Result<(), raw::ExecutionResult> {
         let val = self.get(rs1);
         self.do_csr(val, csr, rd, raw::csrop::CSRRC, rs1 != X0)
@@ -113,9 +113,9 @@ impl Core {
     /// the PC on success and trapping on failure.
     pub fn csrrwi(
         &mut self,
-        uimm: u64,
-        csr: u64,
         rd: GeneralRegister,
+        csr: u64,
+        uimm: u64,
     ) -> Result<(), raw::ExecutionResult> {
         let uimm = uimm & 0b11111; // The immediate is only 5 bits wide
         self.do_csr(uimm, csr, rd, raw::csrop::CSRRW, true)
@@ -127,9 +127,9 @@ impl Core {
     /// the PC on success and trapping on failure.
     pub fn csrrsi(
         &mut self,
-        uimm: u64,
-        csr: u64,
         rd: GeneralRegister,
+        csr: u64,
+        uimm: u64,
     ) -> Result<(), raw::ExecutionResult> {
         let uimm = uimm & 0b11111; // The immediate is only 5 bits wide
         self.do_csr(uimm, csr, rd, raw::csrop::CSRRS, uimm != 0)
@@ -141,9 +141,9 @@ impl Core {
     /// the PC on success and trapping on failure.
     pub fn csrrci(
         &mut self,
-        uimm: u64,
-        csr: u64,
         rd: GeneralRegister,
+        csr: u64,
+        uimm: u64,
     ) -> Result<(), raw::ExecutionResult> {
         let uimm = uimm & 0b11111; // The immediate is only 5 bits wide
         self.do_csr(uimm, csr, rd, raw::csrop::CSRRC, uimm != 0)
@@ -722,7 +722,7 @@ mod tests {
         core.set(X1, initial_value);
 
         // Write to mscratch (a read-write register)
-        let result = core.csrrw(X1, 0x340, X2);
+        let result = core.csrrw(X2, 0x340, X1);
         assert!(result.is_ok(), "csrrw should succeed for mscratch");
 
         // Read back the value
@@ -738,7 +738,7 @@ mod tests {
         // Test writing to X0 (should not update rd)
         let new_value = 0x87654321;
         core.set(X3, new_value);
-        let result = core.csrrw(X3, 0x340, X0);
+        let result = core.csrrw(X0, 0x340, X3);
         assert!(result.is_ok(), "csrrw with X0 as rd should succeed");
 
         // X0 should remain 0
@@ -755,13 +755,13 @@ mod tests {
 
         // Initialize mscratch with a known value
         core.set(X1, 0xFF00FF00);
-        let _ = core.csrrw(X1, 0x340, X0);
+        let _ = core.csrrw(X0, 0x340, X1);
 
         // Test CSRRS (read-set) operation
         let set_bits = 0x00FF00FF;
         core.set(X2, set_bits);
 
-        let result = core.csrrs(X2, 0x340, X3);
+        let result = core.csrrs(X3, 0x340, X2);
         assert!(result.is_ok(), "csrrs should succeed for mscratch");
 
         // X3 should contain the old value
@@ -772,7 +772,7 @@ mod tests {
         assert_eq!(read_value, 0xFFFFFFFF, "mscratch should have bits set");
 
         // Test CSRRS with X0 as rs1 (should only read, not modify)
-        let result = core.csrrs(X0, 0x340, X4);
+        let result = core.csrrs(X4, 0x340, X0);
         assert!(result.is_ok(), "csrrs with X0 as rs1 should succeed");
 
         // X4 should contain current value
@@ -793,13 +793,13 @@ mod tests {
 
         // Initialize mscratch with all bits set
         core.set(X1, 0xFFFFFFFF);
-        let _ = core.csrrw(X1, 0x340, X0);
+        let _ = core.csrrw(X0, 0x340, X1);
 
         // Test CSRRC (read-clear) operation
         let clear_bits = 0x0F0F0F0F;
         core.set(X2, clear_bits);
 
-        let result = core.csrrc(X2, 0x340, X3);
+        let result = core.csrrc(X3, 0x340, X2);
         assert!(result.is_ok(), "csrrc should succeed for mscratch");
 
         // X3 should contain the old value
@@ -810,7 +810,7 @@ mod tests {
         assert_eq!(read_value, 0xF0F0F0F0, "mscratch should have bits cleared");
 
         // Test CSRRC with X0 as rs1 (should only read, not modify)
-        let result = core.csrrc(X0, 0x340, X4);
+        let result = core.csrrc(X4, 0x340, X0);
         assert!(result.is_ok(), "csrrc with X0 as rs1 should succeed");
 
         // X4 should contain current value
@@ -830,7 +830,7 @@ mod tests {
         let mut core = new_core(config::U74);
 
         // Test CSRRWI (read-write immediate)
-        let result = core.csrrwi(0x15, 0x340, X1);
+        let result = core.csrrwi(X1, 0x340, 0x15);
         assert!(result.is_ok(), "csrrwi should succeed for mscratch");
 
         // X1 should contain old value (0)
@@ -841,7 +841,7 @@ mod tests {
         assert_eq!(read_value, 0x15, "mscratch should contain immediate value");
 
         // Test CSRRSI (read-set immediate)
-        let result = core.csrrsi(0x0A, 0x340, X2);
+        let result = core.csrrsi(X2, 0x340, 0x0A);
         assert!(result.is_ok(), "csrrsi should succeed for mscratch");
 
         // X2 should contain old value
@@ -852,7 +852,7 @@ mod tests {
         assert_eq!(read_value, 0x1F, "mscratch should have bits set");
 
         // Test CSRRCI (read-clear immediate)
-        let result = core.csrrci(0x05, 0x340, X3);
+        let result = core.csrrci(X3, 0x340, 0x05);
         assert!(result.is_ok(), "csrrci should succeed for mscratch");
 
         // X3 should contain old value
@@ -863,7 +863,7 @@ mod tests {
         assert_eq!(read_value, 0x1A, "mscratch should have bits cleared");
 
         // Test that immediate values are masked to 5 bits
-        let result = core.csrrwi(0xFF, 0x340, X4);
+        let result = core.csrrwi(X4, 0x340, 0xFF);
         assert!(result.is_ok(), "csrrwi with large immediate should succeed");
 
         // mscratch should only have lower 5 bits of immediate
@@ -872,9 +872,9 @@ mod tests {
 
         // Test immediate operations with zero immediate (should not modify for set/clear)
         core.set(X5, 0x12345678);
-        let _ = core.csrrw(X5, 0x340, X0);
+        let _ = core.csrrw(X0, 0x340, X5);
 
-        let result = core.csrrsi(0, 0x340, X6);
+        let result = core.csrrsi(X6, 0x340, 0);
         assert!(result.is_ok(), "csrrsi with zero immediate should succeed");
         assert_eq!(core.get(X6), 0x12345678, "rd should contain current value");
 
@@ -884,7 +884,7 @@ mod tests {
             "CSR should be unchanged with zero immediate"
         );
 
-        let result = core.csrrci(0, 0x340, X7);
+        let result = core.csrrci(X7, 0x340, 0);
         assert!(result.is_ok(), "csrrci with zero immediate should succeed");
         assert_eq!(core.get(X7), 0x12345678, "rd should contain current value");
 
