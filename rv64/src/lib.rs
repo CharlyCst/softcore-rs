@@ -77,6 +77,13 @@ impl Core {
         raw::read_CSR(self, bv(csr)).bits()
     }
 
+    /// Set the value of a CSR identified by its CSR index.
+    ///
+    /// This function panics if the CSR is not implemented given the core configuration.
+    pub fn set_csr(&mut self, csr: u64, value: u64) {
+        raw::write_CSR(self, bv(csr), bv(value)).bits();
+    }
+
     /// Atomic Read and Write CSR
     ///
     /// This function has the same effect as executing the `CSRRW` instruction, except for moving
