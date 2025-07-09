@@ -193,8 +193,6 @@ let rec get_call_set (ast : (tannot, env) ast) : sail_ctx =
       ; "TEST"
       ; "WFI"
       ; "EBREAK"
-      ; "dispatchInterrupt"
-      ; "step_interrupts_only"
       ; "SFENCE_VMA"
       ; "HFENCE_VVMA"
       ; "HFENCE_GVMA"
@@ -213,6 +211,8 @@ let rec get_call_set (ast : (tannot, env) ast) : sail_ctx =
         "trap_handler"
       ; "exception_delegatee"
       ; "exceptionType_to_bits"
+      ; "dispatchInterrupt"
+      ; "handle_interrupt"
       ; (* CSRs *)
         "read_CSR"
       ; "write_CSR"
