@@ -208,6 +208,16 @@ impl Core {
         raw::is_CSR_defined(self, bv(csr_id as u64))
     }
 
+    /// Dispatch pending interrupt
+    ///
+    /// This function looks for pending and enabled interrupts and perform the dispatch for the
+    /// interrupt with highest priority.
+    pub fn dispatch_interrupt(&mut self) {
+        if let Some((int, target_priv)) = raw::dispatchInterrupt(self, self.cur_privilege) {
+            raw::handle_interrupt(self, int, target_priv);
+        }
+    }
+
     /// Inject an exception, triggerring the appropriate trap handler
     ///
     /// The target privilege mode depends on the current execution mode and the *deleg CSR
