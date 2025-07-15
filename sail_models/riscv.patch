@@ -1,8 +1,8 @@
 diff --git a/model/CMakeLists.txt b/model/CMakeLists.txt
-index 560606dd..849ce559 100644
+index 1849d680..0cfabbb5 100644
 --- a/model/CMakeLists.txt
 +++ b/model/CMakeLists.txt
-@@ -236,6 +236,24 @@ foreach (xlen IN ITEMS 32 64)
+@@ -234,6 +234,24 @@ foreach (xlen IN ITEMS 32 64)
                      set(coverage_args)
                  endif()
  
@@ -27,3 +27,33 @@ index 560606dd..849ce559 100644
                  add_custom_command(
                      DEPENDS ${sail_srcs}
                      OUTPUT ${c_model} ${branch_info_file}
+diff --git a/model/riscv_pmp_regs.sail b/model/riscv_pmp_regs.sail
+index 0eacf8cb..a518ca0e 100644
+--- a/model/riscv_pmp_regs.sail
++++ b/model/riscv_pmp_regs.sail
+@@ -231,7 +231,7 @@ mapping clause csr_name_map = 0x3EE  <-> "pmpaddr62"
+ mapping clause csr_name_map = 0x3EF  <-> "pmpaddr63"
+ 
+ // pmpcfgN
+-function clause is_CSR_defined(0x3A) @ idx : bits(4) = sys_pmp_count() > unsigned(idx) & (idx[0] == bitzero | xlen == 32)
++function clause is_CSR_defined(0x3A) @ idx : bits(4) = sys_pmp_count() > 4 * unsigned(idx) & (idx[0] == bitzero | xlen == 32)
+ function clause read_CSR(0x3A @ idx : bits(4) if idx[0] == bitzero | xlen == 32) = pmpReadCfgReg(unsigned(idx))
+ function clause write_CSR((0x3A @ idx : bits(4), value) if idx[0] == bitzero | xlen == 32) = {
+   let idx = unsigned(idx);
+diff --git a/model/riscv_zvk_utils.sail b/model/riscv_zvk_utils.sail
+index 38ca0018..3aaf13a3 100644
+--- a/model/riscv_zvk_utils.sail
++++ b/model/riscv_zvk_utils.sail
+@@ -14,7 +14,11 @@ function zvk_valid_reg_overlap(rs, rd, emul_pow) = {
+   (rs_int + reg_group_size <= rd_int) | (rd_int + reg_group_size <= rs_int)
+ }
+ 
+-function zvk_check_encdec(EGW: int, EGS: int) -> bool = (unsigned(vl) % EGS == 0) & (unsigned(vstart) % EGS == 0) & (2 ^ get_lmul_pow() * VLEN) >= EGW
++function zvk_check_encdec(EGW: int, EGS: int) -> bool = {
++  let LMUL_pow = get_lmul_pow();
++  let LMUL_times_VLEN : int = if LMUL_pow < 0 then VLEN / (2 ^ abs_int(LMUL_pow)) else (2 ^ LMUL_pow) * VLEN in
++  (unsigned(vl) % EGS == 0) & (unsigned(vstart) % EGS == 0) & LMUL_times_VLEN >= EGW
++}
+ 
+ /*
+  * Utility functions for Zvknh[ab]

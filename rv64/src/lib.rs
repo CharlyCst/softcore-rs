@@ -762,7 +762,8 @@ mod tests {
         // Read back the value
         let read_value = core.get_csr(0x340);
         assert_eq!(
-            read_value, Some(initial_value),
+            read_value,
+            Some(initial_value),
             "mscratch should contain written value"
         );
 
@@ -780,7 +781,11 @@ mod tests {
 
         // mscratch should have new value
         let read_value = core.get_csr(0x340);
-        assert_eq!(read_value, Some(new_value), "mscratch should contain new value");
+        assert_eq!(
+            read_value,
+            Some(new_value),
+            "mscratch should contain new value"
+        );
     }
 
     #[test]
@@ -803,7 +808,11 @@ mod tests {
 
         // mscratch should have bits set
         let read_value = core.get_csr(0x340);
-        assert_eq!(read_value, Some(0xFFFFFFFF), "mscratch should have bits set");
+        assert_eq!(
+            read_value,
+            Some(0xFFFFFFFF),
+            "mscratch should have bits set"
+        );
 
         // Test CSRRS with X0 as rs1 (should only read, not modify)
         let result = core.csrrs(X4, 0x340, X0);
@@ -841,7 +850,11 @@ mod tests {
 
         // mscratch should have bits cleared
         let read_value = core.get_csr(0x340);
-        assert_eq!(read_value, Some(0xF0F0F0F0), "mscratch should have bits cleared");
+        assert_eq!(
+            read_value,
+            Some(0xF0F0F0F0),
+            "mscratch should have bits cleared"
+        );
 
         // Test CSRRC with X0 as rs1 (should only read, not modify)
         let result = core.csrrc(X4, 0x340, X0);
@@ -872,7 +885,11 @@ mod tests {
 
         // mscratch should have immediate value
         let read_value = core.get_csr(0x340);
-        assert_eq!(read_value, Some(0x15), "mscratch should contain immediate value");
+        assert_eq!(
+            read_value,
+            Some(0x15),
+            "mscratch should contain immediate value"
+        );
 
         // Test CSRRSI (read-set immediate)
         let result = core.csrrsi(X2, 0x340, 0x0A);
@@ -902,7 +919,11 @@ mod tests {
 
         // mscratch should only have lower 5 bits of immediate
         let read_value = core.get_csr(0x340);
-        assert_eq!(read_value, Some(0x1F), "immediate should be masked to 5 bits");
+        assert_eq!(
+            read_value,
+            Some(0x1F),
+            "immediate should be masked to 5 bits"
+        );
 
         // Test immediate operations with zero immediate (should not modify for set/clear)
         core.set(X5, 0x12345678);
@@ -914,7 +935,8 @@ mod tests {
 
         let read_value = core.get_csr(0x340);
         assert_eq!(
-            read_value, Some(0x12345678),
+            read_value,
+            Some(0x12345678),
             "CSR should be unchanged with zero immediate"
         );
 
@@ -924,7 +946,8 @@ mod tests {
 
         let read_value = core.get_csr(0x340);
         assert_eq!(
-            read_value, Some(0x12345678),
+            read_value,
+            Some(0x12345678),
             "CSR should be unchanged with zero immediate"
         );
     }
