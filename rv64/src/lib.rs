@@ -636,11 +636,11 @@ mod tests {
         assert!(core.is_csr_defined(0x344), "mip should be defined");
 
         // Test PMP configuration registers
-        // U74 core has 16 PMP entries, so pmpcfg0, pmpcfg2, pmpcfg4, pmpcfg6, etc. (even ones) should exist
+        // U74 core has 16 PMP entries, so pmpcfg0, pmpcfg2 should exist, but not pmpcfg4 or
         assert!(core.is_csr_defined(0x3A0), "pmpcfg0 should be defined");
         assert!(core.is_csr_defined(0x3A2), "pmpcfg2 should be defined");
-        assert!(core.is_csr_defined(0x3A4), "pmpcfg4 should be defined");
-        assert!(core.is_csr_defined(0x3A6), "pmpcfg6 should be defined");
+        assert!(!core.is_csr_defined(0x3A4), "pmpcfg4 should not be defined");
+        assert!(!core.is_csr_defined(0x3A6), "pmpcfg6 should not be defined");
 
         // Test that odd pmpcfg registers don't exist (RV64 uses even pmpcfg registers only)
         assert!(
