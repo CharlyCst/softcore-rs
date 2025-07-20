@@ -4,7 +4,7 @@
 
 We use [`git-cliff`](https://git-cliff.org/docs/) to generate changelogs from the git history.
 
-- **Update changelog**: `git-cliff -o CHANGELOG.md`
+- **Update changelog**: `git-cliff -o CHANGELOG.md --tag vX.X.X`
 
 ## Publishing a new version
 

@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0]
+
+### RISC-V 64
+
+- [**breaking**] Change CSR operand order to match RISC-V assembly
+- Add support to system reset a core
+- Reset registers that require initialization in Core::reset
+- Add helper functions for registers index manimulation
+- Add `bv` as shorthand for `BitVector::new`
+- Att `set_csr` to directly write CSRs
+- Add `dispatch_interrupt` to `Core`
+- [**breaking**] `get_csr` and `read_csr` return options instead of panicking
+
+### Compiler
+
+- Generate register initialization functions
+- Add support for array initialization
+- Generate a new `_reset_all_registers` function
+- Add support for `signed` and `>`
+
 ## [0.3.0]
 
 ### RISC-V 64
