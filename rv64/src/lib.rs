@@ -72,8 +72,8 @@ impl Core {
 
     /// Get the value of a CSR identified by its CSR index.
     ///
-    /// This function panics returns [None] the CSR can not be read by the current privilege level
-    /// or is not implemented given the core configuration.
+    /// This function returns [None] if the CSR can not be read by the current privilege level or
+    /// is not implemented given the core configuration.
     pub fn get_csr(&mut self, csr: u64) -> Option<u64> {
         let csr = bv(csr);
         if raw::check_CSR(self, csr, self.cur_privilege, false) {
