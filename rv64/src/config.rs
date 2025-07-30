@@ -131,7 +131,7 @@ pub const U74: raw::Config = raw::Config {
         Zhinx: raw::ConfigZhinx { supported: false },
         Zicbom: raw::ConfigZicbom { supported: false },
         Zicboz: raw::ConfigZicboz { supported: false },
-        Zicntr: raw::ConfigZicntr { supported: false },
+        Zicntr: raw::ConfigZicntr { supported: true },
         Zicond: raw::ConfigZicond { supported: false },
         Zifencei: raw::ConfigZifencei { supported: false },
         Zihpm: raw::ConfigZihpm { supported: false },

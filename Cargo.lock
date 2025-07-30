@@ -64,7 +64,7 @@ version = "0.4.0"
 
 [[package]]
 name = "softcore-rv64"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "softcore-prelude",
 ]
