@@ -185,7 +185,7 @@ let rec get_call_set_rec (ast : (tannot, env) ast) (ctx : sail_ctx) : sail_ctx =
 let rec get_call_set (ast : (tannot, env) ast) : sail_ctx =
   let call_set =
     SSet.of_list
-      [ (* "execute"; *)
+      [ "execute";
         "CSR"
       ; "MRET"
       ; "SRET"
