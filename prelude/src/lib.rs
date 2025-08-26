@@ -73,13 +73,32 @@ pub fn truncate(v: BitVector<64>, size: i128) -> BitVector<64> {
     v
 }
 
-pub fn sign_extend<const M: i128>(value: i128, input: BitVector<M>) -> BitVector<64> {
-    assert!(
-        value == 64,
-        "handle the case where sign_extend has value not equal 64"
-    );
-    let extension = ((1 << (64 - M)) - 1) << M;
-    bv::<64>(extension | input.bits)
+pub fn sign_extend<const M: i128, const N: i128>(
+    value: i128,
+    input: BitVector<M>,
+) -> BitVector<N> {
+    assert!(value == N, "Mismatch `sign_extend` size");
+    assert!(N >= M, "Cannot sign extend to smaller size");
+    assert!(N <= 64, "Maximum supported size is 64 for now");
+    
+    // Special case: when extending from same size to same size, it's a no-op
+    if M == N {
+        return bv::<N>(input.bits());
+    }
+    
+    // Check if the sign bit (MSB) is set
+    let sign_bit = (input.bits() >> (M - 1)) & 1;
+    
+    if sign_bit == 0 {
+        // Positive number - just zero extend
+        bv::<N>(input.bits())
+    } else {
+        // Negative number - fill upper bits with 1s
+        // Handle the case where M=64 to avoid shift overflow
+        let mask = if M == 64 { 0u64 } else { (1u64 << M) - 1 };
+        let extension_bits = !mask & if N == 64 { u64::MAX } else { (1u64 << N) - 1 };
+        bv::<N>(input.bits() | extension_bits)
+    }
 }
 
 pub const fn sail_ones<const N: i128>(n: i128) -> BitVector<N> {
@@ -708,5 +727,88 @@ mod tests {
         let v = bv::<8>(0x00);
         assert_eq!(v.unsigned(), 0);
         assert_eq!(v.signed(), 0);
+    }
+
+    #[test]
+    fn test_sign_extend() {
+        // Test sign extending positive values from 4 to 8 bits
+        let input = bv::<4>(0b0111); // 7 in 4 bits
+        let result = sign_extend::<4, 8>(8, input);
+        assert_eq!(result.bits(), 0b00000111); // Should remain 7 in 8 bits
+        
+        // Test sign extending negative values from 4 to 8 bits
+        let input = bv::<4>(0b1000); // -8 in 4 bits (two's complement)
+        let result = sign_extend::<4, 8>(8, input);
+        assert_eq!(result.bits(), 0b11111000); // Should become -8 in 8 bits
+
+        let input = bv::<4>(0b1111); // -1 in 4 bits
+        let result = sign_extend::<4, 8>(8, input);
+        assert_eq!(result.bits(), 0b11111111); // Should become -1 in 8 bits
+
+        // Test sign extending from 8 to 16 bits
+        let input = bv::<8>(0x7F); // 127 in 8 bits (positive)
+        let result = sign_extend::<8, 16>(16, input);
+        assert_eq!(result.bits(), 0x007F); // Should remain 127 in 16 bits
+
+        let input = bv::<8>(0x80); // -128 in 8 bits (negative)
+        let result = sign_extend::<8, 16>(16, input);
+        assert_eq!(result.bits(), 0xFF80); // Should become -128 in 16 bits
+
+        let input = bv::<8>(0xFF); // -1 in 8 bits
+        let result = sign_extend::<8, 16>(16, input);
+        assert_eq!(result.bits(), 0xFFFF); // Should become -1 in 16 bits
+
+        // Test sign extending from 16 to 32 bits
+        let input = bv::<16>(0x7FFF); // 32767 in 16 bits (positive)
+        let result = sign_extend::<16, 32>(32, input);
+        assert_eq!(result.bits(), 0x00007FFF); // Should remain 32767 in 32 bits
+
+        let input = bv::<16>(0x8000); // -32768 in 16 bits (negative)
+        let result = sign_extend::<16, 32>(32, input);
+        assert_eq!(result.bits(), 0xFFFF8000); // Should become -32768 in 32 bits
+
+        // Test sign extending from 32 to 64 bits
+        let input = bv::<32>(0x7FFFFFFF); // Positive value
+        let result = sign_extend::<32, 64>(64, input);
+        assert_eq!(result.bits(), 0x000000007FFFFFFF);
+
+        let input = bv::<32>(0x80000000); // Negative value
+        let result = sign_extend::<32, 64>(64, input);
+        assert_eq!(result.bits(), 0xFFFFFFFF80000000);
+
+        // Test edge cases - extending by 1 bit
+        let input = bv::<1>(0b0); // 0 in 1 bit
+        let result = sign_extend::<1, 2>(2, input);
+        assert_eq!(result.bits(), 0b00); // Should remain 0
+
+        let input = bv::<1>(0b1); // -1 in 1 bit
+        let result = sign_extend::<1, 2>(2, input);
+        assert_eq!(result.bits(), 0b11); // Should become -1 in 2 bits
+
+        // Test extending smaller values
+        let input = bv::<3>(0b101); // -3 in 3 bits
+        let result = sign_extend::<3, 8>(8, input);
+        assert_eq!(result.bits(), 0b11111101); // Should become -3 in 8 bits
+
+        let input = bv::<3>(0b011); // 3 in 3 bits
+        let result = sign_extend::<3, 8>(8, input);
+        assert_eq!(result.bits(), 0b00000011); // Should remain 3 in 8 bits
+
+        // Test extending from 64 to 64 bits (no-op, but widely used)
+        let input = bv::<64>(0x7FFFFFFFFFFFFFFF); // Maximum positive 64-bit value
+        let result = sign_extend::<64, 64>(64, input);
+        assert_eq!(result.bits(), 0x7FFFFFFFFFFFFFFF); // Should remain unchanged
+
+        let input = bv::<64>(0x8000000000000000); // Minimum negative 64-bit value
+        let result = sign_extend::<64, 64>(64, input);
+        assert_eq!(result.bits(), 0x8000000000000000); // Should remain unchanged
+
+        let input = bv::<64>(0xFFFFFFFFFFFFFFFF); // -1 in 64 bits
+        let result = sign_extend::<64, 64>(64, input);
+        assert_eq!(result.bits(), 0xFFFFFFFFFFFFFFFF); // Should remain unchanged
+
+        let input = bv::<64>(0x0000000000000000); // 0 in 64 bits
+        let result = sign_extend::<64, 64>(64, input);
+        assert_eq!(result.bits(), 0x0000000000000000); // Should remain unchanged
     }
 }
