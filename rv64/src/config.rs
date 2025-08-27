@@ -27,6 +27,8 @@ pub const MINIMAL: raw::Config = raw::Config {
         Svinval: raw::ConfigSvinval { supported: false },
         U: raw::ConfigU { supported: false },
         V: raw::ConfigV {
+            vl_use_ceil: false,
+            elen_exp: 0,
             supported: false,
             vlen_exp: 3,
         },
@@ -78,12 +80,34 @@ pub const MINIMAL: raw::Config = raw::Config {
     },
     memory: raw::ConfigMemory {
         pmp: raw::ConfigPmp { count: 0, grain: 0 },
+        misaligned: raw::ConfigMisaligned {
+            allowed_within_exp: 0,
+            byte_by_byte: false,
+            order_decreasing: false,
+            supported: false,
+        },
+        translation: raw::ConfigTranslation {
+            dirty_update: false,
+        },
     },
     platform: raw::ConfigPlatform {
         archid: 0,
         hartid: 0,
         impid: 0,
         vendorid: 0,
+        cache_block_size_exp: 0,
+        clint: raw::ConfigClint {
+            base: 0x100000,
+            size: 0x1000,
+        },
+        ram: raw::ConfigRam {
+            base: 0x80000000,
+            size: 0x100000,
+        },
+        rom: raw::ConfigRom {
+            base: 0x4000000,
+            size: 0x10000,
+        },
     },
 };
 
@@ -106,6 +130,8 @@ pub const U74: raw::Config = raw::Config {
         Svinval: raw::ConfigSvinval { supported: false },
         U: raw::ConfigU { supported: true },
         V: raw::ConfigV {
+            vl_use_ceil: false,
+            elen_exp: 0,
             supported: false,
             vlen_exp: 3,
         },
@@ -160,11 +186,33 @@ pub const U74: raw::Config = raw::Config {
             count: 16,
             grain: 10,
         },
+        misaligned: raw::ConfigMisaligned {
+            allowed_within_exp: 0,
+            byte_by_byte: false,
+            order_decreasing: false,
+            supported: false,
+        },
+        translation: raw::ConfigTranslation {
+            dirty_update: false,
+        },
     },
     platform: raw::ConfigPlatform {
         archid: 0,
         hartid: 0,
         impid: 0,
         vendorid: 0,
+        cache_block_size_exp: 0,
+        clint: raw::ConfigClint {
+            base: 0x100000,
+            size: 0x1000,
+        },
+        ram: raw::ConfigRam {
+            base: 0x80000000,
+            size: 0x100000,
+        },
+        rom: raw::ConfigRom {
+            base: 0x4000000,
+            size: 0x10000,
+        },
     },
 };

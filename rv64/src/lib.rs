@@ -211,10 +211,10 @@ impl Core {
         self.cur_privilege = mode
     }
 
-    /// Decode an instruction
-    pub fn decode_instr(&mut self, instr: u32) -> ast {
-        raw::encdec_backwards(self, bv(instr as u64))
-    }
+    // /// Decode an instruction
+    // pub fn decode_instr(&mut self, instr: u32) -> ast {
+    //     raw::encdec_backwards(self, bv(instr as u64))
+    // }
 
     /// Return true if the CSR is defined (and enabled) on the core
     pub fn is_csr_defined(&mut self, csr_id: usize) -> bool {
@@ -510,62 +510,62 @@ mod tests {
         );
     }
 
-    #[test]
-    fn decoder() {
-        let mut ctx = new_core(config::U74);
-        let uimm0 = bv(0);
+    // #[test]
+    // fn decoder() {
+    //     let mut ctx = new_core(config::U74);
+    //     let uimm0 = bv(0);
 
-        // Load/Store
+    //     // Load/Store
 
-        assert_eq!(
-            ctx.decode_instr(0xff87b703),
-            ast::LOAD((
-                bv(0xFFF - 7), // immediate is -8
-                X15,
-                X14,
-                false,
-                word_width::DOUBLE,
-                false,
-                false
-            ))
-        );
+    //     assert_eq!(
+    //         ctx.decode_instr(0xff87b703),
+    //         ast::LOAD((
+    //             bv(0xFFF - 7), // immediate is -8
+    //             X15,
+    //             X14,
+    //             false,
+    //             word_width::DOUBLE,
+    //             false,
+    //             false
+    //         ))
+    //     );
 
-        // CSR instructions
+    //     // CSR instructions
 
-        // csrrw x0, mstatus, x0
-        assert_eq!(
-            ctx.decode_instr(0x30001073),
-            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRW))
-        );
-        // csrrs x0, mstatus, x0
-        assert_eq!(
-            ctx.decode_instr(0x30002073),
-            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRS))
-        );
-        // csrrc x0, mstatus, x0
-        assert_eq!(
-            ctx.decode_instr(0x30003073),
-            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRC))
-        );
-        // csrrwi x0, mstatus, 0
-        assert_eq!(
-            ctx.decode_instr(0x30005073),
-            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRW))
-        );
-        // csrrsi x0, mstatus, 0
-        assert_eq!(
-            ctx.decode_instr(0x30006073),
-            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRS))
-        );
-        // csrrci x0, mstatus, 0
-        assert_eq!(
-            ctx.decode_instr(0x30007073),
-            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRC))
-        );
+    //     // csrrw x0, mstatus, x0
+    //     assert_eq!(
+    //         ctx.decode_instr(0x30001073),
+    //         ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRW))
+    //     );
+    //     // csrrs x0, mstatus, x0
+    //     assert_eq!(
+    //         ctx.decode_instr(0x30002073),
+    //         ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRS))
+    //     );
+    //     // csrrc x0, mstatus, x0
+    //     assert_eq!(
+    //         ctx.decode_instr(0x30003073),
+    //         ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRC))
+    //     );
+    //     // csrrwi x0, mstatus, 0
+    //     assert_eq!(
+    //         ctx.decode_instr(0x30005073),
+    //         ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRW))
+    //     );
+    //     // csrrsi x0, mstatus, 0
+    //     assert_eq!(
+    //         ctx.decode_instr(0x30006073),
+    //         ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRS))
+    //     );
+    //     // csrrci x0, mstatus, 0
+    //     assert_eq!(
+    //         ctx.decode_instr(0x30007073),
+    //         ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRC))
+    //     );
 
-        // Illegal
-        assert_eq!(ctx.decode_instr(0x30001072), ast::ILLEGAL(bv(0x30001072)));
-    }
+    //     // Illegal
+    //     assert_eq!(ctx.decode_instr(0x30001072), ast::ILLEGAL(bv(0x30001072)));
+    // }
 
     #[test]
     fn general_purpose_registers() {

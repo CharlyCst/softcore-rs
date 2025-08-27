@@ -19,6 +19,35 @@ pub fn gt_int(e1: i128, e2: i128) -> bool {
     e1 > e2
 }
 
+pub fn quot_round_zero(n: i128, m: i128) -> i128 {
+    n / m
+}
+
+pub fn rem_round_zero(n: i128, m: i128) -> i128 {
+    n % m
+}
+
+pub fn sub_vec<const N: i128>(a: BitVector<N>, b: BitVector<N>) -> BitVector<N> {
+    assert!(N == 64, "`sub_vec` only support 64 bits for now");
+
+    // Because we assume 64 bits, we can do a wrapping sub using Rust's 64 bits integers
+    bv((a.bits() as i64).wrapping_sub(b.bits() as i64) as u64)
+}
+
+pub fn shift_bits_left<const N: i128, const M: i128>(
+    value: BitVector<N>,
+    shift: BitVector<M>,
+) -> BitVector<N> {
+    bv::<N>(value.bits() << shift.bits())
+}
+
+pub fn shift_bits_right<const N: i128, const M: i128>(
+    value: BitVector<N>,
+    shift: BitVector<M>,
+) -> BitVector<N> {
+    bv::<N>(value.bits() >> shift.bits())
+}
+
 pub fn bitvector_length<const N: i128>(_e: BitVector<N>) -> i128 {
     N
 }
@@ -73,22 +102,19 @@ pub fn truncate(v: BitVector<64>, size: i128) -> BitVector<64> {
     v
 }
 
-pub fn sign_extend<const M: i128, const N: i128>(
-    value: i128,
-    input: BitVector<M>,
-) -> BitVector<N> {
+pub fn sign_extend<const M: i128, const N: i128>(value: i128, input: BitVector<M>) -> BitVector<N> {
     assert!(value == N, "Mismatch `sign_extend` size");
     assert!(N >= M, "Cannot sign extend to smaller size");
     assert!(N <= 64, "Maximum supported size is 64 for now");
-    
+
     // Special case: when extending from same size to same size, it's a no-op
     if M == N {
         return bv::<N>(input.bits());
     }
-    
+
     // Check if the sign bit (MSB) is set
     let sign_bit = (input.bits() >> (M - 1)) & 1;
-    
+
     if sign_bit == 0 {
         // Positive number - just zero extend
         bv::<N>(input.bits())
@@ -735,7 +761,7 @@ mod tests {
         let input = bv::<4>(0b0111); // 7 in 4 bits
         let result = sign_extend::<4, 8>(8, input);
         assert_eq!(result.bits(), 0b00000111); // Should remain 7 in 8 bits
-        
+
         // Test sign extending negative values from 4 to 8 bits
         let input = bv::<4>(0b1000); // -8 in 4 bits (two's complement)
         let result = sign_extend::<4, 8>(8, input);
