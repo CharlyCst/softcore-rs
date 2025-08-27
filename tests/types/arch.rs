@@ -208,10 +208,10 @@ pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<8> {
     }
 }
 
-/// execute_TEST
+/// execute
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L136-178.
-pub fn execute_TEST(core_ctx: &mut Core) {
+pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
     let a = handle_int(1234);
     let d = handle_retired(());
     let e = handle_union(());

@@ -127,10 +127,10 @@ pub fn encdec_backwards(arg_hashtag_: BitVector<32>) -> ast {
     }
 }
 
-/// execute_WFI
+/// execute
 /// 
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L102-109.
-pub fn execute_WFI(core_ctx: &mut Core) -> Retired {
+pub fn execute(core_ctx: &mut Core, ast::WFI(()): ast) -> Retired {
     match core_ctx.cur_privilege {
         Privilege::Machine => {{
             platform_wfi(core_ctx, ());

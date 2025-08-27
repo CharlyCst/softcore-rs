@@ -35,6 +35,13 @@ pub fn EXTZ<const N: i128, const M: i128>(m: i128, v: BitVector<N>) -> BitVector
     v.zero_extend()
 }
 
+/// EXTS
+/// 
+/// Generated from the Sail sources at `tests/basic_alt/arch.sail` L10.
+pub fn EXTS<const N: i128, const M: i128>(m: i128, v: BitVector<N>) -> BitVector<M> {
+    sail_sign_extend(core_ctx, v, m)
+}
+
 pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
@@ -85,4 +92,35 @@ pub enum iop {
 pub enum ast {
     ITYPE((BitVector<12>, BitVector<5>, BitVector<5>, iop)),
     LOAD((BitVector<12>, BitVector<5>, BitVector<5>))
+}
+
+/// execute
+/// 
+/// Generated from the Sail sources at `tests/basic_alt/arch.sail` L75-89.
+pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) {
+    match merge_hashtag_var {
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {{
+            let rs1_val = rX(core_ctx, rs1);
+            let imm_ext: xlenbits = EXTS(64, imm);
+            let result = rs1_val.wrapped_add(imm_ext);
+            let test: bool = match true {
+                true => {true}
+                _ => {false}
+                _ => {panic!("Unreachable code")}
+            };
+            wX(core_ctx, rd, EXTZ(64, BitVector::<1>::new(0b0)));
+            if {(result != result)} {
+                let z: xlenbits = EXTZ(64, BitVector::<1>::new(0b0));
+                wX(core_ctx, rd, z)
+            } else {
+                wX(core_ctx, rd, result)
+            }
+        }}
+        ast::LOAD((imm, rs1, rd)) => {{
+            let addr: xlenbits = rX(core_ctx, rs1).wrapped_add(EXTS(64, imm));
+            let result: xlenbits = EXTS(64, BitVector::<1>::new(0b0));
+            wX(core_ctx, rd, result)
+        }}
+        _ => {panic!("Unreachable code")}
+    }
 }

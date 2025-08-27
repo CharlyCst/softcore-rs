@@ -64,7 +64,7 @@ pub fn bitvector_concat<const N: i128, const M: i128, const NM: i128>(
 }
 
 pub fn get_slice_int<const L: i128>(l: i128, n: i128, start: i128) -> BitVector<L> {
-    let val = (n >> start) & (mask(l as usize) as i128);
+    let val = (n >> start) & (mask128(l as usize) as i128);
     bv(val as u64)
 }
 
@@ -448,8 +448,18 @@ impl<const N: i128> std::ops::Add<i64> for BitVector<N> {
 // ———————————————————————————————— Helpers ————————————————————————————————— //
 
 const fn mask(nb_ones: usize) -> u64 {
+    assert!(nb_ones <= 64, "Unsupported mask size");
     if nb_ones == 64 {
         u64::MAX
+    } else {
+        (1 << nb_ones) - 1
+    }
+}
+
+const fn mask128(nb_ones: usize) -> u128 {
+    assert!(nb_ones <= 128, "Unsupported mask size");
+    if nb_ones == 128 {
+        u128::MAX
     } else {
         (1 << nb_ones) - 1
     }

@@ -45,6 +45,13 @@ pub fn _reset_all_registers() {
     
 }
 
+/// signed_extend
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L10.
+pub fn signed_extend<const N: i128, const M: i128>(m: i128, v: BitVector<N>) -> BitVector<M> {
+    sail_sign_extend(core_ctx, v, m)
+}
+
 /// bit_to_bool
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L19-22.
@@ -72,6 +79,13 @@ pub fn bool_to_bit(x: bool) -> bool {
 /// Generated from the Sail sources at `tests/trap/arch.sail` L28.
 pub fn bool_to_bits(x: bool) -> BitVector<1> {
     BitVector::new(0).set_bit(0, bool_to_bit(x))
+}
+
+/// (operator >=_u)
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L42.
+pub fn _operator_biggerequal_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
+    (x.unsigned() >= y.unsigned())
 }
 
 /// (operator <_u)
@@ -369,6 +383,13 @@ pub enum TrapVectorMode {
     TV_Reserved
 }
 
+/// set_next_pc
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L270-272.
+pub fn set_next_pc(core_ctx: &mut Core, pc: BitVector<64>) {
+    core_ctx.nextPC = pc
+}
+
 /// tval
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L274-279.
@@ -527,6 +548,37 @@ pub fn exception_delegatee(core_ctx: &mut Core, e: ExceptionType, p: Privilege) 
     }
 }
 
+/// exception_handler
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L382-390.
+pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_result, pc: BitVector<64>) -> BitVector<64> {
+    match (cur_priv, ctl) {
+        (_, ctl_result::CTL_TRAP(e)) => {{
+            let del_priv = exception_delegatee(core_ctx, e.trap, cur_priv);
+            trap_handler(core_ctx, del_priv, false, exceptionType_to_bits(e.trap), pc, e.excinfo)
+        }}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// handle_illegal
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L392-396.
+pub fn handle_illegal(core_ctx: &mut Core, unit_arg: ()) {
+    let t: sync_exception = sync_exception {
+        trap: ExceptionType::E_Illegal_Instr(()),
+        excinfo: None
+    };
+    {
+        let var_1 = {
+            let var_2 = core_ctx.cur_privilege;
+            let var_3 = core_ctx.PC;
+            exception_handler(core_ctx, var_2, ctl_result::CTL_TRAP(t), var_3)
+        };
+        set_next_pc(core_ctx, var_1)
+    }
+}
+
 /// iop
 /// 
 /// Generated from the Sail sources at `tests/trap/arch.sail` L400.
@@ -595,6 +647,20 @@ pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector<2>) -> bool {
 
 pub type csrRW = BitVector<2>;
 
+/// csrAccess
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L436.
+pub fn csrAccess(csr: BitVector<12>) -> BitVector<2> {
+    csr.subrange::<10, 12, 2>()
+}
+
+/// csrPriv
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L437.
+pub fn csrPriv(csr: BitVector<12>) -> BitVector<2> {
+    csr.subrange::<8, 10, 2>()
+}
+
 /// encdec_backwards
 /// 
 /// Generated from the Sail sources.
@@ -635,6 +701,106 @@ pub fn is_CSR_defined(csr: BitVector<12>, p: Privilege) -> bool {
         b__0 if {(b__0 == BitVector::<12>::new(0b001101000000))} => {(p == Privilege::Machine)}
         b__1 if {(b__1 == BitVector::<12>::new(0b000101000000))} => {((p == Privilege::Machine) || (p == Privilege::Supervisor))}
         _ => {false}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// check_CSR_access
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L450-452.
+pub fn check_CSR_access(csrrw: BitVector<2>, csrpr: BitVector<2>, p: Privilege, isWrite: bool) -> bool {
+    (!(((isWrite == true) && (csrrw == BitVector::<2>::new(0b11)))) && _operator_biggerequal_u_(privLevel_to_bits(p), csrpr))
+}
+
+/// check_CSR
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L454-455.
+pub fn check_CSR(csr: BitVector<12>, p: Privilege, isWrite: bool) -> bool {
+    (is_CSR_defined(csr, p) && check_CSR_access(csrAccess(csr), csrPriv(csr), p, isWrite))
+}
+
+/// readCSR
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L457-465.
+pub fn readCSR(core_ctx: &mut Core, csr: BitVector<12>) -> BitVector<64> {
+    let res: xlenbits = match (csr, 64) {
+        (b__0, _) if {(b__0 == BitVector::<12>::new(0b001101000000))} => {core_ctx.mscratch}
+        (b__1, _) if {(b__1 == BitVector::<12>::new(0b000101000000))} => {core_ctx.sscratch}
+        _ => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
+        _ => {panic!("Unreachable code")}
+    };
+    res
+}
+
+/// writeCSR
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L467-474.
+pub fn writeCSR(core_ctx: &mut Core, csr: BitVector<12>, value: BitVector<64>) {
+    let res: Option<xlenbits> = match (csr, 64) {
+        (b__0, _) if {(b__0 == BitVector::<12>::new(0b001101000000))} => {{
+            core_ctx.mscratch = value;
+            Some(core_ctx.mscratch)
+        }}
+        (b__1, _) if {(b__1 == BitVector::<12>::new(0b000101000000))} => {{
+            core_ctx.sscratch = value;
+            Some(core_ctx.sscratch)
+        }}
+        _ => {None}
+        _ => {panic!("Unreachable code")}
+    };
+    ()
+}
+
+/// execute
+/// 
+/// Generated from the Sail sources at `tests/trap/arch.sail` L417-423.
+pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> Retired {
+    match merge_hashtag_var {
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {{
+            let rs1_val = rX(core_ctx, rs1);
+            let imm_ext: xlenbits = signed_extend(64, imm);
+            let result = rs1_val.wrapped_add(imm_ext);
+            wX(core_ctx, rd, result);
+            Retired::RETIRE_SUCCESS
+        }}
+        ast::CSR((csr, rs1, rd, is_imm, op)) => {{
+            let rs1_val: xlenbits = if {is_imm} {
+                rs1.zero_extend::<64>()
+            } else {
+                rX(core_ctx, rs1)
+            };
+            let isWrite: bool = match op {
+                csrop::CSRRW => {true}
+                _ => {if {is_imm} {
+                    (rs1_val.unsigned() != 0)
+                } else {
+                    (rs1.unsigned() != 0)
+                }}
+                _ => {panic!("Unreachable code")}
+            };
+            if {!({
+                let var_1 = core_ctx.cur_privilege;
+                check_CSR(csr, var_1, isWrite)
+            })} {
+                handle_illegal(core_ctx, ());
+                Retired::RETIRE_FAIL
+            } else {
+                let csr_val = readCSR(core_ctx, csr);
+                if {isWrite} {
+                    let new_val: xlenbits = match op {
+                        csrop::CSRRW => {rs1_val}
+                        csrop::CSRRS => {(csr_val | rs1_val)}
+                        csrop::CSRRC => {(csr_val & !(rs1_val))}
+                        _ => {panic!("Unreachable code")}
+                    };
+                    writeCSR(core_ctx, csr, new_val)
+                } else {
+                    ()
+                };
+                wX(core_ctx, rd, csr_val);
+                Retired::RETIRE_SUCCESS
+            }
+        }}
         _ => {panic!("Unreachable code")}
     }
 }

@@ -46,10 +46,10 @@ pub enum ast {
     TEST(())
 }
 
-/// execute_TEST
+/// execute
 /// 
 /// Generated from the Sail sources at `tests/optimization/arch.sail` L30-32.
-pub fn execute_TEST() {
+pub fn execute(ast::TEST(()): ast) {
     let a = known_match_branch(());
     ()
 }
