@@ -3,6 +3,8 @@ z3_problems
 sail_rust_backend.install
 out.rs
 .idea
+.DS_Store
+.claude
 /src
 
 # Added by cargo
