@@ -21,6 +21,7 @@ type context =
   ; config_map : Call_set.config_map
   ; registers : SSet.t
   ; enum_entries : (string * string) list
+  ; arch : Types.arch_t
   ; mutable uses_sail_ctx : bool
   }
 

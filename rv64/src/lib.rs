@@ -13,6 +13,7 @@
 
 pub mod config;
 pub mod registers;
+mod arch_prelude;
 
 /// The raw translation of the official RISC-V executable specification.
 ///

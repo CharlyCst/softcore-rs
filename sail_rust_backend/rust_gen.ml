@@ -1,6 +1,6 @@
 (** Rust generation module **)
 
-module SSet = Call_set.SSet
+module SSet = Types.SSet
 module Big_int = Libsail.Ast_util.Big_int
 
 type rs_type =

@@ -4,8 +4,9 @@ members = [
     # The Rust prelude, shared by all generated models
     "prelude",
 
-    # The RISC-V Sail model
+    # The Sail models
     "rv64",
+    "armv9a",
 
     # Our tests
     "tests/basic",

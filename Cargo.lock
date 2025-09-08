@@ -59,6 +59,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "softcore-armv9a"
+version = "0.4.1"
+dependencies = [
+ "softcore-prelude",
+]
+
+[[package]]
 name = "softcore-prelude"
 version = "0.4.0"
 

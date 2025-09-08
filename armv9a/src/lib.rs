@@ -1,7 +1,8 @@
 #[rustfmt::skip]
-mod arch;
+mod raw;
+mod arch_prelude;
 
-mod arch_prelude {}
+pub use softcore_prelude as prelude;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right

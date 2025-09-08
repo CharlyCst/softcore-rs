@@ -5,8 +5,8 @@ open Ast
 open Ast_util
 open Ast_defs
 open Type_check
-module SSet = Set.Make (String)
-module SMap = Map.Make (String)
+module SSet = Types.SSet
+module SMap = Types.SMap
 
 type config_map = typ SMap.t
 
@@ -182,45 +182,8 @@ let rec get_call_set_rec (ast : (tannot, env) ast) (ctx : sail_ctx) : sail_ctx =
   else get_call_set_rec ast new_ctx
 ;;
 
-let rec get_call_set (ast : (tannot, env) ast) : sail_ctx =
-  let call_set =
-    SSet.of_list
-      [ (* "execute"; *)
-        "CSR"
-      ; "MRET"
-      ; "SRET"
-      ; "ITYPE"
-      ; "TEST"
-      ; "WFI"
-      ; "EBREAK"
-      ; "SFENCE_VMA"
-      ; "HFENCE_VVMA"
-      ; "HFENCE_GVMA"
-      ; (* Decoder *)
-        "encdec_backwards"
-      ; (* Registers *)
-        "rX"
-      ; "wX"
-      ; "is_CSR_defined"
-      ; "creg2reg_idx"
-      ; (* PMP checks *)
-        "pmpCheck"
-      ; "pmpWriteAddrReg"
-      ; "pmpWriteCfgReg"
-      ; (* Trap handling *)
-        "trap_handler"
-      ; "exception_delegatee"
-      ; "exceptionType_to_bits"
-      ; "dispatchInterrupt"
-      ; "handle_interrupt"
-      ; (* CSRs *)
-        "read_CSR"
-      ; "write_CSR"
-      ; "doCSR"
-      ; (* System reset *)
-        "reset_sys"
-      ]
-  in
+let rec get_call_set (arch : Types.arch_t) (ast : (tannot, env) ast) : sail_ctx =
+  let call_set = arch.call_set in
   let sail_ctx = { call_set; config_map = SMap.empty } in
   get_call_set_rec ast sail_ctx
 ;;

@@ -11,7 +11,7 @@
     making some pattern compile where they would not otherwise.
  **)
 
-module SMap = Call_set.SMap
+module SMap = Types.SMap
 
 type core_config = int SMap.t
 

@@ -2,6 +2,8 @@
 
 use softcore_prelude::*;
 
+use crate::arch_prelude::*;
+
 /// The software core.
 /// 
 /// This struct represents a software core, and holds all the registers as well as the core configuration.

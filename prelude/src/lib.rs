@@ -34,7 +34,7 @@ pub fn bitvector_concat<const N: i128, const M: i128, const NM: i128>(
     bv::<{ NM }>((e1.bits() << M) | e2.bits())
 }
 
-pub fn get_slice_int<const L: i128>(l: i128, n: i128, start: i128) -> BitVector<L> {
+pub const fn get_slice_int<const L: i128>(l: i128, n: i128, start: i128) -> BitVector<L> {
     let val = (n >> start) & (mask(l as usize) as i128);
     bv(val as u64)
 }
