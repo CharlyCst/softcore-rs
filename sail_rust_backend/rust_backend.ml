@@ -18,15 +18,19 @@ let c_error ?loc:(l = Parse_ast.Unknown) message =
   raise (Reporting.err_general l ("\nC backend: " ^ message))
 ;;
 
+module type CODEGEN_CONFIG = sig
+  val arch : Types.arch_t
+end
+
 (** Converts a Sail AST to a Rust **)
-module Codegen () = struct
+module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   open Libsail
   open Ast
   open Ast_util
   open Ast_defs
   open Rust_gen
   open Context
-  module SSet = Call_set.SSet
+  module SSet = Types.SSet
 
   type function_kind =
     | FunKindFunc
@@ -1287,7 +1291,7 @@ module Codegen () = struct
   let compile_ast env effect_info ast =
     try
       (* Compute call set *)
-      let sail_ctx = get_call_set ast in
+      let sail_ctx = get_call_set CodegenConfig.arch ast in
       SSet.iter (Printf.printf "%s ") sail_ctx.call_set;
       print_endline "";
       SMap.iter
@@ -1302,6 +1306,7 @@ module Codegen () = struct
         ; config_map = sail_ctx.config_map
         ; registers = Util.StringSet.of_list (gather_registers_list ast)
         ; enum_entries = process_enum_entries ast.defs
+        ; arch = CodegenConfig.arch
         ; uses_sail_ctx = false
         }
       in

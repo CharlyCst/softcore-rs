@@ -5,53 +5,9 @@
 open Context
 open Rust_gen
 open Libsail
-module SSet = Call_set.SSet
-module SMap = Call_set.SMap
+module SSet = Types.SSet
+module SMap = Types.SMap
 module Big_int = Libsail.Ast_util.Big_int
-
-(* ————————————————————————— List of external expressions —————————————————————————— *)
-
-let external_func : SSet.t =
-  SSet.of_list
-    [ "subrange_bits"
-    ; "not_implemented"
-    ; "print_output"
-    ; "format!"
-    ; "assert!"
-    ; "panic!"
-    ; "dec_str"
-    ; "hex_str"
-    ; "update_subrange_bits"
-    ; "zero_extend_16"
-    ; "zero_extend_63"
-    ; "zero_extend_64"
-    ; "sign_extend"
-    ; "sail_ones"
-    ; "min_int"
-    ; "__exit"
-    ; "signed"
-    ; "lteq_int"
-    ; "sail_branch_announce"
-    ; "bitvector_length"
-    ; "bits_str"
-    ; "print_reg"
-    ; "bitvector_access"
-    ; "get_16_random_bits"
-    ; "bitvector_concat"
-    ; "print_platform"
-    ; "cancel_reservation"
-    ; "plat_mtval_has_illegal_inst_bits"
-    ; "truncate"
-    ; "subrange_bits"
-    ; "internal_error"
-    ; "bitvector_update"
-    ; "hex_bits_12_forwards"
-    ; "hex_bits_12_backwards"
-    ; "sail_zeros"
-    ; "parse_hex_bits"
-    ; "get_slice_int"
-    ]
-;;
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -681,7 +637,7 @@ let native_func_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
   match exp with
   | RsApp (RsId "add_atom", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopAdd, e2)
   | RsApp (RsId "sub_atom", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopSub, e2)
-  | RsApp (RsId "negate_atom", gens, _) -> RsId "BUILTIN_atom_negate_TODO"
+  | RsApp (RsId "negate_atom", gens, [ e1 ]) -> RsUnop (RsUnopNeg, e1)
   | RsApp (RsId "ediv_int", gens, _) -> RsId "BUILTIN_atom_ediv_TODO"
   | RsApp (RsId "emod_int", gens, [ e1; e2 ]) ->
     RsBinop (RsAs (e1, usize_typ), RsBinopMod, RsAs (e2, usize_typ))
@@ -1011,7 +967,7 @@ let expr_hoister (ctx : context) (exp : rs_exp) : rs_exp =
   match exp with
   (* We dont need to hoist external functions & some macro might not work with hoisting (for example: format!)*)
   | RsApp (RsId name, generics, args)
-    when should_hoist_args args && not (SSet.mem name external_func) ->
+    when should_hoist_args args && not (SSet.mem name ctx.arch.external_func) ->
     let ret = hoist args in
     RsBlock [ generate_hoisted_block (fst ret) (RsApp (RsId name, generics, snd ret)) ]
   | RsMethodApp { exp; name; generics; args } when should_hoist_args args ->
@@ -1389,7 +1345,11 @@ let rust_prelude_func_filter (RsProg objs) : rs_program =
 
 (* todo: Is a static function good enough here? *)
 let insert_annotation_imports_aux () : rs_program =
-  RsProg [ RsAttribute "allow(warnings)"; RsImport "softcore_prelude::*" ]
+  RsProg
+    [ RsAttribute "allow(warnings)"
+    ; RsImport "softcore_prelude::*"
+    ; RsImport "crate::arch_prelude::*"
+    ]
 ;;
 
 let insert_annotation_imports (RsProg objs) : rs_program =
@@ -1498,7 +1458,7 @@ let is_enum (value : string) : bool =
 let sail_context_arg_inserter_exp (ctx : context) (exp : rs_exp) : rs_exp =
   match exp with
   | RsApp (RsId app_id, generics, args)
-    when (not (SSet.mem app_id external_func)) && not (is_enum app_id) ->
+    when (not (SSet.mem app_id ctx.arch.external_func)) && not (is_enum app_id) ->
     (match ctx_fun app_id ctx with
      | Some fn when not fn.use_sail_ctx -> exp
      | Some fn ->
@@ -1563,28 +1523,13 @@ let dead_code_remover : expr_type_transform =
 (* those in the future.                                                       *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-let unsupported_obj : SSet.t =
-  SSet.of_list
-    [ (* Used only for side effects, not necessary in the Rust back-end *)
-      "csr_name_write_callback"
-    ; "csr_id_write_callback"
-    ; "csr_full_write_callback"
-    ; "long_csr_write_callback"
-    ; (* Depend on const generic exprs, would require monomorphisation. *)
-      "Mem_write_request"
-    ; "PTW_Output"
-    ; "PTW_Result"
-    ; "pte_bits"
-    ; "ppn_bits"
-    ; "vpn_bits"
-    ]
-;;
-
-let is_supported_obj (obj : rs_obj) : bool =
+let is_supported_obj (ctx : context) (obj : rs_obj) : bool =
+  let unsupported_obj = ctx.arch.unsupported_obj in
   match obj with
   | RsStruct s when SSet.mem s.name unsupported_obj -> false
   | RsAlias alias when SSet.mem alias.new_typ unsupported_obj -> false
   | RsFn fn when SSet.mem fn.name unsupported_obj -> false
+  | RsConst const when SSet.mem const.name unsupported_obj -> false
   | _ -> true
 ;;
 
@@ -1669,7 +1614,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
   (* Filter unsupported items *)
   let rust_program =
     match rust_program with
-    | RsProg objs -> RsProg (List.filter is_supported_obj objs)
+    | RsProg objs -> RsProg (List.filter (is_supported_obj ctx) objs)
   in
   rust_program
 ;;

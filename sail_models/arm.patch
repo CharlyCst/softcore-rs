@@ -1,0 +1,25 @@
+diff --git a/arm-v9.4-a/Makefile b/arm-v9.4-a/Makefile
+index 608f9cd..6b880f2 100644
+--- a/arm-v9.4-a/Makefile
++++ b/arm-v9.4-a/Makefile
+@@ -40,7 +40,7 @@ LEM_LIBS=-lib Sail=$(SAIL_DIR)/src/gen_lib -lib Sail-Armv9-Base=lem/base -lib Sa
+ 
+ all: lem.stamp isabelle.stamp coq.stamp lean.stamp
+ 
+-.PHONY: all clean interactive gen_c gen_isabelle
++.PHONY: all clean interactive gen_c gen_isabelle gen_rs
+ 
+ lem lem.stamp: $(SAIL_SRCS) $(LEM_SPLICES) lem/base/extra_defs.lem src/termination_measures.sail src/lem-patches/Feature.patch
+ 	mkdir -p isabelle
+@@ -96,6 +96,11 @@ gen_lean lean lean.stamp: $(SAIL_SRCS) src/termination_measures.sail lean/ArmExt
+ 	        src/termination_measures.sail
+ 	touch lean.stamp
+ 
++gen_rs: $(SAIL_SRCS) $(SAIL_MAIN)
++	$(SAIL) -o ../../../armv9a/src/raw.rs \
++		-plugin ../../../_build/default/sail_rust_backend/sail_plugin_rust.cmxs \
++		-rust $(SAIL_FLAGS) $(SAIL_SRCS) $(SAIL_MAIN)
++
+ c/armv9.c: $(SAIL_SRCS) $(SAIL_MAIN)
+ 	mkdir -p c
+ 	$(SAIL) -dprofile $(VERBOSE_FLAG) -memo_z3 \

@@ -1,3 +1,5 @@
+(include_subdirs qualified)
+
 (executable
  (name sail_plugin_rust)
  (modes

@@ -8,13 +8,20 @@ open Rust_gen
 open Call_set
 open Context
 
-let opt_debug = ref false
-let opt_branch_coverage = ref None
-let opt_no_mangle = ref false
-let opt_preserve_types = ref IdSet.empty
+let opt_arch = ref Arch.Rv64.rv64
+
+let choose_arch (arch : string) =
+  match arch with
+  | "armv9a" -> opt_arch := Arch.Armv9a.armv9a
+  | "rv64" -> opt_arch := Arch.Rv64.rv64
+  | _ -> Printf.printf "Unknown arch '%s'\n, using default value" arch
+;;
 
 let rust_options =
-  [ Flag.create ~prefix:[ "rust" ] "debug", Arg.Set opt_debug, "enable debug logging" ]
+  [ ( Flag.create ~prefix:[ "rust" ] "arch"
+    , Arg.String choose_arch
+    , "select the architecture" )
+  ]
 ;;
 
 let collect_rust_name_info ast =
@@ -84,7 +91,11 @@ let rust_rewrites =
 ;;
 
 let rust_target out_file { ast; effect_info; env; _ } =
-  let module Codegen = Rust_backend.Codegen () in
+  let module Codegen =
+    Rust_backend.Codegen (struct
+      let arch = !opt_arch
+    end)
+  in
   Reporting.opt_warnings := true;
   let basename =
     match out_file with
