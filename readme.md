@@ -1,7 +1,7 @@
 # Softcore-rs
 
 Softcore-rs is a collection of CPU cores implemented as Rust libraries, translated directly from their respective ISA specifications.
-Currently, only a subset of RISC-V 64 is available.
+Currently a subset of RISC-V 64 is available, with ongoing work toward Armv9-A support.
 
 > **Warning:** The project is currently under development. The generated code does not provide any guarantees regarding completeness or correctness.
 
@@ -10,9 +10,11 @@ Because the Rust implementation is directly translated from the specification, t
 
 ## Cores
 
-| Architecture | Crate                                |
-|--------------|--------------------------------------|
-| RISC-V 64    | [![Crates.io][rv64-badge]][rv64-url] |
+| Architecture | Crate                                | Status               |
+|--------------|--------------------------------------|----------------------|
+| RISC-V 64    | [![Crates.io][rv64-badge]][rv64-url] | Experimental support |
+|--------------|--------------------------------------|----------------------|
+| Armv9-A      |                                      | Work in progress     |
 
 [rv64-badge]: https://img.shields.io/crates/v/softcore-rv64
 [rv64-url]: https://crates.io/crates/softcore-rv64
