@@ -12706,6 +12706,27 @@ pub type SP_EL2_Type = BitVector<64>;
 
 pub type SP_EL3_Type = BitVector<64>;
 
+/// SP_set
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L7391-7412.
+pub fn SP_set(core_ctx: &mut Core, value_name: BitVector<64>) {
+    if { (core_ctx.PSTATE.SP == BitVector::<1>::new(0b0)) } {
+        core_ctx.SP_EL0 = value_name
+    } else {
+        match core_ctx.PSTATE.EL {
+            __qmark if { (__qmark == EL0) } => core_ctx.SP_EL0 = value_name,
+            __qmark if { (__qmark == EL1) } => core_ctx.SP_EL1 = value_name,
+            __qmark if { (__qmark == EL2) } => core_ctx.SP_EL2 = value_name,
+            __qmark if { (__qmark == EL3) } => core_ctx.SP_EL3 = value_name,
+            _ => (),
+            _ => {
+                panic!("Unreachable code")
+            }
+        }
+    };
+    return ();
+}
+
 /// X_set
 ///
 /// Generated from the Sail sources at `src/v8_base.sail` L7434-7441.
@@ -12856,6 +12877,36 @@ pub fn X_read<const WIDTH: i128>(core_ctx: &mut Core, n: i128, width: i128) -> B
         return subrange_bits(get_R(core_ctx, n), (width - 1), 0);
     } else {
         return Zeros(width);
+    }
+}
+
+/// SP_read
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L22756-22778.
+pub fn SP_read(core_ctx: &mut Core, unit_arg: ()) -> BitVector<64> {
+    if { (core_ctx.PSTATE.SP == BitVector::<1>::new(0b0)) } {
+        return core_ctx.SP_EL0;
+    } else {
+        match core_ctx.PSTATE.EL {
+            __qmark if { (__qmark == EL0) } => {
+                return core_ctx.SP_EL0;
+            }
+            __qmark if { (__qmark == EL1) } => {
+                return core_ctx.SP_EL1;
+            }
+            __qmark if { (__qmark == EL2) } => {
+                return core_ctx.SP_EL2;
+            }
+            __qmark if { (__qmark == EL3) } => {
+                return core_ctx.SP_EL3;
+            }
+            _ => {
+                return (undefined_bitvector::<64>(64) as BitVector<64>);
+            }
+            _ => {
+                panic!("Unreachable code")
+            }
+        }
     }
 }
 
@@ -13146,6 +13197,62 @@ pub fn execute_aarch64_instrs_integer_arithmetic_add_sub_carry<const DATASIZE: i
                     ()
                 };
                 X_set(core_ctx, d, datasize, result)
+            }
+        }
+    }
+}
+
+/// execute_aarch64_instrs_integer_arithmetic_add_sub_immediate
+///
+/// Generated from the Sail sources at `src/instrs64.sail` L589-613.
+pub fn execute_aarch64_instrs_integer_arithmetic_add_sub_immediate<const DATASIZE: i128>(
+    core_ctx: &mut Core,
+    d: i128,
+    datasize: i128,
+    imm: BitVector<DATASIZE>,
+    n: i128,
+    setflags: bool,
+    sub_op: bool,
+) {
+    let mut result: BitVector<DATASIZE> = undefined_bitvector(__id(datasize));
+    {
+        let operand1: BitVector<DATASIZE> = if { (n == 31) } {
+            subrange_bits(SP_read(core_ctx, ()), (datasize - 1), 0)
+        } else {
+            X_read(core_ctx, n, datasize)
+        };
+        let mut operand2: BitVector<DATASIZE> = imm;
+        {
+            let mut nzcv: BitVector<4> = undefined_bitvector::<4>(4);
+            {
+                let mut carry_in: BitVector<1> = undefined_bitvector::<1>(1);
+                {
+                    if { sub_op } {
+                        operand2 = !(operand2);
+                        carry_in = BitVector::<1>::new(0b1)
+                    } else {
+                        carry_in = BitVector::<1>::new(0b0)
+                    };
+                    let (tup__0, tup__1) = (AddWithCarry(operand1, operand2, carry_in)
+                        as (BitVector<DATASIZE>, BitVector<4>));
+                    result = tup__0;
+                    nzcv = tup__1;
+                    if { setflags } {
+                        {
+                            core_ctx.PSTATE.N = nzcv.subrange::<3, 4, 1>();
+                            core_ctx.PSTATE.Z = nzcv.subrange::<2, 3, 1>();
+                            core_ctx.PSTATE.C = nzcv.subrange::<1, 2, 1>();
+                            core_ctx.PSTATE.V = nzcv.subrange::<0, 1, 1>()
+                        }
+                    } else {
+                        ()
+                    };
+                    if { ((d == 31) && !(setflags)) } {
+                        SP_set(core_ctx, ZeroExtend0(result, 64))
+                    } else {
+                        X_set(core_ctx, d, datasize, result)
+                    }
+                }
             }
         }
     }

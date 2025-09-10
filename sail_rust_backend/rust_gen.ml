@@ -374,14 +374,18 @@ let sanitize_generic_id (id : string) : string =
   else id
 ;;
 
+let quote_regexp = Str.regexp "'"
+let qmark_regexp = Str.regexp "\?"
+
 (** Turn a Sail ID into a valid Rust id.
 
    Sail is a tiny bit more permissive with IDs than Rust. In particular, Sail
    allows quotes (`'`) at the end of an ID, which Rust does not. This function
        sanitizes the Sail IDs to make them valid in Rust. **)
 let sanitize_id (id : string) : string =
-  let quote_regexp = Str.regexp "'" in
-  Str.global_replace quote_regexp "__quote" id
+  id
+  |> Str.global_replace quote_regexp "__quote"
+  |> Str.global_replace qmark_regexp "__qmark"
 ;;
 
 (** Returns the set of IDs redefined by this pattern **)
