@@ -14,9 +14,18 @@ pub fn SInt0<const N: i128>(bits: BitVector<N>) -> i128 {
     bits.signed()
 }
 
-pub fn ZeroExtend0<const N: i128, const M: i128>(bits: BitVector<N>, n: i128) -> BitVector<M> {
-    assert_eq!(n, M, "ZeroExtend0 with the wring bit width");
+pub fn ZeroExtend0<const N: i128, const M: i128>(bits: BitVector<N>, m: i128) -> BitVector<M> {
+    assert_eq!(m, M, "ZeroExtend0 with the wring bit width");
     bits.zero_extend()
+}
+
+pub fn SignExtend0<const N: i128, const M: i128>(bits: BitVector<N>, m: i128) -> BitVector<M> {
+    assert_eq!(m, M, "ZeroExtend0 with the wring bit width");
+    bits.
+}
+
+pub const fn emod_nat(n: i128, m: i128) -> i128 {
+    n % m
 }
 
 pub const fn integer_subrange<const L: i128>(i: i128, hi: i128, lo: i128) -> BitVector<L> {
@@ -33,4 +42,12 @@ pub const fn integer_subrange<const L: i128>(i: i128, hi: i128, lo: i128) -> Bit
 pub const fn undefined_bitvector<const N: i128>(n: i128) -> BitVector<N> {
     assert!(n == N, "Compiler bug");
     bv(0)
+}
+
+pub const fn undefined_bool(_: ()) -> bool {
+    false
+}
+
+pub const fn undefined_int(_: ()) -> i128 {
+    0
 }

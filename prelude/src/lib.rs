@@ -110,6 +110,14 @@ pub const fn sail_zeros<const N: i128>(_n: i128) -> BitVector<N> {
     bv::<N>(0)
 }
 
+pub const fn sail_shiftright<const N: i128>(bits: BitVector<N>, shift: i128) -> BitVector<N> {
+    bv(bits.bits() >> (shift as u64))
+}
+
+pub const fn sail_shiftleft<const N: i128>(bits: BitVector<N>, shift: i128) -> BitVector<N> {
+    bv(bits.bits() << (shift as u64))
+}
+
 pub fn min_int(v1: i128, v2: i128) -> i128 {
     min(v1, v2)
 }

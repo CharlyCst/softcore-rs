@@ -4,6 +4,9 @@ let call_set =
   SSet.of_list
     [ (* Integer arithmetics *)
       "execute_aarch64_instrs_integer_arithmetic_add_sub_carry"
+    ; "execute_aarch64_instrs_integer_arithmetic_add_sub_immediate"
+    (* ; "execute_aarch64_instrs_integer_arithmetic_add_sub_extendedreg" *)
+    (* ; "execute_aarch64_instrs_integer_arithmetic_add_sub_shiftedreg" *)
     ]
 ;;
 
@@ -12,14 +15,21 @@ let external_func : SSet.t =
     [ "UInt0"
     ; "SInt0"
     ; "ZeroExtend0"
+    ; "SignExtend0"
+    ; "emod_nat"
     ; "get_slice_int"
     ; "sail_zeros"
+    ; "sail_shiftleft"
+    ; "sail_shiftright"
     ; "update_subrange_bits"
     ; "undefined_bitvector"
+    ; "undefined_bool"
+    ; "undefined_int"
     ; "bitvector_length"
     ; "bitvector_access"
     ; "bitvector_concat"
     ; "subrange_bits"
+    ; "min_int"
     ; "format!"
     ; "assert!"
     ; "panic!"
