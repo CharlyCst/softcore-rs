@@ -66,6 +66,9 @@ and transform_exp (ct : expr_type_transform) (ctx : context) (exp : rs_exp) : rs
   match exp with
   | RsLet (pat, exp, next) ->
     RsLet (transform_pat ct ctx pat, transform_exp ct ctx exp, transform_exp ct ctx next)
+  | RsLetMut (lexp, exp, next) ->
+    RsLetMut
+      (transform_lexp ct ctx lexp, transform_exp ct ctx exp, transform_exp ct ctx next)
   | RsApp (app, generics, args) -> transform_app ct ctx app generics args
   | RsStaticApp (app, method_name, args) ->
     RsStaticApp
@@ -528,6 +531,8 @@ let rec propagate_in_exp (ctx : bindings) (exp : rs_exp) : rs_exp =
     let ctx' = invalidate_bindings ctx (SSet.to_list new_ids) in
     (* We keep the old bindings in the let expression, but we use the new bindings in the body of the let expression *)
     RsLet (pat, propagate pat_exp, propagate_in_exp ctx' next)
+  | RsLetMut (lexp, exp, next) ->
+    RsLetMut (propagate_in_lexp ctx lexp, propagate exp, propagate next)
   | RsApp (fn, generics, args) -> RsApp (propagate fn, generics, propagate_list args)
   | RsMethodApp app ->
     RsMethodApp { app with exp = propagate app.exp; args = propagate_list app.args }
@@ -781,6 +786,14 @@ let rec rename_in_exp (rn : string * string) (exp : rs_exp) : rs_exp =
     else
       (* The ID is not shadowed, so we need to continue the renaming *)
       RsLet (pat, rename_in_exp exp, rename_in_exp next)
+  | RsLetMut (lexp, exp, next) ->
+    (match lexp with
+     | RsLexpId lexp_id when lexp_id = id ->
+       (*  The ID is being shadowed, stop renaming at that point*)
+       RsLetMut (lexp, rename_in_exp exp, next)
+     | _ ->
+       (* The ID is not shadowed, so we need to continue renaming *)
+       RsLetMut (rename_in_lexp rn lexp, rename_in_exp exp, rename_in_exp next))
   | RsApp (fn, generics, args) -> RsApp (rename_in_exp fn, generics, rename_in_exps args)
   | RsMethodApp app ->
     RsMethodApp { app with exp = rename_in_exp app.exp; args = rename_in_exps app.args }
@@ -1288,6 +1301,26 @@ let expr_type_operator_rewriter =
   }
 ;;
 
+(* —————————————————————————— Remove 'atom' types ——————————————————————————— *)
+
+let remove_atom_from_signature (func_sig : rs_fn_type) : rs_fn_type =
+  let rewrite_atom (typ : rs_type) : rs_type =
+    match typ with
+    | RsTypGenericParam ("atom_bool", _) -> bool_typ
+    | RsTypGenericParam ("atom", _) -> int_typ
+    | _ -> typ
+  in
+  let args = List.map rewrite_atom func_sig.args in
+  let ret = rewrite_atom func_sig.ret in
+  { func_sig with args; ret }
+;;
+
+let atom_rewriter_func (ctx : context) (func : rs_fn) : rs_fn =
+  { func with signature = remove_atom_from_signature func.signature }
+;;
+
+let atom_rewriter = { func = atom_rewriter_func }
+
 (* ———————————————————————— type bits = bitvector filter  ————————————————————————— *)
 
 let filter_bits_bitvector_alias (obj : rs_obj) : rs_program =
@@ -1606,6 +1639,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
   let rust_program = rust_transform_expr sail_context_arg_inserter ctx rust_program in
   let rust_program = rust_transform_expr expr_type_hoister ctx rust_program in
   let rust_program = rust_transform_expr expr_type_operator_rewriter ctx rust_program in
+  let rust_program = rust_transform_func atom_rewriter ctx rust_program in
   let rust_program = rust_transform_func const_fn_rewriter ctx rust_program in
   let rust_program = rust_transform_func operator_rewriter ctx rust_program in
   let rust_program = fix_point optimizer ctx rust_program 5 in

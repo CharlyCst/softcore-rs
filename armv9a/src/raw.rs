@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -1407,12 +1407,10 @@ pub struct Core {
 }
 
 #[derive(Eq, PartialEq, Clone, Debug)]
-pub struct Config {
-
-}
+pub struct Config {}
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers(core_ctx: &mut Core) {
     core_ctx.FEAT_AA32EL0_IMPLEMENTED = true;
@@ -1740,7 +1738,8 @@ pub fn _reset_all_registers(core_ctx: &mut Core) {
     core_ctx.__rme_l0gptsz = _reset___rme_l0gptsz();
     core_ctx.__supported_va_size = 56;
     core_ctx.__g1_activity_monitor_implemented = _reset___g1_activity_monitor_implemented();
-    core_ctx.__g1_activity_monitor_offset_implemented = _reset___g1_activity_monitor_offset_implemented();
+    core_ctx.__g1_activity_monitor_offset_implemented =
+        _reset___g1_activity_monitor_offset_implemented();
     core_ctx.__CTIBase = _reset___CTIBase();
     core_ctx.__CNTControlBase = _reset___CNTControlBase();
     core_ctx.__ExtDebugBase = _reset___ExtDebugBase();
@@ -1778,2556 +1777,2595 @@ pub fn _reset_all_registers(core_ctx: &mut Core) {
 }
 
 /// Initialize the FEAT_AA32EL0_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L351.
 pub const fn _reset_FEAT_AA32EL0_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AA32EL1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L353.
 pub const fn _reset_FEAT_AA32EL1_IMPLEMENTED() -> bool {
     false
 }
 
 /// Initialize the FEAT_AA32EL2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L355.
 pub const fn _reset_FEAT_AA32EL2_IMPLEMENTED() -> bool {
     false
 }
 
 /// Initialize the FEAT_AA32EL3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L357.
 pub const fn _reset_FEAT_AA32EL3_IMPLEMENTED() -> bool {
     false
 }
 
 /// Initialize the FEAT_AA64EL0_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L359.
 pub const fn _reset_FEAT_AA64EL0_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AA64EL1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L361.
 pub const fn _reset_FEAT_AA64EL1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AA64EL2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L363.
 pub const fn _reset_FEAT_AA64EL2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AA64EL3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L365.
 pub const fn _reset_FEAT_AA64EL3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_EL0_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L367.
 pub const fn _reset_FEAT_EL0_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_EL1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L369.
 pub const fn _reset_FEAT_EL1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_EL2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L371.
 pub const fn _reset_FEAT_EL2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_EL3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L373.
 pub const fn _reset_FEAT_EL3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AES_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L375.
 pub const fn _reset_FEAT_AES_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AdvSIMD_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L377.
 pub const fn _reset_FEAT_AdvSIMD_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CSV2_1p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L379.
 pub const fn _reset_FEAT_CSV2_1p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CSV2_1p2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L381.
 pub const fn _reset_FEAT_CSV2_1p2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CSV2_2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L383.
 pub const fn _reset_FEAT_CSV2_2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CSV2_3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L385.
 pub const fn _reset_FEAT_CSV2_3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DoubleLock_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L387.
 pub const fn _reset_FEAT_DoubleLock_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETMv4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L389.
 pub const fn _reset_FEAT_ETMv4_IMPLEMENTED() -> bool {
     false
 }
 
 /// Initialize the FEAT_ETMv4p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L391.
 pub const fn _reset_FEAT_ETMv4p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETMv4p2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L393.
 pub const fn _reset_FEAT_ETMv4p2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETMv4p3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L395.
 pub const fn _reset_FEAT_ETMv4p3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETMv4p4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L397.
 pub const fn _reset_FEAT_ETMv4p4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETMv4p5_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L399.
 pub const fn _reset_FEAT_ETMv4p5_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETMv4p6_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L401.
 pub const fn _reset_FEAT_ETMv4p6_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETS2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L403.
 pub const fn _reset_FEAT_ETS2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FP_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L405.
 pub const fn _reset_FEAT_FP_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GICv3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L407.
 pub const fn _reset_FEAT_GICv3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GICv3_LEGACY_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L409.
 pub const fn _reset_FEAT_GICv3_LEGACY_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GICv3_TDIR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L411.
 pub const fn _reset_FEAT_GICv3_TDIR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GICv3p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L413.
 pub const fn _reset_FEAT_GICv3p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GICv4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L415.
 pub const fn _reset_FEAT_GICv4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GICv4p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L417.
 pub const fn _reset_FEAT_GICv4p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_IVIPT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L419.
 pub const fn _reset_FEAT_IVIPT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PCSRv8_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L421.
 pub const fn _reset_FEAT_PCSRv8_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMULL_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L423.
 pub const fn _reset_FEAT_PMULL_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L425.
 pub const fn _reset_FEAT_PMUv3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3_EXT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L427.
 pub const fn _reset_FEAT_PMUv3_EXT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3_EXT32_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L429.
 pub const fn _reset_FEAT_PMUv3_EXT32_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SHA1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L431.
 pub const fn _reset_FEAT_SHA1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SHA256_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L433.
 pub const fn _reset_FEAT_SHA256_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TRC_EXT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L435.
 pub const fn _reset_FEAT_TRC_EXT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TRC_SR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L437.
 pub const fn _reset_FEAT_TRC_SR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_nTLBPA_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L439.
 pub const fn _reset_FEAT_nTLBPA_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CRC32_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L441.
 pub const fn _reset_FEAT_CRC32_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_Debugv8p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L443.
 pub const fn _reset_FEAT_Debugv8p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_HAFDBS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L445.
 pub const fn _reset_FEAT_HAFDBS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_HPDS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L447.
 pub const fn _reset_FEAT_HPDS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LOR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L449.
 pub const fn _reset_FEAT_LOR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LSE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L451.
 pub const fn _reset_FEAT_LSE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PAN_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L453.
 pub const fn _reset_FEAT_PAN_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L455.
 pub const fn _reset_FEAT_PMUv3p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RDM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L457.
 pub const fn _reset_FEAT_RDM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_VHE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L459.
 pub const fn _reset_FEAT_VHE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_VMID16_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L461.
 pub const fn _reset_FEAT_VMID16_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AA32BF16_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L463.
 pub const fn _reset_FEAT_AA32BF16_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AA32HPD_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L465.
 pub const fn _reset_FEAT_AA32HPD_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AA32I8MM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L467.
 pub const fn _reset_FEAT_AA32I8MM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ASMv8p2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L469.
 pub const fn _reset_FEAT_ASMv8p2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DPB_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L471.
 pub const fn _reset_FEAT_DPB_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_Debugv8p2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L473.
 pub const fn _reset_FEAT_Debugv8p2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_EDHSR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L475.
 pub const fn _reset_FEAT_EDHSR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_F32MM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L477.
 pub const fn _reset_FEAT_F32MM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_F64MM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L479.
 pub const fn _reset_FEAT_F64MM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FP16_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L481.
 pub const fn _reset_FEAT_FP16_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_HPDS2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L483.
 pub const fn _reset_FEAT_HPDS2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_I8MM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L485.
 pub const fn _reset_FEAT_I8MM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_IESB_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L487.
 pub const fn _reset_FEAT_IESB_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LPA_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L489.
 pub const fn _reset_FEAT_LPA_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LSMAOC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L491.
 pub const fn _reset_FEAT_LSMAOC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LVA_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L493.
 pub const fn _reset_FEAT_LVA_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MPAM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L495.
 pub const fn _reset_FEAT_MPAM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PAN2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L497.
 pub const fn _reset_FEAT_PAN2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PCSRv8p2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L499.
 pub const fn _reset_FEAT_PCSRv8p2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RAS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L501.
 pub const fn _reset_FEAT_RAS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SHA3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L503.
 pub const fn _reset_FEAT_SHA3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SHA512_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L505.
 pub const fn _reset_FEAT_SHA512_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SM3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L507.
 pub const fn _reset_FEAT_SM3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SM4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L509.
 pub const fn _reset_FEAT_SM4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L511.
 pub const fn _reset_FEAT_SPE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L513.
 pub const fn _reset_FEAT_SVE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TTCNP_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L515.
 pub const fn _reset_FEAT_TTCNP_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_UAO_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L517.
 pub const fn _reset_FEAT_UAO_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_VPIPT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L519.
 pub const fn _reset_FEAT_VPIPT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_XNX_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L521.
 pub const fn _reset_FEAT_XNX_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CCIDX_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L523.
 pub const fn _reset_FEAT_CCIDX_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CONSTPACFIELD_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L525.
 pub const fn _reset_FEAT_CONSTPACFIELD_IMPLEMENTED() -> bool {
     false
 }
 
 /// Initialize the FEAT_EPAC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L527.
 pub const fn _reset_FEAT_EPAC_IMPLEMENTED() -> bool {
     false
 }
 
 /// Initialize the FEAT_FCMA_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L529.
 pub const fn _reset_FEAT_FCMA_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FPAC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L531.
 pub const fn _reset_FEAT_FPAC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FPACCOMBINE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L533.
 pub const fn _reset_FEAT_FPACCOMBINE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_JSCVT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L535.
 pub const fn _reset_FEAT_JSCVT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LRCPC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L537.
 pub const fn _reset_FEAT_LRCPC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_NV_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L539.
 pub const fn _reset_FEAT_NV_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PACIMP_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L541.
 pub const fn _reset_FEAT_PACIMP_IMPLEMENTED() -> bool {
     false
 }
 
 /// Initialize the FEAT_PACQARMA3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L543.
 pub const fn _reset_FEAT_PACQARMA3_IMPLEMENTED() -> bool {
     false
 }
 
 /// Initialize the FEAT_PACQARMA5_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L545.
 pub const fn _reset_FEAT_PACQARMA5_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PAuth_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L547.
 pub const fn _reset_FEAT_PAuth_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPEv1p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L549.
 pub const fn _reset_FEAT_SPEv1p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AMUv1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L551.
 pub const fn _reset_FEAT_AMUv1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_BBM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L553.
 pub const fn _reset_FEAT_BBM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CNTSC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L555.
 pub const fn _reset_FEAT_CNTSC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DIT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L557.
 pub const fn _reset_FEAT_DIT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_Debugv8p4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L559.
 pub const fn _reset_FEAT_Debugv8p4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DotProd_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L561.
 pub const fn _reset_FEAT_DotProd_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DoubleFault_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L563.
 pub const fn _reset_FEAT_DoubleFault_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FHM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L565.
 pub const fn _reset_FEAT_FHM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FlagM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L567.
 pub const fn _reset_FEAT_FlagM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_IDST_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L569.
 pub const fn _reset_FEAT_IDST_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LRCPC2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L571.
 pub const fn _reset_FEAT_LRCPC2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LSE2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L573.
 pub const fn _reset_FEAT_LSE2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_NV2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L575.
 pub const fn _reset_FEAT_NV2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3p4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L577.
 pub const fn _reset_FEAT_PMUv3p4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RASSAv1p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L579.
 pub const fn _reset_FEAT_RASSAv1p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RASv1p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L581.
 pub const fn _reset_FEAT_RASv1p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_S2FWB_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L583.
 pub const fn _reset_FEAT_S2FWB_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SEL2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L585.
 pub const fn _reset_FEAT_SEL2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TLBIOS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L587.
 pub const fn _reset_FEAT_TLBIOS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TLBIRANGE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L589.
 pub const fn _reset_FEAT_TLBIRANGE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TRF_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L591.
 pub const fn _reset_FEAT_TRF_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TTL_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L593.
 pub const fn _reset_FEAT_TTL_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TTST_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L595.
 pub const fn _reset_FEAT_TTST_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_BTI_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L597.
 pub const fn _reset_FEAT_BTI_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CSV2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L599.
 pub const fn _reset_FEAT_CSV2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CSV3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L601.
 pub const fn _reset_FEAT_CSV3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DPB2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L603.
 pub const fn _reset_FEAT_DPB2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_E0PD_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L605.
 pub const fn _reset_FEAT_E0PD_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_EVT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L607.
 pub const fn _reset_FEAT_EVT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ExS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L609.
 pub const fn _reset_FEAT_ExS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FRINTTS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L611.
 pub const fn _reset_FEAT_FRINTTS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FlagM2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L613.
 pub const fn _reset_FEAT_FlagM2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GTG_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L615.
 pub const fn _reset_FEAT_GTG_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L617.
 pub const fn _reset_FEAT_MTE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L619.
 pub const fn _reset_FEAT_MTE2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3p5_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L621.
 pub const fn _reset_FEAT_PMUv3p5_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RNG_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L623.
 pub const fn _reset_FEAT_RNG_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RNG_TRAP_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L625.
 pub const fn _reset_FEAT_RNG_TRAP_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SB_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L627.
 pub const fn _reset_FEAT_SB_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPECRES_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L629.
 pub const fn _reset_FEAT_SPECRES_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SSBS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L631.
 pub const fn _reset_FEAT_SSBS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SSBS2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L633.
 pub const fn _reset_FEAT_SSBS2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AMUv1p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L635.
 pub const fn _reset_FEAT_AMUv1p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_BF16_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L637.
 pub const fn _reset_FEAT_BF16_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DGH_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L639.
 pub const fn _reset_FEAT_DGH_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ECV_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L641.
 pub const fn _reset_FEAT_ECV_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FGT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L643.
 pub const fn _reset_FEAT_FGT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_HPMN0_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L645.
 pub const fn _reset_FEAT_HPMN0_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MPAMv0p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L647.
 pub const fn _reset_FEAT_MPAMv0p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MPAMv1p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L649.
 pub const fn _reset_FEAT_MPAMv1p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTPMU_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L651.
 pub const fn _reset_FEAT_MTPMU_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PAuth2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L653.
 pub const fn _reset_FEAT_PAuth2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TWED_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L655.
 pub const fn _reset_FEAT_TWED_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AFP_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L657.
 pub const fn _reset_FEAT_AFP_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_EBF16_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L659.
 pub const fn _reset_FEAT_EBF16_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_HCX_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L661.
 pub const fn _reset_FEAT_HCX_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LPA2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L663.
 pub const fn _reset_FEAT_LPA2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LS64_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L665.
 pub const fn _reset_FEAT_LS64_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LS64_ACCDATA_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L667.
 pub const fn _reset_FEAT_LS64_ACCDATA_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LS64_V_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L669.
 pub const fn _reset_FEAT_LS64_V_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L671.
 pub const fn _reset_FEAT_MTE3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PAN3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L673.
 pub const fn _reset_FEAT_PAN3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3p7_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L675.
 pub const fn _reset_FEAT_PMUv3p7_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RPRES_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L677.
 pub const fn _reset_FEAT_RPRES_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPEv1p2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L679.
 pub const fn _reset_FEAT_SPEv1p2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_WFxT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L681.
 pub const fn _reset_FEAT_WFxT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_XS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L683.
 pub const fn _reset_FEAT_XS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CMOW_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L685.
 pub const fn _reset_FEAT_CMOW_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_Debugv8p8_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L687.
 pub const fn _reset_FEAT_Debugv8p8_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GICv3_NMI_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L689.
 pub const fn _reset_FEAT_GICv3_NMI_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_HBC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L691.
 pub const fn _reset_FEAT_HBC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MOPS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L693.
 pub const fn _reset_FEAT_MOPS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_NMI_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L695.
 pub const fn _reset_FEAT_NMI_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3_EXT64_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L697.
 pub const fn _reset_FEAT_PMUv3_EXT64_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3_TH_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L699.
 pub const fn _reset_FEAT_PMUv3_TH_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3p8_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L701.
 pub const fn _reset_FEAT_PMUv3p8_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SCTLR2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L703.
 pub const fn _reset_FEAT_SCTLR2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPEv1p3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L705.
 pub const fn _reset_FEAT_SPEv1p3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TCR2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L707.
 pub const fn _reset_FEAT_TCR2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TIDCP1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L709.
 pub const fn _reset_FEAT_TIDCP1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ADERR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L711.
 pub const fn _reset_FEAT_ADERR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_AIE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L713.
 pub const fn _reset_FEAT_AIE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ANERR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L715.
 pub const fn _reset_FEAT_ANERR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CLRBHB_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L717.
 pub const fn _reset_FEAT_CLRBHB_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CSSC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L719.
 pub const fn _reset_FEAT_CSSC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_Debugv8p9_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L721.
 pub const fn _reset_FEAT_Debugv8p9_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DoubleFault2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L723.
 pub const fn _reset_FEAT_DoubleFault2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ECBHB_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L725.
 pub const fn _reset_FEAT_ECBHB_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_FGT2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L727.
 pub const fn _reset_FEAT_FGT2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_HAFT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L729.
 pub const fn _reset_FEAT_HAFT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LRCPC3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L731.
 pub const fn _reset_FEAT_LRCPC3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L733.
 pub const fn _reset_FEAT_MTE4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE_ASYM_FAULT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L735.
 pub const fn _reset_FEAT_MTE_ASYM_FAULT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE_ASYNC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L737.
 pub const fn _reset_FEAT_MTE_ASYNC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE_CANONICAL_TAGS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L739.
 pub const fn _reset_FEAT_MTE_CANONICAL_TAGS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE_NO_ADDRESS_TAGS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L741.
 pub const fn _reset_FEAT_MTE_NO_ADDRESS_TAGS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE_PERM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L743.
 pub const fn _reset_FEAT_MTE_PERM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE_STORE_ONLY_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L745.
 pub const fn _reset_FEAT_MTE_STORE_ONLY_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MTE_TAGGED_FAR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L747.
 pub const fn _reset_FEAT_MTE_TAGGED_FAR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PCSRv8p9_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L749.
 pub const fn _reset_FEAT_PCSRv8p9_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PFAR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L751.
 pub const fn _reset_FEAT_PFAR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3_EDGE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L753.
 pub const fn _reset_FEAT_PMUv3_EDGE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3_ICNTR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L755.
 pub const fn _reset_FEAT_PMUv3_ICNTR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3_SS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L757.
 pub const fn _reset_FEAT_PMUv3_SS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PMUv3p9_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L759.
 pub const fn _reset_FEAT_PMUv3p9_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_PRFMSLC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L761.
 pub const fn _reset_FEAT_PRFMSLC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RASSAv2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L763.
 pub const fn _reset_FEAT_RASSAv2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RASv2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L765.
 pub const fn _reset_FEAT_RASv2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RPRFM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L767.
 pub const fn _reset_FEAT_RPRFM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_S1PIE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L769.
 pub const fn _reset_FEAT_S1PIE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_S1POE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L771.
 pub const fn _reset_FEAT_S1POE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_S2PIE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L773.
 pub const fn _reset_FEAT_S2PIE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_S2POE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L775.
 pub const fn _reset_FEAT_S2POE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPECRES2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L777.
 pub const fn _reset_FEAT_SPECRES2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPE_CRR_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L779.
 pub const fn _reset_FEAT_SPE_CRR_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPE_FDS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L781.
 pub const fn _reset_FEAT_SPE_FDS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPEv1p4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L783.
 pub const fn _reset_FEAT_SPEv1p4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SPMU_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L785.
 pub const fn _reset_FEAT_SPMU_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_THE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L787.
 pub const fn _reset_FEAT_THE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_DoPD_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L789.
 pub const fn _reset_FEAT_DoPD_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L791.
 pub const fn _reset_FEAT_ETE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L793.
 pub const fn _reset_FEAT_SVE2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE_AES_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L795.
 pub const fn _reset_FEAT_SVE_AES_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE_BitPerm_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L797.
 pub const fn _reset_FEAT_SVE_BitPerm_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE_PMULL128_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L799.
 pub const fn _reset_FEAT_SVE_PMULL128_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE_SHA3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L801.
 pub const fn _reset_FEAT_SVE_SHA3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE_SM4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L803.
 pub const fn _reset_FEAT_SVE_SM4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TME_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L805.
 pub const fn _reset_FEAT_TME_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TRBE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L807.
 pub const fn _reset_FEAT_TRBE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETEv1p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L809.
 pub const fn _reset_FEAT_ETEv1p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_BRBE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L811.
 pub const fn _reset_FEAT_BRBE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETEv1p2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L813.
 pub const fn _reset_FEAT_ETEv1p2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_RME_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L815.
 pub const fn _reset_FEAT_RME_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SME_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L817.
 pub const fn _reset_FEAT_SME_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SME_F64F64_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L819.
 pub const fn _reset_FEAT_SME_F64F64_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SME_FA64_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L821.
 pub const fn _reset_FEAT_SME_FA64_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SME_I16I64_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L823.
 pub const fn _reset_FEAT_SME_I16I64_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_BRBEv1p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L825.
 pub const fn _reset_FEAT_BRBEv1p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_MEC_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L827.
 pub const fn _reset_FEAT_MEC_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SME2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L829.
 pub const fn _reset_FEAT_SME2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ABLE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L831.
 pub const fn _reset_FEAT_ABLE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_CHK_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L833.
 pub const fn _reset_FEAT_CHK_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_D128_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L835.
 pub const fn _reset_FEAT_D128_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_EBEP_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L837.
 pub const fn _reset_FEAT_EBEP_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ETEv1p3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L839.
 pub const fn _reset_FEAT_ETEv1p3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_GCS_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L841.
 pub const fn _reset_FEAT_GCS_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_ITE_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L843.
 pub const fn _reset_FEAT_ITE_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LSE128_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L845.
 pub const fn _reset_FEAT_LSE128_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_LVA3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L847.
 pub const fn _reset_FEAT_LVA3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SEBEP_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L849.
 pub const fn _reset_FEAT_SEBEP_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SME2p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L851.
 pub const fn _reset_FEAT_SME2p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SME_F16F16_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L853.
 pub const fn _reset_FEAT_SME_F16F16_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE2p1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L855.
 pub const fn _reset_FEAT_SVE2p1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SVE_B16B16_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L857.
 pub const fn _reset_FEAT_SVE_B16B16_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SYSINSTR128_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L859.
 pub const fn _reset_FEAT_SYSINSTR128_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_SYSREG128_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L861.
 pub const fn _reset_FEAT_SYSREG128_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TRBE_EXT_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L863.
 pub const fn _reset_FEAT_TRBE_EXT_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the FEAT_TRBE_MPAM_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L865.
 pub const fn _reset_FEAT_TRBE_MPAM_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap0_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L867.
 pub const fn _reset_v8Ap0_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L869.
 pub const fn _reset_v8Ap1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L871.
 pub const fn _reset_v8Ap2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L873.
 pub const fn _reset_v8Ap3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L875.
 pub const fn _reset_v8Ap4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap5_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L877.
 pub const fn _reset_v8Ap5_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap6_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L879.
 pub const fn _reset_v8Ap6_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap7_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L881.
 pub const fn _reset_v8Ap7_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap8_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L883.
 pub const fn _reset_v8Ap8_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v8Ap9_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L885.
 pub const fn _reset_v8Ap9_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v9Ap0_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L887.
 pub const fn _reset_v9Ap0_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v9Ap1_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L889.
 pub const fn _reset_v9Ap1_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v9Ap2_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L891.
 pub const fn _reset_v9Ap2_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v9Ap3_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L893.
 pub const fn _reset_v9Ap3_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the v9Ap4_IMPLEMENTED register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L895.
 pub const fn _reset_v9Ap4_IMPLEMENTED() -> bool {
     true
 }
 
 /// Initialize the NUM_AMU_COUNTER_GROUPS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1192.
 pub const fn _reset_NUM_AMU_COUNTER_GROUPS() -> i128 {
     2
 }
 
 /// Initialize the NUM_AMU_CG0_MONITORS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1194.
 pub const fn _reset_NUM_AMU_CG0_MONITORS() -> i128 {
     4
 }
 
 /// Initialize the NUM_AMU_CG1_MONITORS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1196.
 pub const fn _reset_NUM_AMU_CG1_MONITORS() -> i128 {
     16
 }
 
 /// Initialize the NUM_PMU_COUNTERS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1198.
 pub const fn _reset_NUM_PMU_COUNTERS() -> i128 {
     31
 }
 
 /// Initialize the NUM_BRBE_RECORDS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1200.
 pub const fn _reset_NUM_BRBE_RECORDS() -> i128 {
     64
 }
 
 /// Initialize the NUM_GIC_PREEMPTION_BITS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1202.
 pub const fn _reset_NUM_GIC_PREEMPTION_BITS() -> i128 {
     5
 }
 
 /// Initialize the NUM_GIC_PRIORITY_BITS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1204.
 pub const fn _reset_NUM_GIC_PRIORITY_BITS() -> i128 {
     5
 }
 
 /// Initialize the NUM_GIC_LIST_REGS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1206.
 pub const fn _reset_NUM_GIC_LIST_REGS() -> i128 {
     16
 }
 
 /// Initialize the NUM_BREAKPOINTS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1208.
 pub fn _reset_NUM_BREAKPOINTS() -> i128 {
     -(1)
 }
 
 /// Initialize the NUM_WATCHPOINTS register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1210.
 pub fn _reset_NUM_WATCHPOINTS() -> i128 {
     -(1)
 }
 
 /// Initialize the __apply_effective_shareability register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3509.
 pub const fn _reset___apply_effective_shareability() -> bool {
     true
 }
 
 /// Initialize the __cpy_mops_option_a_supported register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3511.
 pub const fn _reset___cpy_mops_option_a_supported() -> bool {
     true
 }
 
 /// Initialize the __cpyf_mops_option_a_supported register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3513.
 pub const fn _reset___cpyf_mops_option_a_supported() -> bool {
     true
 }
 
 /// Initialize the __empam_force_ns_RAO register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3515.
 pub const fn _reset___empam_force_ns_RAO() -> bool {
     false
 }
 
 /// Initialize the __empam_force_ns_implemented register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3517.
 pub const fn _reset___empam_force_ns_implemented() -> bool {
     false
 }
 
 /// Initialize the __empam_sdeflt_implemented register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3519.
 pub const fn _reset___empam_sdeflt_implemented() -> bool {
     false
 }
 
 /// Initialize the __empam_tidr_implemented register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3521.
 pub const fn _reset___empam_tidr_implemented() -> bool {
     false
 }
 
 /// Initialize the __feat_rpres register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3523.
 pub const fn _reset___feat_rpres() -> bool {
     true
 }
 
 /// Initialize the __has_sme_priority_control register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3525.
 pub const fn _reset___has_sme_priority_control() -> bool {
     true
 }
 
 /// Initialize the __isb_is_branch register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3527.
 pub const fn _reset___isb_is_branch() -> bool {
     true
 }
 
 /// Initialize the __mpam_frac register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3529.
 pub fn _reset___mpam_frac() -> BitVector<4> {
     CFG_MPAM_frac_none
 }
 
 /// Initialize the __mpam_major register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3531.
 pub fn _reset___mpam_major() -> BitVector<4> {
     CFG_MPAM_none
 }
 
 /// Initialize the __mte_implemented register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3533.
 pub fn _reset___mte_implemented() -> BitVector<4> {
     BitVector::<4>::new(0b0010)
 }
 
 /// Initialize the __set_mops_option_a_supported register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3535.
 pub const fn _reset___set_mops_option_a_supported() -> bool {
     true
 }
 
 /// Initialize the __setg_mops_option_a_supported register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3537.
 pub const fn _reset___setg_mops_option_a_supported() -> bool {
     true
 }
 
 /// Initialize the __sme_only register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3539.
 pub const fn _reset___sme_only() -> bool {
     false
 }
 
 /// Initialize the __block_bbm_implemented register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3859.
 pub fn _reset___block_bbm_implemented() -> i128 {
     UInt0(BitVector::<4>::new(0b0010))
 }
 
 /// Initialize the __has_sve_extended_bf16 register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3861.
 pub const fn _reset___has_sve_extended_bf16() -> i128 {
     2
 }
 
 /// Initialize the __max_implemented_smeveclen register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3863.
 pub const fn _reset___max_implemented_smeveclen() -> i128 {
     512
 }
 
 /// Initialize the __max_implemented_sveveclen register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3865.
 pub const fn _reset___max_implemented_sveveclen() -> i128 {
     2048
 }
 
 /// Initialize the __supported_pa_size register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3867.
 pub const fn _reset___supported_pa_size() -> i128 {
     56
 }
 
 /// Initialize the CFG_RVBAR register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5666.
 pub fn _reset_CFG_RVBAR() -> BitVector<64> {
     ZeroExtend0(BitVector::<4>::new(0b0000), 64)
 }
 
 /// Initialize the __impdef_TG0 register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5668.
 pub fn _reset___impdef_TG0() -> BitVector<2> {
     BitVector::<2>::new(0b00)
 }
 
 /// Initialize the __impdef_TG1 register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5670.
 pub fn _reset___impdef_TG1() -> BitVector<2> {
     BitVector::<2>::new(0b10)
 }
 
 /// Initialize the __mpam_has_hcr register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5672.
 pub const fn _reset___mpam_has_hcr() -> bool {
     true
 }
 
 /// Initialize the __mpam_partid_max register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5674.
 pub fn _reset___mpam_partid_max() -> BitVector<16> {
     Zeros::<16>(16)
 }
 
 /// Initialize the __mpam_pmg_max register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5676.
 pub fn _reset___mpam_pmg_max() -> BitVector<8> {
     Zeros::<8>(8)
 }
 
 /// Initialize the __mpam_vpmr_max register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5678.
 pub fn _reset___mpam_vpmr_max() -> BitVector<3> {
     Zeros::<3>(3)
 }
 
 /// Initialize the __GIC_Active register.
-/// 
+///
 /// Generated from the Sail sources at `src/devices.sail` L65.
 pub fn _reset___GIC_Active() -> Option<InterruptID> {
     None
 }
 
 /// Initialize the __GIC_Pending register.
-/// 
+///
 /// Generated from the Sail sources at `src/devices.sail` L64.
 pub fn _reset___GIC_Pending() -> Option<InterruptID> {
     None
 }
 
 /// Initialize the __tlb_enabled register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L19790.
 pub const fn _reset___tlb_enabled() -> bool {
     false
 }
 
 /// Initialize the __exclusive_granule_size register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39963.
 pub fn _reset___exclusive_granule_size() -> BitVector<4> {
     BitVector::<4>::new(0b0100)
 }
 
 /// Initialize the __num_ctx_breakpoints register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39951.
 pub fn _reset___num_ctx_breakpoints(core_ctx: &mut Core) -> i128 {
     core_ctx.NUM_BREAKPOINTS
 }
 
 /// Initialize the CFG_MPIDR register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39991.
 pub fn _reset_CFG_MPIDR() -> BitVector<32> {
     BitVector::<32>::new(0b10000000000000000000000000000000)
 }
 
 /// Initialize the __CNTbase_frequency register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39959.
 pub fn _reset___CNTbase_frequency() -> BitVector<32> {
     BitVector::<32>::new(0b00000101111101011110000100000000)
 }
 
 /// Initialize the __dczid_log2_block_size register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39947.
 pub fn _reset___dczid_log2_block_size() -> i128 {
     UInt0(BitVector::<4>::new(0b1000))
 }
 
 /// Initialize the __gmid_log2_block_size register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39949.
 pub fn _reset___gmid_log2_block_size() -> i128 {
     UInt0(BitVector::<4>::new(0b0100))
 }
 
 /// Initialize the __mecid_width register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39989.
 pub fn _reset___mecid_width() -> BitVector<4> {
     BitVector::<4>::new(0b0000)
 }
 
 /// Initialize the __mpam_has_altsp register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39965.
 pub const fn _reset___mpam_has_altsp() -> bool {
     true
 }
 
 /// Initialize the __rme_l0gptsz register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39977.
 pub fn _reset___rme_l0gptsz() -> BitVector<4> {
     Zeros::<4>(4)
 }
 
 /// Initialize the __supported_va_size register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39943.
 pub const fn _reset___supported_va_size() -> i128 {
     56
 }
 
 /// Initialize the __g1_activity_monitor_implemented register.
-/// 
+///
 /// Generated from the Sail sources at `src/impdefs.sail` L867.
 pub fn _reset___g1_activity_monitor_implemented() -> BitVector<16> {
     BitVector::<16>::new(0b0000000000000000)
 }
 
 /// Initialize the __g1_activity_monitor_offset_implemented register.
-/// 
+///
 /// Generated from the Sail sources at `src/impdefs.sail` L874.
 pub fn _reset___g1_activity_monitor_offset_implemented() -> BitVector<16> {
     BitVector::<16>::new(0b0000000000000000)
 }
 
 /// Initialize the __CTIBase register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39850.
 pub fn _reset___CTIBase() -> BitVector<56> {
-    integer_subrange(UInt0(BitVector::<32>::new(0b00100010000000100000000000000000)), 55, 0)
+    integer_subrange(
+        UInt0(BitVector::<32>::new(0b00100010000000100000000000000000)),
+        55,
+        0,
+    )
 }
 
 /// Initialize the __CNTControlBase register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39852.
 pub fn _reset___CNTControlBase() -> BitVector<56> {
-    integer_subrange(UInt0(BitVector::<32>::new(0b00010110001000000000000000000000)), 55, 0)
+    integer_subrange(
+        UInt0(BitVector::<32>::new(0b00010110001000000000000000000000)),
+        55,
+        0,
+    )
 }
 
 /// Initialize the __ExtDebugBase register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39854.
 pub fn _reset___ExtDebugBase() -> BitVector<56> {
-    integer_subrange(UInt0(BitVector::<32>::new(0b00100010000000010000000000000000)), 55, 0)
+    integer_subrange(
+        UInt0(BitVector::<32>::new(0b00100010000000010000000000000000)),
+        55,
+        0,
+    )
 }
 
 /// Initialize the __GICCPUInterfaceBase register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39856.
 pub fn _reset___GICCPUInterfaceBase() -> BitVector<56> {
-    integer_subrange(UInt0(BitVector::<32>::new(0b00010011000010000010000000000000)), 55, 0)
+    integer_subrange(
+        UInt0(BitVector::<32>::new(0b00010011000010000010000000000000)),
+        55,
+        0,
+    )
 }
 
 /// Initialize the __GICDistBase register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39858.
 pub fn _reset___GICDistBase() -> BitVector<56> {
-    integer_subrange(UInt0(BitVector::<32>::new(0b00101100000000010000000000000000)), 55, 0)
+    integer_subrange(
+        UInt0(BitVector::<32>::new(0b00101100000000010000000000000000)),
+        55,
+        0,
+    )
 }
 
 /// Initialize the __GICITSControlBase register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39860.
 pub fn _reset___GICITSControlBase() -> BitVector<56> {
-    integer_subrange(UInt0(BitVector::<32>::new(0b00101100000100100000000000000000)), 55, 0)
+    integer_subrange(
+        UInt0(BitVector::<32>::new(0b00101100000100100000000000000000)),
+        55,
+        0,
+    )
 }
 
 /// Initialize the __PMUBase register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39862.
 pub fn _reset___PMUBase() -> BitVector<56> {
-    integer_subrange(UInt0(BitVector::<32>::new(0b00100010000000110000000000000000)), 55, 0)
+    integer_subrange(
+        UInt0(BitVector::<32>::new(0b00100010000000110000000000000000)),
+        55,
+        0,
+    )
 }
 
 /// Initialize the __syncAbortOnReadNormCache register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39882.
 pub const fn _reset___syncAbortOnReadNormCache() -> bool {
     true
 }
 
 /// Initialize the __syncAbortOnReadNormNonCache register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39884.
 pub const fn _reset___syncAbortOnReadNormNonCache() -> bool {
     true
 }
 
 /// Initialize the __syncAbortOnDeviceRead register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39886.
 pub const fn _reset___syncAbortOnDeviceRead() -> bool {
     true
 }
 
 /// Initialize the __syncAbortOnSoRead register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39888.
 pub const fn _reset___syncAbortOnSoRead() -> bool {
     true
 }
 
 /// Initialize the __syncAbortOnSoWrite register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39890.
 pub const fn _reset___syncAbortOnSoWrite() -> bool {
     true
 }
 
 /// Initialize the __syncAbortOnPrefetch register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39892.
 pub const fn _reset___syncAbortOnPrefetch() -> bool {
     true
 }
 
 /// Initialize the __syncAbortOnTTWCache register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39894.
 pub const fn _reset___syncAbortOnTTWCache() -> bool {
     true
 }
 
 /// Initialize the __syncAbortOnTTWNonCache register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39896.
 pub const fn _reset___syncAbortOnTTWNonCache() -> bool {
     true
 }
 
 /// Initialize the __syncAbortOnWriteNormCache register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39898.
 pub const fn _reset___syncAbortOnWriteNormCache() -> bool {
     false
 }
 
 /// Initialize the __syncAbortOnWriteNormNonCache register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39900.
 pub const fn _reset___syncAbortOnWriteNormNonCache() -> bool {
     false
 }
 
 /// Initialize the __syncAbortOnDeviceWrite register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39902.
 pub const fn _reset___syncAbortOnDeviceWrite() -> bool {
     false
 }
 
 /// Initialize the __unpred_tsize_aborts register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39945.
 pub const fn _reset___unpred_tsize_aborts() -> bool {
     true
 }
 
 /// Initialize the __ignore_rvbar_in_aarch32 register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39953.
 pub const fn _reset___ignore_rvbar_in_aarch32() -> bool {
     false
 }
 
 /// Initialize the __trickbox_enabled register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39955.
 pub const fn _reset___trickbox_enabled() -> bool {
     false
 }
 
 /// Initialize the __mops_forward_copy register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39957.
 pub const fn _reset___mops_forward_copy() -> bool {
     true
 }
 
 /// Initialize the __DBG_ROM_ADDR register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39961.
 pub fn _reset___DBG_ROM_ADDR() -> BitVector<56> {
-    integer_subrange(UInt0(BitVector::<32>::new(0b00100010000000000000000000000000)), 55, 0)
+    integer_subrange(
+        UInt0(BitVector::<32>::new(0b00100010000000000000000000000000)),
+        55,
+        0,
+    )
 }
 
 /// Initialize the CFG_RMR_AA64 register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39967.
 pub fn _reset_CFG_RMR_AA64() -> BitVector<1> {
     BitVector::<1>::new(0b1)
 }
 
 /// Initialize the ZCR_EL3_LEN_VALUE register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39969.
 pub fn _reset_ZCR_EL3_LEN_VALUE() -> i128 {
     -(1)
 }
 
 /// Initialize the CPTR_EL3_EZ_VALUE register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39971.
 pub fn _reset_CPTR_EL3_EZ_VALUE() -> i128 {
     -(1)
 }
 
 /// Initialize the CPTR_EL3_ESM_VALUE register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39973.
 pub fn _reset_CPTR_EL3_ESM_VALUE() -> i128 {
     -(1)
 }
 
 /// Initialize the SMCR_EL3_LEN_VALUE register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39975.
 pub fn _reset_SMCR_EL3_LEN_VALUE() -> i128 {
     -(1)
 }
 
 /// Initialize the __has_spe_pseudo_cycles register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39979.
 pub const fn _reset___has_spe_pseudo_cycles() -> bool {
     false
 }
 
 /// Initialize the HEAP_BASE register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39981.
 pub fn _reset_HEAP_BASE() -> BitVector<64> {
     ZeroExtend0(BitVector::<32>::new(0b00000000000000000000000000000000), 64)
 }
 
 /// Initialize the HEAP_LIMIT register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39983.
 pub fn _reset_HEAP_LIMIT() -> BitVector<64> {
     ZeroExtend0(BitVector::<32>::new(0b00001111000000000000000000000000), 64)
 }
 
 /// Initialize the STACK_BASE register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39985.
 pub fn _reset_STACK_BASE() -> BitVector<64> {
     ZeroExtend0(BitVector::<32>::new(0b00010000000000000000000000000000), 64)
 }
 
 /// Initialize the STACK_LIMIT register.
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39987.
 pub fn _reset_STACK_LIMIT() -> BitVector<64> {
     ZeroExtend0(BitVector::<32>::new(0b00001111000000000000000000000000), 64)
 }
 
 /// Initialize the __emulator_termination_opcode register.
-/// 
+///
 /// Generated from the Sail sources at `src/fetch.sail` L265.
 pub fn _reset___emulator_termination_opcode() -> Option<BitVector<32>> {
     None
 }
 
+/// __id
+///
+/// Generated from the Sail sources at `sail/lib/flow.sail` L107.
+pub fn __id<const N: i128>(x: i128) -> i128 {
+    x
+}
+
 /// result
-/// 
+///
 /// Generated from the Sail sources at `sail/lib/result.sail` L60-63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum result<A, B> {
     Ok(A),
-    Err(B)
+    Err(B),
 }
 
 /// Access_variety
-/// 
+///
 /// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L57-61.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_variety {
     AV_plain,
     AV_exclusive,
-    AV_atomic_rmw
+    AV_atomic_rmw,
 }
 
 /// Access_strength
-/// 
+///
 /// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L66-70.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_strength {
     AS_normal,
     AS_rel_or_acq,
-    AS_acq_rcpc
+    AS_acq_rcpc,
 }
 
 /// Explicit_access_kind
-/// 
+///
 /// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L75-78.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Explicit_access_kind {
@@ -4336,18 +4374,18 @@ pub struct Explicit_access_kind {
 }
 
 /// Access_kind
-/// 
+///
 /// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L83-88.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_kind<ARCH_AK> {
     AK_explicit(Explicit_access_kind),
     AK_ifetch(()),
     AK_ttw(()),
-    AK_arch(ARCH_AK)
+    AK_arch(ARCH_AK),
 }
 
 /// Mem_read_request
-/// 
+///
 /// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L93-104.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, TS, ARCH_AK> {
@@ -4364,23 +4402,30 @@ pub const __monomorphize_reads: bool = false;
 pub const __monomorphize_writes: bool = false;
 
 /// Zeros
-/// 
+///
 /// Generated from the Sail sources at `src/prelude.sail` L159.
 pub const fn Zeros<const N: i128>(n: i128) -> BitVector<N> {
     sail_zeros(n)
 }
 
+/// IsZero
+///
+/// Generated from the Sail sources at `src/prelude.sail` L162.
+pub fn IsZero<const N: i128>(x: BitVector<N>) -> bool {
+    (x == sail_zeros(bitvector_length(x)))
+}
+
 /// signal
-/// 
+///
 /// Generated from the Sail sources at `src/prelude.sail` L258.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum signal {
     LOW,
-    HIGH
+    HIGH,
 }
 
 /// exception
-/// 
+///
 /// Generated from the Sail sources at `src/prelude.sail` L266-275.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
@@ -4391,7 +4436,7 @@ pub enum exception {
     Error_ExceptionTaken(()),
     Error_Unpredictable(()),
     Error_ConstrainedUnpredictable(()),
-    Error_SError(bool)
+    Error_SError(bool),
 }
 
 pub type vector_length = i128;
@@ -4399,7 +4444,7 @@ pub type vector_length = i128;
 pub type predicate_length = i128;
 
 /// Configuration_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L41-54.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Configuration_Type {
@@ -4407,7 +4452,7 @@ pub struct Configuration_Type {
 }
 
 /// ACCDATA_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44131.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ACCDATA_EL1_Type {
@@ -4415,7 +4460,7 @@ pub struct ACCDATA_EL1_Type {
 }
 
 /// AMCFGR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46779-46780.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCFGR_EL0_Type {
@@ -4423,7 +4468,7 @@ pub struct AMCFGR_EL0_Type {
 }
 
 /// AMCFGR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52148-52149.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCFGR_Type {
@@ -4431,7 +4476,7 @@ pub struct AMCFGR_Type {
 }
 
 /// AMCG1IDR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46792-46826.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCG1IDR_EL0_Type {
@@ -4439,7 +4484,7 @@ pub struct AMCG1IDR_EL0_Type {
 }
 
 /// AMCGCR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46834.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCGCR_EL0_Type {
@@ -4447,7 +4492,7 @@ pub struct AMCGCR_EL0_Type {
 }
 
 /// AMCGCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52127.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCGCR_Type {
@@ -4455,7 +4500,7 @@ pub struct AMCGCR_Type {
 }
 
 /// AMCIDR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53409.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCIDR0_Type {
@@ -4463,7 +4508,7 @@ pub struct AMCIDR0_Type {
 }
 
 /// AMCIDR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53417.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCIDR1_Type {
@@ -4471,7 +4516,7 @@ pub struct AMCIDR1_Type {
 }
 
 /// AMCIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53405.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCIDR2_Type {
@@ -4479,7 +4524,7 @@ pub struct AMCIDR2_Type {
 }
 
 /// AMCIDR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53392.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCIDR3_Type {
@@ -4487,7 +4532,7 @@ pub struct AMCIDR3_Type {
 }
 
 /// AMCNTENCLR0_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46703-46704.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCNTENCLR0_EL0_Type {
@@ -4495,7 +4540,7 @@ pub struct AMCNTENCLR0_EL0_Type {
 }
 
 /// AMCNTENCLR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52231-52232.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCNTENCLR0_Type {
@@ -4503,7 +4548,7 @@ pub struct AMCNTENCLR0_Type {
 }
 
 /// AMCNTENCLR1_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46734-46752.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCNTENCLR1_EL0_Type {
@@ -4511,7 +4556,7 @@ pub struct AMCNTENCLR1_EL0_Type {
 }
 
 /// AMCNTENCLR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52170-52188.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCNTENCLR1_Type {
@@ -4519,7 +4564,7 @@ pub struct AMCNTENCLR1_Type {
 }
 
 /// AMCNTENSET0_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46698-46699.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCNTENSET0_EL0_Type {
@@ -4527,7 +4572,7 @@ pub struct AMCNTENSET0_EL0_Type {
 }
 
 /// AMCNTENSET0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52209-52210.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCNTENSET0_Type {
@@ -4535,7 +4580,7 @@ pub struct AMCNTENSET0_Type {
 }
 
 /// AMCNTENSET1_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46712-46730.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCNTENSET1_EL0_Type {
@@ -4543,7 +4588,7 @@ pub struct AMCNTENSET1_EL0_Type {
 }
 
 /// AMCNTENSET1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52253-52271.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCNTENSET1_Type {
@@ -4551,7 +4596,7 @@ pub struct AMCNTENSET1_Type {
 }
 
 /// AMCR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46694.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCR_EL0_Type {
@@ -4559,7 +4604,7 @@ pub struct AMCR_EL0_Type {
 }
 
 /// AMCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52292.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMCR_Type {
@@ -4567,7 +4612,7 @@ pub struct AMCR_Type {
 }
 
 /// AMDEVARCH_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53396-53397.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMDEVARCH_Type {
@@ -4575,7 +4620,7 @@ pub struct AMDEVARCH_Type {
 }
 
 /// AMDEVTYPE_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53421.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMDEVTYPE_Type {
@@ -4583,7 +4628,7 @@ pub struct AMDEVTYPE_Type {
 }
 
 /// AMEVCNTR0_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46756.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMEVCNTR0_EL0_Type {
@@ -4591,7 +4636,7 @@ pub struct AMEVCNTR0_EL0_Type {
 }
 
 /// AMEVCNTR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46668.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMEVCNTR0_Type {
@@ -4599,7 +4644,7 @@ pub struct AMEVCNTR0_Type {
 }
 
 /// AMEVCNTR1_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46660.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMEVCNTR1_EL0_Type {
@@ -4607,7 +4652,7 @@ pub struct AMEVCNTR1_EL0_Type {
 }
 
 /// AMEVCNTR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46672.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMEVCNTR1_Type {
@@ -4615,7 +4660,7 @@ pub struct AMEVCNTR1_Type {
 }
 
 /// AMEVTYPER0_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46708.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMEVTYPER0_EL0_Type {
@@ -4623,7 +4668,7 @@ pub struct AMEVTYPER0_EL0_Type {
 }
 
 /// AMEVTYPER0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52072.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMEVTYPER0_Type {
@@ -4631,7 +4676,7 @@ pub struct AMEVTYPER0_Type {
 }
 
 /// AMEVTYPER1_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46830.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMEVTYPER1_EL0_Type {
@@ -4639,7 +4684,7 @@ pub struct AMEVTYPER1_EL0_Type {
 }
 
 /// AMEVTYPER1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52105.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMEVTYPER1_Type {
@@ -4647,7 +4692,7 @@ pub struct AMEVTYPER1_Type {
 }
 
 /// AMIIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53383-53384.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMIIDR_Type {
@@ -4655,7 +4700,7 @@ pub struct AMIIDR_Type {
 }
 
 /// AMPIDR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53401.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMPIDR0_Type {
@@ -4663,7 +4708,7 @@ pub struct AMPIDR0_Type {
 }
 
 /// AMPIDR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53413.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMPIDR1_Type {
@@ -4671,7 +4716,7 @@ pub struct AMPIDR1_Type {
 }
 
 /// AMPIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53375.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMPIDR2_Type {
@@ -4679,7 +4724,7 @@ pub struct AMPIDR2_Type {
 }
 
 /// AMPIDR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53388.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMPIDR3_Type {
@@ -4687,7 +4732,7 @@ pub struct AMPIDR3_Type {
 }
 
 /// AMPIDR4_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53379.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMPIDR4_Type {
@@ -4695,7 +4740,7 @@ pub struct AMPIDR4_Type {
 }
 
 /// AMUSERENR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46788.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMUSERENR_EL0_Type {
@@ -4703,7 +4748,7 @@ pub struct AMUSERENR_EL0_Type {
 }
 
 /// AMUSERENR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52084.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AMUSERENR_Type {
@@ -4711,7 +4756,7 @@ pub struct AMUSERENR_Type {
 }
 
 /// BRBCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5487-5498.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBCR_EL1_Type {
@@ -4719,7 +4764,7 @@ pub struct BRBCR_EL1_Type {
 }
 
 /// BRBCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5502-5513.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBCR_EL2_Type {
@@ -4727,7 +4772,7 @@ pub struct BRBCR_EL2_Type {
 }
 
 /// BRBFCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5570-5582.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBFCR_EL1_Type {
@@ -4735,7 +4780,7 @@ pub struct BRBFCR_EL1_Type {
 }
 
 /// BRBIDR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6418-6419.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBIDR0_EL1_Type {
@@ -4743,7 +4788,7 @@ pub struct BRBIDR0_EL1_Type {
 }
 
 /// BRBINFINJ_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L35616-35626.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBINFINJ_EL1_Type {
@@ -4751,7 +4796,7 @@ pub struct BRBINFINJ_EL1_Type {
 }
 
 /// BRBINFType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1368-1378.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBINFType {
@@ -4759,7 +4804,7 @@ pub struct BRBINFType {
 }
 
 /// BRBINF_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47052-47062.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBINF_EL1_Type {
@@ -4767,7 +4812,7 @@ pub struct BRBINF_EL1_Type {
 }
 
 /// BRBSRCINJ_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L35630.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBSRCINJ_EL1_Type {
@@ -4775,7 +4820,7 @@ pub struct BRBSRCINJ_EL1_Type {
 }
 
 /// BRBSRCType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1364.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBSRCType {
@@ -4783,7 +4828,7 @@ pub struct BRBSRCType {
 }
 
 /// BRBSRC_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47070.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBSRC_EL1_Type {
@@ -4791,7 +4836,7 @@ pub struct BRBSRC_EL1_Type {
 }
 
 /// BRBTGTINJ_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L35634.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBTGTINJ_EL1_Type {
@@ -4799,7 +4844,7 @@ pub struct BRBTGTINJ_EL1_Type {
 }
 
 /// BRBTGTType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1366.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBTGTType {
@@ -4807,7 +4852,7 @@ pub struct BRBTGTType {
 }
 
 /// BRBTGT_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47066.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBTGT_EL1_Type {
@@ -4815,7 +4860,7 @@ pub struct BRBTGT_EL1_Type {
 }
 
 /// BRBTS_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5586.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BRBTS_EL1_Type {
@@ -4823,7 +4868,7 @@ pub struct BRBTS_EL1_Type {
 }
 
 /// CCSIDR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45512.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CCSIDR2_EL1_Type {
@@ -4831,7 +4876,7 @@ pub struct CCSIDR2_EL1_Type {
 }
 
 /// CCSIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50848.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CCSIDR2_Type {
@@ -4839,7 +4884,7 @@ pub struct CCSIDR2_Type {
 }
 
 /// CCSIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45855.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CCSIDR_EL1_Type {
@@ -4847,7 +4892,7 @@ pub struct CCSIDR_EL1_Type {
 }
 
 /// CCSIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51813-51814.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CCSIDR_Type {
@@ -4855,7 +4900,7 @@ pub struct CCSIDR_Type {
 }
 
 /// CLIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12466-12486.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CLIDR_EL1_Type {
@@ -4863,7 +4908,7 @@ pub struct CLIDR_EL1_Type {
 }
 
 /// CLIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47688-47701.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CLIDR_Type {
@@ -4871,7 +4916,7 @@ pub struct CLIDR_Type {
 }
 
 /// CNTCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18319-18320.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTCR_Type {
@@ -4879,7 +4924,7 @@ pub struct CNTCR_Type {
 }
 
 /// CNTEL0ACR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52970-52971.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTEL0ACR_Type {
@@ -4887,7 +4932,7 @@ pub struct CNTEL0ACR_Type {
 }
 
 /// CNTFID0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52987.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTFID0_Type {
@@ -4895,7 +4940,7 @@ pub struct CNTFID0_Type {
 }
 
 /// CNTHCTL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5604-5623.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHCTL_EL2_Type {
@@ -4903,7 +4948,7 @@ pub struct CNTHCTL_EL2_Type {
 }
 
 /// CNTHCTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48933-48941.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHCTL_Type {
@@ -4911,7 +4956,7 @@ pub struct CNTHCTL_Type {
 }
 
 /// CNTHPS_CTL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18228-18229.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHPS_CTL_EL2_Type {
@@ -4919,7 +4964,7 @@ pub struct CNTHPS_CTL_EL2_Type {
 }
 
 /// CNTHPS_CTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47844-47845.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHPS_CTL_Type {
@@ -4927,7 +4972,7 @@ pub struct CNTHPS_CTL_Type {
 }
 
 /// CNTHPS_CVAL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18233.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHPS_CVAL_EL2_Type {
@@ -4935,7 +4980,7 @@ pub struct CNTHPS_CVAL_EL2_Type {
 }
 
 /// CNTHPS_TVAL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45600.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHPS_TVAL_EL2_Type {
@@ -4943,7 +4988,7 @@ pub struct CNTHPS_TVAL_EL2_Type {
 }
 
 /// CNTHP_CTL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18041-18042.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHP_CTL_EL2_Type {
@@ -4951,7 +4996,7 @@ pub struct CNTHP_CTL_EL2_Type {
 }
 
 /// CNTHP_CTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18046-18047.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHP_CTL_Type {
@@ -4959,7 +5004,7 @@ pub struct CNTHP_CTL_Type {
 }
 
 /// CNTHP_CVAL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18068.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHP_CVAL_EL2_Type {
@@ -4967,7 +5012,7 @@ pub struct CNTHP_CVAL_EL2_Type {
 }
 
 /// CNTHP_CVAL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18072.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHP_CVAL_Type {
@@ -4975,7 +5020,7 @@ pub struct CNTHP_CVAL_Type {
 }
 
 /// CNTHP_TVAL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45194.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHP_TVAL_EL2_Type {
@@ -4983,7 +5028,7 @@ pub struct CNTHP_TVAL_EL2_Type {
 }
 
 /// CNTHVS_CTL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18237-18238.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHVS_CTL_EL2_Type {
@@ -4991,7 +5036,7 @@ pub struct CNTHVS_CTL_EL2_Type {
 }
 
 /// CNTHVS_CTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49754-49755.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHVS_CTL_Type {
@@ -4999,7 +5044,7 @@ pub struct CNTHVS_CTL_Type {
 }
 
 /// CNTHVS_CVAL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18242.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHVS_CVAL_EL2_Type {
@@ -5007,7 +5052,7 @@ pub struct CNTHVS_CVAL_EL2_Type {
 }
 
 /// CNTHVS_TVAL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45190.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHVS_TVAL_EL2_Type {
@@ -5015,7 +5060,7 @@ pub struct CNTHVS_TVAL_EL2_Type {
 }
 
 /// CNTHV_CTL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18246-18247.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHV_CTL_EL2_Type {
@@ -5023,7 +5068,7 @@ pub struct CNTHV_CTL_EL2_Type {
 }
 
 /// CNTHV_CTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50869-50870.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHV_CTL_Type {
@@ -5031,7 +5076,7 @@ pub struct CNTHV_CTL_Type {
 }
 
 /// CNTHV_CVAL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18251.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHV_CVAL_EL2_Type {
@@ -5039,7 +5084,7 @@ pub struct CNTHV_CVAL_EL2_Type {
 }
 
 /// CNTHV_TVAL_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44803.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTHV_TVAL_EL2_Type {
@@ -5047,7 +5092,7 @@ pub struct CNTHV_TVAL_EL2_Type {
 }
 
 /// CNTID_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53286.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTID_Type {
@@ -5055,7 +5100,7 @@ pub struct CNTID_Type {
 }
 
 /// CNTKCTL_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18379-18389.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTKCTL_EL1_Type {
@@ -5063,7 +5108,7 @@ pub struct CNTKCTL_EL1_Type {
 }
 
 /// CNTKCTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L22448-22458.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTKCTL_Type {
@@ -5071,7 +5116,7 @@ pub struct CNTKCTL_Type {
 }
 
 /// CNTNSAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53344-53354.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTNSAR_Type {
@@ -5079,7 +5124,7 @@ pub struct CNTNSAR_Type {
 }
 
 /// CNTPS_CTL_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18255-18256.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTPS_CTL_EL1_Type {
@@ -5087,7 +5132,7 @@ pub struct CNTPS_CTL_EL1_Type {
 }
 
 /// CNTPS_CVAL_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18260.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTPS_CVAL_EL1_Type {
@@ -5095,7 +5140,7 @@ pub struct CNTPS_CVAL_EL1_Type {
 }
 
 /// CNTPS_TVAL_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46162.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTPS_TVAL_EL1_Type {
@@ -5103,7 +5148,7 @@ pub struct CNTPS_TVAL_EL1_Type {
 }
 
 /// CNTP_CTL_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18084-18085.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTP_CTL_EL0_Type {
@@ -5111,7 +5156,7 @@ pub struct CNTP_CTL_EL0_Type {
 }
 
 /// CNTP_CTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18089-18090.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTP_CTL_Type {
@@ -5119,7 +5164,7 @@ pub struct CNTP_CTL_Type {
 }
 
 /// CNTP_CVAL_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18137.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTP_CVAL_EL0_Type {
@@ -5127,7 +5172,7 @@ pub struct CNTP_CVAL_EL0_Type {
 }
 
 /// CNTP_CVAL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18141.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTP_CVAL_Type {
@@ -5135,7 +5180,7 @@ pub struct CNTP_CVAL_Type {
 }
 
 /// CNTP_TVAL_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44178.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTP_TVAL_EL0_Type {
@@ -5143,7 +5188,7 @@ pub struct CNTP_TVAL_EL0_Type {
 }
 
 /// CNTSCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18324.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTSCR_Type {
@@ -5151,7 +5196,7 @@ pub struct CNTSCR_Type {
 }
 
 /// CNTSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52763.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTSR_Type {
@@ -5159,7 +5204,7 @@ pub struct CNTSR_Type {
 }
 
 /// CNTV_CTL_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18167-18168.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTV_CTL_EL0_Type {
@@ -5167,7 +5212,7 @@ pub struct CNTV_CTL_EL0_Type {
 }
 
 /// CNTV_CTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51585-51586.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTV_CTL_Type {
@@ -5175,7 +5220,7 @@ pub struct CNTV_CTL_Type {
 }
 
 /// CNTV_CVAL_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L18172.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTV_CVAL_EL0_Type {
@@ -5183,7 +5228,7 @@ pub struct CNTV_CVAL_EL0_Type {
 }
 
 /// CNTV_CVAL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46495.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTV_CVAL_Type {
@@ -5191,7 +5236,7 @@ pub struct CNTV_CVAL_Type {
 }
 
 /// CNTV_TVAL_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46178.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CNTV_TVAL_EL0_Type {
@@ -5199,7 +5244,7 @@ pub struct CNTV_TVAL_EL0_Type {
 }
 
 /// CONTEXTIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12841.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CONTEXTIDR_EL1_Type {
@@ -5207,7 +5252,7 @@ pub struct CONTEXTIDR_EL1_Type {
 }
 
 /// CONTEXTIDR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23113.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CONTEXTIDR_EL2_Type {
@@ -5215,7 +5260,7 @@ pub struct CONTEXTIDR_EL2_Type {
 }
 
 /// CONTEXTIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12895.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CONTEXTIDR_Type {
@@ -5223,7 +5268,7 @@ pub struct CONTEXTIDR_Type {
 }
 
 /// CPACR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7036-7037.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CPACR_EL1_Type {
@@ -5231,7 +5276,7 @@ pub struct CPACR_EL1_Type {
 }
 
 /// CPACR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7125-7126.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CPACR_Type {
@@ -5239,7 +5284,7 @@ pub struct CPACR_Type {
 }
 
 /// CPTR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7041-7052.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CPTR_EL2_Type {
@@ -5247,7 +5292,7 @@ pub struct CPTR_EL2_Type {
 }
 
 /// CPTR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7056-7064.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CPTR_EL3_Type {
@@ -5255,7 +5300,7 @@ pub struct CPTR_EL3_Type {
 }
 
 /// CSSELR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44821.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CSSELR_EL1_Type {
@@ -5263,7 +5308,7 @@ pub struct CSSELR_EL1_Type {
 }
 
 /// CSSELR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48434.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CSSELR_Type {
@@ -5271,7 +5316,7 @@ pub struct CSSELR_Type {
 }
 
 /// CTIAUTHSTATUS_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53299.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIAUTHSTATUS_Type {
@@ -5279,7 +5324,7 @@ pub struct CTIAUTHSTATUS_Type {
 }
 
 /// CTICIDR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53011.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTICIDR0_Type {
@@ -5287,7 +5332,7 @@ pub struct CTICIDR0_Type {
 }
 
 /// CTICIDR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52706.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTICIDR1_Type {
@@ -5295,7 +5340,7 @@ pub struct CTICIDR1_Type {
 }
 
 /// CTICIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53191.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTICIDR2_Type {
@@ -5303,7 +5348,7 @@ pub struct CTICIDR2_Type {
 }
 
 /// CTICIDR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52936.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTICIDR3_Type {
@@ -5311,7 +5356,7 @@ pub struct CTICIDR3_Type {
 }
 
 /// CTICONTROL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53073.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTICONTROL_Type {
@@ -5319,7 +5364,7 @@ pub struct CTICONTROL_Type {
 }
 
 /// CTIDEVARCH_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52927-52928.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIDEVARCH_Type {
@@ -5327,7 +5372,7 @@ pub struct CTIDEVARCH_Type {
 }
 
 /// CTIDEVCTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39677.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIDEVCTL_Type {
@@ -5335,7 +5380,7 @@ pub struct CTIDEVCTL_Type {
 }
 
 /// CTIDEVID_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53322-53323.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIDEVID_Type {
@@ -5343,7 +5388,7 @@ pub struct CTIDEVID_Type {
 }
 
 /// CTIDEVTYPE_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52724.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIDEVTYPE_Type {
@@ -5351,7 +5396,7 @@ pub struct CTIDEVTYPE_Type {
 }
 
 /// CTIITCTRL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53023.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIITCTRL_Type {
@@ -5359,7 +5404,7 @@ pub struct CTIITCTRL_Type {
 }
 
 /// CTILAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52697.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTILAR_Type {
@@ -5367,7 +5412,7 @@ pub struct CTILAR_Type {
 }
 
 /// CTILSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39384.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTILSR_Type {
@@ -5375,7 +5420,7 @@ pub struct CTILSR_Type {
 }
 
 /// CTIPIDR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52788.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIPIDR0_Type {
@@ -5383,7 +5428,7 @@ pub struct CTIPIDR0_Type {
 }
 
 /// CTIPIDR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52755.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIPIDR1_Type {
@@ -5391,7 +5436,7 @@ pub struct CTIPIDR1_Type {
 }
 
 /// CTIPIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52701-52702.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIPIDR2_Type {
@@ -5399,7 +5444,7 @@ pub struct CTIPIDR2_Type {
 }
 
 /// CTIPIDR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53052.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIPIDR3_Type {
@@ -5407,7 +5452,7 @@ pub struct CTIPIDR3_Type {
 }
 
 /// CTIPIDR4_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53265.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTIPIDR4_Type {
@@ -5415,7 +5460,7 @@ pub struct CTIPIDR4_Type {
 }
 
 /// CTR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3845-3855.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTR_EL0_Type {
@@ -5423,7 +5468,7 @@ pub struct CTR_EL0_Type {
 }
 
 /// CTR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47792-47801.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CTR_Type {
@@ -5431,7 +5476,7 @@ pub struct CTR_Type {
 }
 
 /// DACR32_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L38320-38338.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DACR32_EL2_Type {
@@ -5439,7 +5484,7 @@ pub struct DACR32_EL2_Type {
 }
 
 /// DACR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L38342-38360.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DACR_Type {
@@ -5447,7 +5492,7 @@ pub struct DACR_Type {
 }
 
 /// DBGAUTHSTATUS_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46001-46011.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGAUTHSTATUS_EL1_Type {
@@ -5455,7 +5500,7 @@ pub struct DBGAUTHSTATUS_EL1_Type {
 }
 
 /// DBGAUTHSTATUS_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47930-47931.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGAUTHSTATUS_Type {
@@ -5463,7 +5508,7 @@ pub struct DBGAUTHSTATUS_Type {
 }
 
 /// DBGBCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23117-23130.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGBCR_EL1_Type {
@@ -5471,7 +5516,7 @@ pub struct DBGBCR_EL1_Type {
 }
 
 /// DBGBCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L40208-40217.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGBCR_Type {
@@ -5479,7 +5524,7 @@ pub struct DBGBCR_Type {
 }
 
 /// DBGBVR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23134-23141.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGBVR_EL1_Type {
@@ -5487,7 +5532,7 @@ pub struct DBGBVR_EL1_Type {
 }
 
 /// DBGBVR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L40229.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGBVR_Type {
@@ -5495,7 +5540,7 @@ pub struct DBGBVR_Type {
 }
 
 /// DBGBXVR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L40241.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGBXVR_Type {
@@ -5503,7 +5548,7 @@ pub struct DBGBXVR_Type {
 }
 
 /// DBGCLAIMCLR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46202.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGCLAIMCLR_EL1_Type {
@@ -5511,7 +5556,7 @@ pub struct DBGCLAIMCLR_EL1_Type {
 }
 
 /// DBGCLAIMCLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48203.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGCLAIMCLR_Type {
@@ -5519,7 +5564,7 @@ pub struct DBGCLAIMCLR_Type {
 }
 
 /// DBGCLAIMSET_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44542.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGCLAIMSET_EL1_Type {
@@ -5527,7 +5572,7 @@ pub struct DBGCLAIMSET_EL1_Type {
 }
 
 /// DBGCLAIMSET_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49358.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGCLAIMSET_Type {
@@ -5535,7 +5580,7 @@ pub struct DBGCLAIMSET_Type {
 }
 
 /// DBGDCCINT_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39457.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDCCINT_Type {
@@ -5543,7 +5588,7 @@ pub struct DBGDCCINT_Type {
 }
 
 /// DBGDEVID1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48552.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDEVID1_Type {
@@ -5551,7 +5596,7 @@ pub struct DBGDEVID1_Type {
 }
 
 /// DBGDEVID_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50793-50803.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDEVID_Type {
@@ -5559,7 +5604,7 @@ pub struct DBGDEVID_Type {
 }
 
 /// DBGDIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51334-51342.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDIDR_Type {
@@ -5567,7 +5612,7 @@ pub struct DBGDIDR_Type {
 }
 
 /// DBGDRAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46540.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDRAR_Type {
@@ -5575,7 +5620,7 @@ pub struct DBGDRAR_Type {
 }
 
 /// DBGDSCRext_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14414-14432.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDSCRext_Type {
@@ -5583,7 +5628,7 @@ pub struct DBGDSCRext_Type {
 }
 
 /// DBGDSCRint_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14434-14444.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDSCRint_Type {
@@ -5591,7 +5636,7 @@ pub struct DBGDSCRint_Type {
 }
 
 /// DBGDTRRXext_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49663.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDTRRXext_Type {
@@ -5599,7 +5644,7 @@ pub struct DBGDTRRXext_Type {
 }
 
 /// DBGDTRRXint_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51464.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDTRRXint_Type {
@@ -5607,7 +5652,7 @@ pub struct DBGDTRRXint_Type {
 }
 
 /// DBGDTRTXext_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49485.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDTRTXext_Type {
@@ -5615,7 +5660,7 @@ pub struct DBGDTRTXext_Type {
 }
 
 /// DBGDTRTXint_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51735.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDTRTXint_Type {
@@ -5623,7 +5668,7 @@ pub struct DBGDTRTXint_Type {
 }
 
 /// DBGDTR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39404.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGDTR_EL0_Type {
@@ -5631,7 +5676,7 @@ pub struct DBGDTR_EL0_Type {
 }
 
 /// DBGOSDLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7912.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGOSDLR_Type {
@@ -5639,7 +5684,7 @@ pub struct DBGOSDLR_Type {
 }
 
 /// DBGOSECCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50827.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGOSECCR_Type {
@@ -5647,7 +5692,7 @@ pub struct DBGOSECCR_Type {
 }
 
 /// DBGOSLAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49659.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGOSLAR_Type {
@@ -5655,7 +5700,7 @@ pub struct DBGOSLAR_Type {
 }
 
 /// DBGOSLSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8354-8355.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGOSLSR_Type {
@@ -5663,7 +5708,7 @@ pub struct DBGOSLSR_Type {
 }
 
 /// DBGPRCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7928.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGPRCR_EL1_Type {
@@ -5671,7 +5716,7 @@ pub struct DBGPRCR_EL1_Type {
 }
 
 /// DBGPRCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7932.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGPRCR_Type {
@@ -5679,7 +5724,7 @@ pub struct DBGPRCR_Type {
 }
 
 /// DBGVCR32_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L40509-40529.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGVCR32_EL2_Type {
@@ -5687,7 +5732,7 @@ pub struct DBGVCR32_EL2_Type {
 }
 
 /// DBGVCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L40533-40558.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGVCR_Type {
@@ -5695,7 +5740,7 @@ pub struct DBGVCR_Type {
 }
 
 /// DBGWCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23682-23695.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGWCR_EL1_Type {
@@ -5703,7 +5748,7 @@ pub struct DBGWCR_EL1_Type {
 }
 
 /// DBGWCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L40629-40640.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGWCR_Type {
@@ -5711,7 +5756,7 @@ pub struct DBGWCR_Type {
 }
 
 /// DBGWVR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23699-23700.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGWVR_EL1_Type {
@@ -5719,7 +5764,7 @@ pub struct DBGWVR_EL1_Type {
 }
 
 /// DBGWVR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L40652.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DBGWVR_Type {
@@ -5727,7 +5772,7 @@ pub struct DBGWVR_Type {
 }
 
 /// DCZID_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L36716.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DCZID_EL0_Type {
@@ -5735,7 +5780,7 @@ pub struct DCZID_EL0_Type {
 }
 
 /// DFSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14299-14310.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DFSR_Type {
@@ -5743,7 +5788,7 @@ pub struct DFSR_Type {
 }
 
 /// DISR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33202-33203.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DISR_EL1_Type {
@@ -5751,7 +5796,7 @@ pub struct DISR_EL1_Type {
 }
 
 /// DISR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33207-33216.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DISR_Type {
@@ -5759,7 +5804,7 @@ pub struct DISR_Type {
 }
 
 /// DSPSR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5807.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DSPSR2_Type {
@@ -5767,7 +5812,7 @@ pub struct DSPSR2_Type {
 }
 
 /// DSPSR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5744-5770.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DSPSR_EL0_Type {
@@ -5775,7 +5820,7 @@ pub struct DSPSR_EL0_Type {
 }
 
 /// DSPSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5774-5794.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DSPSR_Type {
@@ -5783,7 +5828,7 @@ pub struct DSPSR_Type {
 }
 
 /// DormantCtl_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L56-70.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DormantCtl_Type {
@@ -5791,7 +5836,7 @@ pub struct DormantCtl_Type {
 }
 
 /// EDAA32PFR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47300-47301.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDAA32PFR_Type {
@@ -5799,7 +5844,7 @@ pub struct EDAA32PFR_Type {
 }
 
 /// EDCIDR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53212.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDCIDR0_Type {
@@ -5807,7 +5852,7 @@ pub struct EDCIDR0_Type {
 }
 
 /// EDCIDR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53367.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDCIDR1_Type {
@@ -5815,7 +5860,7 @@ pub struct EDCIDR1_Type {
 }
 
 /// EDCIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53278.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDCIDR2_Type {
@@ -5823,7 +5868,7 @@ pub struct EDCIDR2_Type {
 }
 
 /// EDCIDR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52767.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDCIDR3_Type {
@@ -5831,7 +5876,7 @@ pub struct EDCIDR3_Type {
 }
 
 /// EDDEVARCH_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52744-52751.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDDEVARCH_Type {
@@ -5839,7 +5884,7 @@ pub struct EDDEVARCH_Type {
 }
 
 /// EDDEVID1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53135.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDDEVID1_Type {
@@ -5847,7 +5892,7 @@ pub struct EDDEVID1_Type {
 }
 
 /// EDDEVID_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53203-53204.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDDEVID_Type {
@@ -5855,7 +5900,7 @@ pub struct EDDEVID_Type {
 }
 
 /// EDDEVTYPE_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52831.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDDEVTYPE_Type {
@@ -5863,7 +5908,7 @@ pub struct EDDEVTYPE_Type {
 }
 
 /// EDDFR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47260-47272.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDDFR1_Type {
@@ -5871,7 +5916,7 @@ pub struct EDDFR1_Type {
 }
 
 /// EDDFR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47280-47291.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDDFR_Type {
@@ -5879,7 +5924,7 @@ pub struct EDDFR_Type {
 }
 
 /// EDECCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L10151-10175.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDECCR_Type {
@@ -5887,7 +5932,7 @@ pub struct EDECCR_Type {
 }
 
 /// EDECR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5720-5721.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDECR_Type {
@@ -5895,7 +5940,7 @@ pub struct EDECR_Type {
 }
 
 /// EDESR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L10191.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDESR_Type {
@@ -5903,7 +5948,7 @@ pub struct EDESR_Type {
 }
 
 /// EDHSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47193-47204.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDHSR_Type {
@@ -5911,7 +5956,7 @@ pub struct EDHSR_Type {
 }
 
 /// EDITCTRL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53358.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDITCTRL_Type {
@@ -5919,7 +5964,7 @@ pub struct EDITCTRL_Type {
 }
 
 /// EDLAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53245.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDLAR_Type {
@@ -5927,7 +5972,7 @@ pub struct EDLAR_Type {
 }
 
 /// EDLSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39388.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDLSR_Type {
@@ -5935,7 +5980,7 @@ pub struct EDLSR_Type {
 }
 
 /// EDPCSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47208.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPCSR_Type {
@@ -5943,7 +5988,7 @@ pub struct EDPCSR_Type {
 }
 
 /// EDPFR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47169-47181.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPFR_Type {
@@ -5951,7 +5996,7 @@ pub struct EDPFR_Type {
 }
 
 /// EDPIDR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53295.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPIDR0_Type {
@@ -5959,7 +6004,7 @@ pub struct EDPIDR0_Type {
 }
 
 /// EDPIDR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52898.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPIDR1_Type {
@@ -5967,7 +6012,7 @@ pub struct EDPIDR1_Type {
 }
 
 /// EDPIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53340.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPIDR2_Type {
@@ -5975,7 +6020,7 @@ pub struct EDPIDR2_Type {
 }
 
 /// EDPIDR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52804.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPIDR3_Type {
@@ -5983,7 +6028,7 @@ pub struct EDPIDR3_Type {
 }
 
 /// EDPIDR4_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53069.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPIDR4_Type {
@@ -5991,7 +6036,7 @@ pub struct EDPIDR4_Type {
 }
 
 /// EDPRCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53139-53140.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPRCR_Type {
@@ -5999,7 +6044,7 @@ pub struct EDPRCR_Type {
 }
 
 /// EDPRSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39433-39449.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDPRSR_Type {
@@ -6007,7 +6052,7 @@ pub struct EDPRSR_Type {
 }
 
 /// EDRCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53195.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDRCR_Type {
@@ -6015,7 +6060,7 @@ pub struct EDRCR_Type {
 }
 
 /// EDSCR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23157.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDSCR2_Type {
@@ -6023,7 +6068,7 @@ pub struct EDSCR2_Type {
 }
 
 /// EDSCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4191-4214.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDSCR_Type {
@@ -6031,7 +6076,7 @@ pub struct EDSCR_Type {
 }
 
 /// EDVIDSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39742-39750.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct EDVIDSR_Type {
@@ -6039,7 +6084,7 @@ pub struct EDVIDSR_Type {
 }
 
 /// ERRIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46938.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ERRIDR_EL1_Type {
@@ -6047,7 +6092,7 @@ pub struct ERRIDR_EL1_Type {
 }
 
 /// ERRIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52313.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ERRIDR_Type {
@@ -6055,7 +6100,7 @@ pub struct ERRIDR_Type {
 }
 
 /// ERRSELR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46950.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ERRSELR_EL1_Type {
@@ -6063,7 +6108,7 @@ pub struct ERRSELR_EL1_Type {
 }
 
 /// ERRSELR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52442.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ERRSELR_Type {
@@ -6071,7 +6116,7 @@ pub struct ERRSELR_Type {
 }
 
 /// ERRnFR_ElemType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3675-3696.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ERRnFR_ElemType {
@@ -6079,7 +6124,7 @@ pub struct ERRnFR_ElemType {
 }
 
 /// ERXGSR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46970-47036.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ERXGSR_EL1_Type {
@@ -6087,7 +6132,7 @@ pub struct ERXGSR_EL1_Type {
 }
 
 /// ESRType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1338.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ESRType {
@@ -6095,7 +6140,7 @@ pub struct ESRType {
 }
 
 /// ESR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9191-9192.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ESR_EL1_Type {
@@ -6103,7 +6148,7 @@ pub struct ESR_EL1_Type {
 }
 
 /// ESR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9196-9197.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ESR_EL2_Type {
@@ -6111,7 +6156,7 @@ pub struct ESR_EL2_Type {
 }
 
 /// ESR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9201-9202.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ESR_EL3_Type {
@@ -6119,7 +6164,7 @@ pub struct ESR_EL3_Type {
 }
 
 /// FPCRType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1340-1362.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FPCRType {
@@ -6127,7 +6172,7 @@ pub struct FPCRType {
 }
 
 /// FPCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2743-2762.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FPCR_Type {
@@ -6135,7 +6180,7 @@ pub struct FPCR_Type {
 }
 
 /// FPEXC32_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L15458-15473.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FPEXC32_EL2_Type {
@@ -6143,7 +6188,7 @@ pub struct FPEXC32_EL2_Type {
 }
 
 /// FPEXC_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L15477-15492.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FPEXC_Type {
@@ -6151,7 +6196,7 @@ pub struct FPEXC_Type {
 }
 
 /// FPSCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3595-3621.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FPSCR_Type {
@@ -6159,7 +6204,7 @@ pub struct FPSCR_Type {
 }
 
 /// FPSID_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49245-49253.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FPSID_Type {
@@ -6167,7 +6212,7 @@ pub struct FPSID_Type {
 }
 
 /// FPSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2766-2779.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FPSR_Type {
@@ -6175,7 +6220,7 @@ pub struct FPSR_Type {
 }
 
 /// GCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L22678.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCR_EL1_Type {
@@ -6183,7 +6228,7 @@ pub struct GCR_EL1_Type {
 }
 
 /// GCSCRE0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L10936-10937.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCSCRE0_EL1_Type {
@@ -6191,7 +6236,7 @@ pub struct GCSCRE0_EL1_Type {
 }
 
 /// GCSCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8198-8199.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCSCR_EL1_Type {
@@ -6199,7 +6244,7 @@ pub struct GCSCR_EL1_Type {
 }
 
 /// GCSCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8203-8204.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCSCR_EL2_Type {
@@ -6207,7 +6252,7 @@ pub struct GCSCR_EL2_Type {
 }
 
 /// GCSCR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8208-8209.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCSCR_EL3_Type {
@@ -6215,7 +6260,7 @@ pub struct GCSCR_EL3_Type {
 }
 
 /// GCSPR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7014.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCSPR_EL0_Type {
@@ -6223,7 +6268,7 @@ pub struct GCSPR_EL0_Type {
 }
 
 /// GCSPR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7018.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCSPR_EL1_Type {
@@ -6231,7 +6276,7 @@ pub struct GCSPR_EL1_Type {
 }
 
 /// GCSPR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7022.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCSPR_EL2_Type {
@@ -6239,7 +6284,7 @@ pub struct GCSPR_EL2_Type {
 }
 
 /// GCSPR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7026.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GCSPR_EL3_Type {
@@ -6247,7 +6292,7 @@ pub struct GCSPR_EL3_Type {
 }
 
 /// GICC_ABPR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53261.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_ABPR_Type {
@@ -6255,7 +6300,7 @@ pub struct GICC_ABPR_Type {
 }
 
 /// GICC_AEOIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53249.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_AEOIR_Type {
@@ -6263,7 +6308,7 @@ pub struct GICC_AEOIR_Type {
 }
 
 /// GICC_AHPPIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53253.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_AHPPIR_Type {
@@ -6271,7 +6316,7 @@ pub struct GICC_AHPPIR_Type {
 }
 
 /// GICC_AIAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53371.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_AIAR_Type {
@@ -6279,7 +6324,7 @@ pub struct GICC_AIAR_Type {
 }
 
 /// GICC_BPR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53318.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_BPR_Type {
@@ -6287,7 +6332,7 @@ pub struct GICC_BPR_Type {
 }
 
 /// GICC_CTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53056-53065.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_CTLR_Type {
@@ -6295,7 +6340,7 @@ pub struct GICC_CTLR_Type {
 }
 
 /// GICC_DIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53208.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_DIR_Type {
@@ -6303,7 +6348,7 @@ pub struct GICC_DIR_Type {
 }
 
 /// GICC_EOIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53336.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_EOIR_Type {
@@ -6311,7 +6356,7 @@ pub struct GICC_EOIR_Type {
 }
 
 /// GICC_HPPIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53015.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_HPPIR_Type {
@@ -6319,7 +6364,7 @@ pub struct GICC_HPPIR_Type {
 }
 
 /// GICC_IAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52693.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_IAR_Type {
@@ -6327,7 +6372,7 @@ pub struct GICC_IAR_Type {
 }
 
 /// GICC_PMR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52919.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_PMR_Type {
@@ -6335,7 +6380,7 @@ pub struct GICC_PMR_Type {
 }
 
 /// GICC_RPR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52940.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_RPR_Type {
@@ -6343,7 +6388,7 @@ pub struct GICC_RPR_Type {
 }
 
 /// GICC_STATUSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52808-52809.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICC_STATUSR_Type {
@@ -6351,7 +6396,7 @@ pub struct GICC_STATUSR_Type {
 }
 
 /// GICD_CLRSPI_NSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53019.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_CLRSPI_NSR_Type {
@@ -6359,7 +6404,7 @@ pub struct GICD_CLRSPI_NSR_Type {
 }
 
 /// GICD_CLRSPI_SR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53115.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_CLRSPI_SR_Type {
@@ -6367,7 +6412,7 @@ pub struct GICD_CLRSPI_SR_Type {
 }
 
 /// GICD_CTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52677-52689.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_CTLR_Type {
@@ -6375,7 +6420,7 @@ pub struct GICD_CTLR_Type {
 }
 
 /// GICD_IIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53362-53363.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_IIDR_Type {
@@ -6383,7 +6428,7 @@ pub struct GICD_IIDR_Type {
 }
 
 /// GICD_SETSPI_NSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53282.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_SETSPI_NSR_Type {
@@ -6391,7 +6436,7 @@ pub struct GICD_SETSPI_NSR_Type {
 }
 
 /// GICD_SETSPI_SR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53327.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_SETSPI_SR_Type {
@@ -6399,7 +6444,7 @@ pub struct GICD_SETSPI_SR_Type {
 }
 
 /// GICD_SGIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53220-53226.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_SGIR_Type {
@@ -6407,7 +6452,7 @@ pub struct GICD_SGIR_Type {
 }
 
 /// GICD_STATUSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53148-53149.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_STATUSR_Type {
@@ -6415,7 +6460,7 @@ pub struct GICD_STATUSR_Type {
 }
 
 /// GICD_TYPER2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52840-52841.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_TYPER2_Type {
@@ -6423,7 +6468,7 @@ pub struct GICD_TYPER2_Type {
 }
 
 /// GICD_TYPER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52991-53007.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICD_TYPER_Type {
@@ -6431,7 +6476,7 @@ pub struct GICD_TYPER_Type {
 }
 
 /// GICH_EISR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52845-52863.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICH_EISR_Type {
@@ -6439,7 +6484,7 @@ pub struct GICH_EISR_Type {
 }
 
 /// GICH_ELRSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52867-52885.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICH_ELRSR_Type {
@@ -6447,7 +6492,7 @@ pub struct GICH_ELRSR_Type {
 }
 
 /// GICH_HCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53303-53314.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICH_HCR_Type {
@@ -6455,7 +6500,7 @@ pub struct GICH_HCR_Type {
 }
 
 /// GICH_MISR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52710-52720.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICH_MISR_Type {
@@ -6463,7 +6508,7 @@ pub struct GICH_MISR_Type {
 }
 
 /// GICH_VMCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53230-53241.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICH_VMCR_Type {
@@ -6471,7 +6516,7 @@ pub struct GICH_VMCR_Type {
 }
 
 /// GICH_VTR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53040-53048.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICH_VTR_Type {
@@ -6479,7 +6524,7 @@ pub struct GICH_VTR_Type {
 }
 
 /// GICM_CLRSPI_NSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52889.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICM_CLRSPI_NSR_Type {
@@ -6487,7 +6532,7 @@ pub struct GICM_CLRSPI_NSR_Type {
 }
 
 /// GICM_CLRSPI_SR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52902.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICM_CLRSPI_SR_Type {
@@ -6495,7 +6540,7 @@ pub struct GICM_CLRSPI_SR_Type {
 }
 
 /// GICM_IIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52813-52814.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICM_IIDR_Type {
@@ -6503,7 +6548,7 @@ pub struct GICM_IIDR_Type {
 }
 
 /// GICM_SETSPI_NSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52771.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICM_SETSPI_NSR_Type {
@@ -6511,7 +6556,7 @@ pub struct GICM_SETSPI_NSR_Type {
 }
 
 /// GICM_SETSPI_SR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52792.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICM_SETSPI_SR_Type {
@@ -6519,7 +6564,7 @@ pub struct GICM_SETSPI_SR_Type {
 }
 
 /// GICM_TYPER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52835-52836.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICM_TYPER_Type {
@@ -6527,7 +6572,7 @@ pub struct GICM_TYPER_Type {
 }
 
 /// GICR_CLRLPIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47185.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_CLRLPIR_Type {
@@ -6535,7 +6580,7 @@ pub struct GICR_CLRLPIR_Type {
 }
 
 /// GICR_CTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52956-52966.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_CTLR_Type {
@@ -6543,7 +6588,7 @@ pub struct GICR_CTLR_Type {
 }
 
 /// GICR_IIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52739-52740.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_IIDR_Type {
@@ -6551,7 +6596,7 @@ pub struct GICR_IIDR_Type {
 }
 
 /// GICR_INMIR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53077-53111.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_INMIR0_Type {
@@ -6559,7 +6604,7 @@ pub struct GICR_INMIR0_Type {
 }
 
 /// GICR_INVALLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47189.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_INVALLR_Type {
@@ -6567,7 +6612,7 @@ pub struct GICR_INVALLR_Type {
 }
 
 /// GICR_INVLPIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47295-47296.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_INVLPIR_Type {
@@ -6575,7 +6620,7 @@ pub struct GICR_INVLPIR_Type {
 }
 
 /// GICR_ISENABLER0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53153-53187.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_ISENABLER0_Type {
@@ -6583,7 +6628,7 @@ pub struct GICR_ISENABLER0_Type {
 }
 
 /// GICR_MPAMIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52932.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_MPAMIDR_Type {
@@ -6591,7 +6636,7 @@ pub struct GICR_MPAMIDR_Type {
 }
 
 /// GICR_PARTIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53131.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_PARTIDR_Type {
@@ -6599,7 +6644,7 @@ pub struct GICR_PARTIDR_Type {
 }
 
 /// GICR_PENDBASER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47130-47137.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_PENDBASER_Type {
@@ -6607,7 +6652,7 @@ pub struct GICR_PENDBASER_Type {
 }
 
 /// GICR_PROPBASER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47141-47148.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_PROPBASER_Type {
@@ -6615,7 +6660,7 @@ pub struct GICR_PROPBASER_Type {
 }
 
 /// GICR_SETLPIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47317.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_SETLPIR_Type {
@@ -6623,7 +6668,7 @@ pub struct GICR_SETLPIR_Type {
 }
 
 /// GICR_STATUSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53331-53332.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_STATUSR_Type {
@@ -6631,7 +6676,7 @@ pub struct GICR_STATUSR_Type {
 }
 
 /// GICR_SYNCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53257.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_SYNCR_Type {
@@ -6639,7 +6684,7 @@ pub struct GICR_SYNCR_Type {
 }
 
 /// GICR_VPENDBASER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47212-47226.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_VPENDBASER_Type {
@@ -6647,7 +6692,7 @@ pub struct GICR_VPENDBASER_Type {
 }
 
 /// GICR_VPROPBASER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47152-47165.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_VPROPBASER_Type {
@@ -6655,7 +6700,7 @@ pub struct GICR_VPROPBASER_Type {
 }
 
 /// GICR_VSGIPENDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53144.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_VSGIPENDR_Type {
@@ -6663,7 +6708,7 @@ pub struct GICR_VSGIPENDR_Type {
 }
 
 /// GICR_VSGIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52827.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_VSGIR_Type {
@@ -6671,7 +6716,7 @@ pub struct GICR_VSGIR_Type {
 }
 
 /// GICR_WAKER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52775-52776.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICR_WAKER_Type {
@@ -6679,7 +6724,7 @@ pub struct GICR_WAKER_Type {
 }
 
 /// GICV_ABPR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52923.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_ABPR_Type {
@@ -6687,7 +6732,7 @@ pub struct GICV_ABPR_Type {
 }
 
 /// GICV_AEOIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52915.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_AEOIR_Type {
@@ -6695,7 +6740,7 @@ pub struct GICV_AEOIR_Type {
 }
 
 /// GICV_AHPPIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52952.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_AHPPIR_Type {
@@ -6703,7 +6748,7 @@ pub struct GICV_AHPPIR_Type {
 }
 
 /// GICV_AIAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52944.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_AIAR_Type {
@@ -6711,7 +6756,7 @@ pub struct GICV_AIAR_Type {
 }
 
 /// GICV_BPR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52975.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_BPR_Type {
@@ -6719,7 +6764,7 @@ pub struct GICV_BPR_Type {
 }
 
 /// GICV_CTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53119-53127.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_CTLR_Type {
@@ -6727,7 +6772,7 @@ pub struct GICV_CTLR_Type {
 }
 
 /// GICV_DIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52796.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_DIR_Type {
@@ -6735,7 +6780,7 @@ pub struct GICV_DIR_Type {
 }
 
 /// GICV_EOIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52983.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_EOIR_Type {
@@ -6743,7 +6788,7 @@ pub struct GICV_EOIR_Type {
 }
 
 /// GICV_HPPIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52784.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_HPPIR_Type {
@@ -6751,7 +6796,7 @@ pub struct GICV_HPPIR_Type {
 }
 
 /// GICV_IAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52759.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_IAR_Type {
@@ -6759,7 +6804,7 @@ pub struct GICV_IAR_Type {
 }
 
 /// GICV_PMR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53199.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_PMR_Type {
@@ -6767,7 +6812,7 @@ pub struct GICV_PMR_Type {
 }
 
 /// GICV_RPR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52948.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_RPR_Type {
@@ -6775,7 +6820,7 @@ pub struct GICV_RPR_Type {
 }
 
 /// GICV_STATUSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52893-52894.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GICV_STATUSR_Type {
@@ -6783,7 +6828,7 @@ pub struct GICV_STATUSR_Type {
 }
 
 /// GITS_CBASER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47305-47313.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_CBASER_Type {
@@ -6791,7 +6836,7 @@ pub struct GITS_CBASER_Type {
 }
 
 /// GITS_CREADR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47126.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_CREADR_Type {
@@ -6799,7 +6844,7 @@ pub struct GITS_CREADR_Type {
 }
 
 /// GITS_CTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52728-52735.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_CTLR_Type {
@@ -6807,7 +6852,7 @@ pub struct GITS_CTLR_Type {
 }
 
 /// GITS_CWRITER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47276.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_CWRITER_Type {
@@ -6815,7 +6860,7 @@ pub struct GITS_CWRITER_Type {
 }
 
 /// GITS_IIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53290-53291.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_IIDR_Type {
@@ -6823,7 +6868,7 @@ pub struct GITS_IIDR_Type {
 }
 
 /// GITS_MPAMIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53216.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_MPAMIDR_Type {
@@ -6831,7 +6876,7 @@ pub struct GITS_MPAMIDR_Type {
 }
 
 /// GITS_MPIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53273-53274.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_MPIDR_Type {
@@ -6839,7 +6884,7 @@ pub struct GITS_MPIDR_Type {
 }
 
 /// GITS_PARTIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52780.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_PARTIDR_Type {
@@ -6847,7 +6892,7 @@ pub struct GITS_PARTIDR_Type {
 }
 
 /// GITS_SGIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47256.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_SGIR_Type {
@@ -6855,7 +6900,7 @@ pub struct GITS_SGIR_Type {
 }
 
 /// GITS_STATUSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53027-53036.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_STATUSR_Type {
@@ -6863,7 +6908,7 @@ pub struct GITS_STATUSR_Type {
 }
 
 /// GITS_TYPER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47230-47252.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GITS_TYPER_Type {
@@ -6871,7 +6916,7 @@ pub struct GITS_TYPER_Type {
 }
 
 /// GMID_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46656.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GMID_EL1_Type {
@@ -6879,7 +6924,7 @@ pub struct GMID_EL1_Type {
 }
 
 /// GPCCR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L19399-19409.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GPCCR_EL3_Type {
@@ -6887,7 +6932,7 @@ pub struct GPCCR_EL3_Type {
 }
 
 /// GPTBR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L19520.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GPTBR_EL3_Type {
@@ -6895,7 +6940,7 @@ pub struct GPTBR_EL3_Type {
 }
 
 /// HAFGRTR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44066-44106.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HAFGRTR_EL2_Type {
@@ -6903,7 +6948,7 @@ pub struct HAFGRTR_EL2_Type {
 }
 
 /// HCPTR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7138-7146.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HCPTR_Type {
@@ -6911,7 +6956,7 @@ pub struct HCPTR_Type {
 }
 
 /// HCR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14496-14507.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HCR2_Type {
@@ -6919,7 +6964,7 @@ pub struct HCR2_Type {
 }
 
 /// HCRX_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L10963-10986.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HCRX_EL2_Type {
@@ -6927,7 +6972,7 @@ pub struct HCRX_EL2_Type {
 }
 
 /// HCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3274-3337.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HCR_EL2_Type {
@@ -6935,7 +6980,7 @@ pub struct HCR_EL2_Type {
 }
 
 /// HCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8367-8398.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HCR_Type {
@@ -6943,7 +6988,7 @@ pub struct HCR_Type {
 }
 
 /// HDCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3914-3931.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HDCR_Type {
@@ -6951,7 +6996,7 @@ pub struct HDCR_Type {
 }
 
 /// HDFGRTR2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45688-45710.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HDFGRTR2_EL2_Type {
@@ -6959,7 +7004,7 @@ pub struct HDFGRTR2_EL2_Type {
 }
 
 /// HDFGRTR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43898-43950.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HDFGRTR_EL2_Type {
@@ -6967,7 +7012,7 @@ pub struct HDFGRTR_EL2_Type {
 }
 
 /// HDFGWTR2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45140-45160.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HDFGWTR2_EL2_Type {
@@ -6975,7 +7020,7 @@ pub struct HDFGWTR2_EL2_Type {
 }
 
 /// HDFGWTR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46042-46088.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HDFGWTR_EL2_Type {
@@ -6983,7 +7028,7 @@ pub struct HDFGWTR_EL2_Type {
 }
 
 /// HFGITR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L31764-31827.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HFGITR_EL2_Type {
@@ -6991,7 +7036,7 @@ pub struct HFGITR_EL2_Type {
 }
 
 /// HFGRTR2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45548-45549.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HFGRTR2_EL2_Type {
@@ -6999,7 +7044,7 @@ pub struct HFGRTR2_EL2_Type {
 }
 
 /// HFGRTR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45885-45950.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HFGRTR_EL2_Type {
@@ -7007,7 +7052,7 @@ pub struct HFGRTR_EL2_Type {
 }
 
 /// HFGWTR2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45976.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HFGWTR2_EL2_Type {
@@ -7015,7 +7060,7 @@ pub struct HFGWTR2_EL2_Type {
 }
 
 /// HFGWTR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44916-44968.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HFGWTR_EL2_Type {
@@ -7023,7 +7068,7 @@ pub struct HFGWTR_EL2_Type {
 }
 
 /// HMAIR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L37171-37172.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HMAIR0_Type {
@@ -7031,7 +7076,7 @@ pub struct HMAIR0_Type {
 }
 
 /// HMAIR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L37184-37185.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HMAIR1_Type {
@@ -7039,7 +7084,7 @@ pub struct HMAIR1_Type {
 }
 
 /// HPFAR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9266.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HPFAR_EL2_Type {
@@ -7047,7 +7092,7 @@ pub struct HPFAR_EL2_Type {
 }
 
 /// HPFAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L13824.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HPFAR_Type {
@@ -7055,7 +7100,7 @@ pub struct HPFAR_Type {
 }
 
 /// HRMR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48301.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HRMR_Type {
@@ -7063,7 +7108,7 @@ pub struct HRMR_Type {
 }
 
 /// HSCTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8533-8548.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HSCTLR_Type {
@@ -7071,7 +7116,7 @@ pub struct HSCTLR_Type {
 }
 
 /// HSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L13845.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HSR_Type {
@@ -7079,7 +7124,7 @@ pub struct HSR_Type {
 }
 
 /// HSTR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34095-34111.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HSTR_EL2_Type {
@@ -7087,7 +7132,7 @@ pub struct HSTR_EL2_Type {
 }
 
 /// HSTR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L41535-41551.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HSTR_Type {
@@ -7095,7 +7140,7 @@ pub struct HSTR_Type {
 }
 
 /// HTCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L37197-37208.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HTCR_Type {
@@ -7103,7 +7148,7 @@ pub struct HTCR_Type {
 }
 
 /// HTRFCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39769-39770.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HTRFCR_Type {
@@ -7111,7 +7156,7 @@ pub struct HTRFCR_Type {
 }
 
 /// HTTBR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12962.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct HTTBR_Type {
@@ -7119,7 +7164,7 @@ pub struct HTTBR_Type {
 }
 
 /// ICC_AP1R_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44756.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_AP1R_EL1_Type {
@@ -7127,7 +7172,7 @@ pub struct ICC_AP1R_EL1_Type {
 }
 
 /// ICC_ASGI1R_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45516-45525.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_ASGI1R_EL1_Type {
@@ -7135,7 +7180,7 @@ pub struct ICC_ASGI1R_EL1_Type {
 }
 
 /// ICC_ASGI1R_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46456-46465.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_ASGI1R_Type {
@@ -7143,7 +7188,7 @@ pub struct ICC_ASGI1R_Type {
 }
 
 /// ICC_BPR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44110.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_BPR0_EL1_Type {
@@ -7151,7 +7196,7 @@ pub struct ICC_BPR0_EL1_Type {
 }
 
 /// ICC_BPR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48843.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_BPR0_Type {
@@ -7159,7 +7204,7 @@ pub struct ICC_BPR0_Type {
 }
 
 /// ICC_BPR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45604.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_BPR1_EL1_Type {
@@ -7167,7 +7212,7 @@ pub struct ICC_BPR1_EL1_Type {
 }
 
 /// ICC_BPR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48556.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_BPR1_Type {
@@ -7175,7 +7220,7 @@ pub struct ICC_BPR1_Type {
 }
 
 /// ICC_CTLR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44701-44712.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_CTLR_EL1_Type {
@@ -7183,7 +7228,7 @@ pub struct ICC_CTLR_EL1_Type {
 }
 
 /// ICC_CTLR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45445-45461.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_CTLR_EL3_Type {
@@ -7191,7 +7236,7 @@ pub struct ICC_CTLR_EL3_Type {
 }
 
 /// ICC_CTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49584-49595.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_CTLR_Type {
@@ -7199,7 +7244,7 @@ pub struct ICC_CTLR_Type {
 }
 
 /// ICC_DIR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44460.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_DIR_EL1_Type {
@@ -7207,7 +7252,7 @@ pub struct ICC_DIR_EL1_Type {
 }
 
 /// ICC_DIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49295.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_DIR_Type {
@@ -7215,7 +7260,7 @@ pub struct ICC_DIR_Type {
 }
 
 /// ICC_EOIR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46351.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_EOIR0_EL1_Type {
@@ -7223,7 +7268,7 @@ pub struct ICC_EOIR0_EL1_Type {
 }
 
 /// ICC_EOIR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48971.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_EOIR0_Type {
@@ -7231,7 +7276,7 @@ pub struct ICC_EOIR0_Type {
 }
 
 /// ICC_EOIR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45642.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_EOIR1_EL1_Type {
@@ -7239,7 +7284,7 @@ pub struct ICC_EOIR1_EL1_Type {
 }
 
 /// ICC_EOIR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48775.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_EOIR1_Type {
@@ -7247,7 +7292,7 @@ pub struct ICC_EOIR1_Type {
 }
 
 /// ICC_HPPIR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44053.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_HPPIR0_EL1_Type {
@@ -7255,7 +7300,7 @@ pub struct ICC_HPPIR0_EL1_Type {
 }
 
 /// ICC_HPPIR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50373.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_HPPIR0_Type {
@@ -7263,7 +7308,7 @@ pub struct ICC_HPPIR0_Type {
 }
 
 /// ICC_HPPIR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43985.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_HPPIR1_EL1_Type {
@@ -7271,7 +7316,7 @@ pub struct ICC_HPPIR1_EL1_Type {
 }
 
 /// ICC_HPPIR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51956.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_HPPIR1_Type {
@@ -7279,7 +7324,7 @@ pub struct ICC_HPPIR1_Type {
 }
 
 /// ICC_HSRE_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50031-50032.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_HSRE_Type {
@@ -7287,7 +7332,7 @@ pub struct ICC_HSRE_Type {
 }
 
 /// ICC_IAR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44614.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IAR0_EL1_Type {
@@ -7295,7 +7340,7 @@ pub struct ICC_IAR0_EL1_Type {
 }
 
 /// ICC_IAR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47952.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IAR0_Type {
@@ -7303,7 +7348,7 @@ pub struct ICC_IAR0_Type {
 }
 
 /// ICC_IAR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46186.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IAR1_EL1_Type {
@@ -7311,7 +7356,7 @@ pub struct ICC_IAR1_EL1_Type {
 }
 
 /// ICC_IAR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47589.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IAR1_Type {
@@ -7319,7 +7364,7 @@ pub struct ICC_IAR1_Type {
 }
 
 /// ICC_IGRPEN0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45596.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IGRPEN0_EL1_Type {
@@ -7327,7 +7372,7 @@ pub struct ICC_IGRPEN0_EL1_Type {
 }
 
 /// ICC_IGRPEN0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49464.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IGRPEN0_Type {
@@ -7335,7 +7380,7 @@ pub struct ICC_IGRPEN0_Type {
 }
 
 /// ICC_IGRPEN1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44504.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IGRPEN1_EL1_Type {
@@ -7343,7 +7388,7 @@ pub struct ICC_IGRPEN1_EL1_Type {
 }
 
 /// ICC_IGRPEN1_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45294-45295.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IGRPEN1_EL3_Type {
@@ -7351,7 +7396,7 @@ pub struct ICC_IGRPEN1_EL3_Type {
 }
 
 /// ICC_IGRPEN1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49143.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_IGRPEN1_Type {
@@ -7359,7 +7404,7 @@ pub struct ICC_IGRPEN1_Type {
 }
 
 /// ICC_MCTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49275-49291.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_MCTLR_Type {
@@ -7367,7 +7412,7 @@ pub struct ICC_MCTLR_Type {
 }
 
 /// ICC_MGRPEN1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50709.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_MGRPEN1_Type {
@@ -7375,7 +7420,7 @@ pub struct ICC_MGRPEN1_Type {
 }
 
 /// ICC_MSRE_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49098-49099.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_MSRE_Type {
@@ -7383,7 +7428,7 @@ pub struct ICC_MSRE_Type {
 }
 
 /// ICC_NMIAR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44538.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_NMIAR1_EL1_Type {
@@ -7391,7 +7436,7 @@ pub struct ICC_NMIAR1_EL1_Type {
 }
 
 /// ICC_PMR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2783.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_PMR_EL1_Type {
@@ -7399,7 +7444,7 @@ pub struct ICC_PMR_EL1_Type {
 }
 
 /// ICC_PMR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50169.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_PMR_Type {
@@ -7407,7 +7452,7 @@ pub struct ICC_PMR_Type {
 }
 
 /// ICC_RPR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44245-44246.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_RPR_EL1_Type {
@@ -7415,7 +7460,7 @@ pub struct ICC_RPR_EL1_Type {
 }
 
 /// ICC_RPR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49056.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_RPR_Type {
@@ -7423,7 +7468,7 @@ pub struct ICC_RPR_Type {
 }
 
 /// ICC_SGI0R_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44272-44281.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_SGI0R_EL1_Type {
@@ -7431,7 +7476,7 @@ pub struct ICC_SGI0R_EL1_Type {
 }
 
 /// ICC_SGI0R_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46405-46414.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_SGI0R_Type {
@@ -7439,7 +7484,7 @@ pub struct ICC_SGI0R_Type {
 }
 
 /// ICC_SGI1R_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45980-45989.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_SGI1R_EL1_Type {
@@ -7447,7 +7492,7 @@ pub struct ICC_SGI1R_EL1_Type {
 }
 
 /// ICC_SGI1R_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46371-46380.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_SGI1R_Type {
@@ -7455,7 +7500,7 @@ pub struct ICC_SGI1R_Type {
 }
 
 /// ICC_SRE_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44546.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_SRE_EL1_Type {
@@ -7463,7 +7508,7 @@ pub struct ICC_SRE_EL1_Type {
 }
 
 /// ICC_SRE_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45485-45486.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_SRE_EL2_Type {
@@ -7471,7 +7516,7 @@ pub struct ICC_SRE_EL2_Type {
 }
 
 /// ICC_SRE_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46019-46020.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_SRE_EL3_Type {
@@ -7479,7 +7524,7 @@ pub struct ICC_SRE_EL3_Type {
 }
 
 /// ICC_SRE_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51977.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICC_SRE_Type {
@@ -7487,7 +7532,7 @@ pub struct ICC_SRE_Type {
 }
 
 /// ICH_AP0R_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44576-44610.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_AP0R_EL2_Type {
@@ -7495,7 +7540,7 @@ pub struct ICH_AP0R_EL2_Type {
 }
 
 /// ICH_AP0R_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50062-50096.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_AP0R_Type {
@@ -7503,7 +7548,7 @@ pub struct ICH_AP0R_Type {
 }
 
 /// ICH_AP1R_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44421-44456.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_AP1R_EL2_Type {
@@ -7511,7 +7556,7 @@ pub struct ICH_AP1R_EL2_Type {
 }
 
 /// ICH_AP1R_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49776-49810.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_AP1R_Type {
@@ -7519,7 +7564,7 @@ pub struct ICH_AP1R_Type {
 }
 
 /// ICH_EISR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44212-44230.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_EISR_EL2_Type {
@@ -7527,7 +7572,7 @@ pub struct ICH_EISR_EL2_Type {
 }
 
 /// ICH_EISR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49884-49902.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_EISR_Type {
@@ -7535,7 +7580,7 @@ pub struct ICH_EISR_Type {
 }
 
 /// ICH_ELRSR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44250-44268.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_ELRSR_EL2_Type {
@@ -7543,7 +7588,7 @@ pub struct ICH_ELRSR_EL2_Type {
 }
 
 /// ICH_ELRSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47550-47568.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_ELRSR_Type {
@@ -7551,7 +7596,7 @@ pub struct ICH_ELRSR_Type {
 }
 
 /// ICH_HCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45574-45592.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_HCR_EL2_Type {
@@ -7559,7 +7604,7 @@ pub struct ICH_HCR_EL2_Type {
 }
 
 /// ICH_HCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50242-50259.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_HCR_Type {
@@ -7567,7 +7612,7 @@ pub struct ICH_HCR_Type {
 }
 
 /// ICH_LRC_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51889-51896.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_LRC_Type {
@@ -7575,7 +7620,7 @@ pub struct ICH_LRC_Type {
 }
 
 /// ICH_LR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43958-43967.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_LR_EL2_Type {
@@ -7583,7 +7628,7 @@ pub struct ICH_LR_EL2_Type {
 }
 
 /// ICH_LR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50534.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_LR_Type {
@@ -7591,7 +7636,7 @@ pub struct ICH_LR_Type {
 }
 
 /// ICH_MISR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44807-44817.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_MISR_EL2_Type {
@@ -7599,7 +7644,7 @@ pub struct ICH_MISR_EL2_Type {
 }
 
 /// ICH_MISR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50891-50901.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_MISR_Type {
@@ -7607,7 +7652,7 @@ pub struct ICH_MISR_Type {
 }
 
 /// ICH_VMCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45415-45426.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_VMCR_EL2_Type {
@@ -7615,7 +7660,7 @@ pub struct ICH_VMCR_EL2_Type {
 }
 
 /// ICH_VMCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48520-48531.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_VMCR_Type {
@@ -7623,7 +7668,7 @@ pub struct ICH_VMCR_Type {
 }
 
 /// ICH_VTR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45756-45767.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_VTR_EL2_Type {
@@ -7631,7 +7676,7 @@ pub struct ICH_VTR_EL2_Type {
 }
 
 /// ICH_VTR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48403-48413.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICH_VTR_Type {
@@ -7639,7 +7684,7 @@ pub struct ICH_VTR_Type {
 }
 
 /// ICV_AP1R_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46170.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_AP1R_EL1_Type {
@@ -7647,7 +7692,7 @@ pub struct ICV_AP1R_EL1_Type {
 }
 
 /// ICV_BPR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44837.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_BPR0_EL1_Type {
@@ -7655,7 +7700,7 @@ pub struct ICV_BPR0_EL1_Type {
 }
 
 /// ICV_BPR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49863.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_BPR0_Type {
@@ -7663,7 +7708,7 @@ pub struct ICV_BPR0_Type {
 }
 
 /// ICV_BPR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44015.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_BPR1_EL1_Type {
@@ -7671,7 +7716,7 @@ pub struct ICV_BPR1_EL1_Type {
 }
 
 /// ICV_BPR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49035.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_BPR1_Type {
@@ -7679,7 +7724,7 @@ pub struct ICV_BPR1_Type {
 }
 
 /// ICV_CTLR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45005-45015.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_CTLR_EL1_Type {
@@ -7687,7 +7732,7 @@ pub struct ICV_CTLR_EL1_Type {
 }
 
 /// ICV_CTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48110-48120.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_CTLR_Type {
@@ -7695,7 +7740,7 @@ pub struct ICV_CTLR_Type {
 }
 
 /// ICV_DIR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46182.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_DIR_EL1_Type {
@@ -7703,7 +7748,7 @@ pub struct ICV_DIR_EL1_Type {
 }
 
 /// ICV_DIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51839.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_DIR_Type {
@@ -7711,7 +7756,7 @@ pub struct ICV_DIR_Type {
 }
 
 /// ICV_EOIR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45823.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_EOIR0_EL1_Type {
@@ -7719,7 +7764,7 @@ pub struct ICV_EOIR0_EL1_Type {
 }
 
 /// ICV_EOIR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48361.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_EOIR0_Type {
@@ -7727,7 +7772,7 @@ pub struct ICV_EOIR0_Type {
 }
 
 /// ICV_EOIR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44041.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_EOIR1_EL1_Type {
@@ -7735,7 +7780,7 @@ pub struct ICV_EOIR1_EL1_Type {
 }
 
 /// ICV_EOIR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50190.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_EOIR1_Type {
@@ -7743,7 +7788,7 @@ pub struct ICV_EOIR1_Type {
 }
 
 /// ICV_HPPIR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44833.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_HPPIR0_EL1_Type {
@@ -7751,7 +7796,7 @@ pub struct ICV_HPPIR0_EL1_Type {
 }
 
 /// ICV_HPPIR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50610.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_HPPIR0_Type {
@@ -7759,7 +7804,7 @@ pub struct ICV_HPPIR0_Type {
 }
 
 /// ICV_HPPIR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46276.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_HPPIR1_EL1_Type {
@@ -7767,7 +7812,7 @@ pub struct ICV_HPPIR1_EL1_Type {
 }
 
 /// ICV_HPPIR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48237.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_HPPIR1_Type {
@@ -7775,7 +7820,7 @@ pub struct ICV_HPPIR1_Type {
 }
 
 /// ICV_IAR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44500.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_IAR0_EL1_Type {
@@ -7783,7 +7828,7 @@ pub struct ICV_IAR0_EL1_Type {
 }
 
 /// ICV_IAR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50993.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_IAR0_Type {
@@ -7791,7 +7836,7 @@ pub struct ICV_IAR0_Type {
 }
 
 /// ICV_IAR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45023.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_IAR1_EL1_Type {
@@ -7799,7 +7844,7 @@ pub struct ICV_IAR1_EL1_Type {
 }
 
 /// ICV_IAR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48701.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_IAR1_Type {
@@ -7807,7 +7852,7 @@ pub struct ICV_IAR1_Type {
 }
 
 /// ICV_IGRPEN0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45851.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_IGRPEN0_EL1_Type {
@@ -7815,7 +7860,7 @@ pub struct ICV_IGRPEN0_EL1_Type {
 }
 
 /// ICV_IGRPEN0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47982.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_IGRPEN0_Type {
@@ -7823,7 +7868,7 @@ pub struct ICV_IGRPEN0_Type {
 }
 
 /// ICV_IGRPEN1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45968.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_IGRPEN1_EL1_Type {
@@ -7831,7 +7876,7 @@ pub struct ICV_IGRPEN1_EL1_Type {
 }
 
 /// ICV_IGRPEN1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47771.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_IGRPEN1_Type {
@@ -7839,7 +7884,7 @@ pub struct ICV_IGRPEN1_Type {
 }
 
 /// ICV_NMIAR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43954.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_NMIAR1_EL1_Type {
@@ -7847,7 +7892,7 @@ pub struct ICV_NMIAR1_EL1_Type {
 }
 
 /// ICV_PMR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44829.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_PMR_EL1_Type {
@@ -7855,7 +7900,7 @@ pub struct ICV_PMR_EL1_Type {
 }
 
 /// ICV_PMR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50589.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_PMR_Type {
@@ -7863,7 +7908,7 @@ pub struct ICV_PMR_Type {
 }
 
 /// ICV_RPR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44825.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_RPR_EL1_Type {
@@ -7871,7 +7916,7 @@ pub struct ICV_RPR_EL1_Type {
 }
 
 /// ICV_RPR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48620.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ICV_RPR_Type {
@@ -7879,7 +7924,7 @@ pub struct ICV_RPR_Type {
 }
 
 /// ID_AA64DFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43993-44011.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64DFR0_EL1_Type {
@@ -7887,7 +7932,7 @@ pub struct ID_AA64DFR0_EL1_Type {
 }
 
 /// ID_AA64DFR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44114-44127.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64DFR1_EL1_Type {
@@ -7895,7 +7940,7 @@ pub struct ID_AA64DFR1_EL1_Type {
 }
 
 /// ID_AA64ISAR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44468-44485.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64ISAR0_EL1_Type {
@@ -7903,7 +7948,7 @@ pub struct ID_AA64ISAR0_EL1_Type {
 }
 
 /// ID_AA64ISAR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44182-44200.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64ISAR1_EL1_Type {
@@ -7911,7 +7956,7 @@ pub struct ID_AA64ISAR1_EL1_Type {
 }
 
 /// ID_AA64ISAR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45529-45544.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64ISAR2_EL1_Type {
@@ -7919,7 +7964,7 @@ pub struct ID_AA64ISAR2_EL1_Type {
 }
 
 /// ID_AA64MMFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45646-45662.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64MMFR0_EL1_Type {
@@ -7927,7 +7972,7 @@ pub struct ID_AA64MMFR0_EL1_Type {
 }
 
 /// ID_AA64MMFR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45317-45335.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64MMFR1_EL1_Type {
@@ -7935,7 +7980,7 @@ pub struct ID_AA64MMFR1_EL1_Type {
 }
 
 /// ID_AA64MMFR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43877-43894.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64MMFR2_EL1_Type {
@@ -7943,7 +7988,7 @@ pub struct ID_AA64MMFR2_EL1_Type {
 }
 
 /// ID_AA64MMFR3_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45735-45752.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64MMFR3_EL1_Type {
@@ -7951,7 +7996,7 @@ pub struct ID_AA64MMFR3_EL1_Type {
 }
 
 /// ID_AA64MMFR4_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44204.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64MMFR4_EL1_Type {
@@ -7959,7 +8004,7 @@ pub struct ID_AA64MMFR4_EL1_Type {
 }
 
 /// ID_AA64PFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44399-44417.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64PFR0_EL1_Type {
@@ -7967,7 +8012,7 @@ pub struct ID_AA64PFR0_EL1_Type {
 }
 
 /// ID_AA64PFR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44378-44395.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64PFR1_EL1_Type {
@@ -7975,7 +8020,7 @@ pub struct ID_AA64PFR1_EL1_Type {
 }
 
 /// ID_AA64PFR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45503-45504.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64PFR2_EL1_Type {
@@ -7983,7 +8028,7 @@ pub struct ID_AA64PFR2_EL1_Type {
 }
 
 /// ID_AA64SMFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46582-46596.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64SMFR0_EL1_Type {
@@ -7991,7 +8036,7 @@ pub struct ID_AA64SMFR0_EL1_Type {
 }
 
 /// ID_AA64ZFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46355-46367.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_AA64ZFR0_EL1_Type {
@@ -7999,7 +8044,7 @@ pub struct ID_AA64ZFR0_EL1_Type {
 }
 
 /// ID_DFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45954-45964.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_DFR0_EL1_Type {
@@ -8007,7 +8052,7 @@ pub struct ID_DFR0_EL1_Type {
 }
 
 /// ID_DFR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47657-47667.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_DFR0_Type {
@@ -8015,7 +8060,7 @@ pub struct ID_DFR0_Type {
 }
 
 /// ID_DFR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45827.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_DFR1_EL1_Type {
@@ -8023,7 +8068,7 @@ pub struct ID_DFR1_EL1_Type {
 }
 
 /// ID_DFR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50513.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_DFR1_Type {
@@ -8031,7 +8076,7 @@ pub struct ID_DFR1_Type {
 }
 
 /// ID_ISAR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45164-45173.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR0_EL1_Type {
@@ -8039,7 +8084,7 @@ pub struct ID_ISAR0_EL1_Type {
 }
 
 /// ID_ISAR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48662-48671.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR0_Type {
@@ -8047,7 +8092,7 @@ pub struct ID_ISAR0_Type {
 }
 
 /// ID_ISAR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44636-44646.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR1_EL1_Type {
@@ -8055,7 +8100,7 @@ pub struct ID_ISAR1_EL1_Type {
 }
 
 /// ID_ISAR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L52041-52051.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR1_Type {
@@ -8063,7 +8108,7 @@ pub struct ID_ISAR1_Type {
 }
 
 /// ID_ISAR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44019-44029.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR2_EL1_Type {
@@ -8071,7 +8116,7 @@ pub struct ID_ISAR2_EL1_Type {
 }
 
 /// ID_ISAR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51695-51705.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR2_Type {
@@ -8079,7 +8124,7 @@ pub struct ID_ISAR2_Type {
 }
 
 /// ID_ISAR3_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44846-44856.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR3_EL1_Type {
@@ -8087,7 +8132,7 @@ pub struct ID_ISAR3_EL1_Type {
 }
 
 /// ID_ISAR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50669-50679.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR3_Type {
@@ -8095,7 +8140,7 @@ pub struct ID_ISAR3_Type {
 }
 
 /// ID_ISAR4_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44622-44632.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR4_EL1_Type {
@@ -8103,7 +8148,7 @@ pub struct ID_ISAR4_EL1_Type {
 }
 
 /// ID_ISAR4_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50415-50425.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR4_Type {
@@ -8111,7 +8156,7 @@ pub struct ID_ISAR4_Type {
 }
 
 /// ID_ISAR5_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45557-45566.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR5_EL1_Type {
@@ -8119,7 +8164,7 @@ pub struct ID_ISAR5_EL1_Type {
 }
 
 /// ID_ISAR5_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50118-50127.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR5_Type {
@@ -8127,7 +8172,7 @@ pub struct ID_ISAR5_Type {
 }
 
 /// ID_ISAR6_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44742-44752.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR6_EL1_Type {
@@ -8135,7 +8180,7 @@ pub struct ID_ISAR6_EL1_Type {
 }
 
 /// ID_ISAR6_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48151-48161.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_ISAR6_Type {
@@ -8143,7 +8188,7 @@ pub struct ID_ISAR6_Type {
 }
 
 /// ID_MMFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45397-45407.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR0_EL1_Type {
@@ -8151,7 +8196,7 @@ pub struct ID_MMFR0_EL1_Type {
 }
 
 /// ID_MMFR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49832-49842.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR0_Type {
@@ -8159,7 +8204,7 @@ pub struct ID_MMFR0_Type {
 }
 
 /// ID_MMFR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45299-45309.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR1_EL1_Type {
@@ -8167,7 +8212,7 @@ pub struct ID_MMFR1_EL1_Type {
 }
 
 /// ID_MMFR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49004-49014.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR1_Type {
@@ -8175,7 +8220,7 @@ pub struct ID_MMFR1_Type {
 }
 
 /// ID_MMFR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43849-43859.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR2_EL1_Type {
@@ -8183,7 +8228,7 @@ pub struct ID_MMFR2_EL1_Type {
 }
 
 /// ID_MMFR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51014-51024.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR2_Type {
@@ -8191,7 +8236,7 @@ pub struct ID_MMFR2_Type {
 }
 
 /// ID_MMFR3_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46028-46038.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR3_EL1_Type {
@@ -8199,7 +8244,7 @@ pub struct ID_MMFR3_EL1_Type {
 }
 
 /// ID_MMFR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48003-48013.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR3_Type {
@@ -8207,7 +8252,7 @@ pub struct ID_MMFR3_Type {
 }
 
 /// ID_MMFR4_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43863-43873.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR4_EL1_Type {
@@ -8215,7 +8260,7 @@ pub struct ID_MMFR4_EL1_Type {
 }
 
 /// ID_MMFR4_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48744-48754.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR4_Type {
@@ -8223,7 +8268,7 @@ pub struct ID_MMFR4_Type {
 }
 
 /// ID_MMFR5_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44534.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR5_EL1_Type {
@@ -8231,7 +8276,7 @@ pub struct ID_MMFR5_EL1_Type {
 }
 
 /// ID_MMFR5_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48258.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_MMFR5_Type {
@@ -8239,7 +8284,7 @@ pub struct ID_MMFR5_Type {
 }
 
 /// ID_PFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45112-45122.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_PFR0_EL1_Type {
@@ -8247,7 +8292,7 @@ pub struct ID_PFR0_EL1_Type {
 }
 
 /// ID_PFR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51173-51183.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_PFR0_Type {
@@ -8255,7 +8300,7 @@ pub struct ID_PFR0_Type {
 }
 
 /// ID_PFR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45771-45781.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_PFR1_EL1_Type {
@@ -8263,7 +8308,7 @@ pub struct ID_PFR1_EL1_Type {
 }
 
 /// ID_PFR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50211-50221.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_PFR1_Type {
@@ -8271,7 +8316,7 @@ pub struct ID_PFR1_Type {
 }
 
 /// ID_PFR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46292-46293.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_PFR2_EL1_Type {
@@ -8279,7 +8324,7 @@ pub struct ID_PFR2_EL1_Type {
 }
 
 /// ID_PFR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48331.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ID_PFR2_Type {
@@ -8287,7 +8332,7 @@ pub struct ID_PFR2_Type {
 }
 
 /// IFSR32_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14337-14338.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct IFSR32_EL2_Type {
@@ -8295,7 +8340,7 @@ pub struct IFSR32_EL2_Type {
 }
 
 /// IFSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14342-14343.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct IFSR_Type {
@@ -8303,7 +8348,7 @@ pub struct IFSR_Type {
 }
 
 /// ISR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44841-44842.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ISR_EL1_Type {
@@ -8311,7 +8356,7 @@ pub struct ISR_EL1_Type {
 }
 
 /// ISR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51066.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ISR_Type {
@@ -8319,7 +8364,7 @@ pub struct ISR_Type {
 }
 
 /// LORC_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45499.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct LORC_EL1_Type {
@@ -8327,7 +8372,7 @@ pub struct LORC_EL1_Type {
 }
 
 /// LOREA_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46174.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct LOREA_EL1_Type {
@@ -8335,7 +8380,7 @@ pub struct LOREA_EL1_Type {
 }
 
 /// LORID_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44170.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct LORID_EL1_Type {
@@ -8343,7 +8388,7 @@ pub struct LORID_EL1_Type {
 }
 
 /// LORN_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45847.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct LORN_EL1_Type {
@@ -8351,7 +8396,7 @@ pub struct LORN_EL1_Type {
 }
 
 /// LORSA_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45313.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct LORSA_EL1_Type {
@@ -8359,7 +8404,7 @@ pub struct LORSA_EL1_Type {
 }
 
 /// MAIR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L36902-36903.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIR0_Type {
@@ -8367,7 +8412,7 @@ pub struct MAIR0_Type {
 }
 
 /// MAIR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L36993-36994.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIR1_Type {
@@ -8375,7 +8420,7 @@ pub struct MAIR1_Type {
 }
 
 /// MAIR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20376-20386.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIR2_EL1_Type {
@@ -8383,7 +8428,7 @@ pub struct MAIR2_EL1_Type {
 }
 
 /// MAIR2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20609-20619.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIR2_EL2_Type {
@@ -8391,7 +8436,7 @@ pub struct MAIR2_EL2_Type {
 }
 
 /// MAIR2_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20886-20896.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIR2_EL3_Type {
@@ -8399,7 +8444,7 @@ pub struct MAIR2_EL3_Type {
 }
 
 /// MAIRType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1266-1276.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIRType {
@@ -8407,7 +8452,7 @@ pub struct MAIRType {
 }
 
 /// MAIR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20390-20400.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIR_EL1_Type {
@@ -8415,7 +8460,7 @@ pub struct MAIR_EL1_Type {
 }
 
 /// MAIR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20623-20633.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIR_EL2_Type {
@@ -8423,7 +8468,7 @@ pub struct MAIR_EL2_Type {
 }
 
 /// MAIR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20900-20910.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MAIR_EL3_Type {
@@ -8431,7 +8476,7 @@ pub struct MAIR_EL3_Type {
 }
 
 /// MDCCINT_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39459.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MDCCINT_EL1_Type {
@@ -8439,7 +8484,7 @@ pub struct MDCCINT_EL1_Type {
 }
 
 /// MDCCSR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4216.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MDCCSR_EL0_Type {
@@ -8447,7 +8492,7 @@ pub struct MDCCSR_EL0_Type {
 }
 
 /// MDCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3933-3957.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MDCR_EL2_Type {
@@ -8455,7 +8500,7 @@ pub struct MDCR_EL2_Type {
 }
 
 /// MDCR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4667-4700.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MDCR_EL3_Type {
@@ -8463,7 +8508,7 @@ pub struct MDCR_EL3_Type {
 }
 
 /// MDRAR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45286.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MDRAR_EL1_Type {
@@ -8471,7 +8516,7 @@ pub struct MDRAR_EL1_Type {
 }
 
 /// MDSCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8300-8319.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MDSCR_EL1_Type {
@@ -8479,7 +8524,7 @@ pub struct MDSCR_EL1_Type {
 }
 
 /// MDSELR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34335.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MDSELR_EL1_Type {
@@ -8487,7 +8532,7 @@ pub struct MDSELR_EL1_Type {
 }
 
 /// MECIDR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44868.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MECIDR_EL2_Type {
@@ -8495,7 +8540,7 @@ pub struct MECIDR_EL2_Type {
 }
 
 /// MECID_A0_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24770.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MECID_A0_EL2_Type {
@@ -8503,7 +8548,7 @@ pub struct MECID_A0_EL2_Type {
 }
 
 /// MECID_A1_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24774.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MECID_A1_EL2_Type {
@@ -8511,7 +8556,7 @@ pub struct MECID_A1_EL2_Type {
 }
 
 /// MECID_P0_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24580.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MECID_P0_EL2_Type {
@@ -8519,7 +8564,7 @@ pub struct MECID_P0_EL2_Type {
 }
 
 /// MECID_P1_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24778.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MECID_P1_EL2_Type {
@@ -8527,7 +8572,7 @@ pub struct MECID_P1_EL2_Type {
 }
 
 /// MECID_RL_A_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24782.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MECID_RL_A_EL3_Type {
@@ -8535,7 +8580,7 @@ pub struct MECID_RL_A_EL3_Type {
 }
 
 /// MFAR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9276-9282.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MFAR_EL3_Type {
@@ -8543,7 +8588,7 @@ pub struct MFAR_EL3_Type {
 }
 
 /// MIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44234-44241.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MIDR_EL1_Type {
@@ -8551,7 +8596,7 @@ pub struct MIDR_EL1_Type {
 }
 
 /// MIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51284-51291.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MIDR_Type {
@@ -8559,7 +8604,7 @@ pub struct MIDR_Type {
 }
 
 /// MPAM0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11633-11634.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAM0_EL1_Type {
@@ -8567,7 +8612,7 @@ pub struct MPAM0_EL1_Type {
 }
 
 /// MPAM1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11189-11198.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAM1_EL1_Type {
@@ -8575,7 +8620,7 @@ pub struct MPAM1_EL1_Type {
 }
 
 /// MPAM2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11145-11159.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAM2_EL2_Type {
@@ -8583,7 +8628,7 @@ pub struct MPAM2_EL2_Type {
 }
 
 /// MPAM3_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11163-11177.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAM3_EL3_Type {
@@ -8591,7 +8636,7 @@ pub struct MPAM3_EL3_Type {
 }
 
 /// MPAMHCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11427-11433.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMHCR_EL2_Type {
@@ -8599,7 +8644,7 @@ pub struct MPAMHCR_EL2_Type {
 }
 
 /// MPAMIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11389-11400.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMIDR_EL1_Type {
@@ -8607,7 +8652,7 @@ pub struct MPAMIDR_EL1_Type {
 }
 
 /// MPAMSM_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11638.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMSM_EL1_Type {
@@ -8615,7 +8660,7 @@ pub struct MPAMSM_EL1_Type {
 }
 
 /// MPAMVPM0_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11437-11443.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPM0_EL2_Type {
@@ -8623,7 +8668,7 @@ pub struct MPAMVPM0_EL2_Type {
 }
 
 /// MPAMVPM1_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11485-11491.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPM1_EL2_Type {
@@ -8631,7 +8676,7 @@ pub struct MPAMVPM1_EL2_Type {
 }
 
 /// MPAMVPM2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11495-11501.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPM2_EL2_Type {
@@ -8639,7 +8684,7 @@ pub struct MPAMVPM2_EL2_Type {
 }
 
 /// MPAMVPM3_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11505-11511.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPM3_EL2_Type {
@@ -8647,7 +8692,7 @@ pub struct MPAMVPM3_EL2_Type {
 }
 
 /// MPAMVPM4_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11515-11521.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPM4_EL2_Type {
@@ -8655,7 +8700,7 @@ pub struct MPAMVPM4_EL2_Type {
 }
 
 /// MPAMVPM5_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11525-11531.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPM5_EL2_Type {
@@ -8663,7 +8708,7 @@ pub struct MPAMVPM5_EL2_Type {
 }
 
 /// MPAMVPM6_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11535-11541.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPM6_EL2_Type {
@@ -8671,7 +8716,7 @@ pub struct MPAMVPM6_EL2_Type {
 }
 
 /// MPAMVPM7_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11545-11551.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPM7_EL2_Type {
@@ -8679,7 +8724,7 @@ pub struct MPAMVPM7_EL2_Type {
 }
 
 /// MPAMVPMV_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L11447-11481.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMVPMV_EL2_Type {
@@ -8687,7 +8732,7 @@ pub struct MPAMVPMV_EL2_Type {
 }
 
 /// MPIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46190-46198.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPIDR_EL1_Type {
@@ -8695,7 +8740,7 @@ pub struct MPIDR_EL1_Type {
 }
 
 /// MPIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51860-51868.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPIDR_Type {
@@ -8703,7 +8748,7 @@ pub struct MPIDR_Type {
 }
 
 /// MVBAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14124.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MVBAR_Type {
@@ -8711,7 +8756,7 @@ pub struct MVBAR_Type {
 }
 
 /// MVFR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43971-43981.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MVFR0_EL1_Type {
@@ -8719,7 +8764,7 @@ pub struct MVFR0_EL1_Type {
 }
 
 /// MVFR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49979-49989.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MVFR0_Type {
@@ -8727,7 +8772,7 @@ pub struct MVFR0_Type {
 }
 
 /// MVFR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45126-45136.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MVFR1_EL1_Type {
@@ -8735,7 +8780,7 @@ pub struct MVFR1_EL1_Type {
 }
 
 /// MVFR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49553-49563.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MVFR1_Type {
@@ -8743,7 +8788,7 @@ pub struct MVFR1_Type {
 }
 
 /// MVFR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45997.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MVFR2_EL1_Type {
@@ -8751,7 +8796,7 @@ pub struct MVFR2_EL1_Type {
 }
 
 /// MVFR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49077.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MVFR2_Type {
@@ -8759,7 +8804,7 @@ pub struct MVFR2_Type {
 }
 
 /// NMRR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L36996-37014.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct NMRR_Type {
@@ -8767,7 +8812,7 @@ pub struct NMRR_Type {
 }
 
 /// NSACR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7158-7159.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct NSACR_Type {
@@ -8775,7 +8820,7 @@ pub struct NSACR_Type {
 }
 
 /// OSDLR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L7914.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct OSDLR_EL1_Type {
@@ -8783,7 +8828,7 @@ pub struct OSDLR_EL1_Type {
 }
 
 /// OSECCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L10177.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct OSECCR_EL1_Type {
@@ -8791,7 +8836,7 @@ pub struct OSECCR_EL1_Type {
 }
 
 /// OSLAR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44049.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct OSLAR_EL1_Type {
@@ -8799,7 +8844,7 @@ pub struct OSLAR_EL1_Type {
 }
 
 /// OSLSR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8323-8324.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct OSLSR_EL1_Type {
@@ -8807,7 +8852,7 @@ pub struct OSLSR_EL1_Type {
 }
 
 /// PAR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39138-39153.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PAR_EL1_Type {
@@ -8815,7 +8860,7 @@ pub struct PAR_EL1_Type {
 }
 
 /// PAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39104-39120.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PAR_Type {
@@ -8823,7 +8868,7 @@ pub struct PAR_Type {
 }
 
 /// PFAR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9286-9287.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PFAR_EL1_Type {
@@ -8831,7 +8876,7 @@ pub struct PFAR_EL1_Type {
 }
 
 /// PFAR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9291-9292.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PFAR_EL2_Type {
@@ -8839,7 +8884,7 @@ pub struct PFAR_EL2_Type {
 }
 
 /// PIRE0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20404-20422.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PIRE0_EL1_Type {
@@ -8847,7 +8892,7 @@ pub struct PIRE0_EL1_Type {
 }
 
 /// PIRE0_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20747-20765.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PIRE0_EL2_Type {
@@ -8855,7 +8900,7 @@ pub struct PIRE0_EL2_Type {
 }
 
 /// PIR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20426-20444.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PIR_EL1_Type {
@@ -8863,7 +8908,7 @@ pub struct PIR_EL1_Type {
 }
 
 /// PIR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20637-20655.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PIR_EL2_Type {
@@ -8871,7 +8916,7 @@ pub struct PIR_EL2_Type {
 }
 
 /// PIR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20914-20932.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PIR_EL3_Type {
@@ -8879,7 +8924,7 @@ pub struct PIR_EL3_Type {
 }
 
 /// PMAUTHSTATUS_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53446-53456.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMAUTHSTATUS_Type {
@@ -8887,7 +8932,7 @@ pub struct PMAUTHSTATUS_Type {
 }
 
 /// PMBIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L35095-35096.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMBIDR_EL1_Type {
@@ -8895,7 +8940,7 @@ pub struct PMBIDR_EL1_Type {
 }
 
 /// PMBLIMITR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6554-6555.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMBLIMITR_EL1_Type {
@@ -8903,7 +8948,7 @@ pub struct PMBLIMITR_EL1_Type {
 }
 
 /// PMBPTR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34772.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMBPTR_EL1_Type {
@@ -8911,7 +8956,7 @@ pub struct PMBPTR_EL1_Type {
 }
 
 /// PMBSR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6559-6570.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMBSR_EL1_Type {
@@ -8919,7 +8964,7 @@ pub struct PMBSR_EL1_Type {
 }
 
 /// PMCCFILTR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4704-4717.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCCFILTR_EL0_Type {
@@ -8927,7 +8972,7 @@ pub struct PMCCFILTR_EL0_Type {
 }
 
 /// PMCCFILTR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4721-4729.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCCFILTR_Type {
@@ -8935,7 +8980,7 @@ pub struct PMCCFILTR_Type {
 }
 
 /// PMCCNTR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34423.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCCNTR_EL0_Type {
@@ -8943,7 +8988,7 @@ pub struct PMCCNTR_EL0_Type {
 }
 
 /// PMCCNTR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43539.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCCNTR_Type {
@@ -8951,7 +8996,7 @@ pub struct PMCCNTR_Type {
 }
 
 /// PMCCNTSVR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44864.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCCNTSVR_EL1_Type {
@@ -8959,7 +9004,7 @@ pub struct PMCCNTSVR_EL1_Type {
 }
 
 /// PMCEID0_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46206-46272.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCEID0_EL0_Type {
@@ -8967,7 +9012,7 @@ pub struct PMCEID0_EL0_Type {
 }
 
 /// PMCEID0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L48055-48089.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCEID0_Type {
@@ -8975,7 +9020,7 @@ pub struct PMCEID0_Type {
 }
 
 /// PMCEID1_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46092-46158.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCEID1_EL0_Type {
@@ -8983,7 +9028,7 @@ pub struct PMCEID1_EL0_Type {
 }
 
 /// PMCEID1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47875-47909.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCEID1_Type {
@@ -8991,7 +9036,7 @@ pub struct PMCEID1_Type {
 }
 
 /// PMCEID2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50446-50480.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCEID2_Type {
@@ -8999,7 +9044,7 @@ pub struct PMCEID2_Type {
 }
 
 /// PMCEID3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50318-50352.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCEID3_Type {
@@ -9007,7 +9052,7 @@ pub struct PMCEID3_Type {
 }
 
 /// PMCFGR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47321-47334.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCFGR_Type {
@@ -9015,7 +9060,7 @@ pub struct PMCFGR_Type {
 }
 
 /// PMCGCR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53460.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCGCR0_Type {
@@ -9023,7 +9068,7 @@ pub struct PMCGCR0_Type {
 }
 
 /// PMCIDR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53464.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCIDR0_Type {
@@ -9031,7 +9076,7 @@ pub struct PMCIDR0_Type {
 }
 
 /// PMCIDR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53468.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCIDR1_Type {
@@ -9039,7 +9084,7 @@ pub struct PMCIDR1_Type {
 }
 
 /// PMCIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53472.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCIDR2_Type {
@@ -9047,7 +9092,7 @@ pub struct PMCIDR2_Type {
 }
 
 /// PMCIDR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53476.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCIDR3_Type {
@@ -9055,7 +9100,7 @@ pub struct PMCIDR3_Type {
 }
 
 /// PMCNTENCLR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4260-4295.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCNTENCLR_EL0_Type {
@@ -9063,7 +9108,7 @@ pub struct PMCNTENCLR_EL0_Type {
 }
 
 /// PMCNTENCLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4299-4333.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCNTENCLR_Type {
@@ -9071,7 +9116,7 @@ pub struct PMCNTENCLR_Type {
 }
 
 /// PMCNTENSET_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4741-4776.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCNTENSET_EL0_Type {
@@ -9079,7 +9124,7 @@ pub struct PMCNTENSET_EL0_Type {
 }
 
 /// PMCNTENSET_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4780-4814.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCNTENSET_Type {
@@ -9087,7 +9132,7 @@ pub struct PMCNTENSET_Type {
 }
 
 /// PMCNTEN_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47338-47373.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCNTEN_Type {
@@ -9095,7 +9140,7 @@ pub struct PMCNTEN_Type {
 }
 
 /// PMCR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4345-4360.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCR_EL0_Type {
@@ -9103,7 +9148,7 @@ pub struct PMCR_EL0_Type {
 }
 
 /// PMCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4364-4378.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMCR_Type {
@@ -9111,7 +9156,7 @@ pub struct PMCR_Type {
 }
 
 /// PMDEVID_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53480.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMDEVID_Type {
@@ -9119,7 +9164,7 @@ pub struct PMDEVID_Type {
 }
 
 /// PMDEVTYPE_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53484.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMDEVTYPE_Type {
@@ -9127,7 +9172,7 @@ pub struct PMDEVTYPE_Type {
 }
 
 /// PMECR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44033.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMECR_EL1_Type {
@@ -9135,7 +9180,7 @@ pub struct PMECR_EL1_Type {
 }
 
 /// PMEVCNTSVR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44464.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMEVCNTSVR_EL1_Type {
@@ -9143,7 +9188,7 @@ pub struct PMEVCNTSVR_EL1_Type {
 }
 
 /// PMEVTYPER_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4826-4845.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMEVTYPER_EL0_Type {
@@ -9151,7 +9196,7 @@ pub struct PMEVTYPER_EL0_Type {
 }
 
 /// PMEVTYPER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4849-4859.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMEVTYPER_Type {
@@ -9159,7 +9204,7 @@ pub struct PMEVTYPER_Type {
 }
 
 /// PMIAR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45389.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMIAR_EL1_Type {
@@ -9167,7 +9212,7 @@ pub struct PMIAR_EL1_Type {
 }
 
 /// PMICFILTR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4871-4886.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMICFILTR_EL0_Type {
@@ -9175,7 +9220,7 @@ pub struct PMICFILTR_EL0_Type {
 }
 
 /// PMICNTR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5135.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMICNTR_EL0_Type {
@@ -9183,7 +9228,7 @@ pub struct PMICNTR_EL0_Type {
 }
 
 /// PMICNTSVR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45282.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMICNTSVR_EL1_Type {
@@ -9191,7 +9236,7 @@ pub struct PMICNTSVR_EL1_Type {
 }
 
 /// PMIIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47394-47395.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMIIDR_Type {
@@ -9199,7 +9244,7 @@ pub struct PMIIDR_Type {
 }
 
 /// PMINTENCLR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4390-4425.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMINTENCLR_EL1_Type {
@@ -9207,7 +9252,7 @@ pub struct PMINTENCLR_EL1_Type {
 }
 
 /// PMINTENCLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4429-4463.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMINTENCLR_Type {
@@ -9215,7 +9260,7 @@ pub struct PMINTENCLR_Type {
 }
 
 /// PMINTENSET_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44872-44907.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMINTENSET_EL1_Type {
@@ -9223,7 +9268,7 @@ pub struct PMINTENSET_EL1_Type {
 }
 
 /// PMINTENSET_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50738-50772.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMINTENSET_Type {
@@ -9231,7 +9276,7 @@ pub struct PMINTENSET_Type {
 }
 
 /// PMINTEN_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47399-47434.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMINTEN_Type {
@@ -9239,7 +9284,7 @@ pub struct PMINTEN_Type {
 }
 
 /// PMITCTRL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53488.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMITCTRL_Type {
@@ -9247,7 +9292,7 @@ pub struct PMITCTRL_Type {
 }
 
 /// PMLAR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53492.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMLAR_Type {
@@ -9255,7 +9300,7 @@ pub struct PMLAR_Type {
 }
 
 /// PMLSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39392.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMLSR_Type {
@@ -9263,7 +9308,7 @@ pub struct PMLSR_Type {
 }
 
 /// PMMIR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44489-44496.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMMIR_EL1_Type {
@@ -9271,7 +9316,7 @@ pub struct PMMIR_EL1_Type {
 }
 
 /// PMMIR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49103-49110.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMMIR_Type {
@@ -9279,7 +9324,7 @@ pub struct PMMIR_Type {
 }
 
 /// PMOVSCLR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4475-4510.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMOVSCLR_EL0_Type {
@@ -9287,7 +9332,7 @@ pub struct PMOVSCLR_EL0_Type {
 }
 
 /// PMOVSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4514-4548.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMOVSR_Type {
@@ -9295,7 +9340,7 @@ pub struct PMOVSR_Type {
 }
 
 /// PMOVSSET_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5139-5174.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMOVSSET_EL0_Type {
@@ -9303,7 +9348,7 @@ pub struct PMOVSSET_EL0_Type {
 }
 
 /// PMOVSSET_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L43421-43455.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMOVSSET_Type {
@@ -9311,7 +9356,7 @@ pub struct PMOVSSET_Type {
 }
 
 /// PMOVS_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47455-47490.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMOVS_Type {
@@ -9319,7 +9364,7 @@ pub struct PMOVS_Type {
 }
 
 /// PMPCSCTL_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47511.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMPCSCTL_Type {
@@ -9327,7 +9372,7 @@ pub struct PMPCSCTL_Type {
 }
 
 /// PMPCSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39754-39761.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMPCSR_Type {
@@ -9335,7 +9380,7 @@ pub struct PMPCSR_Type {
 }
 
 /// PMPIDR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53496.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMPIDR0_Type {
@@ -9343,7 +9388,7 @@ pub struct PMPIDR0_Type {
 }
 
 /// PMPIDR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53500.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMPIDR1_Type {
@@ -9351,7 +9396,7 @@ pub struct PMPIDR1_Type {
 }
 
 /// PMPIDR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53504.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMPIDR2_Type {
@@ -9359,7 +9404,7 @@ pub struct PMPIDR2_Type {
 }
 
 /// PMPIDR3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53508.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMPIDR3_Type {
@@ -9367,7 +9412,7 @@ pub struct PMPIDR3_Type {
 }
 
 /// PMPIDR4_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L53512.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMPIDR4_Type {
@@ -9375,7 +9420,7 @@ pub struct PMPIDR4_Type {
 }
 
 /// PMSCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6544-6545.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSCR_EL1_Type {
@@ -9383,7 +9428,7 @@ pub struct PMSCR_EL1_Type {
 }
 
 /// PMSCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6549-6550.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSCR_EL2_Type {
@@ -9391,7 +9436,7 @@ pub struct PMSCR_EL2_Type {
 }
 
 /// PMSDSFR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34785-34851.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSDSFR_EL1_Type {
@@ -9399,7 +9444,7 @@ pub struct PMSDSFR_EL1_Type {
 }
 
 /// PMSELR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44697.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSELR_EL0_Type {
@@ -9407,7 +9452,7 @@ pub struct PMSELR_EL0_Type {
 }
 
 /// PMSELR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49316.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSELR_Type {
@@ -9415,7 +9460,7 @@ pub struct PMSELR_Type {
 }
 
 /// PMSEVFR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34855-34904.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSEVFR_EL1_Type {
@@ -9423,7 +9468,7 @@ pub struct PMSEVFR_EL1_Type {
 }
 
 /// PMSFCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34908-34918.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSFCR_EL1_Type {
@@ -9431,7 +9476,7 @@ pub struct PMSFCR_EL1_Type {
 }
 
 /// PMSICR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34672.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSICR_EL1_Type {
@@ -9439,7 +9484,7 @@ pub struct PMSICR_EL1_Type {
 }
 
 /// PMSIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6520-6536.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSIDR_EL1_Type {
@@ -9447,7 +9492,7 @@ pub struct PMSIDR_EL1_Type {
 }
 
 /// PMSIRR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34676.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSIRR_EL1_Type {
@@ -9455,7 +9500,7 @@ pub struct PMSIRR_EL1_Type {
 }
 
 /// PMSLATFR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34922.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSLATFR_EL1_Type {
@@ -9463,7 +9508,7 @@ pub struct PMSLATFR_EL1_Type {
 }
 
 /// PMSNEVFR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L34926-34975.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSNEVFR_EL1_Type {
@@ -9471,7 +9516,7 @@ pub struct PMSNEVFR_EL1_Type {
 }
 
 /// PMSSCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44155.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSSCR_EL1_Type {
@@ -9479,7 +9524,7 @@ pub struct PMSSCR_EL1_Type {
 }
 
 /// PMSWINC_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45339-45372.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSWINC_EL0_Type {
@@ -9487,7 +9532,7 @@ pub struct PMSWINC_EL0_Type {
 }
 
 /// PMSWINC_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51504-51537.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMSWINC_Type {
@@ -9495,7 +9540,7 @@ pub struct PMSWINC_Type {
 }
 
 /// PMUACR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44650-44685.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMUACR_EL1_Type {
@@ -9503,7 +9548,7 @@ pub struct PMUACR_EL1_Type {
 }
 
 /// PMUSERENR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44976-44985.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMUSERENR_EL0_Type {
@@ -9511,7 +9556,7 @@ pub struct PMUSERENR_EL0_Type {
 }
 
 /// PMUSERENR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47822-47823.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMUSERENR_Type {
@@ -9519,7 +9564,7 @@ pub struct PMUSERENR_Type {
 }
 
 /// PMVCIDSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L47515-47516.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMVCIDSR_Type {
@@ -9527,7 +9572,7 @@ pub struct PMVCIDSR_Type {
 }
 
 /// PMVIDSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39765.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMVIDSR_Type {
@@ -9535,7 +9580,7 @@ pub struct PMVIDSR_Type {
 }
 
 /// PMXEVCNTR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45972.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMXEVCNTR_EL0_Type {
@@ -9543,7 +9588,7 @@ pub struct PMXEVCNTR_EL0_Type {
 }
 
 /// PMZR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45243-45278.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PMZR_EL0_Type {
@@ -9551,7 +9596,7 @@ pub struct PMZR_EL0_Type {
 }
 
 /// POR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24298-24316.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct POR_EL0_Type {
@@ -9559,7 +9604,7 @@ pub struct POR_EL0_Type {
 }
 
 /// POR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24210-24228.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct POR_EL1_Type {
@@ -9567,7 +9612,7 @@ pub struct POR_EL1_Type {
 }
 
 /// POR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24232-24250.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct POR_EL2_Type {
@@ -9575,7 +9620,7 @@ pub struct POR_EL2_Type {
 }
 
 /// POR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24254-24272.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct POR_EL3_Type {
@@ -9583,7 +9628,7 @@ pub struct POR_EL3_Type {
 }
 
 /// PRRR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L36905-36927.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PRRR_Type {
@@ -9591,7 +9636,7 @@ pub struct PRRR_Type {
 }
 
 /// RCWMASK_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L28497.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RCWMASK_EL1_Type {
@@ -9599,7 +9644,7 @@ pub struct RCWMASK_EL1_Type {
 }
 
 /// RCWSMASK_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L28501.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RCWSMASK_EL1_Type {
@@ -9607,7 +9652,7 @@ pub struct RCWSMASK_EL1_Type {
 }
 
 /// RGSR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L22682.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RGSR_EL1_Type {
@@ -9615,7 +9660,7 @@ pub struct RGSR_EL1_Type {
 }
 
 /// RMR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44045.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RMR_EL1_Type {
@@ -9623,7 +9668,7 @@ pub struct RMR_EL1_Type {
 }
 
 /// RMR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44693.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RMR_EL2_Type {
@@ -9631,7 +9676,7 @@ pub struct RMR_EL2_Type {
 }
 
 /// RMR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45570.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RMR_EL3_Type {
@@ -9639,7 +9684,7 @@ pub struct RMR_EL3_Type {
 }
 
 /// RMR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50280.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RMR_Type {
@@ -9647,7 +9692,7 @@ pub struct RMR_Type {
 }
 
 /// RNDRRS_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45843.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RNDRRS_Type {
@@ -9655,7 +9700,7 @@ pub struct RNDRRS_Type {
 }
 
 /// RNDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45881.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RNDR_Type {
@@ -9663,7 +9708,7 @@ pub struct RNDR_Type {
 }
 
 /// RVBAR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33484.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RVBAR_EL1_Type {
@@ -9671,7 +9716,7 @@ pub struct RVBAR_EL1_Type {
 }
 
 /// RVBAR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33488.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RVBAR_EL2_Type {
@@ -9679,7 +9724,7 @@ pub struct RVBAR_EL2_Type {
 }
 
 /// RVBAR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33492.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct RVBAR_EL3_Type {
@@ -9687,7 +9732,7 @@ pub struct RVBAR_EL3_Type {
 }
 
 /// S1PIRType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1278-1296.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S1PIRType {
@@ -9695,7 +9740,7 @@ pub struct S1PIRType {
 }
 
 /// S1PORType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1298-1316.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S1PORType {
@@ -9703,7 +9748,7 @@ pub struct S1PORType {
 }
 
 /// S2PIRType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1318-1336.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S2PIRType {
@@ -9711,7 +9756,7 @@ pub struct S2PIRType {
 }
 
 /// S2PIR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L25761-25779.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S2PIR_EL2_Type {
@@ -9719,7 +9764,7 @@ pub struct S2PIR_EL2_Type {
 }
 
 /// S2POR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L26103-26121.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S2POR_EL1_Type {
@@ -9727,7 +9772,7 @@ pub struct S2POR_EL1_Type {
 }
 
 /// SCRType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1212-1229.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCRType {
@@ -9735,7 +9780,7 @@ pub struct SCRType {
 }
 
 /// SCR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3363-3412.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCR_EL3_Type {
@@ -9743,7 +9788,7 @@ pub struct SCR_EL3_Type {
 }
 
 /// SCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3457-3472.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCR_Type {
@@ -9751,7 +9796,7 @@ pub struct SCR_Type {
 }
 
 /// SCTLR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14885-14886.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCTLR2_EL1_Type {
@@ -9759,7 +9804,7 @@ pub struct SCTLR2_EL1_Type {
 }
 
 /// SCTLR2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L14890-14898.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCTLR2_EL2_Type {
@@ -9767,7 +9812,7 @@ pub struct SCTLR2_EL2_Type {
 }
 
 /// SCTLR2_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20936-20937.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCTLR2_EL3_Type {
@@ -9775,7 +9820,7 @@ pub struct SCTLR2_EL3_Type {
 }
 
 /// SCTLRType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1231-1264.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCTLRType {
@@ -9783,7 +9828,7 @@ pub struct SCTLRType {
 }
 
 /// SCTLR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8622-8681.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCTLR_EL1_Type {
@@ -9791,7 +9836,7 @@ pub struct SCTLR_EL1_Type {
 }
 
 /// SCTLR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8550-8608.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCTLR_EL2_Type {
@@ -9799,7 +9844,7 @@ pub struct SCTLR_EL2_Type {
 }
 
 /// SCTLR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8685-8712.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCTLR_EL3_Type {
@@ -9807,7 +9852,7 @@ pub struct SCTLR_EL3_Type {
 }
 
 /// SCTLR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L8716-8740.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SCTLR_Type {
@@ -9815,7 +9860,7 @@ pub struct SCTLR_Type {
 }
 
 /// SDCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4890-4901.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SDCR_Type {
@@ -9823,7 +9868,7 @@ pub struct SDCR_Type {
 }
 
 /// SDER32_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4905.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SDER32_EL2_Type {
@@ -9831,7 +9876,7 @@ pub struct SDER32_EL2_Type {
 }
 
 /// SDER32_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4909.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SDER32_EL3_Type {
@@ -9839,7 +9884,7 @@ pub struct SDER32_EL3_Type {
 }
 
 /// SDER_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L4921.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SDER_Type {
@@ -9847,7 +9892,7 @@ pub struct SDER_Type {
 }
 
 /// SMCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6955.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SMCR_EL1_Type {
@@ -9855,7 +9900,7 @@ pub struct SMCR_EL1_Type {
 }
 
 /// SMCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6959.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SMCR_EL2_Type {
@@ -9863,7 +9908,7 @@ pub struct SMCR_EL2_Type {
 }
 
 /// SMCR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6963.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SMCR_EL3_Type {
@@ -9871,7 +9916,7 @@ pub struct SMCR_EL3_Type {
 }
 
 /// SMIDR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44911-44912.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SMIDR_EL1_Type {
@@ -9879,7 +9924,7 @@ pub struct SMIDR_EL1_Type {
 }
 
 /// SMPRIMAP_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45859-45877.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SMPRIMAP_EL2_Type {
@@ -9887,7 +9932,7 @@ pub struct SMPRIMAP_EL2_Type {
 }
 
 /// SMPRI_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44972.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SMPRI_EL1_Type {
@@ -9895,7 +9940,7 @@ pub struct SMPRI_EL1_Type {
 }
 
 /// SPMACCESSR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44329-44363.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPMACCESSR_EL1_Type {
@@ -9903,7 +9948,7 @@ pub struct SPMACCESSR_EL1_Type {
 }
 
 /// SPMACCESSR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45198-45232.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPMACCESSR_EL2_Type {
@@ -9911,7 +9956,7 @@ pub struct SPMACCESSR_EL2_Type {
 }
 
 /// SPMACCESSR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L46297-46331.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPMACCESSR_EL3_Type {
@@ -9919,7 +9964,7 @@ pub struct SPMACCESSR_EL3_Type {
 }
 
 /// SPMSELR_EL0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L44367.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPMSELR_EL0_Type {
@@ -9927,7 +9972,7 @@ pub struct SPMSELR_EL0_Type {
 }
 
 /// SPSR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9515-9541.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_EL1_Type {
@@ -9935,7 +9980,7 @@ pub struct SPSR_EL1_Type {
 }
 
 /// SPSR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9545-9571.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_EL2_Type {
@@ -9943,7 +9988,7 @@ pub struct SPSR_EL2_Type {
 }
 
 /// SPSR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9575-9601.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_EL3_Type {
@@ -9951,7 +9996,7 @@ pub struct SPSR_EL3_Type {
 }
 
 /// SPSR_abt_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9605-9625.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_abt_Type {
@@ -9959,7 +10004,7 @@ pub struct SPSR_abt_Type {
 }
 
 /// SPSR_fiq_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9629-9649.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_fiq_Type {
@@ -9967,7 +10012,7 @@ pub struct SPSR_fiq_Type {
 }
 
 /// SPSR_hyp_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9653-9673.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_hyp_Type {
@@ -9975,7 +10020,7 @@ pub struct SPSR_hyp_Type {
 }
 
 /// SPSR_irq_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9694-9714.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_irq_Type {
@@ -9983,7 +10028,7 @@ pub struct SPSR_irq_Type {
 }
 
 /// SPSR_mon_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9718-9738.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_mon_Type {
@@ -9991,7 +10036,7 @@ pub struct SPSR_mon_Type {
 }
 
 /// SPSR_svc_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9742-9762.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_svc_Type {
@@ -9999,7 +10044,7 @@ pub struct SPSR_svc_Type {
 }
 
 /// SPSR_und_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L9783-9803.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SPSR_und_Type {
@@ -10007,7 +10052,7 @@ pub struct SPSR_und_Type {
 }
 
 /// TCR2_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20448-20460.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TCR2_EL1_Type {
@@ -10015,7 +10060,7 @@ pub struct TCR2_EL1_Type {
 }
 
 /// TCR2_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20659-20675.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TCR2_EL2_Type {
@@ -10023,7 +10068,7 @@ pub struct TCR2_EL2_Type {
 }
 
 /// TCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5943-5985.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TCR_EL1_Type {
@@ -10031,7 +10076,7 @@ pub struct TCR_EL1_Type {
 }
 
 /// TCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L5989-6038.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TCR_EL2_Type {
@@ -10039,7 +10084,7 @@ pub struct TCR_EL2_Type {
 }
 
 /// TCR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6042-6070.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TCR_EL3_Type {
@@ -10047,7 +10092,7 @@ pub struct TCR_EL3_Type {
 }
 
 /// TFSRE0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L22962.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TFSRE0_EL1_Type {
@@ -10055,7 +10100,7 @@ pub struct TFSRE0_EL1_Type {
 }
 
 /// TFSR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L22966.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TFSR_EL1_Type {
@@ -10063,7 +10108,7 @@ pub struct TFSR_EL1_Type {
 }
 
 /// TFSR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L22970.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TFSR_EL2_Type {
@@ -10071,7 +10116,7 @@ pub struct TFSR_EL2_Type {
 }
 
 /// TFSR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L22974.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TFSR_EL3_Type {
@@ -10079,7 +10124,7 @@ pub struct TFSR_EL3_Type {
 }
 
 /// TLBTR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L50713.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TLBTR_Type {
@@ -10087,7 +10132,7 @@ pub struct TLBTR_Type {
 }
 
 /// TRFCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39787.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TRFCR_EL1_Type {
@@ -10095,7 +10140,7 @@ pub struct TRFCR_EL1_Type {
 }
 
 /// TRFCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39772-39773.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TRFCR_EL2_Type {
@@ -10103,7 +10148,7 @@ pub struct TRFCR_EL2_Type {
 }
 
 /// TRFCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L39791.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TRFCR_Type {
@@ -10111,7 +10156,7 @@ pub struct TRFCR_Type {
 }
 
 /// TTBCR2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L37080-37092.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBCR2_Type {
@@ -10119,7 +10164,7 @@ pub struct TTBCR2_Type {
 }
 
 /// TTBCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12845-12863.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBCR_Type {
@@ -10127,7 +10172,7 @@ pub struct TTBCR_Type {
 }
 
 /// TTBR0_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12950.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBR0_EL1_Type {
@@ -10135,7 +10180,7 @@ pub struct TTBR0_EL1_Type {
 }
 
 /// TTBR0_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12966.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBR0_EL2_Type {
@@ -10143,7 +10188,7 @@ pub struct TTBR0_EL2_Type {
 }
 
 /// TTBR0_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L20941.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBR0_EL3_Type {
@@ -10151,7 +10196,7 @@ pub struct TTBR0_EL3_Type {
 }
 
 /// TTBR0_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12921-12932.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBR0_Type {
@@ -10159,7 +10204,7 @@ pub struct TTBR0_Type {
 }
 
 /// TTBR1_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L13007.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBR1_EL1_Type {
@@ -10167,7 +10212,7 @@ pub struct TTBR1_EL1_Type {
 }
 
 /// TTBR1_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L13019.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBR1_EL2_Type {
@@ -10175,7 +10220,7 @@ pub struct TTBR1_EL2_Type {
 }
 
 /// TTBR1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L12978-12989.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTBR1_Type {
@@ -10183,7 +10228,7 @@ pub struct TTBR1_Type {
 }
 
 /// VDFSR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33307.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VDFSR_Type {
@@ -10191,7 +10236,7 @@ pub struct VDFSR_Type {
 }
 
 /// VDISR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33324-33334.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VDISR_EL2_Type {
@@ -10199,7 +10244,7 @@ pub struct VDISR_EL2_Type {
 }
 
 /// VDISR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33338-33346.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VDISR_Type {
@@ -10207,7 +10252,7 @@ pub struct VDISR_Type {
 }
 
 /// VMECID_A_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L26568.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VMECID_A_EL2_Type {
@@ -10215,7 +10260,7 @@ pub struct VMECID_A_EL2_Type {
 }
 
 /// VMECID_P_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L24584.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VMECID_P_EL2_Type {
@@ -10223,7 +10268,7 @@ pub struct VMECID_P_EL2_Type {
 }
 
 /// VMPIDR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45723-45731.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VMPIDR_EL2_Type {
@@ -10231,7 +10276,7 @@ pub struct VMPIDR_EL2_Type {
 }
 
 /// VMPIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L49114-49122.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VMPIDR_Type {
@@ -10239,7 +10284,7 @@ pub struct VMPIDR_Type {
 }
 
 /// VNCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L28747.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VNCR_EL2_Type {
@@ -10247,7 +10292,7 @@ pub struct VNCR_EL2_Type {
 }
 
 /// VPIDR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L45430-45437.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VPIDR_EL2_Type {
@@ -10255,7 +10300,7 @@ pub struct VPIDR_EL2_Type {
 }
 
 /// VPIDR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L51476-51483.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VPIDR_Type {
@@ -10263,7 +10308,7 @@ pub struct VPIDR_Type {
 }
 
 /// VSESR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L33309-33310.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VSESR_EL2_Type {
@@ -10271,7 +10316,7 @@ pub struct VSESR_EL2_Type {
 }
 
 /// VSTCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L25853-25861.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VSTCR_EL2_Type {
@@ -10279,7 +10324,7 @@ pub struct VSTCR_EL2_Type {
 }
 
 /// VSTTBR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L25865.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VSTTBR_EL2_Type {
@@ -10287,7 +10332,7 @@ pub struct VSTTBR_EL2_Type {
 }
 
 /// VTCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23202-23230.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VTCR_EL2_Type {
@@ -10295,7 +10340,7 @@ pub struct VTCR_EL2_Type {
 }
 
 /// VTCR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L37692-37704.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VTCR_Type {
@@ -10303,7 +10348,7 @@ pub struct VTCR_Type {
 }
 
 /// VTTBR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23238.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VTTBR_EL2_Type {
@@ -10311,7 +10356,7 @@ pub struct VTTBR_EL2_Type {
 }
 
 /// VTTBR_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L23234.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct VTTBR_Type {
@@ -10319,7 +10364,7 @@ pub struct VTTBR_Type {
 }
 
 /// ZCR_EL1_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6889.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ZCR_EL1_Type {
@@ -10327,7 +10372,7 @@ pub struct ZCR_EL1_Type {
 }
 
 /// ZCR_EL2_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6893.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ZCR_EL2_Type {
@@ -10335,7 +10380,7 @@ pub struct ZCR_EL2_Type {
 }
 
 /// ZCR_EL3_Type
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L6897.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ZCR_EL3_Type {
@@ -10343,7 +10388,7 @@ pub struct ZCR_EL3_Type {
 }
 
 /// Feature
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L72-331.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Feature {
@@ -10604,11 +10649,11 @@ pub enum Feature {
     FEAT_SYSINSTR128,
     FEAT_SYSREG128,
     FEAT_TRBE_EXT,
-    FEAT_TRBE_MPAM
+    FEAT_TRBE_MPAM,
 }
 
 /// ArchVersion
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L333-349.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ArchVersion {
@@ -10626,16 +10671,16 @@ pub enum ArchVersion {
     v9Ap1,
     v9Ap2,
     v9Ap3,
-    v9Ap4
+    v9Ap4,
 }
 
 /// Signal
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1380.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Signal {
     Signal_Low,
-    Signal_High
+    Signal_High,
 }
 
 pub const CYCLE_COUNTER_ID: i128 = 31;
@@ -10727,14 +10772,14 @@ pub const PMU_EVENT_L3D_LFB_HIT_RD: BitVector<16> = BitVector::<16>::new(0b10000
 pub const PMU_EVENT_LL_LFB_HIT_RD: BitVector<16> = BitVector::<16>::new(0b1000001001000111);
 
 /// SecurityState
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1492.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum SecurityState {
     SS_NonSecure,
     SS_Root,
     SS_Realm,
-    SS_Secure
+    SS_Secure,
 }
 
 pub const M32_User: BitVector<5> = BitVector::<5>::new(0b10000);
@@ -10764,7 +10809,7 @@ pub const EL1: BitVector<2> = BitVector::<2>::new(0b01);
 pub const EL0: BitVector<2> = BitVector::<2>::new(0b00);
 
 /// ProcState
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1520-1553.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ProcState {
@@ -10803,55 +10848,55 @@ pub struct ProcState {
 }
 
 /// PrivilegeLevel
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1561.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PrivilegeLevel {
     PL3,
     PL2,
     PL1,
-    PL0
+    PL0,
 }
 
 /// InstrSet
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1563.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum InstrSet {
     InstrSet_A64,
     InstrSet_A32,
-    InstrSet_T32
+    InstrSet_T32,
 }
 
 /// DSBAlias
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1565.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum DSBAlias {
     DSBAlias_SSBB,
     DSBAlias_PSSBB,
-    DSBAlias_DSB
+    DSBAlias_DSB,
 }
 
 /// WFxType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1567.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum WFxType {
     WFxType_WFE,
     WFxType_WFI,
     WFxType_WFET,
-    WFxType_WFIT
+    WFxType_WFIT,
 }
 
 /// ExceptionalOccurrenceTargetState
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1571-1575.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExceptionalOccurrenceTargetState {
     AArch32_NonDebugState,
     AArch64_NonDebugState,
-    DebugState
+    DebugState,
 }
 
 pub type PARTIDtype = BitVector<16>;
@@ -10859,18 +10904,18 @@ pub type PARTIDtype = BitVector<16>;
 pub type PMGtype = BitVector<8>;
 
 /// PARTIDspaceType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1589-1594.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PARTIDspaceType {
     PIdSpace_Secure,
     PIdSpace_Root,
     PIdSpace_Realm,
-    PIdSpace_NonSecure
+    PIdSpace_NonSecure,
 }
 
 /// MPAMinfo
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1596-1600.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MPAMinfo {
@@ -10880,7 +10925,7 @@ pub struct MPAMinfo {
 }
 
 /// AccessType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1602-1617.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum AccessType {
@@ -10897,30 +10942,30 @@ pub enum AccessType {
     AccessType_SPE,
     AccessType_GCS,
     AccessType_GPTW,
-    AccessType_TTW
+    AccessType_TTW,
 }
 
 /// MemOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1619.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum MemOp {
     MemOp_LOAD,
     MemOp_STORE,
-    MemOp_PREFETCH
+    MemOp_PREFETCH,
 }
 
 /// VARange
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1621.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum VARange {
     VARange_LOWER,
-    VARange_UPPER
+    VARange_UPPER,
 }
 
 /// MemAtomicOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1627-1639.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum MemAtomicOp {
@@ -10934,21 +10979,21 @@ pub enum MemAtomicOp {
     MemAtomicOp_UMAX,
     MemAtomicOp_UMIN,
     MemAtomicOp_SWP,
-    MemAtomicOp_CAS
+    MemAtomicOp_CAS,
 }
 
 /// CacheOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1641.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum CacheOp {
     CacheOp_Clean,
     CacheOp_Invalidate,
-    CacheOp_CleanInvalidate
+    CacheOp_CleanInvalidate,
 }
 
 /// CacheOpScope
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1643-1653.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum CacheOpScope {
@@ -10960,22 +11005,22 @@ pub enum CacheOpScope {
     CacheOpScope_PoDP,
     CacheOpScope_PoPA,
     CacheOpScope_ALLU,
-    CacheOpScope_ALLUIS
+    CacheOpScope_ALLUIS,
 }
 
 /// CacheType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1655-1660.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum CacheType {
     CacheType_Data,
     CacheType_Tag,
     CacheType_Data_Tag,
-    CacheType_Instruction
+    CacheType_Instruction,
 }
 
 /// CachePASpace
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1662-1670.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum CachePASpace {
@@ -10985,11 +11030,11 @@ pub enum CachePASpace {
     CPAS_Realm,
     CPAS_Root,
     CPAS_SecureNonSecure,
-    CPAS_Secure
+    CPAS_Secure,
 }
 
 /// AccessDescriptor
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1672-1706.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AccessDescriptor {
@@ -11029,27 +11074,27 @@ pub struct AccessDescriptor {
 }
 
 /// MemType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1712.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum MemType {
     MemType_Normal,
-    MemType_Device
+    MemType_Device,
 }
 
 /// DeviceType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1714-1719.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum DeviceType {
     DeviceType_GRE,
     DeviceType_nGRE,
     DeviceType_nGnRE,
-    DeviceType_nGnRnE
+    DeviceType_nGnRnE,
 }
 
 /// MemAttrHints
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1721.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MemAttrHints {
@@ -11075,27 +11120,27 @@ pub const MemHint_RA: BitVector<2> = BitVector::<2>::new(0b10);
 pub const MemHint_RWA: BitVector<2> = BitVector::<2>::new(0b11);
 
 /// Shareability
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1739.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Shareability {
     Shareability_NSH,
     Shareability_ISH,
-    Shareability_OSH
+    Shareability_OSH,
 }
 
 /// MemTagType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1745-1749.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum MemTagType {
     MemTag_Untagged,
     MemTag_AllocationTagged,
-    MemTag_CanonicallyTagged
+    MemTag_CanonicallyTagged,
 }
 
 /// MemoryAttributes
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1751-1760.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct MemoryAttributes {
@@ -11110,18 +11155,18 @@ pub struct MemoryAttributes {
 }
 
 /// PASpace
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1766.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PASpace {
     PAS_NonSecure,
     PAS_Secure,
     PAS_Root,
-    PAS_Realm
+    PAS_Realm,
 }
 
 /// FullAddress
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1772.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FullAddress {
@@ -11130,7 +11175,7 @@ pub struct FullAddress {
 }
 
 /// GPCF
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1778.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum GPCF {
@@ -11138,11 +11183,11 @@ pub enum GPCF {
     GPCF_AddressSize,
     GPCF_Walk,
     GPCF_EABT,
-    GPCF_Fail
+    GPCF_Fail,
 }
 
 /// GPCFRecord
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1780.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GPCFRecord {
@@ -11151,7 +11196,7 @@ pub struct GPCFRecord {
 }
 
 /// Fault
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1782-1807.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Fault {
@@ -11178,11 +11223,11 @@ pub enum Fault {
     Fault_HWUpdateAccessFlag,
     Fault_Lockdown,
     Fault_Exclusive,
-    Fault_ICacheMaint
+    Fault_ICacheMaint,
 }
 
 /// ErrorState
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1809-1817.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ErrorState {
@@ -11192,11 +11237,11 @@ pub enum ErrorState {
     ErrorState_UER,
     ErrorState_CE,
     ErrorState_Uncategorized,
-    ErrorState_IMPDEF
+    ErrorState_IMPDEF,
 }
 
 /// FaultRecord
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1819-1840.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct FaultRecord {
@@ -11223,7 +11268,7 @@ pub struct FaultRecord {
 }
 
 /// PhysMemRetStatus
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1846-1851.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct PhysMemRetStatus {
@@ -11234,7 +11279,7 @@ pub struct PhysMemRetStatus {
 }
 
 /// Permissions
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1857-1877.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Permissions {
@@ -11260,7 +11305,7 @@ pub struct Permissions {
 }
 
 /// S1AccessControls
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1879-1889.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S1AccessControls {
@@ -11276,7 +11321,7 @@ pub struct S1AccessControls {
 }
 
 /// S2AccessControls
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1891-1909.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S2AccessControls {
@@ -11300,38 +11345,38 @@ pub struct S2AccessControls {
 }
 
 /// MBReqDomain
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1911-1916.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum MBReqDomain {
     MBReqDomain_Nonshareable,
     MBReqDomain_InnerShareable,
     MBReqDomain_OuterShareable,
-    MBReqDomain_FullSystem
+    MBReqDomain_FullSystem,
 }
 
 /// MBReqTypes
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1918.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum MBReqTypes {
     MBReqTypes_Reads,
     MBReqTypes_Writes,
-    MBReqTypes_All
+    MBReqTypes_All,
 }
 
 /// PrefetchHint
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1920.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PrefetchHint {
     Prefetch_READ,
     Prefetch_WRITE,
-    Prefetch_EXEC
+    Prefetch_EXEC,
 }
 
 /// Unpredictable
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L1922-2002.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Unpredictable {
@@ -11413,11 +11458,11 @@ pub enum Unpredictable {
     Unpredictable_BRBFILTRATE,
     Unpredictable_MOPSOVERLAP31,
     Unpredictable_STOREONLYTAGCHECKEDCAS,
-    Unpredictable_RESTC
+    Unpredictable_RESTC,
 }
 
 /// Constraint
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2004-2034.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Constraint {
@@ -11449,11 +11494,11 @@ pub enum Constraint {
     Constraint_FORCE,
     Constraint_FORCENOSLCHECK,
     Constraint_MAPTOALLOCATED,
-    Constraint_PMSCR_PCT_VIRT
+    Constraint_PMSCR_PCT_VIRT,
 }
 
 /// CacheRecord
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2040-2059.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct CacheRecord {
@@ -11478,18 +11523,18 @@ pub struct CacheRecord {
 }
 
 /// RestrictType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2061-2066.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum RestrictType {
     RestrictType_DataValue,
     RestrictType_ControlFlow,
     RestrictType_CachePrefetch,
-    RestrictType_Other
+    RestrictType_Other,
 }
 
 /// ExecutionCntxt
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2068-2078.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ExecutionCntxt {
@@ -11505,7 +11550,7 @@ pub struct ExecutionCntxt {
 }
 
 /// FPExc
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2080-2087.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum FPExc {
@@ -11514,11 +11559,11 @@ pub enum FPExc {
     FPExc_Overflow,
     FPExc_Underflow,
     FPExc_Inexact,
-    FPExc_InputDenorm
+    FPExc_InputDenorm,
 }
 
 /// FPRounding
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2089-2096.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum FPRounding {
@@ -11527,11 +11572,11 @@ pub enum FPRounding {
     FPRounding_NEGINF,
     FPRounding_ZERO,
     FPRounding_TIEAWAY,
-    FPRounding_ODD
+    FPRounding_ODD,
 }
 
 /// FPType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2098-2105.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum FPType {
@@ -11540,11 +11585,109 @@ pub enum FPType {
     FPType_Nonzero,
     FPType_Infinity,
     FPType_QNaN,
-    FPType_SNaN
+    FPType_SNaN,
+}
+
+/// read_gpr
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L2143-2177.
+pub fn read_gpr<const N: i128>(core_ctx: &mut Core, n: i128) -> BitVector<64> {
+    match n {
+        l__9997 if { (l__9997 == 0) } => core_ctx.R0,
+        l__9998 if { (l__9998 == 1) } => core_ctx.R1,
+        l__9999 if { (l__9999 == 2) } => core_ctx.R2,
+        l__10000 if { (l__10000 == 3) } => core_ctx.R3,
+        l__10001 if { (l__10001 == 4) } => core_ctx.R4,
+        l__10002 if { (l__10002 == 5) } => core_ctx.R5,
+        l__10003 if { (l__10003 == 6) } => core_ctx.R6,
+        l__10004 if { (l__10004 == 7) } => core_ctx.R7,
+        l__10005 if { (l__10005 == 8) } => core_ctx.R8,
+        l__10006 if { (l__10006 == 9) } => core_ctx.R9,
+        l__10007 if { (l__10007 == 10) } => core_ctx.R10,
+        l__10008 if { (l__10008 == 11) } => core_ctx.R11,
+        l__10009 if { (l__10009 == 12) } => core_ctx.R12,
+        l__10010 if { (l__10010 == 13) } => core_ctx.R13,
+        l__10011 if { (l__10011 == 14) } => core_ctx.R14,
+        l__10012 if { (l__10012 == 15) } => core_ctx.R15,
+        l__10013 if { (l__10013 == 16) } => core_ctx.R16,
+        l__10014 if { (l__10014 == 17) } => core_ctx.R17,
+        l__10015 if { (l__10015 == 18) } => core_ctx.R18,
+        l__10016 if { (l__10016 == 19) } => core_ctx.R19,
+        l__10017 if { (l__10017 == 20) } => core_ctx.R20,
+        l__10018 if { (l__10018 == 21) } => core_ctx.R21,
+        l__10019 if { (l__10019 == 22) } => core_ctx.R22,
+        l__10020 if { (l__10020 == 23) } => core_ctx.R23,
+        l__10021 if { (l__10021 == 24) } => core_ctx.R24,
+        l__10022 if { (l__10022 == 25) } => core_ctx.R25,
+        l__10023 if { (l__10023 == 26) } => core_ctx.R26,
+        l__10024 if { (l__10024 == 27) } => core_ctx.R27,
+        l__10025 if { (l__10025 == 28) } => core_ctx.R28,
+        l__10026 if { (l__10026 == 29) } => core_ctx.R29,
+        _ => core_ctx.R30,
+        _ => {
+            panic!("Unreachable code")
+        }
+    }
+}
+
+/// write_gpr
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L2220-2254.
+pub fn write_gpr<const N: i128>(core_ctx: &mut Core, n: i128, v: BitVector<64>) {
+    match n {
+        l__9937 if { (l__9937 == 0) } => core_ctx.R0 = v,
+        l__9938 if { (l__9938 == 1) } => core_ctx.R1 = v,
+        l__9939 if { (l__9939 == 2) } => core_ctx.R2 = v,
+        l__9940 if { (l__9940 == 3) } => core_ctx.R3 = v,
+        l__9941 if { (l__9941 == 4) } => core_ctx.R4 = v,
+        l__9942 if { (l__9942 == 5) } => core_ctx.R5 = v,
+        l__9943 if { (l__9943 == 6) } => core_ctx.R6 = v,
+        l__9944 if { (l__9944 == 7) } => core_ctx.R7 = v,
+        l__9945 if { (l__9945 == 8) } => core_ctx.R8 = v,
+        l__9946 if { (l__9946 == 9) } => core_ctx.R9 = v,
+        l__9947 if { (l__9947 == 10) } => core_ctx.R10 = v,
+        l__9948 if { (l__9948 == 11) } => core_ctx.R11 = v,
+        l__9949 if { (l__9949 == 12) } => core_ctx.R12 = v,
+        l__9950 if { (l__9950 == 13) } => core_ctx.R13 = v,
+        l__9951 if { (l__9951 == 14) } => core_ctx.R14 = v,
+        l__9952 if { (l__9952 == 15) } => core_ctx.R15 = v,
+        l__9953 if { (l__9953 == 16) } => core_ctx.R16 = v,
+        l__9954 if { (l__9954 == 17) } => core_ctx.R17 = v,
+        l__9955 if { (l__9955 == 18) } => core_ctx.R18 = v,
+        l__9956 if { (l__9956 == 19) } => core_ctx.R19 = v,
+        l__9957 if { (l__9957 == 20) } => core_ctx.R20 = v,
+        l__9958 if { (l__9958 == 21) } => core_ctx.R21 = v,
+        l__9959 if { (l__9959 == 22) } => core_ctx.R22 = v,
+        l__9960 if { (l__9960 == 23) } => core_ctx.R23 = v,
+        l__9961 if { (l__9961 == 24) } => core_ctx.R24 = v,
+        l__9962 if { (l__9962 == 25) } => core_ctx.R25 = v,
+        l__9963 if { (l__9963 == 26) } => core_ctx.R26 = v,
+        l__9964 if { (l__9964 == 27) } => core_ctx.R27 = v,
+        l__9965 if { (l__9965 == 28) } => core_ctx.R28 = v,
+        l__9966 if { (l__9966 == 29) } => core_ctx.R29 = v,
+        _ => core_ctx.R30 = v,
+        _ => {
+            panic!("Unreachable code")
+        }
+    }
+}
+
+/// get_R
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L2321.
+pub fn get_R<const N: i128>(core_ctx: &mut Core, n: i128) -> BitVector<64> {
+    read_gpr(core_ctx, n)
+}
+
+/// set_R
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L2325.
+pub fn set_R<const N: i128>(core_ctx: &mut Core, n: i128, v: BitVector<64>) {
+    write_gpr(core_ctx, n, v)
 }
 
 /// BranchType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2393-2405.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum BranchType {
@@ -11558,11 +11701,11 @@ pub enum BranchType {
     BranchType_EXCEPTION,
     BranchType_TMFAIL,
     BranchType_RESET,
-    BranchType_UNKNOWN
+    BranchType_UNKNOWN,
 }
 
 /// InterruptID
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2409-2423.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum InterruptID {
@@ -11578,7 +11721,7 @@ pub enum InterruptID {
     InterruptID_CNTV,
     InterruptID_CNTHV,
     InterruptID_CNTHVS,
-    InterruptID_PMBIRQ
+    InterruptID_PMBIRQ,
 }
 
 pub const DefaultPARTID: PARTIDtype = integer_subrange(0, 15, 0);
@@ -11586,7 +11729,7 @@ pub const DefaultPARTID: PARTIDtype = integer_subrange(0, 15, 0);
 pub const DefaultPMG: PMGtype = integer_subrange(0, 7, 0);
 
 /// Exception
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2429-2471.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Exception {
@@ -11630,11 +11773,11 @@ pub enum Exception {
     Exception_MemCpyMemSet,
     Exception_GCSFail,
     Exception_SystemRegister128Trap,
-    Exception_FIQ
+    Exception_FIQ,
 }
 
 /// ExceptionRecord
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2473-2484.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct ExceptionRecord {
@@ -11651,27 +11794,27 @@ pub struct ExceptionRecord {
 }
 
 /// TranslationStage
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2486.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TranslationStage {
     TranslationStage_1,
-    TranslationStage_12
+    TranslationStage_12,
 }
 
 /// ATAccess
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2488-2493.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ATAccess {
     ATAccess_Read,
     ATAccess_Write,
     ATAccess_ReadPAN,
-    ATAccess_WritePAN
+    ATAccess_WritePAN,
 }
 
 /// Regime
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2495.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Regime {
@@ -11679,27 +11822,27 @@ pub enum Regime {
     Regime_EL30,
     Regime_EL2,
     Regime_EL20,
-    Regime_EL10
+    Regime_EL10,
 }
 
 /// TGx
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2497.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TGx {
     TGx_4KB,
     TGx_16KB,
-    TGx_64KB
+    TGx_64KB,
 }
 
 /// DescriptorType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2499-2503.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum DescriptorType {
     DescriptorType_Table,
     DescriptorType_Leaf,
-    DescriptorType_Invalid
+    DescriptorType_Invalid,
 }
 
 pub const Domain_NoAccess: BitVector<2> = BitVector::<2>::new(0b00);
@@ -11707,7 +11850,7 @@ pub const Domain_NoAccess: BitVector<2> = BitVector::<2>::new(0b00);
 pub const Domain_Client: BitVector<2> = BitVector::<2>::new(0b01);
 
 /// SDFType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2509-2516.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum SDFType {
@@ -11716,11 +11859,11 @@ pub enum SDFType {
     SDFType_Supersection,
     SDFType_Section,
     SDFType_LargePage,
-    SDFType_SmallPage
+    SDFType_SmallPage,
 }
 
 /// TTWState
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2522-2536.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TTWState {
@@ -11740,7 +11883,7 @@ pub struct TTWState {
 }
 
 /// S1TTWParams
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2542-2583.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S1TTWParams {
@@ -11787,7 +11930,7 @@ pub struct S1TTWParams {
 }
 
 /// S2TTWParams
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2585-2617.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct S2TTWParams {
@@ -11825,7 +11968,7 @@ pub struct S2TTWParams {
 }
 
 /// TLBContext
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2619-2635.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TLBContext {
@@ -11847,7 +11990,7 @@ pub struct TLBContext {
 }
 
 /// TLBRecord
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2637-2644.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TLBRecord {
@@ -11860,7 +12003,7 @@ pub struct TLBRecord {
 }
 
 /// AddressDescriptor
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2646-2655.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct AddressDescriptor {
@@ -11875,7 +12018,7 @@ pub struct AddressDescriptor {
 }
 
 /// TranslationInfo
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2661-2671.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TranslationInfo {
@@ -11891,7 +12034,7 @@ pub struct TranslationInfo {
 }
 
 /// TranslationStartInfo
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2673-2682.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TranslationStartInfo {
@@ -11908,7 +12051,7 @@ pub struct TranslationStartInfo {
 pub const FINAL_LEVEL: i128 = 3;
 
 /// SVECmp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2698.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum SVECmp {
@@ -11918,7 +12061,7 @@ pub enum SVECmp {
     Cmp_GT,
     Cmp_LT,
     Cmp_LE,
-    Cmp_UN
+    Cmp_UN,
 }
 
 pub const MAX_VL: i128 = 2048;
@@ -11928,7 +12071,7 @@ pub const MAX_PL: i128 = 256;
 pub const ZT0_LEN: i128 = 512;
 
 /// SMEExceptionType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2716-2722.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum SMEExceptionType {
@@ -11936,11 +12079,11 @@ pub enum SMEExceptionType {
     SMEExceptionType_Streaming,
     SMEExceptionType_NotStreaming,
     SMEExceptionType_InactiveZA,
-    SMEExceptionType_InaccessibleZT0
+    SMEExceptionType_InaccessibleZT0,
 }
 
 /// GCSInstruction
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2728-2737.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum GCSInstruction {
@@ -11951,23 +12094,23 @@ pub enum GCSInstruction {
     GCSInstType_SS1,
     GCSInstType_SS2,
     GCSInstType_POPCX,
-    GCSInstType_POPX
+    GCSInstType_POPX,
 }
 
 /// MOPSStage
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2739.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum MOPSStage {
     MOPSStage_Prologue,
     MOPSStage_Main,
-    MOPSStage_Epilogue
+    MOPSStage_Epilogue,
 }
 
 pub const DEFAULT_MECID: BitVector<16> = Zeros::<16>(16);
 
 /// TMState
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2787-2805.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TMState {
@@ -11991,7 +12134,7 @@ pub struct TMState {
 }
 
 /// TMFailure
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2809-2818.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TMFailure {
@@ -12002,17 +12145,17 @@ pub enum TMFailure {
     TMFailure_SIZE,
     TMFailure_MEM,
     TMFailure_TRIVIAL,
-    TMFailure_IMP
+    TMFailure_IMP,
 }
 
 /// PGSe
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2820.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PGSe {
     PGS_4KB,
     PGS_16KB,
-    PGS_64KB
+    PGS_64KB,
 }
 
 pub const GPT_NoAccess: BitVector<4> = BitVector::<4>::new(0b0000);
@@ -12054,7 +12197,7 @@ pub const GPTRange_64GB: i128 = 36;
 pub const GPTRange_512GB: i128 = 39;
 
 /// GPTTable
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2860.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GPTTable {
@@ -12062,7 +12205,7 @@ pub struct GPTTable {
 }
 
 /// GPTEntry
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2866-2872.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GPTEntry {
@@ -12080,7 +12223,7 @@ pub const SPEMaxCounters: i128 = 32;
 pub const SPEMaxRecordSize: i128 = 64;
 
 /// TimeStamp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2884-2890.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TimeStamp {
@@ -12088,11 +12231,11 @@ pub enum TimeStamp {
     TimeStamp_CoreSight,
     TimeStamp_Physical,
     TimeStamp_OffsetPhysical,
-    TimeStamp_Virtual
+    TimeStamp_Virtual,
 }
 
 /// OpType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2892-2898.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum OpType {
@@ -12100,7 +12243,7 @@ pub enum OpType {
     OpType_Store,
     OpType_LoadAtomic,
     OpType_Branch,
-    OpType_Other
+    OpType_Other,
 }
 
 pub const SPEAddrPosPCVirtual: i128 = 0;
@@ -12120,17 +12263,17 @@ pub const SPECounterPosIssueLatency: i128 = 1;
 pub const SPECounterPosTranslationLatency: i128 = 2;
 
 /// CountOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2960.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum CountOp {
     CountOp_CLZ,
     CountOp_CLS,
-    CountOp_CNT
+    CountOp_CNT,
 }
 
 /// ExtendType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2962-2971.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExtendType {
@@ -12141,33 +12284,33 @@ pub enum ExtendType {
     ExtendType_UXTB,
     ExtendType_UXTH,
     ExtendType_UXTW,
-    ExtendType_UXTX
+    ExtendType_UXTX,
 }
 
 /// FPMaxMinOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2973-2978.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum FPMaxMinOp {
     FPMaxMinOp_MAX,
     FPMaxMinOp_MIN,
     FPMaxMinOp_MAXNUM,
-    FPMaxMinOp_MINNUM
+    FPMaxMinOp_MINNUM,
 }
 
 /// FPUnaryOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2980.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum FPUnaryOp {
     FPUnaryOp_ABS,
     FPUnaryOp_MOV,
     FPUnaryOp_NEG,
-    FPUnaryOp_SQRT
+    FPUnaryOp_SQRT,
 }
 
 /// FPConvOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2982-2988.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum FPConvOp {
@@ -12175,42 +12318,42 @@ pub enum FPConvOp {
     FPConvOp_CVT_ItoF,
     FPConvOp_MOV_FtoI,
     FPConvOp_MOV_ItoF,
-    FPConvOp_CVT_FtoI_JS
+    FPConvOp_CVT_FtoI_JS,
 }
 
 /// MoveWideOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2990.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum MoveWideOp {
     MoveWideOp_N,
     MoveWideOp_Z,
-    MoveWideOp_K
+    MoveWideOp_K,
 }
 
 /// ShiftType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2992.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ShiftType {
     ShiftType_LSL,
     ShiftType_LSR,
     ShiftType_ASR,
-    ShiftType_ROR
+    ShiftType_ROR,
 }
 
 /// LogicalOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2994.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum LogicalOp {
     LogicalOp_AND,
     LogicalOp_EOR,
-    LogicalOp_ORR
+    LogicalOp_ORR,
 }
 
 /// SystemHintOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L2996-3014.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum SystemHintOp {
@@ -12230,11 +12373,11 @@ pub enum SystemHintOp {
     SystemHintOp_CLRBHB,
     SystemHintOp_GCSB,
     SystemHintOp_CHKFEAT,
-    SystemHintOp_CSDB
+    SystemHintOp_CSDB,
 }
 
 /// PSTATEField
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3016-3030.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum PSTATEField {
@@ -12250,22 +12393,22 @@ pub enum PSTATEField {
     PSTATEField_SVCRSMZA,
     PSTATEField_ALLINT,
     PSTATEField_PM,
-    PSTATEField_SP
+    PSTATEField_SP,
 }
 
 pub const VMID_NONE: BitVector<16> = Zeros::<16>(16);
 
 /// TLBILevel
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3034.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TLBILevel {
     TLBILevel_Any,
-    TLBILevel_Last
+    TLBILevel_Last,
 }
 
 /// TLBIOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3036-3061.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TLBIOp {
@@ -12292,20 +12435,20 @@ pub enum TLBIOp {
     TLBIPOp_RVAA,
     TLBIPOp_RVA,
     TLBIOp_RPA,
-    TLBIOp_PAALL
+    TLBIOp_PAALL,
 }
 
 /// TLBIMemAttr
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3063.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TLBIMemAttr {
     TLBI_AllAttr,
-    TLBI_ExcludeXS
+    TLBI_ExcludeXS,
 }
 
 /// TLBIRecord
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3065-3081.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TLBIRecord {
@@ -12329,18 +12472,18 @@ pub struct TLBIRecord {
 pub const MAX_ZERO_BLOCK_SIZE: i128 = 2048;
 
 /// VBitOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3085.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum VBitOp {
     VBitOp_VBIF,
     VBitOp_VBIT,
     VBitOp_VBSL,
-    VBitOp_VEOR
+    VBitOp_VEOR,
 }
 
 /// CompareOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3087-3093.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum CompareOp {
@@ -12348,22 +12491,22 @@ pub enum CompareOp {
     CompareOp_GE,
     CompareOp_EQ,
     CompareOp_LE,
-    CompareOp_LT
+    CompareOp_LT,
 }
 
 /// ImmediateOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3095-3100.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ImmediateOp {
     ImmediateOp_MOVI,
     ImmediateOp_MVNI,
     ImmediateOp_ORR,
-    ImmediateOp_BIC
+    ImmediateOp_BIC,
 }
 
 /// ReduceOp
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3102-3109.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ReduceOp {
@@ -12372,11 +12515,11 @@ pub enum ReduceOp {
     ReduceOp_FMIN,
     ReduceOp_FMAX,
     ReduceOp_FADD,
-    ReduceOp_ADD
+    ReduceOp_ADD,
 }
 
 /// CrossTriggerIn
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3123-3132.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum CrossTriggerIn {
@@ -12387,7 +12530,7 @@ pub enum CrossTriggerIn {
     CrossTriggerIn_TraceExtOut0,
     CrossTriggerIn_TraceExtOut1,
     CrossTriggerIn_TraceExtOut2,
-    CrossTriggerIn_TraceExtOut3
+    CrossTriggerIn_TraceExtOut3,
 }
 
 pub const DebugHalt_Breakpoint: BitVector<6> = BitVector::<6>::new(0b000111);
@@ -12413,7 +12556,7 @@ pub const DebugHalt_ExceptionCatch: BitVector<6> = BitVector::<6>::new(0b110111)
 pub const DebugHalt_Step_NoSyndrome: BitVector<6> = BitVector::<6>::new(0b111011);
 
 /// TLBLine
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3156.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TLBLine {
@@ -12422,7 +12565,7 @@ pub struct TLBLine {
 }
 
 /// GPTTLBLine
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3162.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct GPTTLBLine {
@@ -12435,7 +12578,7 @@ pub const RCW64_PROTECTED_BIT: i128 = 52;
 pub const RCW128_PROTECTED_BIT: i128 = 114;
 
 /// InterruptReq
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3174-3182.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct InterruptReq {
@@ -12449,14 +12592,14 @@ pub struct InterruptReq {
 }
 
 /// __InstrEnc
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3200.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum __InstrEnc {
     __A64,
     __A32,
     __T16,
-    __T32
+    __T32,
 }
 
 pub const lst_64bv: BitVector<2> = BitVector::<2>::new(0b01);
@@ -12488,7 +12631,7 @@ pub const CFG_MPAM_frac_v0p1: BitVector<4> = BitVector::<4>::new(0b0001);
 pub const CFG_MPAM_frac_v1p1: BitVector<4> = BitVector::<4>::new(0b0001);
 
 /// SRType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3250.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum SRType {
@@ -12496,47 +12639,47 @@ pub enum SRType {
     SRType_LSR,
     SRType_ASR,
     SRType_ROR,
-    SRType_RRX
+    SRType_RRX,
 }
 
 /// VCGEType
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3252.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum VCGEType {
     VCGEType_signed,
     VCGEType_unsigned,
-    VCGEType_fp
+    VCGEType_fp,
 }
 
 /// VFPNegMul
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3254.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum VFPNegMul {
     VFPNegMul_VNMLA,
     VFPNegMul_VNMLS,
-    VFPNegMul_VNMUL
+    VFPNegMul_VNMUL,
 }
 
 /// VCGTtype
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3256.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum VCGTtype {
     VCGTtype_signed,
     VCGTtype_unsigned,
-    VCGTtype_fp
+    VCGTtype_fp,
 }
 
 /// VBitOps
-/// 
+///
 /// Generated from the Sail sources at `src/v8_base.sail` L3258.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum VBitOps {
     VBitOps_VBIF,
     VBitOps_VBIT,
-    VBitOps_VBSL
+    VBitOps_VBSL,
 }
 
 pub const DebugException_Breakpoint: BitVector<4> = BitVector::<4>::new(0b0001);
@@ -12563,6 +12706,28 @@ pub type SP_EL2_Type = BitVector<64>;
 
 pub type SP_EL3_Type = BitVector<64>;
 
+/// X_set
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L7434-7441.
+pub fn X_set<const N: i128, const WIDTH: i128>(
+    core_ctx: &mut Core,
+    n: i128,
+    width: i128,
+    value_name: BitVector<WIDTH>,
+) {
+    assert!(((n >= 0) && (n <= 31)), "src/v8_base.sail:7435.27-7435.28");
+    assert!(
+        ((width == 32) || (width == 64)),
+        "src/v8_base.sail:7436.36-7436.37"
+    );
+    if { (n != 31) } {
+        set_R(core_ctx, n, ZeroExtend0(value_name, 64))
+    } else {
+        ()
+    };
+    return ();
+}
+
 pub type FAR_EL1_Type = BitVector<64>;
 
 pub type FAR_EL2_Type = BitVector<64>;
@@ -12585,6 +12750,43 @@ pub type VBAR_Type = BitVector<32>;
 
 pub const TAG_GRANULE: i128 = 16;
 
+/// AddWithCarry
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L13337-13346.
+pub fn AddWithCarry<const N: i128>(
+    x: BitVector<N>,
+    y: BitVector<N>,
+    carry_in: BitVector<1>,
+) -> (BitVector<N>, BitVector<4>) {
+    let unsigned_sum = ((UInt0(x) + UInt0(y)) + UInt0(carry_in));
+    let signed_sum = ((SInt0(x) + SInt0(y)) + UInt0(carry_in));
+    let result: BitVector<N> = integer_subrange(unsigned_sum, (bitvector_length(y) - 1), 0);
+    let n: BitVector<1> =
+        BitVector::new(0).set_bit(0, bitvector_access(result, (bitvector_length(y) - 1)));
+    let z: BitVector<1> = if { IsZero(result) } {
+        BitVector::<1>::new(0b1)
+    } else {
+        BitVector::<1>::new(0b0)
+    };
+    let c: BitVector<1> = if { (UInt0(result) == unsigned_sum) } {
+        BitVector::<1>::new(0b0)
+    } else {
+        BitVector::<1>::new(0b1)
+    };
+    let v: BitVector<1> = if { (SInt0(result) == signed_sum) } {
+        BitVector::<1>::new(0b0)
+    } else {
+        BitVector::<1>::new(0b1)
+    };
+    return (
+        result,
+        bitvector_concat::<3, 1, 4>(
+            bitvector_concat::<2, 1, 3>(bitvector_concat::<1, 1, 2>(n, z), c),
+            v,
+        ),
+    );
+}
+
 pub type HDFAR_Type = BitVector<32>;
 
 pub type HIFAR_Type = BitVector<32>;
@@ -12597,10 +12799,11 @@ pub type DFAR_Type = BitVector<32>;
 
 pub type IFAR_Type = BitVector<32>;
 
-pub const GIC_PENDING_NONE: BitVector<32> = BitVector::<32>::new(0b00000000000000000000001111111111);
+pub const GIC_PENDING_NONE: BitVector<32> =
+    BitVector::<32>::new(0b00000000000000000000001111111111);
 
 /// arm_acc_type
-/// 
+///
 /// Generated from the Sail sources at `src/interface.sail` L49-72.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum arm_acc_type {
@@ -12614,7 +12817,7 @@ pub enum arm_acc_type {
     SAcc_NV2(()),
     SAcc_SPE(()),
     SAcc_GCS(()),
-    SAcc_GPTW(())
+    SAcc_GPTW(()),
 }
 
 pub type APIAKeyHi_EL1_Type = BitVector<64>;
@@ -12636,6 +12839,29 @@ pub type APDBKeyLo_EL1_Type = BitVector<64>;
 pub type APGAKeyHi_EL1_Type = BitVector<64>;
 
 pub type APGAKeyLo_EL1_Type = BitVector<64>;
+
+/// X_read
+///
+/// Generated from the Sail sources at `src/v8_base.sail` L22318-22326.
+pub fn X_read<const N: i128, const WIDTH: i128>(
+    core_ctx: &mut Core,
+    n: i128,
+    width: i128,
+) -> BitVector<WIDTH> {
+    assert!(
+        ((n >= 0) && (n <= 31)),
+        "src/v8_base.sail:22319.27-22319.28"
+    );
+    assert!(
+        ((width == 8) || ((width == 16) || ((width == 32) || (width == 64)))),
+        "src/v8_base.sail:22320.63-22320.64"
+    );
+    if { (n != 31) } {
+        return subrange_bits(get_R(core_ctx, n), (width - 1), 0);
+    } else {
+        return Zeros(width);
+    }
+}
 
 pub type EDWAR_Type = BitVector<64>;
 
@@ -12682,7 +12908,7 @@ pub type OSDTRTX_EL1_Type = BitVector<64>;
 pub type PMEVCNTR_EL0_Type = BitVector<64>;
 
 /// TLBIInfo
-/// 
+///
 /// Generated from the Sail sources at `src/interface.sail` L156-159.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct TLBIInfo {
@@ -12861,7 +13087,7 @@ pub type ERXSTATUS_Type = BitVector<32>;
 pub type HACTLR2_Type = BitVector<32>;
 
 /// DxB
-/// 
+///
 /// Generated from the Sail sources at `src/interface.sail` L167-171.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct DxB {
@@ -12871,7 +13097,7 @@ pub struct DxB {
 }
 
 /// Barrier
-/// 
+///
 /// Generated from the Sail sources at `src/interface.sail` L174-181.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Barrier {
@@ -12880,7 +13106,60 @@ pub enum Barrier {
     Barrier_ISB(()),
     Barrier_SSBB(()),
     Barrier_PSSBB(()),
-    Barrier_SB(())
+    Barrier_SB(()),
+}
+
+/// execute_aarch64_instrs_integer_arithmetic_add_sub_carry
+///
+/// Generated from the Sail sources at `src/instrs64.sail` L194-207.
+pub fn execute_aarch64_instrs_integer_arithmetic_add_sub_carry<
+    const D: i128,
+    const DATASIZE: i128,
+    const M: i128,
+    const N: i128,
+    const SETFLAGS: bool,
+    const SUB_OP: bool,
+>(
+    core_ctx: &mut Core,
+    d: i128,
+    datasize: i128,
+    m: i128,
+    n: i128,
+    setflags: bool,
+    sub_op: bool,
+) {
+    let mut result = undefined_bitvector(__id(datasize));
+    {
+        let operand1: BitVector<DATASIZE> = X_read(core_ctx, n, datasize);
+        let mut operand2 = X_read(core_ctx, m, datasize);
+        {
+            let mut nzcv = undefined_bitvector::<4>(4);
+            {
+                if { sub_op } {
+                    operand2 = !(operand2)
+                } else {
+                    ()
+                };
+                let (tup__0, tup__1) = ({
+                    let var_1 = core_ctx.PSTATE.C;
+                    AddWithCarry(operand1, operand2, var_1)
+                } as (BitVector<DATASIZE>, BitVector<4>));
+                result = tup__0;
+                nzcv = tup__1;
+                if { setflags } {
+                    {
+                        core_ctx.PSTATE.N = nzcv.subrange::<3, 4, 1>();
+                        core_ctx.PSTATE.Z = nzcv.subrange::<2, 3, 1>();
+                        core_ctx.PSTATE.C = nzcv.subrange::<1, 2, 1>();
+                        core_ctx.PSTATE.V = nzcv.subrange::<0, 1, 1>()
+                    }
+                } else {
+                    ()
+                };
+                X_set(core_ctx, d, datasize, result)
+            }
+        }
+    }
 }
 
 pub const COLD_RESET: bool = true;

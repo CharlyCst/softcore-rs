@@ -1,10 +1,29 @@
 module SSet = Types.SSet
 
-let call_set = SSet.of_list [ (* Empty for now *) ]
+let call_set =
+  SSet.of_list
+    [ (* Integer arithmetics *)
+      "execute_aarch64_instrs_integer_arithmetic_add_sub_carry"
+    ]
+;;
 
 let external_func : SSet.t =
   SSet.of_list
-    [ "UInt0"; "ZeroExtend0"; "get_slice_int"; "sail_zeros"; "update_subrange_bits" ]
+    [ "UInt0"
+    ; "SInt0"
+    ; "ZeroExtend0"
+    ; "get_slice_int"
+    ; "sail_zeros"
+    ; "update_subrange_bits"
+    ; "undefined_bitvector"
+    ; "bitvector_length"
+    ; "bitvector_access"
+    ; "bitvector_concat"
+    ; "subrange_bits"
+    ; "format!"
+    ; "assert!"
+    ; "panic!"
+    ]
 ;;
 
 let unsupported_obj : SSet.t =

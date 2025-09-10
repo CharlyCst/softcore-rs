@@ -84,6 +84,7 @@ let rec exp_call_set (texp : tannot exp) (ctx : sail_ctx) : sail_ctx =
   | E_let (LB_aux (LB_val (let_var, let_exp), _), exp) ->
     let s = exp_call_set let_exp ctx in
     exp_call_set exp s
+  | E_var (lexp, exp1, exp2) -> ctx_union (exp_call_set exp1 ctx) (exp_call_set exp2 ctx)
   | E_assign (lexp, exp) -> exp_call_set exp ctx
   | E_sizeof nexp -> ctx
   | E_return exp -> exp_call_set exp ctx
@@ -92,7 +93,6 @@ let rec exp_call_set (texp : tannot exp) (ctx : sail_ctx) : sail_ctx =
   | E_throw exp -> ctx
   | E_try (exp, pexp_list) -> ctx
   | E_assert (exp1, exp2) -> ctx_union (exp_call_set exp1 ctx) (exp_call_set exp2 ctx)
-  | E_var (lexp, exp1, exp2) -> ctx
   | E_internal_plet (pat, exp1, exp2) -> ctx
   | E_internal_return exp -> ctx
   | E_internal_value value -> ctx
