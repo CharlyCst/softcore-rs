@@ -106,6 +106,7 @@ and rs_exp =
 
 and rs_lexp =
   | RsLexpId of string
+  | RsLexpTyp of string * rs_type
   | RsLexpField of rs_exp * string
   | RsLexpIndex of rs_lexp * rs_exp
   | RsLexpIndexRange of rs_lexp * rs_exp * rs_exp
@@ -236,6 +237,129 @@ let rec strip_generic_parameters (typ : rs_type) : rs_type =
   | RsTypArray (typ, size) -> RsTypArray (strip_typ_params typ, strip_typ_params size)
   | RsTypOption typ -> RsTypOption (strip_typ_params typ)
   | _ -> typ
+;;
+
+(** Returns the set of generics used in the type **)
+let rec generics_of_typ (typ : rs_type) : SSet.t =
+  match typ with
+  | RsTypId id -> SSet.singleton id
+  | RsTypTuple typs ->
+    List.fold_left (fun acc typ -> SSet.union acc (generics_of_typ typ)) SSet.empty typs
+  | RsTypUnit -> SSet.empty
+  | RsTypGeneric t -> SSet.singleton t
+  | RsTypGenericParam ("atom", _) -> SSet.empty (* atoms are replaced by their type *)
+  | RsTypGenericParam (_, params) ->
+    List.fold_left
+      (fun acc param -> SSet.union acc (generics_param param))
+      SSet.empty
+      params
+  | RsTypArray (param1, param2) ->
+    SSet.union (generics_param param1) (generics_param param2)
+  | RsTypOption typ_param -> generics_param typ_param
+  | RsTypTodo _ -> SSet.empty
+
+and generics_param (typ_param : rs_type_param) : SSet.t =
+  match typ_param with
+  | RsTypParamTyp typ -> generics_of_typ typ
+  | RsTypParamNum _ -> SSet.empty
+
+and generics_of_exp (exp : rs_exp) : SSet.t =
+  let generics_of_exps (exps : rs_exp list) =
+    List.fold_left (fun acc exp -> SSet.union acc (generics_of_exp exp)) SSet.empty exps
+  in
+  match exp with
+  | RsLet (pat, exp, next) ->
+    generics_of_pat pat
+    |> SSet.union (generics_of_exp exp)
+    |> SSet.union (generics_of_exp next)
+  | RsLetMut (lexp, exp, next) ->
+    generics_of_lexp lexp
+    |> SSet.union (generics_of_exp exp)
+    |> SSet.union (generics_of_exp next)
+  | RsApp (app, gens, args) ->
+    generics_of_exp app
+    |> SSet.union (SSet.of_list gens)
+    |> SSet.union (generics_of_exps args)
+  | RsMethodApp { exp; generics = gens; args } ->
+    generics_of_exp exp
+    |> SSet.union (SSet.of_list gens)
+    |> SSet.union (generics_of_exps args)
+  | RsStaticApp (typ, name, args) ->
+    generics_of_typ typ |> SSet.union (generics_of_exps args)
+  | RsId id -> if id_is_generic id then SSet.singleton id else SSet.empty
+  | RsLit _ -> SSet.empty
+  | RsField (exp, _) -> generics_of_exp exp
+  | RsBlock exps -> generics_of_exps exps
+  | RsConstBlock exps -> generics_of_exps exps
+  | RsInstrList exps -> generics_of_exps exps
+  | RsIf (cond, if_branch, else_branch) ->
+    generics_of_exp cond
+    |> SSet.union (generics_of_exp if_branch)
+    |> SSet.union (generics_of_exp else_branch)
+  | RsMatch (exp, arms) ->
+    let arms_gens =
+      List.fold_left
+        (fun acc pexp -> SSet.union acc (generics_of_pexp pexp))
+        SSet.empty
+        arms
+    in
+    SSet.union (generics_of_exp exp) arms_gens
+  | RsTuple exps -> generics_of_exps exps
+  | RsArray exps -> generics_of_exps exps
+  | RsArraySize (exp1, exp2) -> SSet.union (generics_of_exp exp1) (generics_of_exp exp2)
+  | RsAssign (lexp, exp) -> SSet.union (generics_of_lexp lexp) (generics_of_exp exp)
+  | RsIndex (exp1, exp2) -> SSet.union (generics_of_exp exp1) (generics_of_exp exp2)
+  | RsBinop (exp1, _, exp2) -> SSet.union (generics_of_exp exp1) (generics_of_exp exp2)
+  | RsUnop (_, exp) -> generics_of_exp exp
+  | RsAs (exp, typ) -> SSet.union (generics_of_exp exp) (generics_of_typ typ)
+  | RsSome exp -> generics_of_exp exp
+  | RsNone -> SSet.empty
+  | RsPathSeparator (typ1, typ2) ->
+    SSet.union (generics_of_typ typ1) (generics_of_typ typ2)
+  | RsFor (typ, _, _, body) -> SSet.union (generics_of_typ typ) (generics_of_exp body)
+  | RsStruct (typ, fields) ->
+    SSet.union
+      (generics_of_typ typ)
+      (generics_of_exps (List.map (fun (_, exp) -> exp) fields))
+  | RsStructAssign (struc, _, exp) ->
+    SSet.union (generics_of_exp struc) (generics_of_exp exp)
+  | RsReturn exp -> generics_of_exp exp
+  | RsTodo _ -> SSet.empty
+
+and generics_of_lexp (lexp : rs_lexp) : SSet.t =
+  match lexp with
+  | RsLexpTyp (_, typ) -> generics_of_typ typ
+  | _ -> SSet.empty
+
+and generics_of_pexp (pexp : rs_pexp) : SSet.t =
+  match pexp with
+  | RsPexp (pat, exp) -> SSet.union (generics_of_pat pat) (generics_of_exp exp)
+  | RsPexpWhen (pat, guard, exp) ->
+    generics_of_pat pat
+    |> SSet.union (generics_of_exp guard)
+    |> SSet.union (generics_of_exp exp)
+
+and generics_of_pat (pat : rs_pat) : SSet.t =
+  let generics_of_pats (pats : rs_pat list) =
+    List.fold_left (fun acc pat -> SSet.union acc (generics_of_pat pat)) SSet.empty pats
+  in
+  match pat with
+  | RsPatLit _ -> SSet.empty
+  | RsPatId id -> if id_is_generic id then SSet.singleton id else SSet.empty
+  | RsPatType (typ, pat) -> SSet.union (generics_of_typ typ) (generics_of_pat pat)
+  | RsPatWildcard -> SSet.empty
+  | RsPatTuple pats -> generics_of_pats pats
+  | RsPatApp (pat, pats) -> SSet.union (generics_of_pat pat) (generics_of_pats pats)
+  | RsPatSome pat -> generics_of_pat pat
+  | RsPatNone -> SSet.empty
+  | RsPatTodo _ -> SSet.empty
+
+and id_is_generic (id : string) : bool = String.uppercase_ascii id = id
+
+let name_of_generic (gen : rs_generic) : string =
+  match gen with
+  | RsGenTyp x -> x
+  | RsGenConst (x, _) -> x
 ;;
 
 (** In Sail type variables start with an apostrophe ('), which appears as
@@ -557,6 +681,7 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
 and string_of_rs_lexp (n : int) (lexp : rs_lexp) : string =
   match lexp with
   | RsLexpId id -> id
+  | RsLexpTyp (id, typ) -> Printf.sprintf "%s: %s" id (string_of_rs_type typ)
   | RsLexpField (exp, id) -> Printf.sprintf "%s.%s" (string_of_rs_exp n exp) id
   | RsLexpIndex (lexp, idx) ->
     Printf.sprintf "%s[%s]" (string_of_rs_lexp n lexp) (string_of_rs_exp n idx)

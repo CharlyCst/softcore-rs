@@ -132,9 +132,16 @@ pub fn validDoubleRegs<const N: usize>(n: i128, regs: [BitVector<5>; N]) -> bool
     true
 }
 
+/// X_read
+/// 
+/// Generated from the Sail sources at `tests/types/arch.sail` L91-93.
+pub fn X_read<const WIDTH: i128>(n: i128, width: i128) -> BitVector<WIDTH> {
+    zeros(width)
+}
+
 /// Access_kind
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L87-90.
+/// Generated from the Sail sources at `tests/types/arch.sail` L95-98.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_kind<ARCH_AK> {
     AK_ttw(()),
@@ -143,7 +150,7 @@ pub enum Access_kind<ARCH_AK> {
 
 /// Mem_read_request
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L92-98.
+/// Generated from the Sail sources at `tests/types/arch.sail` L100-106.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, ARCH_AK> {
     pub access_kind: Access_kind<ARCH_AK>,
@@ -155,7 +162,7 @@ pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, ARCH_AK> {
 
 /// Retired
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L106.
+/// Generated from the Sail sources at `tests/types/arch.sail` L114.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
     RETIRE_SUCCESS,
@@ -164,14 +171,14 @@ pub enum Retired {
 
 /// handle_retired
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L107-109.
+/// Generated from the Sail sources at `tests/types/arch.sail` L115-117.
 pub fn handle_retired(unit_arg: ()) -> Retired {
     Retired::RETIRE_SUCCESS
 }
 
 /// exception
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L111-114.
+/// Generated from the Sail sources at `tests/types/arch.sail` L119-122.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
     Error_not_implemented(&'static str),
@@ -180,7 +187,7 @@ pub enum exception {
 
 /// My_struct
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L116-120.
+/// Generated from the Sail sources at `tests/types/arch.sail` L124-128.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct {
     pub field1: BitVector<5>,
@@ -190,7 +197,7 @@ pub struct My_struct {
 
 /// My_struct_generic
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L122-124.
+/// Generated from the Sail sources at `tests/types/arch.sail` L130-132.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct_generic<const N: i128> {
     pub foo: BitVector<N>,
@@ -198,7 +205,7 @@ pub struct My_struct_generic<const N: i128> {
 
 /// exceptionType_to_bits
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L127-134.
+/// Generated from the Sail sources at `tests/types/arch.sail` L135-142.
 pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<8> {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::<8>::new(0b00000000)}
@@ -212,13 +219,14 @@ pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<8> {
 
 /// execute_TEST
 /// 
-/// Generated from the Sail sources at `tests/types/arch.sail` L136-178.
+/// Generated from the Sail sources at `tests/types/arch.sail` L144-187.
 pub fn execute_TEST(core_ctx: &mut Core) {
     let a = handle_int(1234);
     let d = handle_retired(());
     let e = handle_union(());
     let f = hex_bits_backwards(8, "00");
     let g = pmpMatchAddr(physaddr::Physaddr(BitVector::<64>::new(0b0000000000000000000000000000000011011110101011011011111011101111)));
+    let h: BitVector<64> = X_read(10, 64);
     if {(f != BitVector::<8>::new(0b00000000))} {
         assert!(false, "failed to parse hex)")
     } else {

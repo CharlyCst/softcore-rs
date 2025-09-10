@@ -51,6 +51,7 @@ and transform_lexp (ct : expr_type_transform) (ctx : context) (lexp : rs_lexp) :
   let lexp = ct.lexp ctx lexp in
   match lexp with
   | RsLexpId id -> RsLexpId id
+  | RsLexpTyp (id, typ) -> RsLexpTyp (id, transform_type ct ctx typ)
   | RsLexpField (lexp, id) -> RsLexpField (transform_exp ct ctx lexp, id)
   | RsLexpIndex (lexp, exp) ->
     RsLexpIndex (transform_lexp ct ctx lexp, transform_exp ct ctx exp)
@@ -581,6 +582,7 @@ and propagate_in_lexp (ctx : bindings) (lexp : rs_lexp) : rs_lexp =
   let propagate lexp = propagate_in_lexp ctx lexp in
   match (lexp : rs_lexp) with
   | RsLexpId id -> RsLexpId id
+  | RsLexpTyp (id, typ) -> RsLexpTyp (id, typ)
   | RsLexpField (fexp, field) -> RsLexpField (propagate_in_exp ctx fexp, field)
   | RsLexpIndex (lexp, exp) -> RsLexpIndex (propagate lexp, propagate_in_exp ctx exp)
   | RsLexpIndexRange (lexp, start, end') ->
@@ -841,6 +843,10 @@ and rename_in_lexp (rn : string * string) (lexp : rs_lexp) : rs_lexp =
   match (lexp : rs_lexp) with
   | RsLexpId id' ->
     if id' == id then RsLexpId new_id (* Rename! *) else RsLexpId id' (* No renaming *)
+  | RsLexpTyp (id', typ) ->
+    if id' == id
+    then RsLexpTyp (new_id, typ) (* Rename! *)
+    else RsLexpTyp (id', typ) (* No renaming *)
   | RsLexpField (fexp, field) -> RsLexpField (rename_in_exp rn fexp, field)
   | RsLexpIndex (lexp, exp) -> RsLexpIndex (rename_in_lexp lexp, rename_in_exp rn exp)
   | RsLexpIndexRange (lexp, start, end') ->
@@ -1169,6 +1175,45 @@ let fix_generic_type_func (ctx : context) (func : rs_fn) : rs_fn =
 ;;
 
 let fix_generic_type : func_transform = { func = fix_generic_type_func }
+
+(* ———————————————————————— Removed Unused Generics ————————————————————————— *)
+
+(** Some functions might have generics are are used to express invariants in
+    Sail, but do not have any impact on the Rust code generation. This function
+    remove such generics.
+
+    For instance, Sail might restrict the possible values of an argument, such as:
+    > forall 'width, 'width in {32, 64}.
+    Yet if 'with is not part of an argument or return type (such as a vector
+    width), then it has no impact on the Rust code gen, and the Sail
+    front-end already enforced the invariant.**)
+let remove_unused_generics_func (ctx : context) (func : rs_fn) : rs_fn =
+  let fn_type = func.signature in
+  (* Collect all the used generics *)
+  let args_generics =
+    List.fold_left
+      (fun acc typ -> SSet.union acc (generics_of_typ typ))
+      SSet.empty
+      fn_type.args
+  in
+  let ret_generics = generics_of_typ fn_type.ret in
+  let body_generics = generics_of_exp func.body in
+  let used_generics =
+    args_generics |> SSet.union ret_generics |> SSet.union body_generics
+  in
+  (* Update the function signature to remove the generics *)
+  let fn_type =
+    { fn_type with
+      generics =
+        List.filter
+          (fun gen -> SSet.mem (name_of_generic gen) used_generics)
+          fn_type.generics
+    }
+  in
+  { func with signature = fn_type }
+;;
+
+let remove_unused_generics : func_transform = { func = remove_unused_generics_func }
 
 (* ————————————————————————— Link Generics to Args —————————————————————————— *)
 (* In some cases Sail generics are determined by the value of an argument.    *)
@@ -1642,6 +1687,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
   let rust_program = rust_transform_func atom_rewriter ctx rust_program in
   let rust_program = rust_transform_func const_fn_rewriter ctx rust_program in
   let rust_program = rust_transform_func operator_rewriter ctx rust_program in
+  let rust_program = rust_transform_func remove_unused_generics ctx rust_program in
   let rust_program = fix_point optimizer ctx rust_program 5 in
   (* Optimizer: Dead code elimination *)
   let rust_program = rust_transform_expr dead_code_remover ctx rust_program in

@@ -4331,7 +4331,7 @@ pub fn _reset___emulator_termination_opcode() -> Option<BitVector<32>> {
 /// __id
 ///
 /// Generated from the Sail sources at `sail/lib/flow.sail` L107.
-pub fn __id<const N: i128>(x: i128) -> i128 {
+pub fn __id(x: i128) -> i128 {
     x
 }
 
@@ -11591,7 +11591,7 @@ pub enum FPType {
 /// read_gpr
 ///
 /// Generated from the Sail sources at `src/v8_base.sail` L2143-2177.
-pub fn read_gpr<const N: i128>(core_ctx: &mut Core, n: i128) -> BitVector<64> {
+pub fn read_gpr(core_ctx: &mut Core, n: i128) -> BitVector<64> {
     match n {
         l__9997 if { (l__9997 == 0) } => core_ctx.R0,
         l__9998 if { (l__9998 == 1) } => core_ctx.R1,
@@ -11633,7 +11633,7 @@ pub fn read_gpr<const N: i128>(core_ctx: &mut Core, n: i128) -> BitVector<64> {
 /// write_gpr
 ///
 /// Generated from the Sail sources at `src/v8_base.sail` L2220-2254.
-pub fn write_gpr<const N: i128>(core_ctx: &mut Core, n: i128, v: BitVector<64>) {
+pub fn write_gpr(core_ctx: &mut Core, n: i128, v: BitVector<64>) {
     match n {
         l__9937 if { (l__9937 == 0) } => core_ctx.R0 = v,
         l__9938 if { (l__9938 == 1) } => core_ctx.R1 = v,
@@ -11675,14 +11675,14 @@ pub fn write_gpr<const N: i128>(core_ctx: &mut Core, n: i128, v: BitVector<64>) 
 /// get_R
 ///
 /// Generated from the Sail sources at `src/v8_base.sail` L2321.
-pub fn get_R<const N: i128>(core_ctx: &mut Core, n: i128) -> BitVector<64> {
+pub fn get_R(core_ctx: &mut Core, n: i128) -> BitVector<64> {
     read_gpr(core_ctx, n)
 }
 
 /// set_R
 ///
 /// Generated from the Sail sources at `src/v8_base.sail` L2325.
-pub fn set_R<const N: i128>(core_ctx: &mut Core, n: i128, v: BitVector<64>) {
+pub fn set_R(core_ctx: &mut Core, n: i128, v: BitVector<64>) {
     write_gpr(core_ctx, n, v)
 }
 
@@ -12709,7 +12709,7 @@ pub type SP_EL3_Type = BitVector<64>;
 /// X_set
 ///
 /// Generated from the Sail sources at `src/v8_base.sail` L7434-7441.
-pub fn X_set<const N: i128, const WIDTH: i128>(
+pub fn X_set<const WIDTH: i128>(
     core_ctx: &mut Core,
     n: i128,
     width: i128,
@@ -12843,11 +12843,7 @@ pub type APGAKeyLo_EL1_Type = BitVector<64>;
 /// X_read
 ///
 /// Generated from the Sail sources at `src/v8_base.sail` L22318-22326.
-pub fn X_read<const N: i128, const WIDTH: i128>(
-    core_ctx: &mut Core,
-    n: i128,
-    width: i128,
-) -> BitVector<WIDTH> {
+pub fn X_read<const WIDTH: i128>(core_ctx: &mut Core, n: i128, width: i128) -> BitVector<WIDTH> {
     assert!(
         ((n >= 0) && (n <= 31)),
         "src/v8_base.sail:22319.27-22319.28"
@@ -13112,14 +13108,7 @@ pub enum Barrier {
 /// execute_aarch64_instrs_integer_arithmetic_add_sub_carry
 ///
 /// Generated from the Sail sources at `src/instrs64.sail` L194-207.
-pub fn execute_aarch64_instrs_integer_arithmetic_add_sub_carry<
-    const D: i128,
-    const DATASIZE: i128,
-    const M: i128,
-    const N: i128,
-    const SETFLAGS: bool,
-    const SUB_OP: bool,
->(
+pub fn execute_aarch64_instrs_integer_arithmetic_add_sub_carry<const DATASIZE: i128>(
     core_ctx: &mut Core,
     d: i128,
     datasize: i128,
@@ -13128,12 +13117,12 @@ pub fn execute_aarch64_instrs_integer_arithmetic_add_sub_carry<
     setflags: bool,
     sub_op: bool,
 ) {
-    let mut result = undefined_bitvector(__id(datasize));
+    let mut result: BitVector<DATASIZE> = undefined_bitvector(__id(datasize));
     {
         let operand1: BitVector<DATASIZE> = X_read(core_ctx, n, datasize);
-        let mut operand2 = X_read(core_ctx, m, datasize);
+        let mut operand2: BitVector<DATASIZE> = X_read(core_ctx, m, datasize);
         {
-            let mut nzcv = undefined_bitvector::<4>(4);
+            let mut nzcv: BitVector<4> = undefined_bitvector::<4>(4);
             {
                 if { sub_op } {
                     operand2 = !(operand2)
