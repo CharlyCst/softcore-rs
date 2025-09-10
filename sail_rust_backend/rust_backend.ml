@@ -512,7 +512,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | LE_tuple _ -> RsLexpId "TodoLexpTuple"
     | LE_typ (typ, id) ->
       let id = sanitize_id (string_of_id id) in
-      RsLexpId id (* We drop the type hint here *)
+      let typ = typ_to_rust typ in
+      RsLexpTyp (id, typ)
 
   and process_pexp (ctx : context) (Pat_aux (pexp, annot)) : rs_pexp =
     match pexp with

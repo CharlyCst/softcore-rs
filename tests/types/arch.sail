@@ -84,6 +84,14 @@ function validDoubleRegs(n, regs) = {
     true
 }
 
+val X_read : forall 'n 'width,
+  'width in {8, 16, 32, 64}.
+  (int('n), int('width)) -> bits('width)
+
+function X_read (n, width) = {
+  zeros(width)
+}
+
 union Access_kind('arch_ak : Type) = {
   AK_ttw : unit, // Translation table walk
   AK_arch : 'arch_ak // Architecture specific type of access.
@@ -143,6 +151,7 @@ function clause execute TEST() = {
     let e = handle_union();
     let f = hex_bits_backwards(8, "00");
     let g = pmpMatchAddr(Physaddr(0x00000000deadbeef));
+    let h : bits(64) = X_read(10, 64);
 
     if f != 0b00000000 then {
         assert(false, "failed to parse hex)");

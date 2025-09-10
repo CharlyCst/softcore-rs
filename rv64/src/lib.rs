@@ -11,9 +11,9 @@
 //!
 //! [1]: https://github.com/riscv/sail-riscv
 
+mod arch_prelude;
 pub mod config;
 pub mod registers;
-mod arch_prelude;
 
 /// The raw translation of the official RISC-V executable specification.
 ///
@@ -277,7 +277,7 @@ impl Core {
     ) -> Option<raw::ExceptionType> {
         let addr = raw::physaddr::Physaddr(bv(addr));
         let width = 8;
-        raw::pmpCheck::<8>(self, addr, width, access_kind, self.cur_privilege)
+        raw::pmpCheck(self, addr, width, access_kind, self.cur_privilege)
     }
 }
 
