@@ -13,7 +13,6 @@ Because the Rust implementation is directly translated from the specification, t
 | Architecture | Crate                                | Status               |
 |--------------|--------------------------------------|----------------------|
 | RISC-V 64    | [![Crates.io][rv64-badge]][rv64-url] | Experimental support |
-|--------------|--------------------------------------|----------------------|
 | Armv9-A      |                                      | Work in progress     |
 
 [rv64-badge]: https://img.shields.io/crates/v/softcore-rv64

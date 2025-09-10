@@ -241,7 +241,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | P_or (_, _) -> RsPatId "TODO_PAT_or"
     | P_not _ -> RsPatId "TODO_PAT_not"
     | P_as (_, _) -> RsPatId "TODO_PAT_as"
-    | P_var (_, _) -> RsPatId "TODO_PAT_var"
+    | P_var (pat, _) -> process_pat pat (* We discard the type variable here *)
     | P_app (id, exp_list) ->
       RsPatApp (RsPatId (string_of_id id), List.map process_pat exp_list)
     | P_vector_concat _ -> RsPatId "TODO_PAT_vector_concat"
@@ -448,6 +448,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         | _ -> new_pat
       in
       RsLet (new_pat, process_exp ctx let_exp, process_exp ctx exp)
+    | E_var (lexp, value, next) ->
+      RsLetMut (process_lexp ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
     | E_sizeof nexp -> RsTodo "E_sizeof"
     | E_return exp -> RsReturn (process_exp ctx exp)
@@ -467,7 +469,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         , [ process_exp ctx exp1
           ; RsLit (RsLitStr "[Compiler TODO] process non-trivial error messages")
           ] )
-    | E_var (lexp, exp1, exp2) -> RsTodo "E_var"
     | E_internal_plet (pat, exp1, exp2) -> RsTodo "E_internal_plet"
     | E_internal_return exp -> RsTodo "E_internal_return"
     | E_internal_value value -> RsTodo "E_internal_value"
@@ -509,7 +510,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | LE_deref _ -> RsLexpId "TodoLexpDeref"
     | LE_vector_concat _ -> RsLexpId "TodoLexpVectorConcat"
     | LE_tuple _ -> RsLexpId "TodoLexpTuple"
-    | LE_typ _ -> RsLexpId "TodoLexpTyp"
+    | LE_typ (typ, id) ->
+      let id = sanitize_id (string_of_id id) in
+      RsLexpId id (* We drop the type hint here *)
 
   and process_pexp (ctx : context) (Pat_aux (pexp, annot)) : rs_pexp =
     match pexp with
@@ -1120,7 +1123,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     match typ with
     | A_nexp exp -> extract_type_nexp exp
     | A_typ typ -> RsTypParamTyp (typ_to_rust typ)
-    | A_bool b -> RsTypParamTyp (RsTypId "TodoBoolType")
+    | A_bool b -> RsTypParamNum (nconstraint_to_rs_exp b)
 
   and extract_type_nexp (Nexp_aux (nexp, l)) : rs_type_param =
     match nexp with

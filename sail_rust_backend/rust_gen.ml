@@ -75,6 +75,7 @@ and rs_method_app =
 
 and rs_exp =
   | RsLet of rs_pat * rs_exp * rs_exp
+  | RsLetMut of rs_lexp * rs_exp * rs_exp
   | RsApp of rs_exp * string list * rs_exp list (* the strings are the generics *)
   | RsMethodApp of rs_method_app
   | RsStaticApp of rs_type * string * rs_exp list
@@ -425,6 +426,13 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
       (string_of_rs_exp n exp)
       (indent n)
       (string_of_rs_exp n next)
+  | RsLetMut (lexp, exp, next) ->
+    Printf.sprintf
+      "let mut %s = %s;\n%s%s"
+      (string_of_rs_lexp n lexp)
+      (string_of_rs_exp n exp)
+      (indent n)
+      (string_of_rs_exp n next)
   | RsApp (fn, generics, args) ->
     Printf.sprintf
       "%s%s(%s)"
@@ -496,7 +504,7 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
   | RsArray exps ->
     Printf.sprintf "[%s]" (String.concat ", " (List.map (string_of_rs_exp n) exps))
   | RsArraySize (exp, size) ->
-      Printf.sprintf "[%s; %s]" (string_of_rs_exp n exp) (string_of_rs_exp n size)
+    Printf.sprintf "[%s; %s]" (string_of_rs_exp n exp) (string_of_rs_exp n size)
   | RsAssign (exp1, exp2) ->
     Printf.sprintf "%s = %s" (string_of_rs_lexp n exp1) (string_of_rs_exp n exp2)
   | RsIndex (exp1, exp2) ->
