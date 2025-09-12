@@ -98,4 +98,5 @@ let unsupported_obj : SSet.t =
     ]
 ;;
 
-let rv64 : Types.arch_t = { call_set; external_func; unsupported_obj }
+let unsupported_func : SSet.t = SSet.of_list []
+let rv64 : Types.arch_t = { call_set; external_func; unsupported_obj; unsupported_func }

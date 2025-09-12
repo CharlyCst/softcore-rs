@@ -1611,6 +1611,26 @@ let is_supported_obj (ctx : context) (obj : rs_obj) : bool =
   | _ -> true
 ;;
 
+(* ——————————————————— Remove Unsupported Function Calls ———————————————————— *)
+
+let remove_unsupported_func_calls (ctx : context) (exp : rs_exp) : rs_exp =
+  match exp with
+  | RsApp (RsId app_id, generics, args) when SSet.mem app_id ctx.arch.unsupported_func ->
+    let err_message = Printf.sprintf "Unsupported function: '%s'" app_id in
+    RsApp (RsId "panic!", [], [ RsLit (RsLitStr err_message) ])
+  | _ -> exp
+;;
+
+let remove_unsupported_calls : expr_type_transform =
+  { exp = remove_unsupported_func_calls
+  ; lexp = id_lexp
+  ; pexp = id_pexp
+  ; typ = id_typ
+  ; pat = id_pat
+  ; obj = id_obj
+  }
+;;
+
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
 
 (** Computes the fix point of a function. **)
@@ -1665,6 +1685,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
      to detect some bitvec patterns properly *)
   let rust_program =
     rust_program
+    |> rust_transform_expr remove_unsupported_calls ctx
     |> fix_point (rust_transform_func virt_context_call_graph) ctx 3
     |> rust_transform_func virt_context_transform ctx
     |> rust_transform_expr nested_block_remover ctx

@@ -374,8 +374,8 @@ let sanitize_generic_id (id : string) : string =
   else id
 ;;
 
-let quote_regexp = Str.regexp "'"
-let qmark_regexp = Str.regexp "\?"
+let quote_regexp = Str.regexp_string "'"
+let qmark_regexp = Str.regexp_string "?"
 
 (** Turn a Sail ID into a valid Rust id.
 
