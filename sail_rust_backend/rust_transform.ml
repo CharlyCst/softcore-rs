@@ -653,9 +653,9 @@ let native_func_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
   | RsApp (RsId "not_vec", gens, [ v ]) -> RsUnop (RsUnopNot, v)
   | RsApp (RsId "eq_bit", gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopEq, e2) (* TODO Is it correct to compare like that? *)
-  | RsApp (RsId "eq_bool", gens, _) -> RsId "BUILTIN_eq_bool_TODO"
-  | RsApp (RsId "eq_string", gens, _) -> RsId "BUILTIN_eq_string_TODO"
-  | RsApp (RsId "eq_int", gens, _) -> RsId "BUILTIN_eq_int_TODO"
+  | RsApp (RsId "eq_bool", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopEq, e2)
+  | RsApp (RsId "eq_string", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopEq, e2)
+  | RsApp (RsId "eq_int", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopEq, e2)
   | RsApp (RsId "not", gens, [ b ]) -> RsUnop (RsUnopNot, b)
   | RsApp (RsId "lt", gens, _) -> RsId "BUILTIN_lt_TODO"
   | RsApp (RsId "lteq", gens, _) -> RsId "BUILTIN_lteq_TODO"
@@ -669,7 +669,7 @@ let native_func_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
   | RsApp (RsId "abs_int", gens, _) -> RsId "BUILTIN_abs_int_TODO"
   | RsApp (RsId "max_int", gens, _) -> RsId "BUILTIN_max_int_TODO"
   (*| RsApp (RsId "min_int", gens, _) -> RsId "BUILTIN_min_int_TODO" *)
-  | RsApp (RsId "tdiv_int", gens, _) -> RsId "BUILTIN_tdiv_int_TODO"
+  | RsApp (RsId "tdiv_int", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopDiv, e2)
   | RsApp (RsId "tmod_int", gens, _) -> RsId "BUILTIN_tmod_int_TODO"
   | RsApp (RsId "pow2", [], [ n ]) ->
     RsApp
@@ -683,7 +683,7 @@ let native_func_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
     | RsApp (RsId "sail_ones", gens, e) -> RsApp (RsId "sail_ones", e) *)
   | RsApp (RsId "sail_signed", gens, _) -> RsId "BUILTIN_sail_signed_TODO"
   | RsApp (RsId "sail_unsigned", gens, _) -> RsId "BUILTIN_sail_unsigned_TODO"
-  | RsApp (RsId "slice", gens, _) -> RsId "BUILTIN_slice_TODO"
+  | RsApp (RsId "slice", gens, args) -> RsApp (RsId "slice", [], args)
   | RsApp (RsId "slice_inc", gens, _) -> RsId "BUILTIN_slice_inc_TODO"
   | RsApp (RsId "add_bits", gens, _) -> RsId "BUILTIN_add_bits_TODO"
   | RsApp (RsId "add_bits_int", gens, [ b1; b2 ]) -> RsBinop (b1, RsBinopAdd, b2)

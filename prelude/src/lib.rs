@@ -39,6 +39,15 @@ pub const fn get_slice_int<const L: i128>(l: i128, n: i128, start: i128) -> BitV
     bv(val as u64)
 }
 
+pub const fn slice<const N: i128, const M: i128>(
+    bits: BitVector<M>,
+    start: i128,
+    len: i128,
+) -> BitVector<N> {
+    let mask = mask(len as usize);
+    bv((bits.bits() >> start) & mask)
+}
+
 pub fn get_16_random_bits(_unit: ()) -> BitVector<16> {
     bv::<16>(0)
 }
@@ -73,22 +82,19 @@ pub fn truncate(v: BitVector<64>, size: i128) -> BitVector<64> {
     v
 }
 
-pub fn sign_extend<const M: i128, const N: i128>(
-    value: i128,
-    input: BitVector<M>,
-) -> BitVector<N> {
+pub fn sign_extend<const M: i128, const N: i128>(value: i128, input: BitVector<M>) -> BitVector<N> {
     assert!(value == N, "Mismatch `sign_extend` size");
     assert!(N >= M, "Cannot sign extend to smaller size");
     assert!(N <= 64, "Maximum supported size is 64 for now");
-    
+
     // Special case: when extending from same size to same size, it's a no-op
     if M == N {
         return bv::<N>(input.bits());
     }
-    
+
     // Check if the sign bit (MSB) is set
     let sign_bit = (input.bits() >> (M - 1)) & 1;
-    
+
     if sign_bit == 0 {
         // Positive number - just zero extend
         bv::<N>(input.bits())
@@ -743,7 +749,7 @@ mod tests {
         let input = bv::<4>(0b0111); // 7 in 4 bits
         let result = sign_extend::<4, 8>(8, input);
         assert_eq!(result.bits(), 0b00000111); // Should remain 7 in 8 bits
-        
+
         // Test sign extending negative values from 4 to 8 bits
         let input = bv::<4>(0b1000); // -8 in 4 bits (two's complement)
         let result = sign_extend::<4, 8>(8, input);
