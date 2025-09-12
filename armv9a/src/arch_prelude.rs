@@ -21,7 +21,7 @@ pub fn ZeroExtend0<const N: i128, const M: i128>(bits: BitVector<N>, m: i128) ->
 
 pub fn SignExtend0<const N: i128, const M: i128>(bits: BitVector<N>, m: i128) -> BitVector<M> {
     assert_eq!(m, M, "ZeroExtend0 with the wring bit width");
-    bits.
+    sign_extend(m, bits)
 }
 
 pub const fn emod_nat(n: i128, m: i128) -> i128 {
