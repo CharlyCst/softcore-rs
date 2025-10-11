@@ -80,10 +80,10 @@ pub enum ast {
     TEST(())
 }
 
-/// execute_TEST
+/// execute
 /// 
 /// Generated from the Sail sources at `tests/config/arch.sail` L37-41.
-pub fn execute_TEST(core_ctx: &mut Core) {
+pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
     if {hartSupports(core_ctx, extension::Ext_U)} {
         ()
     } else {

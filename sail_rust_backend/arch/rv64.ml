@@ -2,8 +2,8 @@ module SSet = Types.SSet
 
 let call_set =
   SSet.of_list
-    [ (*"execute" ;*)
-      "CSR"
+    [ "execute"
+    ; "CSR"
     ; "MRET"
     ; "SRET"
     ; "ITYPE"

@@ -37,6 +37,13 @@ pub fn EXTZ<const N: i128, const M: i128>(m: i128, v: BitVector<N>) -> BitVector
     v.zero_extend()
 }
 
+/// EXTS
+/// 
+/// Generated from the Sail sources at `tests/basic/arch.sail` L10.
+pub fn EXTS<const N: i128, const M: i128>(m: i128, v: BitVector<N>) -> BitVector<M> {
+    sail_sign_extend(v, m)
+}
+
 pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
@@ -87,4 +94,18 @@ pub enum iop {
 pub enum ast {
     ITYPE((BitVector<12>, BitVector<5>, BitVector<5>, iop)),
     LOAD((BitVector<12>, BitVector<5>, BitVector<5>))
+}
+
+/// execute
+/// 
+/// Generated from the Sail sources at `tests/basic/arch.sail` L75-79.
+pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) {
+    match merge_hashtag_var {
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {let rs1_val = rX(core_ctx, rs1);
+        let imm_ext: xlenbits = EXTS(64, imm);
+        let result = rs1_val.wrapped_add(imm_ext);
+        wX(core_ctx, rd, result)}
+        ast::LOAD((imm, rs1, rd)) => {todo!("Unsupported: 'LOAD'")}
+        _ => {panic!("Unreachable code")}
+    }
 }
