@@ -44,10 +44,10 @@ pub enum ast {
     TEST(())
 }
 
-/// execute_TEST
+/// execute
 /// 
 /// Generated from the Sail sources at `tests/hoisting/arch.sail` L24-34.
-pub fn execute_TEST() {
+pub fn execute(ast::TEST(()): ast) {
     if {let foo_var_1 = BitVector::<3>::new(0b101);
     (BitVector::<3>::new(0b101) != foo_var_1)} {
         assert!(false, "Branch should not be taken")

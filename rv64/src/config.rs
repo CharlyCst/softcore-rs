@@ -84,6 +84,7 @@ pub const MINIMAL: raw::Config = raw::Config {
         hartid: 0,
         impid: 0,
         vendorid: 0,
+        cache_block_size_exp: 0,
     },
 };
 
@@ -166,5 +167,6 @@ pub const U74: raw::Config = raw::Config {
         hartid: 0,
         impid: 0,
         vendorid: 0,
+        cache_block_size_exp: 0,
     },
 };

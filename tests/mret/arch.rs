@@ -245,10 +245,10 @@ pub const fn ext_fail_xret_priv(unit_arg: ()) {
     ()
 }
 
-/// execute_MRET
+/// execute
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L208-217.
-pub fn execute_MRET(core_ctx: &mut Core) -> Retired {
+pub fn execute(core_ctx: &mut Core, ast::MRET(()): ast) -> Retired {
     if {(core_ctx.cur_privilege != Privilege::Machine)} {
         ();
         Retired::RETIRE_FAIL
