@@ -7,4 +7,5 @@ type arch_t =
   ; external_func : SSet.t
   ; unsupported_obj : SSet.t
   ; unsupported_func: SSet.t
+  ; unsupported_match: SSet.t
   }
