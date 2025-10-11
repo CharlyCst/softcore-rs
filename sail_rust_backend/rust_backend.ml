@@ -93,12 +93,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       print_endline x
   ;;
 
-  let parse_order order : string =
-    match order with
-    | Ord_aux (Ord_inc, _) -> "inc"
-    | Ord_aux (Ord_dec, _) -> "dec"
-  ;;
-
   (** Return true if the type is a bitvector **)
   let is_bitvector (typ : typ) : bool =
     match typ with
@@ -402,13 +396,15 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_loop (loop, measure, exp1, exp2) -> RsTodo "E_loop"
     | E_for (id, E_aux (E_lit lit1, _), E_aux (E_lit lit2, _), exp3, order, exp4) ->
       assert (string_of_exp exp3 = "1");
-      assert (parse_order order = "inc");
-      RsFor
-        ( RsTypId (string_of_id id)
-        , process_lit lit1
-        , process_lit lit2
-        , process_exp ctx exp4 )
-      (* TODO: Implement a more general for loop*)
+      (match order with
+       | Ord_aux (Ord_inc, _) ->
+         RsFor
+           ( RsTypId (string_of_id id)
+           , process_lit lit1
+           , process_lit lit2
+           , process_exp ctx exp4 )
+         (* TODO: Implement a more general for loop*)
+       | Ord_aux (Ord_dec, _) -> RsTodo "E_for_dec")
     | E_for (_, _, _, _, _, _) -> RsTodo "E_for"
     | E_vector exp_list -> process_vector ctx exp_list typ
     | E_vector_access (exp1, exp2) -> RsTodo "E_vector_access"

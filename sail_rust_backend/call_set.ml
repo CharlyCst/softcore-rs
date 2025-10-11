@@ -111,6 +111,11 @@ let rec exp_call_set (texp : tannot exp) (arch : arch_t) (ctx : sail_ctx) : sail
 
 and pexp_call_set (Pat_aux (pexp, annot)) (arch : arch_t) (ctx : sail_ctx) : sail_ctx =
   match pexp with
+  | Pat_exp (P_aux (P_id id, _), _)
+  | Pat_when (P_aux (P_id id, _), _, _)
+  | Pat_exp (P_aux (P_app (id, _), _), _)
+  | Pat_when (P_aux (P_app (id, _), _), _, _)
+    when SSet.mem (string_of_id id) arch.unsupported_match -> ctx
   | Pat_exp (pat, exp) -> exp_call_set exp arch ctx
   | Pat_when (pat, exp1, exp2) ->
     ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx)

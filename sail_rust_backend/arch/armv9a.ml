@@ -7,7 +7,7 @@ let call_set =
     ; "execute_aarch64_instrs_integer_arithmetic_add_sub_immediate"
       (* ; "execute_aarch64_instrs_integer_arithmetic_add_sub_extendedreg" *)
       (* ; "execute_aarch64_instrs_integer_arithmetic_add_sub_shiftedreg" *)
-    ; (* System registers *)
+      (* System registers *)
       (* "execute_aarch64_instrs_system_register_system_128" *)
     ]
 ;;
@@ -52,4 +52,8 @@ let unsupported_obj : SSet.t =
 ;;
 
 let unsupported_func : SSet.t = SSet.of_list [ "NVMem_read__1" ]
-let armv9a : Types.arch_t = { call_set; external_func; unsupported_obj; unsupported_func }
+let unsupported_match : SSet.t = SSet.of_list []
+
+let armv9a : Types.arch_t =
+  { call_set; external_func; unsupported_obj; unsupported_func; unsupported_match }
+;;

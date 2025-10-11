@@ -679,7 +679,7 @@ let native_func_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
   (*| RsApp (RsId "ones", gens, e) -> RsApp (RsId "ones", e) Handled by the integrated library *)
   (* Implemented in lib.sail *)
   (*| RsApp (RsId "zero_extend", gens, e) -> RsApp (RsId "zero_extend", e)
-    | RsApp (RsId "sign_extend", gens, e) -> RsApp (RsId "sign_extend", e) 
+    | RsApp (RsId "sign_extend", gens, e) -> RsApp (RsId "sign_extend", e)
     | RsApp (RsId "sail_ones", gens, e) -> RsApp (RsId "sail_ones", e) *)
   | RsApp (RsId "sail_signed", gens, _) -> RsId "BUILTIN_sail_signed_TODO"
   | RsApp (RsId "sail_unsigned", gens, _) -> RsId "BUILTIN_sail_unsigned_TODO"
@@ -1631,6 +1631,32 @@ let remove_unsupported_calls : expr_type_transform =
   }
 ;;
 
+(* ——————————————————————————— Unsupported Match ———————————————————————————— *)
+
+let remove_unsupported_match_arms (ctx : context) (pexp : rs_pexp) : rs_pexp =
+  match (pexp : rs_pexp) with
+  | RsPexp (RsPatId id, _) when SSet.mem id ctx.arch.unsupported_match ->
+    RsPexp (RsPatId id, RsTodo ("Unsupported: '" ^ id ^ "'"))
+  | RsPexp (RsPatApp (RsPatId id, args), _) when SSet.mem id ctx.arch.unsupported_match ->
+    RsPexp (RsPatApp (RsPatId id, args), RsTodo ("Unsupported: '" ^ id ^ "'"))
+  | RsPexpWhen (RsPatId id, cond, _) when SSet.mem id ctx.arch.unsupported_match ->
+    RsPexpWhen (RsPatId id, cond, RsTodo ("Unsupported: '" ^ id ^ "'"))
+  | RsPexpWhen (RsPatApp (RsPatId id, args), cond, _)
+    when SSet.mem id ctx.arch.unsupported_match ->
+    RsPexpWhen (RsPatApp (RsPatId id, args), cond, RsTodo ("Unsupported: '" ^ id ^ "'"))
+  | _ -> pexp
+;;
+
+let remove_unsupported_match : expr_type_transform =
+  { exp = id_exp
+  ; lexp = id_lexp
+  ; pexp = remove_unsupported_match_arms
+  ; typ = id_typ
+  ; pat = id_pat
+  ; obj = id_obj
+  }
+;;
+
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
 
 (** Computes the fix point of a function. **)
@@ -1686,6 +1712,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
   let rust_program =
     rust_program
     |> rust_transform_expr remove_unsupported_calls ctx
+    |> rust_transform_expr remove_unsupported_match ctx
     |> fix_point (rust_transform_func virt_context_call_graph) ctx 3
     |> rust_transform_func virt_context_transform ctx
     |> rust_transform_expr nested_block_remover ctx
