@@ -1171,13 +1171,14 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   let val_fun_def (val_spec : val_spec_aux) : defmap =
     let map = SMap.empty in
     let (VS_val_spec (typeschm, id, extern)) = val_spec in
-    (* print_string (string_of_id id); *)
-    (* print_string " - "; *)
+    let id = string_of_id id in
+    (* print_string id; *)
+    (* print_string ": "; *)
     (* print_endline (string_of_typschm typeschm); *)
-    (* print_string (string_of_id id); *)
-    (* print_string " - "; *)
-    (* print_endline (String.concat ", " (List.map string_of_rs_type (fst (extract_types typeschm)))); *)
-    SMap.add (string_of_id id) (extract_types typeschm) map
+    (* print_string id; *)
+    (* print_string ": "; *)
+    (* print_endline (String.concat ", " (List.map string_of_rs_fn (extract_types typeschm))); *)
+    SMap.add id (extract_types typeschm) map
   ;;
 
   (* ————————————————————————————————— Union —————————————————————————————————— *)
