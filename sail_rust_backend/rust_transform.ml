@@ -1223,6 +1223,19 @@ let remove_unused_generics : func_transform = { func = remove_unused_generics_fu
 
 let link_generics_to_args_exp (ctx : context) (exp : rs_exp) : rs_exp =
   match exp with
+  (* Spcial case for well known Sail functions *)
+  | RsApp (RsId id, [], args) when id = "subrange_bits" ->
+    (match args with
+     | [ vec; RsLit (RsLitNum vec_end); RsLit (RsLitNum vec_start) ] ->
+       let out_size = Big_int.add (Big_int.sub vec_end vec_start) (Big_int.of_int 1) in
+       RsApp (RsId id, [ "_"; Big_int.to_string out_size ], args)
+     | _ -> exp)
+  | RsApp (RsId id, [], args) when id = "to_bits" ->
+    (* NOTE: This is a RISC-V specific function. If we ever need more
+         we should factor them out into the rv64 arch layer. *)
+    (match args with
+     | [ RsLit (RsLitNum size); value] -> RsApp (RsId id, [ Big_int.to_string size ], args)
+     | _ -> exp)
   | RsApp (RsId fn, [], args) when SMap.mem fn ctx.defs.fun_typs ->
     let signature = SMap.find fn ctx.defs.fun_typs in
     (match signature.linked_gen_args, signature.generics with
