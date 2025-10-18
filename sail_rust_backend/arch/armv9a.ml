@@ -12,30 +12,35 @@ let call_set =
     ]
 ;;
 
+let overwritten_func : SSet.t = SSet.of_list []
+
 let external_func : SSet.t =
-  SSet.of_list
-    [ "UInt0"
-    ; "SInt0"
-    ; "ZeroExtend0"
-    ; "SignExtend0"
-    ; "emod_nat"
-    ; "get_slice_int"
-    ; "sail_zeros"
-    ; "sail_shiftleft"
-    ; "sail_shiftright"
-    ; "update_subrange_bits"
-    ; "undefined_bitvector"
-    ; "undefined_bool"
-    ; "undefined_int"
-    ; "bitvector_length"
-    ; "bitvector_access"
-    ; "bitvector_concat"
-    ; "subrange_bits"
-    ; "min_int"
-    ; "format!"
-    ; "assert!"
-    ; "panic!"
-    ]
+  let externals =
+    SSet.of_list
+      [ "UInt0"
+      ; "SInt0"
+      ; "ZeroExtend0"
+      ; "SignExtend0"
+      ; "emod_nat"
+      ; "get_slice_int"
+      ; "sail_zeros"
+      ; "sail_shiftleft"
+      ; "sail_shiftright"
+      ; "update_subrange_bits"
+      ; "undefined_bitvector"
+      ; "undefined_bool"
+      ; "undefined_int"
+      ; "bitvector_length"
+      ; "bitvector_access"
+      ; "bitvector_concat"
+      ; "subrange_bits"
+      ; "min_int"
+      ; "format!"
+      ; "assert!"
+      ; "panic!"
+      ]
+  in
+  SSet.union externals overwritten_func
 ;;
 
 let unsupported_obj : SSet.t =
@@ -55,5 +60,11 @@ let unsupported_func : SSet.t = SSet.of_list [ "NVMem_read__1" ]
 let unsupported_match : SSet.t = SSet.of_list []
 
 let armv9a : Types.arch_t =
-  { call_set; external_func; unsupported_obj; unsupported_func; unsupported_match }
+  { call_set
+  ; external_func
+  ; overwritten_func
+  ; unsupported_obj
+  ; unsupported_func
+  ; unsupported_match
+  }
 ;;

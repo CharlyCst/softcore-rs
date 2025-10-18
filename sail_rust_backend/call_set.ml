@@ -50,10 +50,11 @@ let rec exp_call_set (texp : tannot exp) (arch : arch_t) (ctx : sail_ctx) : sail
   | E_lit lit -> ctx
   | E_typ (typ, exp) -> exp_call_set exp arch ctx
   | E_app (id, exp_list) ->
-    if SSet.mem (string_of_id id) arch.unsupported_func
+    let id = string_of_id id in
+    if SSet.mem id arch.unsupported_func || SSet.mem id arch.overwritten_func
     then ctx
     else (
-      let ctx = add_fn (string_of_id id) ctx in
+      let ctx = add_fn id ctx in
       List.fold_left (fold_set arch) ctx exp_list)
   | E_app_infix (exp1, id, exp2) ->
     ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx)
