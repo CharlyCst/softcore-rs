@@ -1293,11 +1293,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     try
       (* Compute call set *)
       let sail_ctx = get_call_set CodegenConfig.arch ast in
-      SSet.iter (Printf.printf "%s ") sail_ctx.call_set;
-      print_endline "";
-      SMap.iter
-        (fun cfg typ -> Printf.printf "%s : %s\n" cfg (string_of_typ typ))
-        sail_ctx.config_map;
       (* Collect definitions *)
       let defs = get_defs ast in
       (* Build the context *)
