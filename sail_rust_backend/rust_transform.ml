@@ -866,6 +866,7 @@ let rec should_hoist_exp (is_nested : bool) (exp : rs_exp) : bool =
   | RsIf (_, _, _) -> true
   | RsField (e, e2) -> should_hoist_exp true e
   | RsBinop (e1, op, e2) -> should_hoist_exp true e1 || should_hoist_exp true e2
+  | RsUnop (op, e) -> should_hoist_exp true e
   | RsMatch _ -> true
   | e when e = core_ctx && is_nested -> true
   | _ -> false
