@@ -3,6 +3,7 @@
 //! This module holds prelude functions that are only required for the Armv9a architecture
 
 #![allow(non_snake_case)]
+#![allow(dead_code)]
 
 use crate::prelude::*;
 
@@ -21,7 +22,7 @@ pub fn ZeroExtend0<const N: i128, const M: i128>(bits: BitVector<N>, m: i128) ->
 
 pub fn SignExtend0<const N: i128, const M: i128>(bits: BitVector<N>, m: i128) -> BitVector<M> {
     assert_eq!(m, M, "ZeroExtend0 with the wring bit width");
-    sign_extend(m, bits)
+    sail_sign_extend(bits, m)
 }
 
 pub const fn emod_nat(n: i128, m: i128) -> i128 {

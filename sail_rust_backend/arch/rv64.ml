@@ -39,50 +39,56 @@ let call_set =
     ]
 ;;
 
+let overwritten_func : SSet.t = SSet.of_list [ "shift_right_arith" ]
+
 let external_func : SSet.t =
-  SSet.of_list
-    [ "not_implemented"
-    ; "print_output"
-    ; "format!"
-    ; "assert!"
-    ; "panic!"
-    ; "dec_str"
-    ; "hex_str"
-    ; "update_subrange_bits"
-    ; "zero_extend_16"
-    ; "zero_extend_63"
-    ; "zero_extend_64"
-    ; "sign_extend"
-    ; "sail_ones"
-    ; "min_int"
-    ; "__exit"
-    ; "signed"
-    ; "lteq_int"
-    ; "sail_branch_announce"
-    ; "bitvector_length"
-    ; "bits_str"
-    ; "print_reg"
-    ; "bitvector_access"
-    ; "get_16_random_bits"
-    ; "bitvector_concat"
-    ; "print_platform"
-    ; "cancel_reservation"
-    ; "plat_mtval_has_illegal_inst_bits"
-    ; "truncate"
-    ; "subrange_bits"
-    ; "internal_error"
-    ; "bitvector_update"
-    ; "hex_bits_12_forwards"
-    ; "hex_bits_12_backwards"
-    ; "sail_zeros"
-    ; "parse_hex_bits"
-    ; "get_slice_int"
-    ; "sub_vec"
-    ; "shift_bits_left"
-    ; "shift_bits_right"
-    ; "quot_round_zero"
-    ; "rem_round_zero"
-    ]
+  let externals =
+    SSet.of_list
+      [ "not_implemented"
+      ; "print_output"
+      ; "format!"
+      ; "assert!"
+      ; "panic!"
+      ; "dec_str"
+      ; "hex_str"
+      ; "update_subrange_bits"
+      ; "zero_extend_16"
+      ; "zero_extend_63"
+      ; "zero_extend_64"
+      ; "sign_extend"
+      ; "sail_sign_extend"
+      ; "sail_ones"
+      ; "min_int"
+      ; "__exit"
+      ; "signed"
+      ; "lteq_int"
+      ; "sail_branch_announce"
+      ; "bitvector_length"
+      ; "bits_str"
+      ; "print_reg"
+      ; "bitvector_access"
+      ; "get_16_random_bits"
+      ; "bitvector_concat"
+      ; "print_platform"
+      ; "cancel_reservation"
+      ; "plat_mtval_has_illegal_inst_bits"
+      ; "truncate"
+      ; "subrange_bits"
+      ; "internal_error"
+      ; "bitvector_update"
+      ; "hex_bits_12_forwards"
+      ; "hex_bits_12_backwards"
+      ; "sail_zeros"
+      ; "parse_hex_bits"
+      ; "get_slice_int"
+      ; "sub_vec"
+      ; "shift_bits_left"
+      ; "shift_bits_right"
+      ; "quot_round_zero"
+      ; "rem_round_zero"
+      ]
+  in
+  SSet.union externals overwritten_func
 ;;
 
 let unsupported_obj : SSet.t =
@@ -349,5 +355,11 @@ let unsupported_match : SSet.t =
 ;;
 
 let rv64 : Types.arch_t =
-  { call_set; external_func; unsupported_obj; unsupported_func; unsupported_match }
+  { call_set
+  ; external_func
+  ; overwritten_func
+  ; unsupported_obj
+  ; unsupported_func
+  ; unsupported_match
+  }
 ;;
