@@ -73,6 +73,8 @@ protect_breaking_commits = false
 # Assigns commits to groups.
 # Optionally sets the commit's scope and can decide to exclude commits from further processing.
 commit_parsers = [
+    { message = '^armv9a',           group = "<!-- 0 --> Armv9-A" },
+    { message = '^feat\(armv9a\)',   group = "<!-- 0 --> Armv9-A" },
     { message = '^rv64',             group = "<!-- 0 --> RISC-V 64" },
     { message = '^feat\(rv64\)',     group = "<!-- 0 --> RISC-V 64" },
     { message = '^compiler',         group = "<!-- 1 --> Compiler" },

@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0]
+
+### Armv9-A
+
+- Layout foundation to add support for the armv9a ISA
+- Add support for aarch64 'add_sub_carry'
+- Add support for add_sub_immediate instructions
+
+### RISC-V 64
+
+- Enable Zicntr extension on U74 config
+- Expose `execute` on the Core wrapper
+
+### Compiler
+
+- Remove unused generics in Rust code
+- Add support for per-arch unsupported functions
+- Add support for more builtin
+- Add support for "unsupported functions"
+- Hoist match expression in function arguments
+- Properly hoist function arguments in unops
+
 ## [0.4.0]
 
 ### RISC-V 64
