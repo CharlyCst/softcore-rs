@@ -6,7 +6,7 @@ authors = ["Charly Castes"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/CharlyCst/softcore-rs"
 description = "A Rust translation of the RISC-V 64 specification"
-keywords = ["riscv", "regsiter", "specification"]
+keywords = ["armv9a", "specification", "emulator"]
 categories = ["emulators", "development-tools::testing"]
 readme = "readme.md"
 
