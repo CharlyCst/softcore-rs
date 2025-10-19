@@ -17,5 +17,6 @@ Checklist:
 
 To publish to Crate.io:
 
-- First publish the prelude: `cargo publish --package softcore-prelude --dry-run`
-- Then publish the cores: `cargo publish --package softcore-rv64 --dry-run`
+```sh
+cargo publish --dry-run
+```
