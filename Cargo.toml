@@ -21,3 +21,10 @@ members = [
     "tests/csr",
     "tests/wfi",
 ]
+
+# Packages published to crates.io
+default-members = [
+    "prelude",
+    "rv64",
+    "armv9a",
+]
