@@ -107,7 +107,12 @@ and transform_exp (ct : expr_type_transform) (ctx : context) (exp : rs_exp) : rs
   | RsSome exp -> RsSome (transform_exp ct ctx exp)
   | RsNone -> RsNone
   | RsPathSeparator (t1, t2) -> RsPathSeparator (t1, t2)
-  | RsFor (var, start, until, body) -> RsFor (var, transform_exp ct ctx start, transform_exp ct ctx until, transform_exp ct ctx body)
+  | RsFor (var, start, until, body) ->
+    RsFor
+      ( var
+      , transform_exp ct ctx start
+      , transform_exp ct ctx until
+      , transform_exp ct ctx body )
   | RsStruct (typ, entries) ->
     RsStruct
       ( transform_type ct ctx typ
@@ -662,6 +667,8 @@ let native_func_transform_exp (ctx : context) (exp : rs_exp) : rs_exp =
   | RsApp (RsId "lteq_int", gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopLe, e2)
   | RsApp (RsId "gt", gens, _) -> RsId "BUILTIN_gt_TODO"
   | RsApp (RsId "gteq", gens, _) -> RsId "BUILTIN_gteq_TODO"
+  | RsApp (RsId "vector_length", gens, [ vec ]) ->
+    RsMethodApp { exp = vec; name = "len"; generics = gens; args = [] }
   | RsApp (RsId "add_int", gens, _) -> RsId "BUILTIN_add_int_TODO"
   | RsApp (RsId "sub_int", gens, _) -> RsId "BUILTIN_sub_int_TODO"
   | RsApp (RsId "mult_int", gens, _) -> RsId "BUILTIN_mult_int_TODO"
@@ -1236,7 +1243,8 @@ let link_generics_to_args_exp (ctx : context) (exp : rs_exp) : rs_exp =
     (* NOTE: This is a RISC-V specific function. If we ever need more
          we should factor them out into the rv64 arch layer. *)
     (match args with
-     | [ RsLit (RsLitNum size); value] -> RsApp (RsId id, [ Big_int.to_string size ], args)
+     | [ RsLit (RsLitNum size); value ] ->
+       RsApp (RsId id, [ Big_int.to_string size ], args)
      | _ -> exp)
   | RsApp (RsId fn, [], args) when SMap.mem fn ctx.defs.fun_typs ->
     let signature = SMap.find fn ctx.defs.fun_typs in
