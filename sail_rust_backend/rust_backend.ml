@@ -394,7 +394,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_if (exp1, exp2, exp3) ->
       RsIf (process_exp ctx exp1, process_exp ctx exp2, process_exp ctx exp3)
     | E_loop (loop, measure, exp1, exp2) -> RsTodo "E_loop"
-    | E_for (id, exp_start, exp_end, step, order, exp4) when string_of_exp step = "1"->
+    | E_for (id, exp_start, exp_end, step, order, exp4) when string_of_exp step = "1" ->
       (match order with
        | Ord_aux (Ord_inc, _) ->
          RsFor
@@ -495,6 +495,22 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         RsLexpField (RsId core_ctx, id))
       else RsLexpId id
     | LE_vector (lexp, idx) ->
+      (* TODO: here we should check the type, and if lexp is a bitvector we
+         should store that information somewhere so a transformation pass can
+         re-write operations of the form `x[i] = y`, which are not supported
+         in Rust for bitvectors and should use a setter method instead.
+         
+         Here is a way to retrieve the type:
+
+         ```
+         let (LE_aux (_, (_, tannot))) = lexp in
+         let _ =
+           match destruct_tannot tannot with
+           | None -> ()
+           | Some (_, typ) ->
+             Printf.printf "---------- %s: %s \n" (string_of_lexp lexp) (string_of_typ typ)
+         in
+         ``` *)
       RsLexpIndex (process_lexp ctx lexp, RsAs (process_exp ctx idx, usize_typ))
     | LE_vector_range (lexp, range_start, range_end) ->
       RsLexpIndexRange

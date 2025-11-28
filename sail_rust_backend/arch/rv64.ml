@@ -126,6 +126,7 @@ let unsupported_func : SSet.t =
     ; "translateAddr"
     ; "speculate_conditional"
     ; "print"
+    ; "reverse_bits" (* requires `ys[i] = xxx` rewriting for bitvectors *)
     ]
 ;;
 
