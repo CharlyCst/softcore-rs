@@ -107,7 +107,7 @@ and transform_exp (ct : expr_type_transform) (ctx : context) (exp : rs_exp) : rs
   | RsSome exp -> RsSome (transform_exp ct ctx exp)
   | RsNone -> RsNone
   | RsPathSeparator (t1, t2) -> RsPathSeparator (t1, t2)
-  | RsFor (var, start, until, body) -> RsFor (var, start, until, transform_exp ct ctx body)
+  | RsFor (var, start, until, body) -> RsFor (var, transform_exp ct ctx start, transform_exp ct ctx until, transform_exp ct ctx body)
   | RsStruct (typ, entries) ->
     RsStruct
       ( transform_type ct ctx typ

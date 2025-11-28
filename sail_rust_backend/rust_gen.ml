@@ -98,7 +98,7 @@ and rs_exp =
   | RsSome of rs_exp
   | RsNone
   | RsPathSeparator of rs_type * rs_type
-  | RsFor of rs_type * rs_lit * rs_lit * rs_exp
+  | RsFor of rs_type * rs_exp * rs_exp * rs_exp
   | RsStruct of rs_type * (string * rs_exp) list
   | RsStructAssign of rs_exp * string * rs_exp
   | RsReturn of rs_exp
@@ -655,8 +655,8 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
     Printf.sprintf
       "for %s in %s..=%s {\n%s%s\n%s}"
       (string_of_rs_type var)
-      (string_of_rs_lit start)
-      (string_of_rs_lit until)
+      (string_of_rs_exp 0 start)
+      (string_of_rs_exp 0 until)
       (indent (n + 1))
       (string_of_rs_exp (n + 1) body)
       (indent n)

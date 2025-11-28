@@ -394,14 +394,13 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_if (exp1, exp2, exp3) ->
       RsIf (process_exp ctx exp1, process_exp ctx exp2, process_exp ctx exp3)
     | E_loop (loop, measure, exp1, exp2) -> RsTodo "E_loop"
-    | E_for (id, E_aux (E_lit lit1, _), E_aux (E_lit lit2, _), exp3, order, exp4) ->
-      assert (string_of_exp exp3 = "1");
+    | E_for (id, exp_start, exp_end, step, order, exp4) when string_of_exp step = "1"->
       (match order with
        | Ord_aux (Ord_inc, _) ->
          RsFor
            ( RsTypId (string_of_id id)
-           , process_lit lit1
-           , process_lit lit2
+           , process_exp ctx exp_start
+           , process_exp ctx exp_end
            , process_exp ctx exp4 )
          (* TODO: Implement a more general for loop*)
        | Ord_aux (Ord_dec, _) -> RsTodo "E_for_dec")
