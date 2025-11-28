@@ -128,7 +128,13 @@ pub fn hex_bits_backwards<const M: i128>(m: i128, str: &'static str) -> BitVecto
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L80-85.
 pub fn validDoubleRegs<const N: usize>(n: i128, regs: [BitVector<5>; N]) -> bool {
-    todo!("E_for");
+    for i in 0..=(n - 1) {
+        if {(bitvector_access(regs[(i as usize)], 0) == true)} {
+            return false;
+        } else {
+            ()
+        }
+    };
     true
 }
 
