@@ -406,7 +406,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
        | Ord_aux (Ord_dec, _) -> RsTodo "E_for_dec")
     | E_for (_, _, _, _, _, _) -> RsTodo "E_for"
     | E_vector exp_list -> process_vector ctx exp_list typ
-    | E_vector_access (exp1, exp2) -> RsTodo "E_vector_access"
+    | E_vector_access (exp1, exp2) -> RsIndex (process_exp ctx exp1, process_exp ctx exp2)
     | E_vector_subrange (exp1, exp2, exp3) -> RsTodo "E_vector_subrange"
     | E_vector_update (exp1, exp2, exp3) -> RsTodo "E_vector_update"
     | E_vector_update_subrange (exp1, exp2, exp3, exp4) -> RsTodo "E_update_subrange"
