@@ -274,7 +274,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       (match size1, size2 with
        (* 64 bits overflow, switch to 128 bits *)
        | Some n, Some m when Int64.mul n m >= 64L ->
-         RsBinop (RsAs (exp1, nat_typ), RsBinopMult, RsAs (exp2, nat_typ))
+         RsBinop (RsAs (exp1, int_typ), RsBinopMult, RsAs (exp2, int_typ))
        | _ -> RsBinop (exp1, RsBinopMult, exp2))
     | _ ->
       Reporting.simple_warn
