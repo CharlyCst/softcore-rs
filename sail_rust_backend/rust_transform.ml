@@ -1469,7 +1469,7 @@ let transform_basic_types_exp (ctx : context) (exp : rs_exp) : rs_exp =
     let patch_arg (exp, typ) =
       match typ with
       (* Conversion between integer types is not automatic, therefore we need to insert some casts *)
-      | RsTypId "nat" -> RsAs (exp, RsTypId "u128")
+      | RsTypId "nat" -> RsAs (exp, nat_typ)
       | _ -> exp
     in
     let args =
