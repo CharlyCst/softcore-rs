@@ -218,8 +218,8 @@ impl Core {
     }
 
     /// Decode an instruction
-    pub fn decode_instr(&mut self, instr: u32) -> ast {
-        raw::encdec_backwards(self, bv(instr as u64))
+    pub fn decode_instr(&mut self, _instr: u32) -> ast {
+        panic!("REMOVED FROM DEBUG VERSION")
     }
 
     /// Return true if the CSR is defined (and enabled) on the core
