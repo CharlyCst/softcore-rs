@@ -479,6 +479,27 @@ impl cregidx {
     }
 }
 
+impl ExecutionResult {
+    /// Panics if the result is not Retire_Success
+    pub fn unwrap(self) {
+        match self {
+            ExecutionResult::Retire_Success(_) => (),
+            ExecutionResult::Wait_For_Interrupt(_) => panic!("wait for interrupt"),
+            ExecutionResult::Illegal_Instruction(_) => panic!("illegal instruction"),
+            ExecutionResult::Trap(_) => panic!("trap"),
+            ExecutionResult::Memory_Exception(_) => panic!("memory exception"),
+            ExecutionResult::Ext_CSR_Check_Failure(_) => panic!("external CSR check failure"),
+            ExecutionResult::Ext_ControlAddr_Check_Failure(_) => {
+                panic!("external control addr check failure")
+            }
+            ExecutionResult::Ext_DataAddr_Check_Failure(_) => {
+                panic!("external data addr check failure")
+            }
+            ExecutionResult::Ext_XRET_Priv_Failure(_) => panic!("externat XRET priv failure"),
+        }
+    }
+}
+
 // ————————————————————————————————— Tests —————————————————————————————————— //
 
 #[cfg(test)]
@@ -967,23 +988,31 @@ mod tests {
         let result = core.execute(ast::ITYPE((bv(0x42), X0, A1, iop::ADDI)));
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
         assert_eq!(core.get(A1), 0x42, "A1 should contain immediate value");
-        
+
         // Test ADDI with register source: addi a1, a1, 0x20
         let result = core.execute(ast::ITYPE((bv(0x20), A1, A1, iop::ADDI)));
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        assert_eq!(core.get(A1), 0x62, "A1 should contain sum of previous value and immediate");
-        
+        assert_eq!(
+            core.get(A1),
+            0x62,
+            "A1 should contain sum of previous value and immediate"
+        );
+
         // Test ADDI with negative immediate (sign extension)
         core.set(T0, 100);
         let result = core.execute(ast::ITYPE((bv((-10i64) as u64), T0, T1, iop::ADDI)));
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        assert_eq!(core.get(T1), 90, "T1 should contain result of adding negative immediate");
-        
+        assert_eq!(
+            core.get(T1),
+            90,
+            "T1 should contain result of adding negative immediate"
+        );
+
         // Test ADDI with X0 as destination (should be ignored)
         let result = core.execute(ast::ITYPE((bv(0xFF), T0, X0, iop::ADDI)));
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
         assert_eq!(core.get(X0), 0, "X0 should remain hardwired to 0");
-        
+
         // Test overflow behavior
         core.set(T2, u64::MAX);
         let result = core.execute(ast::ITYPE((bv(1), T2, T3, iop::ADDI)));
@@ -994,103 +1023,127 @@ mod tests {
     #[test]
     fn execute_jalr() {
         let mut core = new_core(config::U74);
-        
+
         // Set up initial PC and register state
         core.PC = bv(0x1000);
         core.nextPC = bv(0x1004);
         core.set(T0, 0x3000); // Target address base
-        
+
         let initial_pc = core.PC.bits();
-        
+
         // Test JALR: jalr ra, t0, 8
         // This should jump to (t0 + 8) & ~1 and store PC+4 in ra
         let result = core.execute(ast::JALR((bv(8), T0, RA)));
-        
+
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        
+
         // Check that return address was stored (old PC + 4)
-        assert_eq!(core.get(RA), initial_pc + 4, "Return address should be old PC + 4");
-        
+        assert_eq!(
+            core.get(RA),
+            initial_pc + 4,
+            "Return address should be old PC + 4"
+        );
+
         // Check that nextPC was updated to target address (t0 + offset) with LSB cleared
         let expected_target = (0x3000 + 8) & !1; // JALR clears the LSB
-        assert_eq!(core.nextPC.bits(), expected_target, "nextPC should be updated to target address");
+        assert_eq!(
+            core.nextPC.bits(),
+            expected_target,
+            "nextPC should be updated to target address"
+        );
     }
 
     #[test]
     fn execute_mul() {
         let mut core = new_core(config::U74);
-        
+
         // Test MUL instruction: mul t0, t1, t2
         core.set(T1, 123);
         core.set(T2, 456);
-        
+
         let mul_op = raw::mul_op {
             high: false,
             signed_rs1: true,
             signed_rs2: true,
         };
         let result = core.execute(ast::MUL((T2, T1, T0, mul_op)));
-        
+
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        
+
         // Check that the multiplication result is correct
         let expected = 123u64.wrapping_mul(456u64);
         assert_eq!(core.get(T0), expected, "MUL result should be correct");
-        
+
         // Test with negative numbers (signed multiplication)
         core.set(T1, (-5i64) as u64); // -5 in two's complement
         core.set(T2, 3);
-        
+
         let result = core.execute(ast::MUL((T2, T1, T0, mul_op)));
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        
+
         let expected = ((-5i64).wrapping_mul(3i64)) as u64;
-        assert_eq!(core.get(T0), expected, "MUL with negative numbers should work");
+        assert_eq!(
+            core.get(T0),
+            expected,
+            "MUL with negative numbers should work"
+        );
     }
 
     #[test]
     fn execute_div() {
         let mut core = new_core(config::U74);
-        
+
         // Test DIV instruction: div t0, t1, t2 (signed division)
         core.set(T1, 100);
         core.set(T2, 7);
-        
+
         let result = core.execute(ast::DIV((T2, T1, T0, true))); // true = signed division
-        
+
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        
+
         // Check signed division result
         let expected = (100i64 / 7i64) as u64;
         assert_eq!(core.get(T0), expected, "DIV result should be correct");
-        
+
         // Test division by zero (should return -1 according to RISC-V spec)
         core.set(T1, 42);
         core.set(T2, 0);
-        
+
         let result = core.execute(ast::DIV((T2, T1, T0, true)));
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        
-        assert_eq!(core.get(T0), (-1i64) as u64, "Division by zero should return -1");
-        
+
+        assert_eq!(
+            core.get(T0),
+            (-1i64) as u64,
+            "Division by zero should return -1"
+        );
+
         // Test signed division with negative numbers
         core.set(T1, (-20i64) as u64);
         core.set(T2, 3);
-        
+
         let result = core.execute(ast::DIV((T2, T1, T0, true)));
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        
+
         let expected = ((-20i64) / 3i64) as u64;
-        assert_eq!(core.get(T0), expected, "Signed division should work correctly");
-        
-        // Test unsigned division 
+        assert_eq!(
+            core.get(T0),
+            expected,
+            "Signed division should work correctly"
+        );
+
+        // Test unsigned division
         core.set(T1, 100);
         core.set(T2, 7);
-        
+
         let result = core.execute(ast::DIV((T2, T1, T0, false))); // false = unsigned division
         assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
-        
+
         let expected = 100u64 / 7u64;
-        assert_eq!(core.get(T0), expected, "Unsigned division should work correctly");
+        assert_eq!(
+            core.get(T0),
+            expected,
+            "Unsigned division should work correctly"
+        );
     }
 }
