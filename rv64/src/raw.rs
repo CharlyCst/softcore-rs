@@ -576,14 +576,14 @@ pub fn _reset_all_registers(core_ctx: &mut Core) {
 /// Initialize the misa register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L80-83.
-fn _reset_misa() -> Misa {
+pub fn _reset_misa() -> Misa {
     _update_Misa_MXL(Mk_Misa(zeros::<64>(64)), architecture_forwards(Architecture::RV64))
 }
 
 /// Initialize the mstatus register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L275-284.
-fn _reset_mstatus(core_ctx: &mut Core) -> Mstatus {
+pub fn _reset_mstatus(core_ctx: &mut Core) -> Mstatus {
     let mxl = architecture_forwards(Architecture::RV64);
     {
         let var_1 = {
@@ -606,77 +606,77 @@ fn _reset_mstatus(core_ctx: &mut Core) -> Mstatus {
 /// Initialize the menvcfg register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L371.
-fn _reset_menvcfg(core_ctx: &mut Core) -> MEnvcfg {
+pub fn _reset_menvcfg(core_ctx: &mut Core) -> MEnvcfg {
     legalize_menvcfg(core_ctx, Mk_MEnvcfg(zeros::<64>(64)), zeros::<64>(64))
 }
 
 /// Initialize the senvcfg register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L372.
-fn _reset_senvcfg(core_ctx: &mut Core) -> SEnvcfg {
+pub fn _reset_senvcfg(core_ctx: &mut Core) -> SEnvcfg {
     legalize_senvcfg(core_ctx, Mk_SEnvcfg(zeros::<64>(64)), zeros::<64>(64))
 }
 
 /// Initialize the mvendorid register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L652.
-fn _reset_mvendorid(core_ctx: &mut Core) -> BitVector<32> {
+pub fn _reset_mvendorid(core_ctx: &mut Core) -> BitVector<32> {
     to_bits::<32>(32, (core_ctx.config.platform.vendorid as i128))
 }
 
 /// Initialize the mimpid register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L653.
-fn _reset_mimpid(core_ctx: &mut Core) -> xlenbits {
+pub fn _reset_mimpid(core_ctx: &mut Core) -> xlenbits {
     to_bits::<64>(64, (core_ctx.config.platform.impid as i128))
 }
 
 /// Initialize the marchid register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L654.
-fn _reset_marchid(core_ctx: &mut Core) -> xlenbits {
+pub fn _reset_marchid(core_ctx: &mut Core) -> xlenbits {
     to_bits::<64>(64, (core_ctx.config.platform.archid as i128))
 }
 
 /// Initialize the mhartid register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L655.
-fn _reset_mhartid(core_ctx: &mut Core) -> xlenbits {
+pub fn _reset_mhartid(core_ctx: &mut Core) -> xlenbits {
     to_bits::<64>(64, (core_ctx.config.platform.hartid as i128))
 }
 
 /// Initialize the mconfigptr register.
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L657.
-fn _reset_mconfigptr() -> xlenbits {
+pub fn _reset_mconfigptr() -> xlenbits {
     zeros::<64>(64)
 }
 
 /// Initialize the tlb register.
 /// 
 /// Generated from the Sail sources at `riscv_vmem_tlb.sail` L73.
-fn _reset_tlb() -> [Option<TLB_Entry>; (num_tlb_entries as usize)] {
+pub fn _reset_tlb() -> [Option<TLB_Entry>; (num_tlb_entries as usize)] {
     [None; 64]
 }
 
 /// Initialize the hart_state register.
 /// 
 /// Generated from the Sail sources at `riscv_step.sail` L11.
-fn _reset_hart_state() -> HartState {
+pub fn _reset_hart_state() -> HartState {
     HartState::HART_ACTIVE(())
 }
 
 /// neq_bool
 /// 
 /// Generated from the Sail sources at `sail/lib/flow.sail` L81.
-fn neq_bool(x: bool, y: bool) -> bool {
+pub fn neq_bool(x: bool, y: bool) -> bool {
     !((x == y))
 }
 
 /// __id
 /// 
 /// Generated from the Sail sources at `sail/lib/flow.sail` L107.
-fn __id(x: i128) -> i128 {
+pub fn __id(x: i128) -> i128 {
     x
 }
 
@@ -714,7 +714,7 @@ pub const fn ones<const N: i128>(n: i128) -> BitVector<N> {
 /// bool_bit_backwards
 /// 
 /// Generated from the Sail sources.
-fn bool_bit_backwards(arg_hashtag_: bool) -> bool {
+pub fn bool_bit_backwards(arg_hashtag_: bool) -> bool {
     match arg_hashtag_ {
         true => {true}
         false => {false}
@@ -725,7 +725,7 @@ fn bool_bit_backwards(arg_hashtag_: bool) -> bool {
 /// bool_bits_forwards
 /// 
 /// Generated from the Sail sources.
-fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<1> {
+pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<1> {
     match arg_hashtag_ {
         true => {BitVector::<1>::new(0b1)}
         false => {BitVector::<1>::new(0b0)}
@@ -736,63 +736,63 @@ fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<1> {
 /// bit_to_bool
 /// 
 /// Generated from the Sail sources at `prelude.sail` L111.
-fn bit_to_bool(x: bool) -> bool {
+pub fn bit_to_bool(x: bool) -> bool {
     bool_bit_backwards(x)
 }
 
 /// bool_to_bits
 /// 
 /// Generated from the Sail sources at `prelude.sail` L112.
-fn bool_to_bits(x: bool) -> BitVector<1> {
+pub fn bool_to_bits(x: bool) -> BitVector<1> {
     bool_bits_forwards(x)
 }
 
 /// to_bits
 /// 
 /// Generated from the Sail sources at `prelude.sail` L117.
-fn to_bits<const L: i128>(l: i128, n: i128) -> BitVector<L> {
+pub fn to_bits<const L: i128>(l: i128, n: i128) -> BitVector<L> {
     get_slice_int(l, n, 0)
 }
 
 /// (operator <_s)
 /// 
 /// Generated from the Sail sources at `prelude.sail` L137.
-fn _operator_smaller_s_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
+pub fn _operator_smaller_s_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.signed() < y.signed())
 }
 
 /// (operator >=_s)
 /// 
 /// Generated from the Sail sources at `prelude.sail` L140.
-fn _operator_biggerequal_s_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
+pub fn _operator_biggerequal_s_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.signed() >= y.signed())
 }
 
 /// (operator <_u)
 /// 
 /// Generated from the Sail sources at `prelude.sail` L141.
-fn _operator_smaller_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
+pub fn _operator_smaller_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.unsigned() < y.unsigned())
 }
 
 /// (operator >=_u)
 /// 
 /// Generated from the Sail sources at `prelude.sail` L144.
-fn _operator_biggerequal_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
+pub fn _operator_biggerequal_u_<const N: i128>(x: BitVector<N>, y: BitVector<N>) -> bool {
     (x.unsigned() >= y.unsigned())
 }
 
 /// shift_bits_right_arith
 /// 
 /// Generated from the Sail sources at `prelude.sail` L166-167.
-fn shift_bits_right_arith<const M: i128, const N: i128>(value: BitVector<N>, shift: BitVector<M>) -> BitVector<N> {
+pub fn shift_bits_right_arith<const M: i128, const N: i128>(value: BitVector<N>, shift: BitVector<M>) -> BitVector<N> {
     shift_right_arith(value, shift.unsigned())
 }
 
 /// rotate_bits_left
 /// 
 /// Generated from the Sail sources at `prelude.sail` L177-178.
-fn rotate_bits_left<const N: i128, const M: i128>(v: BitVector<N>, n: BitVector<M>) -> BitVector<N> {
+pub fn rotate_bits_left<const N: i128, const M: i128>(v: BitVector<N>, n: BitVector<M>) -> BitVector<N> {
     (shift_bits_left(v, n) | shift_bits_right(v, sub_vec(to_bits(bitvector_length(n), bitvector_length(v)), n)))
 }
 
@@ -853,7 +853,7 @@ pub enum physaddr {
 /// bits_of_virtaddr
 /// 
 /// Generated from the Sail sources at `prelude_mem_addrtype.sail` L21.
-fn bits_of_virtaddr(virtaddr::Virtaddr(vaddr): virtaddr) -> BitVector<{
+pub fn bits_of_virtaddr(virtaddr::Virtaddr(vaddr): virtaddr) -> BitVector<{
     64
 }> {
     vaddr
@@ -1067,7 +1067,7 @@ pub enum extension {
 /// hartSupports
 /// 
 /// Generated from the Sail sources at `riscv_extensions.sail` L32.
-fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
+pub fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
     match merge_hashtag_var {
         extension::Ext_M => {core_ctx.config.extensions.M.supported}
         extension::Ext_A => {core_ctx.config.extensions.A.supported}
@@ -1149,7 +1149,7 @@ pub type ext_exc_type = ();
 /// ext_exc_type_to_bits
 /// 
 /// Generated from the Sail sources at `riscv_types_ext.sail` L61.
-fn ext_exc_type_to_bits(unit_arg: ()) -> BitVector<8> {
+pub fn ext_exc_type_to_bits(unit_arg: ()) -> BitVector<8> {
     BitVector::<8>::new(0b00011000)
 }
 
@@ -1210,14 +1210,14 @@ pub enum regno {
 /// regidx_to_regno
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L36.
-fn regidx_to_regno(regidx::Regidx(b): regidx) -> regno {
+pub fn regidx_to_regno(regidx::Regidx(b): regidx) -> regno {
     regno::Regno(b.unsigned())
 }
 
 /// regno_to_regidx
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L37.
-fn regno_to_regidx(regno::Regno(b): regno) -> regidx {
+pub fn regno_to_regidx(regno::Regno(b): regno) -> regidx {
     regidx::Regidx(to_bits::<5>(5, b))
 }
 
@@ -1249,7 +1249,7 @@ pub type arch_xlen = BitVector<2>;
 /// architecture_forwards
 /// 
 /// Generated from the Sail sources.
-fn architecture_forwards(arg_hashtag_: Architecture) -> BitVector<2> {
+pub fn architecture_forwards(arg_hashtag_: Architecture) -> BitVector<2> {
     match arg_hashtag_ {
         Architecture::RV32 => {BitVector::<2>::new(0b01)}
         Architecture::RV64 => {BitVector::<2>::new(0b10)}
@@ -1261,7 +1261,7 @@ fn architecture_forwards(arg_hashtag_: Architecture) -> BitVector<2> {
 /// architecture_backwards
 /// 
 /// Generated from the Sail sources.
-fn architecture_backwards(arg_hashtag_: BitVector<2>) -> Architecture {
+pub fn architecture_backwards(arg_hashtag_: BitVector<2>) -> Architecture {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::<2>::new(0b01))} => {Architecture::RV32}
         b__1 if {(b__1 == BitVector::<2>::new(0b10))} => {Architecture::RV64}
@@ -1286,7 +1286,7 @@ pub enum Privilege {
 /// privLevel_bits_forwards
 /// 
 /// Generated from the Sail sources.
-fn privLevel_bits_forwards(arg_hashtag_: Privilege) -> BitVector<2> {
+pub fn privLevel_bits_forwards(arg_hashtag_: Privilege) -> BitVector<2> {
     match arg_hashtag_ {
         Privilege::User => {BitVector::<2>::new(0b00)}
         Privilege::Supervisor => {BitVector::<2>::new(0b01)}
@@ -1298,7 +1298,7 @@ fn privLevel_bits_forwards(arg_hashtag_: Privilege) -> BitVector<2> {
 /// privLevel_bits_backwards
 /// 
 /// Generated from the Sail sources.
-fn privLevel_bits_backwards(arg_hashtag_: BitVector<2>) -> Privilege {
+pub fn privLevel_bits_backwards(arg_hashtag_: BitVector<2>) -> Privilege {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {Privilege::User}
         b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {Privilege::Supervisor}
@@ -1311,14 +1311,14 @@ fn privLevel_bits_backwards(arg_hashtag_: BitVector<2>) -> Privilege {
 /// privLevel_to_bits
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L72.
-fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
+pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
     privLevel_bits_forwards(p)
 }
 
 /// privLevel_of_bits
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L73.
-fn privLevel_of_bits(b: BitVector<2>) -> Privilege {
+pub fn privLevel_of_bits(b: BitVector<2>) -> Privilege {
     privLevel_bits_backwards(b)
 }
 
@@ -1336,7 +1336,7 @@ pub enum AccessType<A> {
 /// csr_name_map_forwards
 /// 
 /// Generated from the Sail sources.
-fn csr_name_map_forwards(arg_hashtag_: BitVector<12>) -> &'static str {
+pub fn csr_name_map_forwards(arg_hashtag_: BitVector<12>) -> &'static str {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::<12>::new(0b001100000001))} => {"misa"}
         b__1 if {(b__1 == BitVector::<12>::new(0b001100000000))} => {"mstatus"}
@@ -1688,7 +1688,7 @@ pub enum ExceptionType {
 /// exceptionType_to_str
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L197-218.
-fn exceptionType_to_str(e: ExceptionType) -> &'static str {
+pub fn exceptionType_to_str(e: ExceptionType) -> &'static str {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {"misaligned-fetch"}
         ExceptionType::E_Fetch_Access_Fault(()) => {"fetch-access-fault"}
@@ -2436,7 +2436,7 @@ pub enum InterruptType {
 /// interruptType_to_bits
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L110-121.
-fn interruptType_to_bits(i: InterruptType) -> BitVector<8> {
+pub fn interruptType_to_bits(i: InterruptType) -> BitVector<8> {
     match i {
         InterruptType::I_U_Software => {BitVector::<8>::new(0b00000000)}
         InterruptType::I_S_Software => {BitVector::<8>::new(0b00000001)}
@@ -2480,7 +2480,7 @@ pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<8> {
 /// num_of_ExceptionType
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L172-194.
-fn num_of_ExceptionType(e: ExceptionType) -> i128 {
+pub fn num_of_ExceptionType(e: ExceptionType) -> i128 {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {0}
         ExceptionType::E_Fetch_Access_Fault(()) => {1}
@@ -2518,7 +2518,7 @@ pub enum TrapVectorMode {
 /// trapVectorMode_of_bits
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L228-233.
-fn trapVectorMode_of_bits(m: BitVector<2>) -> TrapVectorMode {
+pub fn trapVectorMode_of_bits(m: BitVector<2>) -> TrapVectorMode {
     match m {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {TrapVectorMode::TV_Direct}
         b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {TrapVectorMode::TV_Vector}
@@ -2543,7 +2543,7 @@ pub enum ExtStatus {
 /// extStatus_bits_forwards
 /// 
 /// Generated from the Sail sources.
-fn extStatus_bits_forwards(arg_hashtag_: ExtStatus) -> BitVector<2> {
+pub fn extStatus_bits_forwards(arg_hashtag_: ExtStatus) -> BitVector<2> {
     match arg_hashtag_ {
         ExtStatus::Off => {BitVector::<2>::new(0b00)}
         ExtStatus::Initial => {BitVector::<2>::new(0b01)}
@@ -2556,7 +2556,7 @@ fn extStatus_bits_forwards(arg_hashtag_: ExtStatus) -> BitVector<2> {
 /// extStatus_bits_backwards
 /// 
 /// Generated from the Sail sources.
-fn extStatus_bits_backwards(arg_hashtag_: BitVector<2>) -> ExtStatus {
+pub fn extStatus_bits_backwards(arg_hashtag_: BitVector<2>) -> ExtStatus {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {ExtStatus::Off}
         b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {ExtStatus::Initial}
@@ -2569,14 +2569,14 @@ fn extStatus_bits_backwards(arg_hashtag_: BitVector<2>) -> ExtStatus {
 /// extStatus_to_bits
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L247.
-fn extStatus_to_bits(e: ExtStatus) -> BitVector<2> {
+pub fn extStatus_to_bits(e: ExtStatus) -> BitVector<2> {
     extStatus_bits_forwards(e)
 }
 
 /// extStatus_of_bits
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L248.
-fn extStatus_of_bits(b: BitVector<2>) -> ExtStatus {
+pub fn extStatus_of_bits(b: BitVector<2>) -> ExtStatus {
     extStatus_bits_backwards(b)
 }
 
@@ -2597,7 +2597,7 @@ pub enum SATPMode {
 /// satpMode_of_bits
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L255-263.
-fn satpMode_of_bits(a: Architecture, m: BitVector<4>) -> Option<SATPMode> {
+pub fn satpMode_of_bits(a: Architecture, m: BitVector<4>) -> Option<SATPMode> {
     match (a, m) {
         (_, b__0) if {(b__0 == BitVector::<4>::new(0b0000))} => {Some(SATPMode::Bare)}
         (Architecture::RV32, b__1) if {(b__1 == BitVector::<4>::new(0b0001))} => {Some(SATPMode::Sv32)}
@@ -2614,7 +2614,7 @@ pub type csrRW = BitVector<2>;
 /// size_enc_backwards
 /// 
 /// Generated from the Sail sources.
-fn size_enc_backwards(arg_hashtag_: BitVector<2>) -> word_width {
+pub fn size_enc_backwards(arg_hashtag_: BitVector<2>) -> word_width {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {word_width::BYTE}
         b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {word_width::HALF}
@@ -2627,7 +2627,7 @@ fn size_enc_backwards(arg_hashtag_: BitVector<2>) -> word_width {
 /// size_enc_backwards_matches
 /// 
 /// Generated from the Sail sources.
-fn size_enc_backwards_matches(arg_hashtag_: BitVector<2>) -> bool {
+pub fn size_enc_backwards_matches(arg_hashtag_: BitVector<2>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {true}
         b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {true}
@@ -2641,7 +2641,7 @@ fn size_enc_backwards_matches(arg_hashtag_: BitVector<2>) -> bool {
 /// size_bytes_forwards
 /// 
 /// Generated from the Sail sources.
-fn size_bytes_forwards(arg_hashtag_: word_width) -> i128 {
+pub fn size_bytes_forwards(arg_hashtag_: word_width) -> i128 {
     match arg_hashtag_ {
         word_width::BYTE => {1}
         word_width::HALF => {2}
@@ -3019,7 +3019,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitVector<12> {
 /// csr_id_read_callback
 /// 
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
-fn csr_id_read_callback(csr: BitVector<12>, value: BitVector<{
+pub fn csr_id_read_callback(csr: BitVector<12>, value: BitVector<{
     64
 }>) {
     let name = csr_name_map_forwards(csr);
@@ -3033,7 +3033,7 @@ pub const zero_reg: regtype = zeros::<64>(64);
 /// regval_from_reg
 /// 
 /// Generated from the Sail sources at `riscv_reg_type.sail` L22.
-fn regval_from_reg(r: BitVector<{
+pub fn regval_from_reg(r: BitVector<{
     64
 }>) -> BitVector<{
     64
@@ -3044,7 +3044,7 @@ fn regval_from_reg(r: BitVector<{
 /// regval_into_reg
 /// 
 /// Generated from the Sail sources at `riscv_reg_type.sail` L25.
-fn regval_into_reg(v: BitVector<{
+pub fn regval_into_reg(v: BitVector<{
     64
 }>) -> BitVector<{
     64
@@ -3157,7 +3157,7 @@ pub fn wX(core_ctx: &mut Core, regno::Regno(r): regno, in_v: BitVector<{
 /// rX_bits
 /// 
 /// Generated from the Sail sources at `riscv_regs.sail` L128.
-fn rX_bits(core_ctx: &mut Core, i: regidx) -> BitVector<{
+pub fn rX_bits(core_ctx: &mut Core, i: regidx) -> BitVector<{
     64
 }> {
     rX(core_ctx, regidx_to_regno(i))
@@ -3166,7 +3166,7 @@ fn rX_bits(core_ctx: &mut Core, i: regidx) -> BitVector<{
 /// wX_bits
 /// 
 /// Generated from the Sail sources at `riscv_regs.sail` L130-132.
-fn wX_bits(core_ctx: &mut Core, i: regidx, data: BitVector<{
+pub fn wX_bits(core_ctx: &mut Core, i: regidx, data: BitVector<{
     64
 }>) {
     wX(core_ctx, regidx_to_regno(i), data)
@@ -3175,7 +3175,7 @@ fn wX_bits(core_ctx: &mut Core, i: regidx, data: BitVector<{
 /// encdec_reg_backwards
 /// 
 /// Generated from the Sail sources.
-fn encdec_reg_backwards(arg_hashtag_: BitVector<5>) -> regidx {
+pub fn encdec_reg_backwards(arg_hashtag_: BitVector<5>) -> regidx {
     match arg_hashtag_ {
         r => {regidx::Regidx(r)}
         _ => {panic!("Unreachable code")}
@@ -3185,7 +3185,7 @@ fn encdec_reg_backwards(arg_hashtag_: BitVector<5>) -> regidx {
 /// encdec_reg_backwards_matches
 /// 
 /// Generated from the Sail sources.
-fn encdec_reg_backwards_matches(arg_hashtag_: BitVector<5>) -> bool {
+pub fn encdec_reg_backwards_matches(arg_hashtag_: BitVector<5>) -> bool {
     match arg_hashtag_ {
         r => {true}
         _ => {false}
@@ -3196,7 +3196,7 @@ fn encdec_reg_backwards_matches(arg_hashtag_: BitVector<5>) -> bool {
 /// get_arch_pc
 /// 
 /// Generated from the Sail sources at `riscv_pc_access.sail` L18.
-fn get_arch_pc(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
+pub fn get_arch_pc(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
     64
 }> {
     core_ctx.PC
@@ -3205,7 +3205,7 @@ fn get_arch_pc(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
 /// get_next_pc
 /// 
 /// Generated from the Sail sources at `riscv_pc_access.sail` L21.
-fn get_next_pc(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
+pub fn get_next_pc(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
     64
 }> {
     core_ctx.nextPC
@@ -3214,7 +3214,7 @@ fn get_next_pc(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
 /// set_next_pc
 /// 
 /// Generated from the Sail sources at `riscv_pc_access.sail` L24-27.
-fn set_next_pc(core_ctx: &mut Core, pc: BitVector<{
+pub fn set_next_pc(core_ctx: &mut Core, pc: BitVector<{
     64
 }>) {
     core_ctx.nextPC = pc
@@ -3233,7 +3233,7 @@ pub struct Misa {
 /// Mk_Misa
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Misa(v: BitVector<64>) -> Misa {
+pub fn Mk_Misa(v: BitVector<64>) -> Misa {
     Misa {
         bits: v
     }
@@ -3430,14 +3430,14 @@ pub struct htif_cmd {
 /// _get_Misa_A
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_A(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_A(v: Misa) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
 /// _update_Misa_A
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_A(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_A(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 0, 0, x)
     }
@@ -3446,7 +3446,7 @@ fn _update_Misa_A(v: Misa, x: BitVector<1>) -> Misa {
 /// _update_Pmpcfg_ent_A
 /// 
 /// Generated from the Sail sources.
-fn _update_Pmpcfg_ent_A(v: Pmpcfg_ent, x: BitVector<2>) -> Pmpcfg_ent {
+pub fn _update_Pmpcfg_ent_A(v: Pmpcfg_ent, x: BitVector<2>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 4, 3, x)
     }
@@ -3455,21 +3455,21 @@ fn _update_Pmpcfg_ent_A(v: Pmpcfg_ent, x: BitVector<2>) -> Pmpcfg_ent {
 /// _get_Pmpcfg_ent_A
 /// 
 /// Generated from the Sail sources.
-fn _get_Pmpcfg_ent_A(v: Pmpcfg_ent) -> BitVector<2> {
+pub fn _get_Pmpcfg_ent_A(v: Pmpcfg_ent) -> BitVector<2> {
     v.bits.subrange::<3, 5, 2>()
 }
 
 /// _get_Misa_B
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_B(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_B(v: Misa) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// _update_Misa_B
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_B(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_B(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 1, 1, x)
     }
@@ -3478,14 +3478,14 @@ fn _update_Misa_B(v: Misa, x: BitVector<1>) -> Misa {
 /// _get_Misa_C
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_C(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_C(v: Misa) -> BitVector<1> {
     v.bits.subrange::<2, 3, 1>()
 }
 
 /// _update_Misa_C
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_C(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_C(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 2, 2, x)
     }
@@ -3494,14 +3494,14 @@ fn _update_Misa_C(v: Misa, x: BitVector<1>) -> Misa {
 /// _get_Misa_D
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_D(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_D(v: Misa) -> BitVector<1> {
     v.bits.subrange::<3, 4, 1>()
 }
 
 /// _update_Misa_D
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_D(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_D(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 3, 3, x)
     }
@@ -3510,14 +3510,14 @@ fn _update_Misa_D(v: Misa, x: BitVector<1>) -> Misa {
 /// _get_Misa_F
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_F(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_F(v: Misa) -> BitVector<1> {
     v.bits.subrange::<5, 6, 1>()
 }
 
 /// _update_Misa_F
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_F(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_F(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 5, 5, x)
     }
@@ -3526,7 +3526,7 @@ fn _update_Misa_F(v: Misa, x: BitVector<1>) -> Misa {
 /// _update_Misa_I
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_I(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_I(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 8, 8, x)
     }
@@ -3535,7 +3535,7 @@ fn _update_Misa_I(v: Misa, x: BitVector<1>) -> Misa {
 /// _update_Pmpcfg_ent_L
 /// 
 /// Generated from the Sail sources.
-fn _update_Pmpcfg_ent_L(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
+pub fn _update_Pmpcfg_ent_L(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 7, 7, x)
     }
@@ -3544,21 +3544,21 @@ fn _update_Pmpcfg_ent_L(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
 /// _get_Pmpcfg_ent_L
 /// 
 /// Generated from the Sail sources.
-fn _get_Pmpcfg_ent_L(v: Pmpcfg_ent) -> BitVector<1> {
+pub fn _get_Pmpcfg_ent_L(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _get_Misa_M
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_M(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_M(v: Misa) -> BitVector<1> {
     v.bits.subrange::<12, 13, 1>()
 }
 
 /// _update_Misa_M
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_M(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_M(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 12, 12, x)
     }
@@ -3567,14 +3567,14 @@ fn _update_Misa_M(v: Misa, x: BitVector<1>) -> Misa {
 /// _get_Misa_MXL
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_MXL(v: Misa) -> BitVector<2> {
+pub fn _get_Misa_MXL(v: Misa) -> BitVector<2> {
     v.bits.subrange::<62, 64, 2>()
 }
 
 /// _update_Misa_MXL
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_MXL(v: Misa, x: BitVector<2>) -> Misa {
+pub fn _update_Misa_MXL(v: Misa, x: BitVector<2>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 63, 62, x)
     }
@@ -3583,7 +3583,7 @@ fn _update_Misa_MXL(v: Misa, x: BitVector<2>) -> Misa {
 /// _update_Pmpcfg_ent_R
 /// 
 /// Generated from the Sail sources.
-fn _update_Pmpcfg_ent_R(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
+pub fn _update_Pmpcfg_ent_R(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 0, 0, x)
     }
@@ -3592,21 +3592,21 @@ fn _update_Pmpcfg_ent_R(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
 /// _get_Pmpcfg_ent_R
 /// 
 /// Generated from the Sail sources.
-fn _get_Pmpcfg_ent_R(v: Pmpcfg_ent) -> BitVector<1> {
+pub fn _get_Pmpcfg_ent_R(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
 /// _get_Misa_S
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_S(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_S(v: Misa) -> BitVector<1> {
     v.bits.subrange::<18, 19, 1>()
 }
 
 /// _update_Misa_S
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_S(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_S(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 18, 18, x)
     }
@@ -3615,14 +3615,14 @@ fn _update_Misa_S(v: Misa, x: BitVector<1>) -> Misa {
 /// _get_Misa_U
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_U(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_U(v: Misa) -> BitVector<1> {
     v.bits.subrange::<20, 21, 1>()
 }
 
 /// _update_Misa_U
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_U(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_U(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 20, 20, x)
     }
@@ -3631,14 +3631,14 @@ fn _update_Misa_U(v: Misa, x: BitVector<1>) -> Misa {
 /// _get_Misa_V
 /// 
 /// Generated from the Sail sources.
-fn _get_Misa_V(v: Misa) -> BitVector<1> {
+pub fn _get_Misa_V(v: Misa) -> BitVector<1> {
     v.bits.subrange::<21, 22, 1>()
 }
 
 /// _update_Misa_V
 /// 
 /// Generated from the Sail sources.
-fn _update_Misa_V(v: Misa, x: BitVector<1>) -> Misa {
+pub fn _update_Misa_V(v: Misa, x: BitVector<1>) -> Misa {
     Misa {
         bits: update_subrange_bits(v.bits, 21, 21, x)
     }
@@ -3647,7 +3647,7 @@ fn _update_Misa_V(v: Misa, x: BitVector<1>) -> Misa {
 /// _update_Pmpcfg_ent_W
 /// 
 /// Generated from the Sail sources.
-fn _update_Pmpcfg_ent_W(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
+pub fn _update_Pmpcfg_ent_W(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 1, 1, x)
     }
@@ -3656,14 +3656,14 @@ fn _update_Pmpcfg_ent_W(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
 /// _get_Pmpcfg_ent_W
 /// 
 /// Generated from the Sail sources.
-fn _get_Pmpcfg_ent_W(v: Pmpcfg_ent) -> BitVector<1> {
+pub fn _get_Pmpcfg_ent_W(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// _update_Pmpcfg_ent_X
 /// 
 /// Generated from the Sail sources.
-fn _update_Pmpcfg_ent_X(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
+pub fn _update_Pmpcfg_ent_X(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: update_subrange_bits(v.bits, 2, 2, x)
     }
@@ -3672,42 +3672,42 @@ fn _update_Pmpcfg_ent_X(v: Pmpcfg_ent, x: BitVector<1>) -> Pmpcfg_ent {
 /// _get_Pmpcfg_ent_X
 /// 
 /// Generated from the Sail sources.
-fn _get_Pmpcfg_ent_X(v: Pmpcfg_ent) -> BitVector<1> {
+pub fn _get_Pmpcfg_ent_X(v: Pmpcfg_ent) -> BitVector<1> {
     v.bits.subrange::<2, 3, 1>()
 }
 
 /// sys_enable_writable_misa
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L86.
-fn sys_enable_writable_misa(core_ctx: &mut Core, unit_arg: ()) -> bool {
+pub fn sys_enable_writable_misa(core_ctx: &mut Core, unit_arg: ()) -> bool {
     core_ctx.config.base.writable_misa
 }
 
 /// sys_enable_writable_fiom
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L90.
-fn sys_enable_writable_fiom(core_ctx: &mut Core, unit_arg: ()) -> bool {
+pub fn sys_enable_writable_fiom(core_ctx: &mut Core, unit_arg: ()) -> bool {
     core_ctx.config.base.writable_fiom
 }
 
 /// sys_pmp_count
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L93.
-fn sys_pmp_count(core_ctx: &mut Core, unit_arg: ()) -> i128 {
+pub fn sys_pmp_count(core_ctx: &mut Core, unit_arg: ()) -> i128 {
     core_ctx.config.memory.pmp.count
 }
 
 /// sys_pmp_grain
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L97.
-fn sys_pmp_grain(core_ctx: &mut Core, unit_arg: ()) -> i128 {
+pub fn sys_pmp_grain(core_ctx: &mut Core, unit_arg: ()) -> i128 {
     core_ctx.config.memory.pmp.grain
 }
 
 /// sys_writable_hpm_counters
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L100.
-fn sys_writable_hpm_counters(core_ctx: &mut Core, unit_arg: ()) -> BitVector<32> {
+pub fn sys_writable_hpm_counters(core_ctx: &mut Core, unit_arg: ()) -> BitVector<32> {
     core_ctx.config.base.writable_hpm_counters
 }
 
@@ -3721,7 +3721,7 @@ pub const fn ext_veto_disable_C(unit_arg: ()) -> bool {
 /// legalize_misa
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L110-130.
-fn legalize_misa(core_ctx: &mut Core, m: Misa, v: BitVector<{
+pub fn legalize_misa(core_ctx: &mut Core, m: Misa, v: BitVector<{
     64
 }>) -> Misa {
     let v = Mk_Misa(v);
@@ -3809,7 +3809,7 @@ fn legalize_misa(core_ctx: &mut Core, m: Misa, v: BitVector<{
 /// Mk_Mstatus
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Mstatus(v: BitVector<64>) -> Mstatus {
+pub fn Mk_Mstatus(v: BitVector<64>) -> Mstatus {
     Mstatus {
         bits: v
     }
@@ -3818,7 +3818,7 @@ fn Mk_Mstatus(v: BitVector<64>) -> Mstatus {
 /// _update_Mstatus_SXL
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_SXL(v: Mstatus, x: BitVector<2>) -> Mstatus {
+pub fn _update_Mstatus_SXL(v: Mstatus, x: BitVector<2>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 35, 34, x)
     }
@@ -3827,7 +3827,7 @@ fn _update_Mstatus_SXL(v: Mstatus, x: BitVector<2>) -> Mstatus {
 /// _update_Mstatus_UXL
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_UXL(v: Mstatus, x: BitVector<2>) -> Mstatus {
+pub fn _update_Mstatus_UXL(v: Mstatus, x: BitVector<2>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 33, 32, x)
     }
@@ -3836,21 +3836,21 @@ fn _update_Mstatus_UXL(v: Mstatus, x: BitVector<2>) -> Mstatus {
 /// _get_Mstatus_FS
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_FS(v: Mstatus) -> BitVector<2> {
+pub fn _get_Mstatus_FS(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<13, 15, 2>()
 }
 
 /// _get_Mstatus_VS
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_VS(v: Mstatus) -> BitVector<2> {
+pub fn _get_Mstatus_VS(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<9, 11, 2>()
 }
 
 /// currentlyEnabled
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L103.
-fn currentlyEnabled(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
+pub fn currentlyEnabled(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
     match merge_hashtag_var {
         extension::Ext_Sstc => {hartSupports(core_ctx, extension::Ext_Sstc)}
         extension::Ext_U => {(hartSupports(core_ctx, extension::Ext_U) && ({
@@ -3956,14 +3956,14 @@ fn currentlyEnabled(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
 /// virtual_memory_supported
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L149-151.
-fn virtual_memory_supported(core_ctx: &mut Core, unit_arg: ()) -> bool {
+pub fn virtual_memory_supported(core_ctx: &mut Core, unit_arg: ()) -> bool {
     (currentlyEnabled(core_ctx, extension::Ext_Sv32) || (currentlyEnabled(core_ctx, extension::Ext_Sv39) || (currentlyEnabled(core_ctx, extension::Ext_Sv48) || currentlyEnabled(core_ctx, extension::Ext_Sv57))))
 }
 
 /// lowest_supported_privLevel
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L157-158.
-fn lowest_supported_privLevel(core_ctx: &mut Core, unit_arg: ()) -> Privilege {
+pub fn lowest_supported_privLevel(core_ctx: &mut Core, unit_arg: ()) -> Privilege {
     if {currentlyEnabled(core_ctx, extension::Ext_U)} {
         Privilege::User
     } else {
@@ -3974,7 +3974,7 @@ fn lowest_supported_privLevel(core_ctx: &mut Core, unit_arg: ()) -> Privilege {
 /// have_privLevel
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L160-166.
-fn have_privLevel(core_ctx: &mut Core, _priv_: BitVector<2>) -> bool {
+pub fn have_privLevel(core_ctx: &mut Core, _priv_: BitVector<2>) -> bool {
     match _priv_ {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {currentlyEnabled(core_ctx, extension::Ext_U)}
         b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {currentlyEnabled(core_ctx, extension::Ext_S)}
@@ -3987,7 +3987,7 @@ fn have_privLevel(core_ctx: &mut Core, _priv_: BitVector<2>) -> bool {
 /// _update_Mstatus_FS
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_FS(v: Mstatus, x: BitVector<2>) -> Mstatus {
+pub fn _update_Mstatus_FS(v: Mstatus, x: BitVector<2>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 14, 13, x)
     }
@@ -3996,7 +3996,7 @@ fn _update_Mstatus_FS(v: Mstatus, x: BitVector<2>) -> Mstatus {
 /// _update_Sstatus_FS
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_FS(v: Sstatus, x: BitVector<2>) -> Sstatus {
+pub fn _update_Sstatus_FS(v: Sstatus, x: BitVector<2>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 14, 13, x)
     }
@@ -4005,21 +4005,21 @@ fn _update_Sstatus_FS(v: Sstatus, x: BitVector<2>) -> Sstatus {
 /// _get_Sstatus_FS
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_FS(v: Sstatus) -> BitVector<2> {
+pub fn _get_Sstatus_FS(v: Sstatus) -> BitVector<2> {
     v.bits.subrange::<13, 15, 2>()
 }
 
 /// _get_Mstatus_MIE
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_MIE(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_MIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<3, 4, 1>()
 }
 
 /// _update_Mstatus_MIE
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_MIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_MIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 3, 3, x)
     }
@@ -4028,14 +4028,14 @@ fn _update_Mstatus_MIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _get_Mstatus_MPIE
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_MPIE(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_MPIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _update_Mstatus_MPIE
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_MPIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_MPIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 7, 7, x)
     }
@@ -4044,14 +4044,14 @@ fn _update_Mstatus_MPIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _get_Mstatus_MPP
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_MPP(v: Mstatus) -> BitVector<2> {
+pub fn _get_Mstatus_MPP(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<11, 13, 2>()
 }
 
 /// _update_Mstatus_MPP
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_MPP(v: Mstatus, x: BitVector<2>) -> Mstatus {
+pub fn _update_Mstatus_MPP(v: Mstatus, x: BitVector<2>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 12, 11, x)
     }
@@ -4060,14 +4060,14 @@ fn _update_Mstatus_MPP(v: Mstatus, x: BitVector<2>) -> Mstatus {
 /// _get_Mstatus_MPRV
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_MPRV(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_MPRV(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<17, 18, 1>()
 }
 
 /// _update_Mstatus_MPRV
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_MPRV(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_MPRV(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 17, 17, x)
     }
@@ -4076,14 +4076,14 @@ fn _update_Mstatus_MPRV(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _get_Mstatus_MXR
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_MXR(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_MXR(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<19, 20, 1>()
 }
 
 /// _update_Mstatus_MXR
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_MXR(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_MXR(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 19, 19, x)
     }
@@ -4092,7 +4092,7 @@ fn _update_Mstatus_MXR(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _update_Sstatus_MXR
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_MXR(v: Sstatus, x: BitVector<1>) -> Sstatus {
+pub fn _update_Sstatus_MXR(v: Sstatus, x: BitVector<1>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 19, 19, x)
     }
@@ -4101,21 +4101,21 @@ fn _update_Sstatus_MXR(v: Sstatus, x: BitVector<1>) -> Sstatus {
 /// _get_Sstatus_MXR
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_MXR(v: Sstatus) -> BitVector<1> {
+pub fn _get_Sstatus_MXR(v: Sstatus) -> BitVector<1> {
     v.bits.subrange::<19, 20, 1>()
 }
 
 /// _get_Mstatus_SD
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_SD(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_SD(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// _update_Mstatus_SD
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_SD(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_SD(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 63, 63, x)
     }
@@ -4124,7 +4124,7 @@ fn _update_Mstatus_SD(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _update_Sstatus_SD
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_SD(v: Sstatus, x: BitVector<1>) -> Sstatus {
+pub fn _update_Sstatus_SD(v: Sstatus, x: BitVector<1>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 63, 63, x)
     }
@@ -4133,14 +4133,14 @@ fn _update_Sstatus_SD(v: Sstatus, x: BitVector<1>) -> Sstatus {
 /// _get_Mstatus_SIE
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_SIE(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_SIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// _update_Mstatus_SIE
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_SIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_SIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 1, 1, x)
     }
@@ -4149,7 +4149,7 @@ fn _update_Mstatus_SIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _update_Sstatus_SIE
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_SIE(v: Sstatus, x: BitVector<1>) -> Sstatus {
+pub fn _update_Sstatus_SIE(v: Sstatus, x: BitVector<1>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 1, 1, x)
     }
@@ -4158,21 +4158,21 @@ fn _update_Sstatus_SIE(v: Sstatus, x: BitVector<1>) -> Sstatus {
 /// _get_Sstatus_SIE
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_SIE(v: Sstatus) -> BitVector<1> {
+pub fn _get_Sstatus_SIE(v: Sstatus) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// _get_Mstatus_SPIE
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_SPIE(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_SPIE(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<5, 6, 1>()
 }
 
 /// _update_Mstatus_SPIE
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_SPIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_SPIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 5, 5, x)
     }
@@ -4181,7 +4181,7 @@ fn _update_Mstatus_SPIE(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _update_Sstatus_SPIE
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_SPIE(v: Sstatus, x: BitVector<1>) -> Sstatus {
+pub fn _update_Sstatus_SPIE(v: Sstatus, x: BitVector<1>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 5, 5, x)
     }
@@ -4190,21 +4190,21 @@ fn _update_Sstatus_SPIE(v: Sstatus, x: BitVector<1>) -> Sstatus {
 /// _get_Sstatus_SPIE
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_SPIE(v: Sstatus) -> BitVector<1> {
+pub fn _get_Sstatus_SPIE(v: Sstatus) -> BitVector<1> {
     v.bits.subrange::<5, 6, 1>()
 }
 
 /// _get_Mstatus_SPP
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_SPP(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_SPP(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<8, 9, 1>()
 }
 
 /// _update_Mstatus_SPP
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_SPP(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_SPP(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 8, 8, x)
     }
@@ -4213,7 +4213,7 @@ fn _update_Mstatus_SPP(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _update_Sstatus_SPP
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_SPP(v: Sstatus, x: BitVector<1>) -> Sstatus {
+pub fn _update_Sstatus_SPP(v: Sstatus, x: BitVector<1>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 8, 8, x)
     }
@@ -4222,21 +4222,21 @@ fn _update_Sstatus_SPP(v: Sstatus, x: BitVector<1>) -> Sstatus {
 /// _get_Sstatus_SPP
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_SPP(v: Sstatus) -> BitVector<1> {
+pub fn _get_Sstatus_SPP(v: Sstatus) -> BitVector<1> {
     v.bits.subrange::<8, 9, 1>()
 }
 
 /// _get_Mstatus_SUM
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_SUM(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_SUM(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<18, 19, 1>()
 }
 
 /// _update_Mstatus_SUM
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_SUM(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_SUM(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 18, 18, x)
     }
@@ -4245,7 +4245,7 @@ fn _update_Mstatus_SUM(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _update_Sstatus_SUM
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_SUM(v: Sstatus, x: BitVector<1>) -> Sstatus {
+pub fn _update_Sstatus_SUM(v: Sstatus, x: BitVector<1>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 18, 18, x)
     }
@@ -4254,28 +4254,28 @@ fn _update_Sstatus_SUM(v: Sstatus, x: BitVector<1>) -> Sstatus {
 /// _get_Sstatus_SUM
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_SUM(v: Sstatus) -> BitVector<1> {
+pub fn _get_Sstatus_SUM(v: Sstatus) -> BitVector<1> {
     v.bits.subrange::<18, 19, 1>()
 }
 
 /// _get_Mstatus_SXL
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_SXL(v: Mstatus) -> BitVector<2> {
+pub fn _get_Mstatus_SXL(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<34, 36, 2>()
 }
 
 /// _get_Mstatus_TSR
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_TSR(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_TSR(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<22, 23, 1>()
 }
 
 /// _update_Mstatus_TSR
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_TSR(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_TSR(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 22, 22, x)
     }
@@ -4284,14 +4284,14 @@ fn _update_Mstatus_TSR(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _get_Mstatus_TVM
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_TVM(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_TVM(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<20, 21, 1>()
 }
 
 /// _update_Mstatus_TVM
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_TVM(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_TVM(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 20, 20, x)
     }
@@ -4300,14 +4300,14 @@ fn _update_Mstatus_TVM(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _get_Mstatus_TW
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_TW(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_TW(v: Mstatus) -> BitVector<1> {
     v.bits.subrange::<21, 22, 1>()
 }
 
 /// _update_Mstatus_TW
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_TW(v: Mstatus, x: BitVector<1>) -> Mstatus {
+pub fn _update_Mstatus_TW(v: Mstatus, x: BitVector<1>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 21, 21, x)
     }
@@ -4316,14 +4316,14 @@ fn _update_Mstatus_TW(v: Mstatus, x: BitVector<1>) -> Mstatus {
 /// _get_Mstatus_UXL
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_UXL(v: Mstatus) -> BitVector<2> {
+pub fn _get_Mstatus_UXL(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<32, 34, 2>()
 }
 
 /// _update_Sstatus_UXL
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_UXL(v: Sstatus, x: BitVector<2>) -> Sstatus {
+pub fn _update_Sstatus_UXL(v: Sstatus, x: BitVector<2>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 33, 32, x)
     }
@@ -4332,14 +4332,14 @@ fn _update_Sstatus_UXL(v: Sstatus, x: BitVector<2>) -> Sstatus {
 /// _get_Sstatus_UXL
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_UXL(v: Sstatus) -> BitVector<2> {
+pub fn _get_Sstatus_UXL(v: Sstatus) -> BitVector<2> {
     v.bits.subrange::<32, 34, 2>()
 }
 
 /// _update_Mstatus_VS
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_VS(v: Mstatus, x: BitVector<2>) -> Mstatus {
+pub fn _update_Mstatus_VS(v: Mstatus, x: BitVector<2>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 10, 9, x)
     }
@@ -4348,7 +4348,7 @@ fn _update_Mstatus_VS(v: Mstatus, x: BitVector<2>) -> Mstatus {
 /// _update_Sstatus_VS
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_VS(v: Sstatus, x: BitVector<2>) -> Sstatus {
+pub fn _update_Sstatus_VS(v: Sstatus, x: BitVector<2>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 10, 9, x)
     }
@@ -4357,21 +4357,21 @@ fn _update_Sstatus_VS(v: Sstatus, x: BitVector<2>) -> Sstatus {
 /// _get_Sstatus_VS
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_VS(v: Sstatus) -> BitVector<2> {
+pub fn _get_Sstatus_VS(v: Sstatus) -> BitVector<2> {
     v.bits.subrange::<9, 11, 2>()
 }
 
 /// _get_Mstatus_XS
 /// 
 /// Generated from the Sail sources.
-fn _get_Mstatus_XS(v: Mstatus) -> BitVector<2> {
+pub fn _get_Mstatus_XS(v: Mstatus) -> BitVector<2> {
     v.bits.subrange::<15, 17, 2>()
 }
 
 /// _update_Mstatus_XS
 /// 
 /// Generated from the Sail sources.
-fn _update_Mstatus_XS(v: Mstatus, x: BitVector<2>) -> Mstatus {
+pub fn _update_Mstatus_XS(v: Mstatus, x: BitVector<2>) -> Mstatus {
     Mstatus {
         bits: update_subrange_bits(v.bits, 16, 15, x)
     }
@@ -4380,7 +4380,7 @@ fn _update_Mstatus_XS(v: Mstatus, x: BitVector<2>) -> Mstatus {
 /// _update_Sstatus_XS
 /// 
 /// Generated from the Sail sources.
-fn _update_Sstatus_XS(v: Sstatus, x: BitVector<2>) -> Sstatus {
+pub fn _update_Sstatus_XS(v: Sstatus, x: BitVector<2>) -> Sstatus {
     Sstatus {
         bits: update_subrange_bits(v.bits, 16, 15, x)
     }
@@ -4389,14 +4389,14 @@ fn _update_Sstatus_XS(v: Sstatus, x: BitVector<2>) -> Sstatus {
 /// _get_Sstatus_XS
 /// 
 /// Generated from the Sail sources.
-fn _get_Sstatus_XS(v: Sstatus) -> BitVector<2> {
+pub fn _get_Sstatus_XS(v: Sstatus) -> BitVector<2> {
     v.bits.subrange::<15, 17, 2>()
 }
 
 /// effectivePrivilege
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L206-209.
-fn effectivePrivilege(t: AccessType<()>, m: Mstatus, _priv_: Privilege) -> Privilege {
+pub fn effectivePrivilege(t: AccessType<()>, m: Mstatus, _priv_: Privilege) -> Privilege {
     if {((t != AccessType::InstructionFetch(())) && (_get_Mstatus_MPRV(m) == BitVector::<1>::new(0b1)))} {
         privLevel_of_bits(_get_Mstatus_MPP(m))
     } else {
@@ -4407,21 +4407,21 @@ fn effectivePrivilege(t: AccessType<()>, m: Mstatus, _priv_: Privilege) -> Privi
 /// get_mstatus_SXL
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L211-215.
-fn get_mstatus_SXL(m: Mstatus) -> BitVector<2> {
+pub fn get_mstatus_SXL(m: Mstatus) -> BitVector<2> {
     _get_Mstatus_SXL(m)
 }
 
 /// get_mstatus_UXL
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L217-221.
-fn get_mstatus_UXL(m: Mstatus) -> BitVector<2> {
+pub fn get_mstatus_UXL(m: Mstatus) -> BitVector<2> {
     _get_Mstatus_UXL(m)
 }
 
 /// legalize_mstatus
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L223-273.
-fn legalize_mstatus(core_ctx: &mut Core, o: Mstatus, v: BitVector<64>) -> Mstatus {
+pub fn legalize_mstatus(core_ctx: &mut Core, o: Mstatus, v: BitVector<64>) -> Mstatus {
     let v = Mk_Mstatus(v);
     let o = {
         let var_1 = {
@@ -4533,7 +4533,7 @@ fn legalize_mstatus(core_ctx: &mut Core, o: Mstatus, v: BitVector<64>) -> Mstatu
 /// cur_architecture
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L300-308.
-fn cur_architecture(core_ctx: &mut Core, unit_arg: ()) -> Architecture {
+pub fn cur_architecture(core_ctx: &mut Core, unit_arg: ()) -> Architecture {
     let a: arch_xlen = match core_ctx.cur_privilege {
         Privilege::Machine => {{
             let var_1 = core_ctx.misa;
@@ -4555,14 +4555,14 @@ fn cur_architecture(core_ctx: &mut Core, unit_arg: ()) -> Architecture {
 /// in32BitMode
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L310-312.
-fn in32BitMode(core_ctx: &mut Core, unit_arg: ()) -> bool {
+pub fn in32BitMode(core_ctx: &mut Core, unit_arg: ()) -> bool {
     (cur_architecture(core_ctx, ()) == Architecture::RV32)
 }
 
 /// Mk_MEnvcfg
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_MEnvcfg(v: BitVector<64>) -> MEnvcfg {
+pub fn Mk_MEnvcfg(v: BitVector<64>) -> MEnvcfg {
     MEnvcfg {
         bits: v
     }
@@ -4571,14 +4571,14 @@ fn Mk_MEnvcfg(v: BitVector<64>) -> MEnvcfg {
 /// _get_MEnvcfg_CBCFE
 /// 
 /// Generated from the Sail sources.
-fn _get_MEnvcfg_CBCFE(v: MEnvcfg) -> BitVector<1> {
+pub fn _get_MEnvcfg_CBCFE(v: MEnvcfg) -> BitVector<1> {
     v.bits.subrange::<6, 7, 1>()
 }
 
 /// _update_MEnvcfg_CBCFE
 /// 
 /// Generated from the Sail sources.
-fn _update_MEnvcfg_CBCFE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
+pub fn _update_MEnvcfg_CBCFE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
     MEnvcfg {
         bits: update_subrange_bits(v.bits, 6, 6, x)
     }
@@ -4587,7 +4587,7 @@ fn _update_MEnvcfg_CBCFE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
 /// _update_SEnvcfg_CBCFE
 /// 
 /// Generated from the Sail sources.
-fn _update_SEnvcfg_CBCFE(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
+pub fn _update_SEnvcfg_CBCFE(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
     SEnvcfg {
         bits: update_subrange_bits(v.bits, 6, 6, x)
     }
@@ -4596,21 +4596,21 @@ fn _update_SEnvcfg_CBCFE(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
 /// _get_SEnvcfg_CBCFE
 /// 
 /// Generated from the Sail sources.
-fn _get_SEnvcfg_CBCFE(v: SEnvcfg) -> BitVector<1> {
+pub fn _get_SEnvcfg_CBCFE(v: SEnvcfg) -> BitVector<1> {
     v.bits.subrange::<6, 7, 1>()
 }
 
 /// _get_MEnvcfg_CBIE
 /// 
 /// Generated from the Sail sources.
-fn _get_MEnvcfg_CBIE(v: MEnvcfg) -> BitVector<2> {
+pub fn _get_MEnvcfg_CBIE(v: MEnvcfg) -> BitVector<2> {
     v.bits.subrange::<4, 6, 2>()
 }
 
 /// _update_MEnvcfg_CBIE
 /// 
 /// Generated from the Sail sources.
-fn _update_MEnvcfg_CBIE(v: MEnvcfg, x: BitVector<2>) -> MEnvcfg {
+pub fn _update_MEnvcfg_CBIE(v: MEnvcfg, x: BitVector<2>) -> MEnvcfg {
     MEnvcfg {
         bits: update_subrange_bits(v.bits, 5, 4, x)
     }
@@ -4619,7 +4619,7 @@ fn _update_MEnvcfg_CBIE(v: MEnvcfg, x: BitVector<2>) -> MEnvcfg {
 /// _update_SEnvcfg_CBIE
 /// 
 /// Generated from the Sail sources.
-fn _update_SEnvcfg_CBIE(v: SEnvcfg, x: BitVector<2>) -> SEnvcfg {
+pub fn _update_SEnvcfg_CBIE(v: SEnvcfg, x: BitVector<2>) -> SEnvcfg {
     SEnvcfg {
         bits: update_subrange_bits(v.bits, 5, 4, x)
     }
@@ -4628,21 +4628,21 @@ fn _update_SEnvcfg_CBIE(v: SEnvcfg, x: BitVector<2>) -> SEnvcfg {
 /// _get_SEnvcfg_CBIE
 /// 
 /// Generated from the Sail sources.
-fn _get_SEnvcfg_CBIE(v: SEnvcfg) -> BitVector<2> {
+pub fn _get_SEnvcfg_CBIE(v: SEnvcfg) -> BitVector<2> {
     v.bits.subrange::<4, 6, 2>()
 }
 
 /// _get_MEnvcfg_CBZE
 /// 
 /// Generated from the Sail sources.
-fn _get_MEnvcfg_CBZE(v: MEnvcfg) -> BitVector<1> {
+pub fn _get_MEnvcfg_CBZE(v: MEnvcfg) -> BitVector<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _update_MEnvcfg_CBZE
 /// 
 /// Generated from the Sail sources.
-fn _update_MEnvcfg_CBZE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
+pub fn _update_MEnvcfg_CBZE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
     MEnvcfg {
         bits: update_subrange_bits(v.bits, 7, 7, x)
     }
@@ -4651,7 +4651,7 @@ fn _update_MEnvcfg_CBZE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
 /// _update_SEnvcfg_CBZE
 /// 
 /// Generated from the Sail sources.
-fn _update_SEnvcfg_CBZE(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
+pub fn _update_SEnvcfg_CBZE(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
     SEnvcfg {
         bits: update_subrange_bits(v.bits, 7, 7, x)
     }
@@ -4660,21 +4660,21 @@ fn _update_SEnvcfg_CBZE(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
 /// _get_SEnvcfg_CBZE
 /// 
 /// Generated from the Sail sources.
-fn _get_SEnvcfg_CBZE(v: SEnvcfg) -> BitVector<1> {
+pub fn _get_SEnvcfg_CBZE(v: SEnvcfg) -> BitVector<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _get_MEnvcfg_FIOM
 /// 
 /// Generated from the Sail sources.
-fn _get_MEnvcfg_FIOM(v: MEnvcfg) -> BitVector<1> {
+pub fn _get_MEnvcfg_FIOM(v: MEnvcfg) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
 /// _update_MEnvcfg_FIOM
 /// 
 /// Generated from the Sail sources.
-fn _update_MEnvcfg_FIOM(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
+pub fn _update_MEnvcfg_FIOM(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
     MEnvcfg {
         bits: update_subrange_bits(v.bits, 0, 0, x)
     }
@@ -4683,7 +4683,7 @@ fn _update_MEnvcfg_FIOM(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
 /// _update_SEnvcfg_FIOM
 /// 
 /// Generated from the Sail sources.
-fn _update_SEnvcfg_FIOM(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
+pub fn _update_SEnvcfg_FIOM(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
     SEnvcfg {
         bits: update_subrange_bits(v.bits, 0, 0, x)
     }
@@ -4692,21 +4692,21 @@ fn _update_SEnvcfg_FIOM(v: SEnvcfg, x: BitVector<1>) -> SEnvcfg {
 /// _get_SEnvcfg_FIOM
 /// 
 /// Generated from the Sail sources.
-fn _get_SEnvcfg_FIOM(v: SEnvcfg) -> BitVector<1> {
+pub fn _get_SEnvcfg_FIOM(v: SEnvcfg) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
 /// _get_MEnvcfg_STCE
 /// 
 /// Generated from the Sail sources.
-fn _get_MEnvcfg_STCE(v: MEnvcfg) -> BitVector<1> {
+pub fn _get_MEnvcfg_STCE(v: MEnvcfg) -> BitVector<1> {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// _update_MEnvcfg_STCE
 /// 
 /// Generated from the Sail sources.
-fn _update_MEnvcfg_STCE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
+pub fn _update_MEnvcfg_STCE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
     MEnvcfg {
         bits: update_subrange_bits(v.bits, 63, 63, x)
     }
@@ -4715,7 +4715,7 @@ fn _update_MEnvcfg_STCE(v: MEnvcfg, x: BitVector<1>) -> MEnvcfg {
 /// Mk_SEnvcfg
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_SEnvcfg(v: BitVector<64>) -> SEnvcfg {
+pub fn Mk_SEnvcfg(v: BitVector<64>) -> SEnvcfg {
     SEnvcfg {
         bits: v
     }
@@ -4724,7 +4724,7 @@ fn Mk_SEnvcfg(v: BitVector<64>) -> SEnvcfg {
 /// legalize_menvcfg
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L347-357.
-fn legalize_menvcfg(core_ctx: &mut Core, o: MEnvcfg, v: BitVector<64>) -> MEnvcfg {
+pub fn legalize_menvcfg(core_ctx: &mut Core, o: MEnvcfg, v: BitVector<64>) -> MEnvcfg {
     let v = Mk_MEnvcfg(v);
     {
         let var_1 = {
@@ -4775,7 +4775,7 @@ fn legalize_menvcfg(core_ctx: &mut Core, o: MEnvcfg, v: BitVector<64>) -> MEnvcf
 /// legalize_senvcfg
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L359-368.
-fn legalize_senvcfg(core_ctx: &mut Core, o: SEnvcfg, v: BitVector<{
+pub fn legalize_senvcfg(core_ctx: &mut Core, o: SEnvcfg, v: BitVector<{
     64
 }>) -> SEnvcfg {
     let v = Mk_SEnvcfg(v);
@@ -4820,7 +4820,7 @@ fn legalize_senvcfg(core_ctx: &mut Core, o: SEnvcfg, v: BitVector<{
 /// is_fiom_active
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L394-400.
-fn is_fiom_active(core_ctx: &mut Core, unit_arg: ()) -> bool {
+pub fn is_fiom_active(core_ctx: &mut Core, unit_arg: ()) -> bool {
     match core_ctx.cur_privilege {
         Privilege::Machine => {false}
         Privilege::Supervisor => {({
@@ -4841,7 +4841,7 @@ fn is_fiom_active(core_ctx: &mut Core, unit_arg: ()) -> bool {
 /// Mk_Minterrupts
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Minterrupts(v: BitVector<64>) -> Minterrupts {
+pub fn Mk_Minterrupts(v: BitVector<64>) -> Minterrupts {
     Minterrupts {
         bits: v
     }
@@ -4850,14 +4850,14 @@ fn Mk_Minterrupts(v: BitVector<64>) -> Minterrupts {
 /// _get_Minterrupts_MEI
 /// 
 /// Generated from the Sail sources.
-fn _get_Minterrupts_MEI(v: Minterrupts) -> BitVector<1> {
+pub fn _get_Minterrupts_MEI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<11, 12, 1>()
 }
 
 /// _update_Minterrupts_MEI
 /// 
 /// Generated from the Sail sources.
-fn _update_Minterrupts_MEI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
+pub fn _update_Minterrupts_MEI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
     Minterrupts {
         bits: update_subrange_bits(v.bits, 11, 11, x)
     }
@@ -4866,14 +4866,14 @@ fn _update_Minterrupts_MEI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
 /// _get_Minterrupts_MSI
 /// 
 /// Generated from the Sail sources.
-fn _get_Minterrupts_MSI(v: Minterrupts) -> BitVector<1> {
+pub fn _get_Minterrupts_MSI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<3, 4, 1>()
 }
 
 /// _update_Minterrupts_MSI
 /// 
 /// Generated from the Sail sources.
-fn _update_Minterrupts_MSI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
+pub fn _update_Minterrupts_MSI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
     Minterrupts {
         bits: update_subrange_bits(v.bits, 3, 3, x)
     }
@@ -4882,14 +4882,14 @@ fn _update_Minterrupts_MSI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
 /// _get_Minterrupts_MTI
 /// 
 /// Generated from the Sail sources.
-fn _get_Minterrupts_MTI(v: Minterrupts) -> BitVector<1> {
+pub fn _get_Minterrupts_MTI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _update_Minterrupts_MTI
 /// 
 /// Generated from the Sail sources.
-fn _update_Minterrupts_MTI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
+pub fn _update_Minterrupts_MTI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
     Minterrupts {
         bits: update_subrange_bits(v.bits, 7, 7, x)
     }
@@ -4898,14 +4898,14 @@ fn _update_Minterrupts_MTI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
 /// _get_Minterrupts_SEI
 /// 
 /// Generated from the Sail sources.
-fn _get_Minterrupts_SEI(v: Minterrupts) -> BitVector<1> {
+pub fn _get_Minterrupts_SEI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<9, 10, 1>()
 }
 
 /// _update_Minterrupts_SEI
 /// 
 /// Generated from the Sail sources.
-fn _update_Minterrupts_SEI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
+pub fn _update_Minterrupts_SEI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
     Minterrupts {
         bits: update_subrange_bits(v.bits, 9, 9, x)
     }
@@ -4914,7 +4914,7 @@ fn _update_Minterrupts_SEI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
 /// _update_Sinterrupts_SEI
 /// 
 /// Generated from the Sail sources.
-fn _update_Sinterrupts_SEI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
+pub fn _update_Sinterrupts_SEI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
     Sinterrupts {
         bits: update_subrange_bits(v.bits, 9, 9, x)
     }
@@ -4923,21 +4923,21 @@ fn _update_Sinterrupts_SEI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
 /// _get_Sinterrupts_SEI
 /// 
 /// Generated from the Sail sources.
-fn _get_Sinterrupts_SEI(v: Sinterrupts) -> BitVector<1> {
+pub fn _get_Sinterrupts_SEI(v: Sinterrupts) -> BitVector<1> {
     v.bits.subrange::<9, 10, 1>()
 }
 
 /// _get_Minterrupts_SSI
 /// 
 /// Generated from the Sail sources.
-fn _get_Minterrupts_SSI(v: Minterrupts) -> BitVector<1> {
+pub fn _get_Minterrupts_SSI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// _update_Minterrupts_SSI
 /// 
 /// Generated from the Sail sources.
-fn _update_Minterrupts_SSI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
+pub fn _update_Minterrupts_SSI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
     Minterrupts {
         bits: update_subrange_bits(v.bits, 1, 1, x)
     }
@@ -4946,7 +4946,7 @@ fn _update_Minterrupts_SSI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
 /// _update_Sinterrupts_SSI
 /// 
 /// Generated from the Sail sources.
-fn _update_Sinterrupts_SSI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
+pub fn _update_Sinterrupts_SSI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
     Sinterrupts {
         bits: update_subrange_bits(v.bits, 1, 1, x)
     }
@@ -4955,21 +4955,21 @@ fn _update_Sinterrupts_SSI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
 /// _get_Sinterrupts_SSI
 /// 
 /// Generated from the Sail sources.
-fn _get_Sinterrupts_SSI(v: Sinterrupts) -> BitVector<1> {
+pub fn _get_Sinterrupts_SSI(v: Sinterrupts) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// _get_Minterrupts_STI
 /// 
 /// Generated from the Sail sources.
-fn _get_Minterrupts_STI(v: Minterrupts) -> BitVector<1> {
+pub fn _get_Minterrupts_STI(v: Minterrupts) -> BitVector<1> {
     v.bits.subrange::<5, 6, 1>()
 }
 
 /// _update_Minterrupts_STI
 /// 
 /// Generated from the Sail sources.
-fn _update_Minterrupts_STI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
+pub fn _update_Minterrupts_STI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
     Minterrupts {
         bits: update_subrange_bits(v.bits, 5, 5, x)
     }
@@ -4978,7 +4978,7 @@ fn _update_Minterrupts_STI(v: Minterrupts, x: BitVector<1>) -> Minterrupts {
 /// _update_Sinterrupts_STI
 /// 
 /// Generated from the Sail sources.
-fn _update_Sinterrupts_STI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
+pub fn _update_Sinterrupts_STI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
     Sinterrupts {
         bits: update_subrange_bits(v.bits, 5, 5, x)
     }
@@ -4987,14 +4987,14 @@ fn _update_Sinterrupts_STI(v: Sinterrupts, x: BitVector<1>) -> Sinterrupts {
 /// _get_Sinterrupts_STI
 /// 
 /// Generated from the Sail sources.
-fn _get_Sinterrupts_STI(v: Sinterrupts) -> BitVector<1> {
+pub fn _get_Sinterrupts_STI(v: Sinterrupts) -> BitVector<1> {
     v.bits.subrange::<5, 6, 1>()
 }
 
 /// legalize_mip
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L415-427.
-fn legalize_mip(core_ctx: &mut Core, o: Minterrupts, v: BitVector<{
+pub fn legalize_mip(core_ctx: &mut Core, o: Minterrupts, v: BitVector<{
     64
 }>) -> Minterrupts {
     let v = Mk_Minterrupts(v);
@@ -5034,7 +5034,7 @@ fn legalize_mip(core_ctx: &mut Core, o: Minterrupts, v: BitVector<{
 /// legalize_mie
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L429-439.
-fn legalize_mie(core_ctx: &mut Core, o: Minterrupts, v: BitVector<{
+pub fn legalize_mie(core_ctx: &mut Core, o: Minterrupts, v: BitVector<{
     64
 }>) -> Minterrupts {
     let v = Mk_Minterrupts(v);
@@ -5067,7 +5067,7 @@ fn legalize_mie(core_ctx: &mut Core, o: Minterrupts, v: BitVector<{
 /// legalize_mideleg
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L441-445.
-fn legalize_mideleg(o: Minterrupts, v: BitVector<{
+pub fn legalize_mideleg(o: Minterrupts, v: BitVector<{
     64
 }>) -> Minterrupts {
     _update_Minterrupts_MSI(_update_Minterrupts_MTI(_update_Minterrupts_MEI(Mk_Minterrupts(v), BitVector::<1>::new(0b0)), BitVector::<1>::new(0b0)), BitVector::<1>::new(0b0))
@@ -5076,7 +5076,7 @@ fn legalize_mideleg(o: Minterrupts, v: BitVector<{
 /// Mk_Medeleg
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Medeleg(v: BitVector<64>) -> Medeleg {
+pub fn Mk_Medeleg(v: BitVector<64>) -> Medeleg {
     Medeleg {
         bits: v
     }
@@ -5085,7 +5085,7 @@ fn Mk_Medeleg(v: BitVector<64>) -> Medeleg {
 /// _update_Medeleg_MEnvCall
 /// 
 /// Generated from the Sail sources.
-fn _update_Medeleg_MEnvCall(v: Medeleg, x: BitVector<1>) -> Medeleg {
+pub fn _update_Medeleg_MEnvCall(v: Medeleg, x: BitVector<1>) -> Medeleg {
     Medeleg {
         bits: update_subrange_bits(v.bits, 11, 11, x)
     }
@@ -5094,14 +5094,14 @@ fn _update_Medeleg_MEnvCall(v: Medeleg, x: BitVector<1>) -> Medeleg {
 /// legalize_medeleg
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L466-469.
-fn legalize_medeleg(o: Medeleg, v: BitVector<64>) -> Medeleg {
+pub fn legalize_medeleg(o: Medeleg, v: BitVector<64>) -> Medeleg {
     _update_Medeleg_MEnvCall(Mk_Medeleg(v), BitVector::<1>::new(0b0))
 }
 
 /// Mk_Mtvec
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Mtvec(v: BitVector<64>) -> Mtvec {
+pub fn Mk_Mtvec(v: BitVector<64>) -> Mtvec {
     Mtvec {
         bits: v
     }
@@ -5110,21 +5110,21 @@ fn Mk_Mtvec(v: BitVector<64>) -> Mtvec {
 /// _get_Mtvec_Base
 /// 
 /// Generated from the Sail sources.
-fn _get_Mtvec_Base(v: Mtvec) -> BitVector<62> {
+pub fn _get_Mtvec_Base(v: Mtvec) -> BitVector<62> {
     v.bits.subrange::<2, 64, 62>()
 }
 
 /// _get_Mtvec_Mode
 /// 
 /// Generated from the Sail sources.
-fn _get_Mtvec_Mode(v: Mtvec) -> BitVector<2> {
+pub fn _get_Mtvec_Mode(v: Mtvec) -> BitVector<2> {
     v.bits.subrange::<0, 2, 2>()
 }
 
 /// _update_Mtvec_Mode
 /// 
 /// Generated from the Sail sources.
-fn _update_Mtvec_Mode(v: Mtvec, x: BitVector<2>) -> Mtvec {
+pub fn _update_Mtvec_Mode(v: Mtvec, x: BitVector<2>) -> Mtvec {
     Mtvec {
         bits: update_subrange_bits(v.bits, 1, 0, x)
     }
@@ -5133,21 +5133,21 @@ fn _update_Mtvec_Mode(v: Mtvec, x: BitVector<2>) -> Mtvec {
 /// _get_Satp32_Mode
 /// 
 /// Generated from the Sail sources.
-fn _get_Satp32_Mode(v: Satp32) -> BitVector<1> {
+pub fn _get_Satp32_Mode(v: Satp32) -> BitVector<1> {
     v.bits.subrange::<31, 32, 1>()
 }
 
 /// _get_Satp64_Mode
 /// 
 /// Generated from the Sail sources.
-fn _get_Satp64_Mode(v: Satp64) -> BitVector<4> {
+pub fn _get_Satp64_Mode(v: Satp64) -> BitVector<4> {
     v.bits.subrange::<60, 64, 4>()
 }
 
 /// legalize_tvec
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L509-516.
-fn legalize_tvec(o: Mtvec, v: BitVector<{
+pub fn legalize_tvec(o: Mtvec, v: BitVector<{
     64
 }>) -> Mtvec {
     let v = Mk_Mtvec(v);
@@ -5162,21 +5162,21 @@ fn legalize_tvec(o: Mtvec, v: BitVector<{
 /// _get_Mcause_Cause
 /// 
 /// Generated from the Sail sources.
-fn _get_Mcause_Cause(v: Mcause) -> BitVector<63> {
+pub fn _get_Mcause_Cause(v: Mcause) -> BitVector<63> {
     v.bits.subrange::<0, 63, 63>()
 }
 
 /// _get_Mcause_IsInterrupt
 /// 
 /// Generated from the Sail sources.
-fn _get_Mcause_IsInterrupt(v: Mcause) -> BitVector<1> {
+pub fn _get_Mcause_IsInterrupt(v: Mcause) -> BitVector<1> {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// tvec_addr
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L529-538.
-fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<{
+pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<{
     64
 }>> {
     let base: xlenbits = bitvector_concat::<62, 2, 64>(_get_Mtvec_Base(m), BitVector::<2>::new(0b00));
@@ -5195,7 +5195,7 @@ fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<{
 /// legalize_xepc
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L547-552.
-fn legalize_xepc(core_ctx: &mut Core, v: BitVector<{
+pub fn legalize_xepc(core_ctx: &mut Core, v: BitVector<{
     64
 }>) -> BitVector<{
     64
@@ -5210,7 +5210,7 @@ fn legalize_xepc(core_ctx: &mut Core, v: BitVector<{
 /// align_pc
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L556-560.
-fn align_pc(core_ctx: &mut Core, addr: BitVector<{
+pub fn align_pc(core_ctx: &mut Core, addr: BitVector<{
     64
 }>) -> BitVector<{
     64
@@ -5228,7 +5228,7 @@ fn align_pc(core_ctx: &mut Core, addr: BitVector<{
 /// Mk_Counteren
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Counteren(v: BitVector<32>) -> Counteren {
+pub fn Mk_Counteren(v: BitVector<32>) -> Counteren {
     Counteren {
         bits: v
     }
@@ -5237,14 +5237,14 @@ fn Mk_Counteren(v: BitVector<32>) -> Counteren {
 /// _get_Counteren_TM
 /// 
 /// Generated from the Sail sources.
-fn _get_Counteren_TM(v: Counteren) -> BitVector<1> {
+pub fn _get_Counteren_TM(v: Counteren) -> BitVector<1> {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// legalize_scounteren
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L589-592.
-fn legalize_scounteren(core_ctx: &mut Core, c: Counteren, v: BitVector<{
+pub fn legalize_scounteren(core_ctx: &mut Core, c: Counteren, v: BitVector<{
     64
 }>) -> Counteren {
     let supported_counters = bitvector_concat::<29, 3, 32>(subrange_bits::<_, 29>(sys_writable_hpm_counters(core_ctx, ()), 31, 3), BitVector::<3>::new(0b111));
@@ -5254,7 +5254,7 @@ fn legalize_scounteren(core_ctx: &mut Core, c: Counteren, v: BitVector<{
 /// legalize_mcounteren
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L601-604.
-fn legalize_mcounteren(core_ctx: &mut Core, c: Counteren, v: BitVector<{
+pub fn legalize_mcounteren(core_ctx: &mut Core, c: Counteren, v: BitVector<{
     64
 }>) -> Counteren {
     let supported_counters = bitvector_concat::<29, 3, 32>(subrange_bits::<_, 29>(sys_writable_hpm_counters(core_ctx, ()), 31, 3), BitVector::<3>::new(0b111));
@@ -5264,7 +5264,7 @@ fn legalize_mcounteren(core_ctx: &mut Core, c: Counteren, v: BitVector<{
 /// Mk_Counterin
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Counterin(v: BitVector<32>) -> Counterin {
+pub fn Mk_Counterin(v: BitVector<32>) -> Counterin {
     Counterin {
         bits: v
     }
@@ -5273,7 +5273,7 @@ fn Mk_Counterin(v: BitVector<32>) -> Counterin {
 /// legalize_mcountinhibit
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L620-624.
-fn legalize_mcountinhibit(core_ctx: &mut Core, c: Counterin, v: BitVector<{
+pub fn legalize_mcountinhibit(core_ctx: &mut Core, c: Counterin, v: BitVector<{
     64
 }>) -> Counterin {
     let supported_counters = bitvector_concat::<29, 3, 32>(subrange_bits::<_, 29>(sys_writable_hpm_counters(core_ctx, ()), 31, 3), BitVector::<3>::new(0b101));
@@ -5283,7 +5283,7 @@ fn legalize_mcountinhibit(core_ctx: &mut Core, c: Counterin, v: BitVector<{
 /// Mk_Sstatus
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Sstatus(v: BitVector<64>) -> Sstatus {
+pub fn Mk_Sstatus(v: BitVector<64>) -> Sstatus {
     Sstatus {
         bits: v
     }
@@ -5292,7 +5292,7 @@ fn Mk_Sstatus(v: BitVector<64>) -> Sstatus {
 /// lower_mstatus
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L697-714.
-fn lower_mstatus(m: Mstatus) -> Sstatus {
+pub fn lower_mstatus(m: Mstatus) -> Sstatus {
     let s = Mk_Sstatus(zeros::<64>(64));
     _update_Sstatus_SIE(_update_Sstatus_SPIE(_update_Sstatus_SPP(_update_Sstatus_VS(_update_Sstatus_FS(_update_Sstatus_XS(_update_Sstatus_SUM(_update_Sstatus_MXR(_update_Sstatus_UXL(_update_Sstatus_SD(s, _get_Mstatus_SD(m)), _get_Mstatus_UXL(m)), _get_Mstatus_MXR(m)), _get_Mstatus_SUM(m)), _get_Mstatus_XS(m)), _get_Mstatus_FS(m)), _get_Mstatus_VS(m)), _get_Mstatus_SPP(m)), _get_Mstatus_SPIE(m)), _get_Mstatus_SIE(m))
 }
@@ -5300,7 +5300,7 @@ fn lower_mstatus(m: Mstatus) -> Sstatus {
 /// lift_sstatus
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L716-734.
-fn lift_sstatus(m: Mstatus, s: Sstatus) -> Mstatus {
+pub fn lift_sstatus(m: Mstatus, s: Sstatus) -> Mstatus {
     let dirty = ((extStatus_of_bits(_get_Sstatus_FS(s)) == ExtStatus::Dirty) || ((extStatus_of_bits(_get_Sstatus_XS(s)) == ExtStatus::Dirty) || (extStatus_of_bits(_get_Sstatus_VS(s)) == ExtStatus::Dirty)));
     _update_Mstatus_SIE(_update_Mstatus_SPIE(_update_Mstatus_SPP(_update_Mstatus_VS(_update_Mstatus_FS(_update_Mstatus_XS(_update_Mstatus_SUM(_update_Mstatus_MXR(_update_Mstatus_UXL(_update_Mstatus_SD(m, bool_to_bits(dirty)), _get_Sstatus_UXL(s)), _get_Sstatus_MXR(s)), _get_Sstatus_SUM(s)), _get_Sstatus_XS(s)), _get_Sstatus_FS(s)), _get_Sstatus_VS(s)), _get_Sstatus_SPP(s)), _get_Sstatus_SPIE(s)), _get_Sstatus_SIE(s))
 }
@@ -5308,7 +5308,7 @@ fn lift_sstatus(m: Mstatus, s: Sstatus) -> Mstatus {
 /// legalize_sstatus
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L736-738.
-fn legalize_sstatus(core_ctx: &mut Core, m: Mstatus, v: BitVector<{
+pub fn legalize_sstatus(core_ctx: &mut Core, m: Mstatus, v: BitVector<{
     64
 }>) -> Mstatus {
     legalize_mstatus(core_ctx, m, lift_sstatus(m, Mk_Sstatus(v.zero_extend::<64>())).bits)
@@ -5317,7 +5317,7 @@ fn legalize_sstatus(core_ctx: &mut Core, m: Mstatus, v: BitVector<{
 /// Mk_Sinterrupts
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Sinterrupts(v: BitVector<64>) -> Sinterrupts {
+pub fn Mk_Sinterrupts(v: BitVector<64>) -> Sinterrupts {
     Sinterrupts {
         bits: v
     }
@@ -5326,7 +5326,7 @@ fn Mk_Sinterrupts(v: BitVector<64>) -> Sinterrupts {
 /// lower_mip
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L756-764.
-fn lower_mip(m: Minterrupts, d: Minterrupts) -> Sinterrupts {
+pub fn lower_mip(m: Minterrupts, d: Minterrupts) -> Sinterrupts {
     let s: Sinterrupts = Mk_Sinterrupts(zeros::<64>(64));
     _update_Sinterrupts_SSI(_update_Sinterrupts_STI(_update_Sinterrupts_SEI(s, (_get_Minterrupts_SEI(m) & _get_Minterrupts_SEI(d))), (_get_Minterrupts_STI(m) & _get_Minterrupts_STI(d))), (_get_Minterrupts_SSI(m) & _get_Minterrupts_SSI(d)))
 }
@@ -5334,7 +5334,7 @@ fn lower_mip(m: Minterrupts, d: Minterrupts) -> Sinterrupts {
 /// lower_mie
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L767-775.
-fn lower_mie(m: Minterrupts, d: Minterrupts) -> Sinterrupts {
+pub fn lower_mie(m: Minterrupts, d: Minterrupts) -> Sinterrupts {
     let s: Sinterrupts = Mk_Sinterrupts(zeros::<64>(64));
     _update_Sinterrupts_SSI(_update_Sinterrupts_STI(_update_Sinterrupts_SEI(s, (_get_Minterrupts_SEI(m) & _get_Minterrupts_SEI(d))), (_get_Minterrupts_STI(m) & _get_Minterrupts_STI(d))), (_get_Minterrupts_SSI(m) & _get_Minterrupts_SSI(d)))
 }
@@ -5342,7 +5342,7 @@ fn lower_mie(m: Minterrupts, d: Minterrupts) -> Sinterrupts {
 /// lift_sip
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L778-782.
-fn lift_sip(o: Minterrupts, d: Minterrupts, s: Sinterrupts) -> Minterrupts {
+pub fn lift_sip(o: Minterrupts, d: Minterrupts, s: Sinterrupts) -> Minterrupts {
     let m: Minterrupts = o;
     let m = if {(_get_Minterrupts_SSI(d) == BitVector::<1>::new(0b1))} {
         _update_Minterrupts_SSI(m, _get_Sinterrupts_SSI(s))
@@ -5355,7 +5355,7 @@ fn lift_sip(o: Minterrupts, d: Minterrupts, s: Sinterrupts) -> Minterrupts {
 /// legalize_sip
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L784-786.
-fn legalize_sip(m: Minterrupts, d: Minterrupts, v: BitVector<{
+pub fn legalize_sip(m: Minterrupts, d: Minterrupts, v: BitVector<{
     64
 }>) -> Minterrupts {
     lift_sip(m, d, Mk_Sinterrupts(v))
@@ -5364,7 +5364,7 @@ fn legalize_sip(m: Minterrupts, d: Minterrupts, v: BitVector<{
 /// lift_sie
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L796-803.
-fn lift_sie(o: Minterrupts, d: Minterrupts, s: Sinterrupts) -> Minterrupts {
+pub fn lift_sie(o: Minterrupts, d: Minterrupts, s: Sinterrupts) -> Minterrupts {
     let m: Minterrupts = o;
     {
         let var_1 = {
@@ -5395,7 +5395,7 @@ fn lift_sie(o: Minterrupts, d: Minterrupts, s: Sinterrupts) -> Minterrupts {
 /// legalize_sie
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L805-807.
-fn legalize_sie(m: Minterrupts, d: Minterrupts, v: BitVector<{
+pub fn legalize_sie(m: Minterrupts, d: Minterrupts, v: BitVector<{
     64
 }>) -> Minterrupts {
     lift_sie(m, d, Mk_Sinterrupts(v))
@@ -5404,7 +5404,7 @@ fn legalize_sie(m: Minterrupts, d: Minterrupts, v: BitVector<{
 /// Mk_Satp64
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Satp64(v: BitVector<64>) -> Satp64 {
+pub fn Mk_Satp64(v: BitVector<64>) -> Satp64 {
     Satp64 {
         bits: v
     }
@@ -5413,7 +5413,7 @@ fn Mk_Satp64(v: BitVector<64>) -> Satp64 {
 /// Mk_Satp32
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Satp32(v: BitVector<32>) -> Satp32 {
+pub fn Mk_Satp32(v: BitVector<32>) -> Satp32 {
     Satp32 {
         bits: v
     }
@@ -5422,7 +5422,7 @@ fn Mk_Satp32(v: BitVector<32>) -> Satp32 {
 /// legalize_satp
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L858-888.
-fn legalize_satp(core_ctx: &mut Core, arch: Architecture, prev_value: BitVector<{
+pub fn legalize_satp(core_ctx: &mut Core, arch: Architecture, prev_value: BitVector<{
     64
 }>, written_value: BitVector<{
     64
@@ -5447,7 +5447,7 @@ fn legalize_satp(core_ctx: &mut Core, arch: Architecture, prev_value: BitVector<
 /// get_vlenb
 /// 
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L919-921.
-fn get_vlenb(unit_arg: ()) -> BitVector<{
+pub fn get_vlenb(unit_arg: ()) -> BitVector<{
     64
 }> {
     to_bits::<64>(64, (8 / 8))
@@ -5456,14 +5456,14 @@ fn get_vlenb(unit_arg: ()) -> BitVector<{
 /// _get_Vtype_vlmul
 /// 
 /// Generated from the Sail sources.
-fn _get_Vtype_vlmul(v: Vtype) -> BitVector<3> {
+pub fn _get_Vtype_vlmul(v: Vtype) -> BitVector<3> {
     v.bits.subrange::<0, 3, 3>()
 }
 
 /// _get_Vtype_vsew
 /// 
 /// Generated from the Sail sources.
-fn _get_Vtype_vsew(v: Vtype) -> BitVector<3> {
+pub fn _get_Vtype_vsew(v: Vtype) -> BitVector<3> {
     v.bits.subrange::<3, 6, 3>()
 }
 
@@ -5481,7 +5481,7 @@ pub enum PmpAddrMatchType {
 /// pmpAddrMatchType_of_bits
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L14-21.
-fn pmpAddrMatchType_of_bits(bs: BitVector<2>) -> PmpAddrMatchType {
+pub fn pmpAddrMatchType_of_bits(bs: BitVector<2>) -> PmpAddrMatchType {
     match bs {
         b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {PmpAddrMatchType::OFF}
         b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {PmpAddrMatchType::TOR}
@@ -5494,7 +5494,7 @@ fn pmpAddrMatchType_of_bits(bs: BitVector<2>) -> PmpAddrMatchType {
 /// pmpAddrMatchType_to_bits
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L24-31.
-fn pmpAddrMatchType_to_bits(bs: PmpAddrMatchType) -> BitVector<2> {
+pub fn pmpAddrMatchType_to_bits(bs: PmpAddrMatchType) -> BitVector<2> {
     match bs {
         PmpAddrMatchType::OFF => {BitVector::<2>::new(0b00)}
         PmpAddrMatchType::TOR => {BitVector::<2>::new(0b01)}
@@ -5507,7 +5507,7 @@ fn pmpAddrMatchType_to_bits(bs: PmpAddrMatchType) -> BitVector<2> {
 /// Mk_Pmpcfg_ent
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_Pmpcfg_ent(v: BitVector<8>) -> Pmpcfg_ent {
+pub fn Mk_Pmpcfg_ent(v: BitVector<8>) -> Pmpcfg_ent {
     Pmpcfg_ent {
         bits: v
     }
@@ -5516,7 +5516,7 @@ fn Mk_Pmpcfg_ent(v: BitVector<8>) -> Pmpcfg_ent {
 /// pmpReadCfgReg
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L48-67.
-fn pmpReadCfgReg(core_ctx: &mut Core, n: i128) -> BitVector<{
+pub fn pmpReadCfgReg(core_ctx: &mut Core, n: i128) -> BitVector<{
     64
 }> {
     assert!((((n as usize) % (2 as usize)) == 0), "Unexpected pmp config reg read");
@@ -5526,7 +5526,7 @@ fn pmpReadCfgReg(core_ctx: &mut Core, n: i128) -> BitVector<{
 /// pmpReadAddrReg
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L69-89.
-fn pmpReadAddrReg(core_ctx: &mut Core, n: i128) -> BitVector<{
+pub fn pmpReadAddrReg(core_ctx: &mut Core, n: i128) -> BitVector<{
     64
 }> {
     let G = sys_pmp_grain(core_ctx, ());
@@ -5549,14 +5549,14 @@ fn pmpReadAddrReg(core_ctx: &mut Core, n: i128) -> BitVector<{
 /// pmpLocked
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L92-93.
-fn pmpLocked(cfg: Pmpcfg_ent) -> bool {
+pub fn pmpLocked(cfg: Pmpcfg_ent) -> bool {
     (_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1))
 }
 
 /// pmpTORLocked
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L95-96.
-fn pmpTORLocked(cfg: Pmpcfg_ent) -> bool {
+pub fn pmpTORLocked(cfg: Pmpcfg_ent) -> bool {
     ((_get_Pmpcfg_ent_L(cfg) == BitVector::<1>::new(0b1)) && (pmpAddrMatchType_of_bits(_get_Pmpcfg_ent_A(cfg)) == PmpAddrMatchType::TOR))
 }
 
@@ -5598,7 +5598,7 @@ pub fn pmpWriteCfgReg(core_ctx: &mut Core, n: i128, v: BitVector<{
 /// pmpWriteAddr
 /// 
 /// Generated from the Sail sources at `riscv_pmp_regs.sail` L136-139.
-fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
+pub fn pmpWriteAddr(locked: bool, tor_locked: bool, reg: BitVector<{
     64
 }>, v: BitVector<{
     64
@@ -5654,7 +5654,7 @@ pub enum pmpAddrMatch {
 /// pmpRangeMatch
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L29-39.
-fn pmpRangeMatch(begin: nat, end_: nat, addr: nat, width: nat) -> pmpAddrMatch {
+pub fn pmpRangeMatch(begin: nat, end_: nat, addr: nat, width: nat) -> pmpAddrMatch {
     if {(((addr + width) <= begin) || (end_ <= addr))} {
         pmpAddrMatch::PMP_NoMatch
     } else if {((begin <= addr) && ((addr + width) <= end_))} {
@@ -5667,7 +5667,7 @@ fn pmpRangeMatch(begin: nat, end_: nat, addr: nat, width: nat) -> pmpAddrMatch {
 /// pmpMatchAddr
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L41-80.
-fn pmpMatchAddr(core_ctx: &mut Core, physaddr::Physaddr(addr): physaddr, width: BitVector<{
+pub fn pmpMatchAddr(core_ctx: &mut Core, physaddr::Physaddr(addr): physaddr, width: BitVector<{
     64
 }>, ent: Pmpcfg_ent, pmpaddr: BitVector<{
     64
@@ -5713,7 +5713,7 @@ pub enum pmpMatch {
 /// pmpMatchEntry
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L84-93.
-fn pmpMatchEntry(core_ctx: &mut Core, addr: physaddr, width: BitVector<{
+pub fn pmpMatchEntry(core_ctx: &mut Core, addr: physaddr, width: BitVector<{
     64
 }>, acc: AccessType<()>, _priv_: Privilege, ent: Pmpcfg_ent, pmpaddr: BitVector<{
     64
@@ -5735,7 +5735,7 @@ fn pmpMatchEntry(core_ctx: &mut Core, addr: physaddr, width: BitVector<{
 /// accessToFault
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L97-103.
-fn accessToFault(acc: AccessType<()>) -> ExceptionType {
+pub fn accessToFault(acc: AccessType<()>) -> ExceptionType {
     match acc {
         AccessType::Read(_) => {ExceptionType::E_Load_Access_Fault(())}
         AccessType::Write(_) => {ExceptionType::E_SAMO_Access_Fault(())}
@@ -5780,7 +5780,7 @@ pub fn pmpCheck(core_ctx: &mut Core, addr: physaddr, width: i128, acc: AccessTyp
 /// lock_highest_priority_pmp
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L120-136.
-fn lock_highest_priority_pmp(core_ctx: &mut Core, unit_arg: ()) -> bool {
+pub fn lock_highest_priority_pmp(core_ctx: &mut Core, unit_arg: ()) -> bool {
     match pmpAddrMatchType_of_bits(_get_Pmpcfg_ent_A(core_ctx.pmpcfg_n[(0 as usize)])) {
         PmpAddrMatchType::NAPOT => {{
             core_ctx.pmpcfg_n[0].bits = core_ctx.pmpcfg_n[0].bits.set_subrange::<7, 8, 1>(BitVector::<1>::new(0b1));
@@ -5808,7 +5808,7 @@ fn lock_highest_priority_pmp(core_ctx: &mut Core, unit_arg: ()) -> bool {
 /// unlock_all_pmps
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L138-149.
-fn unlock_all_pmps(core_ctx: &mut Core, unit_arg: ()) {
+pub fn unlock_all_pmps(core_ctx: &mut Core, unit_arg: ()) {
     for i in 0..=63 {
         core_ctx.pmpcfg_n[(i as usize)] = _update_Pmpcfg_ent_L(core_ctx.pmpcfg_n[(i as usize)], BitVector::<1>::new(0b0))
     }
@@ -5817,7 +5817,7 @@ fn unlock_all_pmps(core_ctx: &mut Core, unit_arg: ()) {
 /// get_highest_priority_pmp_sa
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L151-177.
-fn get_highest_priority_pmp_sa(core_ctx: &mut Core, unit_arg: ()) -> Option<BitVector<{
+pub fn get_highest_priority_pmp_sa(core_ctx: &mut Core, unit_arg: ()) -> Option<BitVector<{
     64
 }>> {
     match pmpAddrMatchType_of_bits(_get_Pmpcfg_ent_A(core_ctx.pmpcfg_n[(0 as usize)])) {
@@ -5848,7 +5848,7 @@ fn get_highest_priority_pmp_sa(core_ctx: &mut Core, unit_arg: ()) -> Option<BitV
 /// reset_pmp
 /// 
 /// Generated from the Sail sources at `riscv_pmp_control.sail` L179-190.
-fn reset_pmp(core_ctx: &mut Core, unit_arg: ()) {
+pub fn reset_pmp(core_ctx: &mut Core, unit_arg: ()) {
     assert!(((sys_pmp_count(core_ctx, ()) == 0) || (((sys_pmp_count(core_ctx, ()) == 16) || ((sys_pmp_count(core_ctx, ()) == 64) as bool)) as bool)), "sys_pmp_count() must be 0, 16, or 64");
     for i in 0..=63 {
         core_ctx.pmpcfg_n[(i as usize)] = _update_Pmpcfg_ent_L(_update_Pmpcfg_ent_A(core_ctx.pmpcfg_n[(i as usize)], pmpAddrMatchType_to_bits(PmpAddrMatchType::OFF)), BitVector::<1>::new(0b0))
@@ -5905,7 +5905,7 @@ pub type ext_control_addr_error = ();
 /// ext_control_check_addr
 /// 
 /// Generated from the Sail sources at `riscv_addr_checks.sail` L40-41.
-fn ext_control_check_addr(pc: BitVector<{
+pub fn ext_control_check_addr(pc: BitVector<{
     64
 }>) -> Ext_ControlAddr_Check<()> {
     Ext_ControlAddr_Check::Ext_ControlAddr_OK(virtaddr::Virtaddr(pc))
@@ -5914,7 +5914,7 @@ fn ext_control_check_addr(pc: BitVector<{
 /// ext_control_check_pc
 /// 
 /// Generated from the Sail sources at `riscv_addr_checks.sail` L44-45.
-fn ext_control_check_pc(pc: BitVector<{
+pub fn ext_control_check_pc(pc: BitVector<{
     64
 }>) -> Ext_ControlAddr_Check<()> {
     Ext_ControlAddr_Check::Ext_ControlAddr_OK(virtaddr::Virtaddr(pc))
@@ -5929,7 +5929,7 @@ pub type vregtype = vreglenbits;
 /// dirty_v_context
 /// 
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L94-99.
-fn dirty_v_context(core_ctx: &mut Core, unit_arg: ()) {
+pub fn dirty_v_context(core_ctx: &mut Core, unit_arg: ()) {
     assert!(hartSupports(core_ctx, extension::Ext_V), "riscv_vext_regs.sail:95.28-95.29");
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<9, 11, 2>(extStatus_to_bits(ExtStatus::Dirty));
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<63, 64, 1>(BitVector::<1>::new(0b1))
@@ -5938,21 +5938,21 @@ fn dirty_v_context(core_ctx: &mut Core, unit_arg: ()) {
 /// _get_Vcsr_vxrm
 /// 
 /// Generated from the Sail sources.
-fn _get_Vcsr_vxrm(v: Vcsr) -> BitVector<2> {
+pub fn _get_Vcsr_vxrm(v: Vcsr) -> BitVector<2> {
     v.bits.subrange::<1, 3, 2>()
 }
 
 /// _get_Vcsr_vxsat
 /// 
 /// Generated from the Sail sources.
-fn _get_Vcsr_vxsat(v: Vcsr) -> BitVector<1> {
+pub fn _get_Vcsr_vxsat(v: Vcsr) -> BitVector<1> {
     v.bits.subrange::<0, 1, 1>()
 }
 
 /// ext_write_vcsr
 /// 
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L233-237.
-fn ext_write_vcsr(core_ctx: &mut Core, vxrm_val: BitVector<2>, vxsat_val: BitVector<1>) {
+pub fn ext_write_vcsr(core_ctx: &mut Core, vxrm_val: BitVector<2>, vxsat_val: BitVector<1>) {
     core_ctx.vcsr.bits = core_ctx.vcsr.bits.set_subrange::<1, 3, 2>(vxrm_val);
     core_ctx.vcsr.bits = core_ctx.vcsr.bits.set_subrange::<0, 1, 1>(vxsat_val);
     dirty_v_context(core_ctx, ())
@@ -5961,7 +5961,7 @@ fn ext_write_vcsr(core_ctx: &mut Core, vxrm_val: BitVector<2>, vxsat_val: BitVec
 /// set_vstart
 /// 
 /// Generated from the Sail sources at `riscv_vext_control.sail` L15-20.
-fn set_vstart(core_ctx: &mut Core, value: BitVector<16>) {
+pub fn set_vstart(core_ctx: &mut Core, value: BitVector<16>) {
     dirty_v_context(core_ctx, ());
     core_ctx.vstart = value.subrange::<0, 3, 3>().zero_extend::<16>()
 }
@@ -5987,7 +5987,7 @@ pub const fn handle_trap_extension(p: Privilege, pc: BitVector<{
 /// prepare_trap_vector
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L21-31.
-fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitVector<{
+pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitVector<{
     64
 }> {
     let tvec: Mtvec = match p {
@@ -6006,7 +6006,7 @@ fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitV
 /// get_xepc
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L41-46.
-fn get_xepc(core_ctx: &mut Core, p: Privilege) -> BitVector<{
+pub fn get_xepc(core_ctx: &mut Core, p: Privilege) -> BitVector<{
     64
 }> {
     match p {
@@ -6026,7 +6026,7 @@ fn get_xepc(core_ctx: &mut Core, p: Privilege) -> BitVector<{
 /// set_xepc
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L49-57.
-fn set_xepc(core_ctx: &mut Core, p: Privilege, value: BitVector<{
+pub fn set_xepc(core_ctx: &mut Core, p: Privilege, value: BitVector<{
     64
 }>) -> BitVector<{
     64
@@ -6044,7 +6044,7 @@ fn set_xepc(core_ctx: &mut Core, p: Privilege, value: BitVector<{
 /// prepare_xret_target
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L60-61.
-fn prepare_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<{
+pub fn prepare_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<{
     64
 }> {
     get_xepc(core_ctx, p)
@@ -6053,7 +6053,7 @@ fn prepare_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<{
 /// get_mtvec
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L65-66.
-fn get_mtvec(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
+pub fn get_mtvec(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
     64
 }> {
     core_ctx.mtvec.bits
@@ -6062,7 +6062,7 @@ fn get_mtvec(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
 /// get_stvec
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L68-69.
-fn get_stvec(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
+pub fn get_stvec(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
     64
 }> {
     core_ctx.stvec.bits
@@ -6071,7 +6071,7 @@ fn get_stvec(core_ctx: &mut Core, unit_arg: ()) -> BitVector<{
 /// set_mtvec
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L71-74.
-fn set_mtvec(core_ctx: &mut Core, value: BitVector<{
+pub fn set_mtvec(core_ctx: &mut Core, value: BitVector<{
     64
 }>) -> BitVector<{
     64
@@ -6086,7 +6086,7 @@ fn set_mtvec(core_ctx: &mut Core, value: BitVector<{
 /// set_stvec
 /// 
 /// Generated from the Sail sources at `riscv_sys_exceptions.sail` L76-79.
-fn set_stvec(core_ctx: &mut Core, value: BitVector<{
+pub fn set_stvec(core_ctx: &mut Core, value: BitVector<{
     64
 }>) -> BitVector<{
     64
@@ -6111,7 +6111,7 @@ pub struct sync_exception {
 /// Mk_HpmEvent
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_HpmEvent(v: BitVector<64>) -> HpmEvent {
+pub fn Mk_HpmEvent(v: BitVector<64>) -> HpmEvent {
     HpmEvent {
         bits: v
     }
@@ -6120,14 +6120,14 @@ fn Mk_HpmEvent(v: BitVector<64>) -> HpmEvent {
 /// _get_HpmEvent_MINH
 /// 
 /// Generated from the Sail sources.
-fn _get_HpmEvent_MINH(v: HpmEvent) -> BitVector<1> {
+pub fn _get_HpmEvent_MINH(v: HpmEvent) -> BitVector<1> {
     v.bits.subrange::<62, 63, 1>()
 }
 
 /// _update_HpmEvent_MINH
 /// 
 /// Generated from the Sail sources.
-fn _update_HpmEvent_MINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
+pub fn _update_HpmEvent_MINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
     HpmEvent {
         bits: update_subrange_bits(v.bits, 62, 62, x)
     }
@@ -6136,7 +6136,7 @@ fn _update_HpmEvent_MINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
 /// _update_CountSmcntrpmf_MINH
 /// 
 /// Generated from the Sail sources.
-fn _update_CountSmcntrpmf_MINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcntrpmf {
+pub fn _update_CountSmcntrpmf_MINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcntrpmf {
     CountSmcntrpmf {
         bits: update_subrange_bits(v.bits, 62, 62, x)
     }
@@ -6145,21 +6145,21 @@ fn _update_CountSmcntrpmf_MINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcnt
 /// _get_CountSmcntrpmf_MINH
 /// 
 /// Generated from the Sail sources.
-fn _get_CountSmcntrpmf_MINH(v: CountSmcntrpmf) -> BitVector<1> {
+pub fn _get_CountSmcntrpmf_MINH(v: CountSmcntrpmf) -> BitVector<1> {
     v.bits.subrange::<62, 63, 1>()
 }
 
 /// _get_HpmEvent_OF
 /// 
 /// Generated from the Sail sources.
-fn _get_HpmEvent_OF(v: HpmEvent) -> BitVector<1> {
+pub fn _get_HpmEvent_OF(v: HpmEvent) -> BitVector<1> {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// _update_HpmEvent_OF
 /// 
 /// Generated from the Sail sources.
-fn _update_HpmEvent_OF(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
+pub fn _update_HpmEvent_OF(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
     HpmEvent {
         bits: update_subrange_bits(v.bits, 63, 63, x)
     }
@@ -6168,14 +6168,14 @@ fn _update_HpmEvent_OF(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
 /// _get_HpmEvent_SINH
 /// 
 /// Generated from the Sail sources.
-fn _get_HpmEvent_SINH(v: HpmEvent) -> BitVector<1> {
+pub fn _get_HpmEvent_SINH(v: HpmEvent) -> BitVector<1> {
     v.bits.subrange::<61, 62, 1>()
 }
 
 /// _update_HpmEvent_SINH
 /// 
 /// Generated from the Sail sources.
-fn _update_HpmEvent_SINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
+pub fn _update_HpmEvent_SINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
     HpmEvent {
         bits: update_subrange_bits(v.bits, 61, 61, x)
     }
@@ -6184,7 +6184,7 @@ fn _update_HpmEvent_SINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
 /// _update_CountSmcntrpmf_SINH
 /// 
 /// Generated from the Sail sources.
-fn _update_CountSmcntrpmf_SINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcntrpmf {
+pub fn _update_CountSmcntrpmf_SINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcntrpmf {
     CountSmcntrpmf {
         bits: update_subrange_bits(v.bits, 61, 61, x)
     }
@@ -6193,21 +6193,21 @@ fn _update_CountSmcntrpmf_SINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcnt
 /// _get_CountSmcntrpmf_SINH
 /// 
 /// Generated from the Sail sources.
-fn _get_CountSmcntrpmf_SINH(v: CountSmcntrpmf) -> BitVector<1> {
+pub fn _get_CountSmcntrpmf_SINH(v: CountSmcntrpmf) -> BitVector<1> {
     v.bits.subrange::<61, 62, 1>()
 }
 
 /// _get_HpmEvent_UINH
 /// 
 /// Generated from the Sail sources.
-fn _get_HpmEvent_UINH(v: HpmEvent) -> BitVector<1> {
+pub fn _get_HpmEvent_UINH(v: HpmEvent) -> BitVector<1> {
     v.bits.subrange::<60, 61, 1>()
 }
 
 /// _update_HpmEvent_UINH
 /// 
 /// Generated from the Sail sources.
-fn _update_HpmEvent_UINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
+pub fn _update_HpmEvent_UINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
     HpmEvent {
         bits: update_subrange_bits(v.bits, 60, 60, x)
     }
@@ -6216,7 +6216,7 @@ fn _update_HpmEvent_UINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
 /// _update_CountSmcntrpmf_UINH
 /// 
 /// Generated from the Sail sources.
-fn _update_CountSmcntrpmf_UINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcntrpmf {
+pub fn _update_CountSmcntrpmf_UINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcntrpmf {
     CountSmcntrpmf {
         bits: update_subrange_bits(v.bits, 60, 60, x)
     }
@@ -6225,14 +6225,14 @@ fn _update_CountSmcntrpmf_UINH(v: CountSmcntrpmf, x: BitVector<1>) -> CountSmcnt
 /// _get_CountSmcntrpmf_UINH
 /// 
 /// Generated from the Sail sources.
-fn _get_CountSmcntrpmf_UINH(v: CountSmcntrpmf) -> BitVector<1> {
+pub fn _get_CountSmcntrpmf_UINH(v: CountSmcntrpmf) -> BitVector<1> {
     v.bits.subrange::<60, 61, 1>()
 }
 
 /// _update_HpmEvent_VSINH
 /// 
 /// Generated from the Sail sources.
-fn _update_HpmEvent_VSINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
+pub fn _update_HpmEvent_VSINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
     HpmEvent {
         bits: update_subrange_bits(v.bits, 59, 59, x)
     }
@@ -6241,7 +6241,7 @@ fn _update_HpmEvent_VSINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
 /// _update_HpmEvent_VUINH
 /// 
 /// Generated from the Sail sources.
-fn _update_HpmEvent_VUINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
+pub fn _update_HpmEvent_VUINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
     HpmEvent {
         bits: update_subrange_bits(v.bits, 58, 58, x)
     }
@@ -6250,14 +6250,14 @@ fn _update_HpmEvent_VUINH(v: HpmEvent, x: BitVector<1>) -> HpmEvent {
 /// _get_HpmEvent_event
 /// 
 /// Generated from the Sail sources.
-fn _get_HpmEvent_event(v: HpmEvent) -> BitVector<32> {
+pub fn _get_HpmEvent_event(v: HpmEvent) -> BitVector<32> {
     v.bits.subrange::<0, 32, 32>()
 }
 
 /// _update_HpmEvent_event
 /// 
 /// Generated from the Sail sources.
-fn _update_HpmEvent_event(v: HpmEvent, x: BitVector<32>) -> HpmEvent {
+pub fn _update_HpmEvent_event(v: HpmEvent, x: BitVector<32>) -> HpmEvent {
     HpmEvent {
         bits: update_subrange_bits(v.bits, 31, 0, x)
     }
@@ -6268,7 +6268,7 @@ pub type hpmidx = i128;
 /// hpmidx_from_bits
 /// 
 /// Generated from the Sail sources at `riscv_zihpm.sail` L189-193.
-fn hpmidx_from_bits(b: BitVector<5>) -> i128 {
+pub fn hpmidx_from_bits(b: BitVector<5>) -> i128 {
     let index = b.unsigned();
     assert!((index >= 3), "unreachable HPM index");
     index
@@ -6277,7 +6277,7 @@ fn hpmidx_from_bits(b: BitVector<5>) -> i128 {
 /// legalize_hpmevent
 /// 
 /// Generated from the Sail sources at `riscv_zihpm.sail` L195-205.
-fn legalize_hpmevent(core_ctx: &mut Core, v: HpmEvent) -> HpmEvent {
+pub fn legalize_hpmevent(core_ctx: &mut Core, v: HpmEvent) -> HpmEvent {
     {
         let var_1 = {
             let var_2 = {
@@ -6324,7 +6324,7 @@ fn legalize_hpmevent(core_ctx: &mut Core, v: HpmEvent) -> HpmEvent {
 /// read_mhpmcounter
 /// 
 /// Generated from the Sail sources at `riscv_zihpm.sail` L207.
-fn read_mhpmcounter(core_ctx: &mut Core, index: i128) -> BitVector<{
+pub fn read_mhpmcounter(core_ctx: &mut Core, index: i128) -> BitVector<{
     64
 }> {
     subrange_bits::<_, 64>(core_ctx.mhpmcounter[(index as usize)], 63, 0)
@@ -6333,7 +6333,7 @@ fn read_mhpmcounter(core_ctx: &mut Core, index: i128) -> BitVector<{
 /// read_mhpmevent
 /// 
 /// Generated from the Sail sources at `riscv_zihpm.sail` L209.
-fn read_mhpmevent(core_ctx: &mut Core, index: i128) -> BitVector<{
+pub fn read_mhpmevent(core_ctx: &mut Core, index: i128) -> BitVector<{
     64
 }> {
     core_ctx.mhpmevent[(index as usize)].bits.subrange::<0, 64, 64>()
@@ -6342,7 +6342,7 @@ fn read_mhpmevent(core_ctx: &mut Core, index: i128) -> BitVector<{
 /// write_mhpmcounter
 /// 
 /// Generated from the Sail sources at `riscv_zihpm.sail` L212-213.
-fn write_mhpmcounter(core_ctx: &mut Core, index: i128, value: BitVector<{
+pub fn write_mhpmcounter(core_ctx: &mut Core, index: i128, value: BitVector<{
     64
 }>) {
     if {(bitvector_access(sys_writable_hpm_counters(core_ctx, ()), index) == true)} {
@@ -6355,7 +6355,7 @@ fn write_mhpmcounter(core_ctx: &mut Core, index: i128, value: BitVector<{
 /// write_mhpmevent
 /// 
 /// Generated from the Sail sources at `riscv_zihpm.sail` L218-224.
-fn write_mhpmevent(core_ctx: &mut Core, index: i128, value: BitVector<{
+pub fn write_mhpmevent(core_ctx: &mut Core, index: i128, value: BitVector<{
     64
 }>) {
     if {(bitvector_access(sys_writable_hpm_counters(core_ctx, ()), index) == true)} {
@@ -6368,7 +6368,7 @@ fn write_mhpmevent(core_ctx: &mut Core, index: i128, value: BitVector<{
 /// get_scountovf
 /// 
 /// Generated from the Sail sources at `riscv_sscofpmf.sail` L60-76.
-fn get_scountovf(core_ctx: &mut Core, _priv_: Privilege) -> BitVector<32> {
+pub fn get_scountovf(core_ctx: &mut Core, _priv_: Privilege) -> BitVector<32> {
     let overflow = bitvector_concat::<1, 31, 32>(_get_HpmEvent_OF(core_ctx.mhpmevent[(31 as usize)]), bitvector_concat::<1, 30, 31>(_get_HpmEvent_OF(core_ctx.mhpmevent[(30 as usize)]), bitvector_concat::<1, 29, 30>(_get_HpmEvent_OF(core_ctx.mhpmevent[(29 as usize)]), bitvector_concat::<1, 28, 29>(_get_HpmEvent_OF(core_ctx.mhpmevent[(28 as usize)]), bitvector_concat::<1, 27, 28>(_get_HpmEvent_OF(core_ctx.mhpmevent[(27 as usize)]), bitvector_concat::<1, 26, 27>(_get_HpmEvent_OF(core_ctx.mhpmevent[(26 as usize)]), bitvector_concat::<1, 25, 26>(_get_HpmEvent_OF(core_ctx.mhpmevent[(25 as usize)]), bitvector_concat::<1, 24, 25>(_get_HpmEvent_OF(core_ctx.mhpmevent[(24 as usize)]), bitvector_concat::<1, 23, 24>(_get_HpmEvent_OF(core_ctx.mhpmevent[(23 as usize)]), bitvector_concat::<1, 22, 23>(_get_HpmEvent_OF(core_ctx.mhpmevent[(22 as usize)]), bitvector_concat::<1, 21, 22>(_get_HpmEvent_OF(core_ctx.mhpmevent[(21 as usize)]), bitvector_concat::<1, 20, 21>(_get_HpmEvent_OF(core_ctx.mhpmevent[(20 as usize)]), bitvector_concat::<1, 19, 20>(_get_HpmEvent_OF(core_ctx.mhpmevent[(19 as usize)]), bitvector_concat::<1, 18, 19>(_get_HpmEvent_OF(core_ctx.mhpmevent[(18 as usize)]), bitvector_concat::<1, 17, 18>(_get_HpmEvent_OF(core_ctx.mhpmevent[(17 as usize)]), bitvector_concat::<1, 16, 17>(_get_HpmEvent_OF(core_ctx.mhpmevent[(16 as usize)]), bitvector_concat::<1, 15, 16>(_get_HpmEvent_OF(core_ctx.mhpmevent[(15 as usize)]), bitvector_concat::<1, 14, 15>(_get_HpmEvent_OF(core_ctx.mhpmevent[(14 as usize)]), bitvector_concat::<1, 13, 14>(_get_HpmEvent_OF(core_ctx.mhpmevent[(13 as usize)]), bitvector_concat::<1, 12, 13>(_get_HpmEvent_OF(core_ctx.mhpmevent[(12 as usize)]), bitvector_concat::<1, 11, 12>(_get_HpmEvent_OF(core_ctx.mhpmevent[(11 as usize)]), bitvector_concat::<1, 10, 11>(_get_HpmEvent_OF(core_ctx.mhpmevent[(10 as usize)]), bitvector_concat::<1, 9, 10>(_get_HpmEvent_OF(core_ctx.mhpmevent[(9 as usize)]), bitvector_concat::<1, 8, 9>(_get_HpmEvent_OF(core_ctx.mhpmevent[(8 as usize)]), bitvector_concat::<1, 7, 8>(_get_HpmEvent_OF(core_ctx.mhpmevent[(7 as usize)]), bitvector_concat::<1, 6, 7>(_get_HpmEvent_OF(core_ctx.mhpmevent[(6 as usize)]), bitvector_concat::<1, 5, 6>(_get_HpmEvent_OF(core_ctx.mhpmevent[(5 as usize)]), bitvector_concat::<1, 4, 5>(_get_HpmEvent_OF(core_ctx.mhpmevent[(4 as usize)]), bitvector_concat::<1, 3, 4>(_get_HpmEvent_OF(core_ctx.mhpmevent[(3 as usize)]), BitVector::<3>::new(0b000))))))))))))))))))))))))))))));
     match _priv_ {
         Privilege::Machine => {overflow}
@@ -6392,7 +6392,7 @@ pub enum seed_opst {
 /// opst_code_forwards
 /// 
 /// Generated from the Sail sources.
-fn opst_code_forwards(arg_hashtag_: seed_opst) -> BitVector<2> {
+pub fn opst_code_forwards(arg_hashtag_: seed_opst) -> BitVector<2> {
     match arg_hashtag_ {
         seed_opst::BIST => {BitVector::<2>::new(0b00)}
         seed_opst::WAIT => {BitVector::<2>::new(0b01)}
@@ -6405,7 +6405,7 @@ fn opst_code_forwards(arg_hashtag_: seed_opst) -> BitVector<2> {
 /// read_seed_csr
 /// 
 /// Generated from the Sail sources at `riscv_zkr_control.sail` L33-38.
-fn read_seed_csr(unit_arg: ()) -> BitVector<{
+pub fn read_seed_csr(unit_arg: ()) -> BitVector<{
     64
 }> {
     let reserved_bits: BitVector<6> = BitVector::<6>::new(0b000000);
@@ -6417,7 +6417,7 @@ fn read_seed_csr(unit_arg: ()) -> BitVector<{
 /// write_seed_csr
 /// 
 /// Generated from the Sail sources at `riscv_zkr_control.sail` L41.
-fn write_seed_csr(unit_arg: ()) -> BitVector<{
+pub fn write_seed_csr(unit_arg: ()) -> BitVector<{
     64
 }> {
     zeros::<64>(64)
@@ -6452,7 +6452,7 @@ pub enum fregno {
 /// dirty_fd_context
 /// 
 /// Generated from the Sail sources at `riscv_fdext_regs.sail` L109-114.
-fn dirty_fd_context(core_ctx: &mut Core, unit_arg: ()) {
+pub fn dirty_fd_context(core_ctx: &mut Core, unit_arg: ()) {
     assert!(hartSupports(core_ctx, extension::Ext_F), "riscv_fdext_regs.sail:110.28-110.29");
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<13, 15, 2>(extStatus_to_bits(ExtStatus::Dirty));
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<63, 64, 1>(BitVector::<1>::new(0b1))
@@ -6461,7 +6461,7 @@ fn dirty_fd_context(core_ctx: &mut Core, unit_arg: ()) {
 /// dirty_fd_context_if_present
 /// 
 /// Generated from the Sail sources at `riscv_fdext_regs.sail` L116-119.
-fn dirty_fd_context_if_present(core_ctx: &mut Core, unit_arg: ()) {
+pub fn dirty_fd_context_if_present(core_ctx: &mut Core, unit_arg: ()) {
     assert!({
         let var_1 = hartSupports(core_ctx, extension::Ext_F);
         let var_2 = hartSupports(core_ctx, extension::Ext_Zfinx);
@@ -6477,21 +6477,21 @@ fn dirty_fd_context_if_present(core_ctx: &mut Core, unit_arg: ()) {
 /// _get_Fcsr_FFLAGS
 /// 
 /// Generated from the Sail sources.
-fn _get_Fcsr_FFLAGS(v: Fcsr) -> BitVector<5> {
+pub fn _get_Fcsr_FFLAGS(v: Fcsr) -> BitVector<5> {
     v.bits.subrange::<0, 5, 5>()
 }
 
 /// _get_Fcsr_FRM
 /// 
 /// Generated from the Sail sources.
-fn _get_Fcsr_FRM(v: Fcsr) -> BitVector<3> {
+pub fn _get_Fcsr_FRM(v: Fcsr) -> BitVector<3> {
     v.bits.subrange::<5, 8, 3>()
 }
 
 /// write_fcsr
 /// 
 /// Generated from the Sail sources at `riscv_fdext_regs.sail` L392-396.
-fn write_fcsr(core_ctx: &mut Core, frm: BitVector<3>, fflags: BitVector<5>) {
+pub fn write_fcsr(core_ctx: &mut Core, frm: BitVector<3>, fflags: BitVector<5>) {
     core_ctx.fcsr.bits = core_ctx.fcsr.bits.set_subrange::<5, 8, 3>(frm);
     core_ctx.fcsr.bits = core_ctx.fcsr.bits.set_subrange::<0, 5, 5>(fflags);
     dirty_fd_context_if_present(core_ctx, ())
@@ -6500,7 +6500,7 @@ fn write_fcsr(core_ctx: &mut Core, frm: BitVector<3>, fflags: BitVector<5>) {
 /// Mk_CountSmcntrpmf
 /// 
 /// Generated from the Sail sources at `` L1.
-fn Mk_CountSmcntrpmf(v: BitVector<64>) -> CountSmcntrpmf {
+pub fn Mk_CountSmcntrpmf(v: BitVector<64>) -> CountSmcntrpmf {
     CountSmcntrpmf {
         bits: v
     }
@@ -6509,7 +6509,7 @@ fn Mk_CountSmcntrpmf(v: BitVector<64>) -> CountSmcntrpmf {
 /// legalize_smcntrpmf
 /// 
 /// Generated from the Sail sources at `riscv_smcntrpmf.sail` L11-21.
-fn legalize_smcntrpmf(core_ctx: &mut Core, c: CountSmcntrpmf, value: BitVector<64>) -> CountSmcntrpmf {
+pub fn legalize_smcntrpmf(core_ctx: &mut Core, c: CountSmcntrpmf, value: BitVector<64>) -> CountSmcntrpmf {
     let v = Mk_CountSmcntrpmf(value);
     {
         let var_1 = {
@@ -6532,35 +6532,35 @@ fn legalize_smcntrpmf(core_ctx: &mut Core, c: CountSmcntrpmf, value: BitVector<6
 /// csrAccess
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L13.
-fn csrAccess(csr: BitVector<12>) -> BitVector<2> {
+pub fn csrAccess(csr: BitVector<12>) -> BitVector<2> {
     csr.subrange::<10, 12, 2>()
 }
 
 /// csrPriv
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L14.
-fn csrPriv(csr: BitVector<12>) -> BitVector<2> {
+pub fn csrPriv(csr: BitVector<12>) -> BitVector<2> {
     csr.subrange::<8, 10, 2>()
 }
 
 /// check_CSR_priv
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L17-18.
-fn check_CSR_priv(csr: BitVector<12>, p: Privilege) -> bool {
+pub fn check_CSR_priv(csr: BitVector<12>, p: Privilege) -> bool {
     _operator_biggerequal_u_(privLevel_to_bits(p), csrPriv(csr))
 }
 
 /// check_CSR_access
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L21-22.
-fn check_CSR_access(csr: BitVector<12>, isWrite: bool) -> bool {
+pub fn check_CSR_access(csr: BitVector<12>, isWrite: bool) -> bool {
     !((isWrite && (csrAccess(csr) == BitVector::<2>::new(0b11))))
 }
 
 /// check_TVM_SATP
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L24-25.
-fn check_TVM_SATP(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> bool {
+pub fn check_TVM_SATP(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> bool {
     !(((csr == BitVector::<12>::new(0b000110000000)) && ((p == Privilege::Supervisor) && ({
         let var_1 = core_ctx.mstatus;
         _get_Mstatus_TVM(var_1)
@@ -6570,7 +6570,7 @@ fn check_TVM_SATP(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> bool
 /// feature_enabled_for_priv
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L29-33.
-fn feature_enabled_for_priv(core_ctx: &mut Core, p: Privilege, machine_enable_bit: bool, supervisor_enable_bit: bool) -> bool {
+pub fn feature_enabled_for_priv(core_ctx: &mut Core, p: Privilege, machine_enable_bit: bool, supervisor_enable_bit: bool) -> bool {
     match p {
         Privilege::Machine => {true}
         Privilege::Supervisor => {(machine_enable_bit == true)}
@@ -6582,7 +6582,7 @@ fn feature_enabled_for_priv(core_ctx: &mut Core, p: Privilege, machine_enable_bi
 /// check_Counteren
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L36-43.
-fn check_Counteren(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> bool {
+pub fn check_Counteren(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> bool {
     if {(_operator_smaller_u_(csr, BitVector::<12>::new(0b110000000000)) || _operator_smaller_u_(BitVector::<12>::new(0b110000011111), csr))} {
         return true;
     } else {
@@ -6599,7 +6599,7 @@ fn check_Counteren(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> boo
 /// check_Stimecmp
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L46-51.
-fn check_Stimecmp(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> bool {
+pub fn check_Stimecmp(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> bool {
     if {((csr != BitVector::<12>::new(0b000101001101)) && (csr != BitVector::<12>::new(0b000101011101)))} {
         return true;
     } else {
@@ -6617,7 +6617,7 @@ fn check_Stimecmp(core_ctx: &mut Core, csr: BitVector<12>, p: Privilege) -> bool
 /// check_seed_CSR
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L56-69.
-fn check_seed_CSR(csr: BitVector<12>, p: Privilege, isWrite: bool) -> bool {
+pub fn check_seed_CSR(csr: BitVector<12>, p: Privilege, isWrite: bool) -> bool {
     if {!((csr == BitVector::<12>::new(0b000000010101)))} {
         true
     } else if {!(isWrite)} {
@@ -6757,7 +6757,7 @@ pub fn exception_delegatee(core_ctx: &mut Core, e: ExceptionType, p: Privilege) 
 /// findPendingInterrupt
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L116-125.
-fn findPendingInterrupt(ip: BitVector<{
+pub fn findPendingInterrupt(ip: BitVector<{
     64
 }>) -> Option<InterruptType> {
     let ip = Mk_Minterrupts(ip);
@@ -6781,7 +6781,7 @@ fn findPendingInterrupt(ip: BitVector<{
 /// getPendingSet
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L135-148.
-fn getPendingSet(core_ctx: &mut Core, _priv_: Privilege) -> Option<(BitVector<{
+pub fn getPendingSet(core_ctx: &mut Core, _priv_: Privilege) -> Option<(BitVector<{
     64
 }>, Privilege)> {
     assert!((currentlyEnabled(core_ctx, extension::Ext_S) || (core_ctx.mideleg.bits == zeros::<64>(64))), "riscv_sys_control.sail:137.58-137.59");
@@ -6832,7 +6832,7 @@ pub enum ctl_result {
 /// tval
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L197-202.
-fn tval(excinfo: Option<BitVector<{
+pub fn tval(excinfo: Option<BitVector<{
     64
 }>>) -> BitVector<{
     64
@@ -6847,7 +6847,7 @@ fn tval(excinfo: Option<BitVector<{
 /// track_trap
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L204-219.
-fn track_trap(core_ctx: &mut Core, p: Privilege) {
+pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
             
@@ -6936,7 +6936,7 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
 /// exception_handler
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L277-321.
-fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_result, pc: BitVector<{
+pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_result, pc: BitVector<{
     64
 }>) -> BitVector<{
     64
@@ -7025,7 +7025,7 @@ pub fn handle_interrupt(core_ctx: &mut Core, i: InterruptType, del_priv: Privile
 /// reset_misa
 /// 
 /// Generated from the Sail sources at `riscv_sys_control.sail` L341-360.
-fn reset_misa(core_ctx: &mut Core, unit_arg: ()) {
+pub fn reset_misa(core_ctx: &mut Core, unit_arg: ()) {
     core_ctx.misa.bits = {
         let var_1 = {
             let var_2 = hartSupports(core_ctx, extension::Ext_A);
@@ -7125,7 +7125,7 @@ pub type MemoryOpResult<A> = result<A, ExceptionType>;
 /// plat_cache_block_size_exp
 /// 
 /// Generated from the Sail sources at `riscv_platform.sail` L31.
-fn plat_cache_block_size_exp(core_ctx: &mut Core, unit_arg: ()) -> i128 {
+pub fn plat_cache_block_size_exp(core_ctx: &mut Core, unit_arg: ()) -> i128 {
     core_ctx.config.platform.cache_block_size_exp
 }
 
@@ -7142,7 +7142,7 @@ pub const MTIME_BASE_HI: physaddrbits = BitVector::<20>::new(0b00001011111111111
 /// phys_access_check
 /// 
 /// Generated from the Sail sources at `riscv_mem.sail` L99-103.
-fn phys_access_check(core_ctx: &mut Core, t: AccessType<()>, p: Privilege, paddr: physaddr, width: i128) -> Option<ExceptionType> {
+pub fn phys_access_check(core_ctx: &mut Core, t: AccessType<()>, p: Privilege, paddr: physaddr, width: i128) -> Option<ExceptionType> {
     let pmpError: Option<ExceptionType> = if {(sys_pmp_count(core_ctx, ()) == 0)} {
         None
     } else {
@@ -7209,7 +7209,7 @@ pub type tlb_index_range = i128;
 /// flush_TLB_Entry
 /// 
 /// Generated from the Sail sources at `riscv_vmem_tlb.sail` L98-113.
-fn flush_TLB_Entry(ent: TLB_Entry, asid: Option<BitVector<16>>, vaddr: Option<BitVector<{
+pub fn flush_TLB_Entry(ent: TLB_Entry, asid: Option<BitVector<16>>, vaddr: Option<BitVector<{
     64
 }>>) -> bool {
     let asid_matches: bool = match asid {
@@ -7231,7 +7231,7 @@ fn flush_TLB_Entry(ent: TLB_Entry, asid: Option<BitVector<16>>, vaddr: Option<Bi
 /// flush_TLB
 /// 
 /// Generated from the Sail sources at `riscv_vmem_tlb.sail` L165-173.
-fn flush_TLB(core_ctx: &mut Core, asid: Option<BitVector<16>>, addr: Option<BitVector<{
+pub fn flush_TLB(core_ctx: &mut Core, asid: Option<BitVector<16>>, addr: Option<BitVector<{
     64
 }>>) {
     for i in 0..=(core_ctx.tlb.len() - 1) {
