@@ -132,12 +132,17 @@ pub fn cancel_reservation(_unit: ()) {
     // In the future, extend this function
 }
 
+fn hex_bits<const N: i128>(bits: &str) -> BitVector<N> {
+    let parsed = bits.parse::<u64>().expect("Could not parse hex bits");
+    bv(parsed)
+}
+
 pub fn hex_bits_12_forwards(_reg: BitVector<12>) -> ! {
     todo!("Implement this function")
 }
 
-pub fn hex_bits_12_backwards(_: &'static str) -> BitVector<12> {
-    todo!("Implement this function")
+pub fn hex_bits_12_backwards(bits: &'static str) -> BitVector<12> {
+    hex_bits(bits)
 }
 
 pub fn subrange_bits<const IN: i128, const OUT: i128>(
