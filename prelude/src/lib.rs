@@ -82,7 +82,10 @@ pub fn truncate(v: BitVector<64>, size: i128) -> BitVector<64> {
     v
 }
 
-pub fn sail_sign_extend<const M: i128, const N: i128>(input: BitVector<M>, n: i128) -> BitVector<N> {
+pub fn sail_sign_extend<const M: i128, const N: i128>(
+    input: BitVector<M>,
+    n: i128,
+) -> BitVector<N> {
     assert!(n == N, "Mismatch `sail_sign_extend` size");
     assert!(N >= M, "Cannot sign extend to smaller size");
     assert!(N <= 64, "Maximum supported size is 64 for now");
@@ -141,8 +144,15 @@ pub fn hex_bits_12_forwards(_reg: BitVector<12>) -> ! {
     todo!("Implement this function")
 }
 
-pub fn hex_bits_12_backwards(bits: &'static str) -> BitVector<12> {
+pub fn hex_bits_12_backwards(bits: &str) -> BitVector<12> {
     hex_bits(bits)
+}
+
+pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {
+    match bits.parse::<u64>() {
+        Ok(n) => n < (1 << 12),
+        Err(_) => false,
+    }
 }
 
 pub fn subrange_bits<const IN: i128, const OUT: i128>(
