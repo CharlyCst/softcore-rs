@@ -15,6 +15,8 @@ let call_set =
     ; "HFENCE_GVMA"
     ; (* Decoder *)
       "encdec_backwards"
+    ; (* CSR names validity check *)
+      "csr_name_map_backwards_matches"
     ; (* Registers *)
       "rX"
     ; "wX"
@@ -39,7 +41,13 @@ let call_set =
     ]
 ;;
 
-let overwritten_func : SSet.t = SSet.of_list [ "shift_right_arith" ]
+let overwritten_func : SSet.t =
+  SSet.of_list
+    [ "shift_right_arith"
+      (* Necessary until https://github.com/rems-project/sail/issues/1596 is fixed: *)
+    ; "hex_bits_12_backwards_matches"
+    ]
+;;
 
 let external_func : SSet.t =
   let externals =
