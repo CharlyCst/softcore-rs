@@ -112,6 +112,17 @@ pub fn wX(core_ctx: &mut Core, r: BitVector<5>, v: BitVector<64>) {
     }
 }
 
+/// bool_bits_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<1> {
+    match arg_hashtag_ {
+        true => {BitVector::<1>::new(0b1)}
+        false => {BitVector::<1>::new(0b0)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// bool_bits_backwards
 /// 
 /// Generated from the Sail sources.
@@ -183,6 +194,18 @@ pub enum ast {
     CSR((BitVector<12>, regidx, regidx, bool, csrop))
 }
 
+/// encdec_csrop_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector<2> {
+    match arg_hashtag_ {
+        csrop::CSRRW => {BitVector::<2>::new(0b01)}
+        csrop::CSRRS => {BitVector::<2>::new(0b10)}
+        csrop::CSRRC => {BitVector::<2>::new(0b11)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// encdec_csrop_backwards
 /// 
 /// Generated from the Sail sources.
@@ -222,6 +245,17 @@ pub fn csrAccess(csr: BitVector<12>) -> BitVector<2> {
 /// Generated from the Sail sources at `tests/csr/arch.sail` L136.
 pub fn csrPriv(csr: BitVector<12>) -> BitVector<2> {
     csr.subrange::<8, 10, 2>()
+}
+
+/// encdec_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector<32> {
+    match arg_hashtag_ {
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {bitvector_concat::<12, 20, 32>((imm as BitVector<12>), bitvector_concat::<5, 15, 20>((rs1 as regidx), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>((rd as regidx), BitVector::<7>::new(0b0010011)))))}
+        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat::<12, 20, 32>((csr as BitVector<12>), bitvector_concat::<5, 15, 20>((rs1 as BitVector<5>), bitvector_concat::<1, 14, 15>(bool_bits_forwards(is_imm), bitvector_concat::<2, 12, 14>(encdec_csrop_forwards(op), bitvector_concat::<5, 7, 12>((rd as BitVector<5>), BitVector::<7>::new(0b1110011))))))}
+        _ => {panic!("Unreachable code")}
+    }
 }
 
 /// encdec_backwards
