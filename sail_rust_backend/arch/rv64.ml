@@ -32,6 +32,7 @@ let call_set =
     ; "exceptionType_to_bits"
     ; "dispatchInterrupt"
     ; "handle_interrupt"
+    ; "handle_illegal"
     ; (* CSRs *)
       "read_CSR"
     ; "write_CSR"
@@ -79,7 +80,6 @@ let external_func : SSet.t =
       ; "bitvector_concat"
       ; "print_platform"
       ; "cancel_reservation"
-      ; "plat_mtval_has_illegal_inst_bits"
       ; "truncate"
       ; "subrange_bits"
       ; "internal_error"
