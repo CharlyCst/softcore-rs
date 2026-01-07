@@ -51,6 +51,17 @@ pub type cregidx = BitVector<3>;
 
 pub type csreg = BitVector<12>;
 
+/// bool_bits_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<1> {
+    match arg_hashtag_ {
+        true => {BitVector::<1>::new(0b1)}
+        false => {BitVector::<1>::new(0b0)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// bool_bits_backwards
 /// 
 /// Generated from the Sail sources.
@@ -120,6 +131,18 @@ pub enum ast {
     HFENCE_GVMA((BitVector<5>, BitVector<5>))
 }
 
+/// encdec_csrop_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector<2> {
+    match arg_hashtag_ {
+        csrop::CSRRW => {BitVector::<2>::new(0b01)}
+        csrop::CSRRS => {BitVector::<2>::new(0b10)}
+        csrop::CSRRC => {BitVector::<2>::new(0b11)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// encdec_csrop_backwards
 /// 
 /// Generated from the Sail sources.
@@ -146,6 +169,22 @@ pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector<2>) -> bool {
 }
 
 pub type csrRW = BitVector<2>;
+
+/// encdec_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector<32> {
+    match arg_hashtag_ {
+        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat::<12, 20, 32>((csr as BitVector<12>), bitvector_concat::<5, 15, 20>((rs1 as BitVector<5>), bitvector_concat::<1, 14, 15>(bool_bits_forwards(is_imm), bitvector_concat::<2, 12, 14>(encdec_csrop_forwards(op), bitvector_concat::<5, 7, 12>((rd as BitVector<5>), BitVector::<7>::new(0b1110011))))))}
+        ast::MRET(()) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0011000), bitvector_concat::<5, 20, 25>(BitVector::<5>::new(0b00010), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::SRET(()) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0001000), bitvector_concat::<5, 20, 25>(BitVector::<5>::new(0b00010), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::WFI(()) => {bitvector_concat::<12, 20, 32>(BitVector::<12>::new(0b000100000101), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011)))))}
+        ast::SFENCE_VMA((rs1, rs2)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0001001), bitvector_concat::<5, 20, 25>((rs2 as BitVector<5>), bitvector_concat::<5, 15, 20>((rs1 as BitVector<5>), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::HFENCE_VVMA((rs1, rs2)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0010001), bitvector_concat::<5, 20, 25>((rs2 as BitVector<5>), bitvector_concat::<5, 15, 20>((rs1 as BitVector<5>), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::HFENCE_GVMA((rs1, rs2)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0110001), bitvector_concat::<5, 20, 25>((rs2 as BitVector<5>), bitvector_concat::<5, 15, 20>((rs1 as BitVector<5>), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        _ => {panic!("Unreachable code")}
+    }
+}
 
 /// encdec_backwards
 /// 

@@ -221,6 +221,16 @@ pub enum ast {
     MRET(())
 }
 
+/// encdec_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector<32> {
+    match arg_hashtag_ {
+        ast::MRET(()) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0011000), bitvector_concat::<5, 20, 25>(BitVector::<5>::new(0b00010), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// encdec_backwards
 /// 
 /// Generated from the Sail sources.

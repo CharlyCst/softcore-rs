@@ -15,6 +15,7 @@ let call_set =
     ; "HFENCE_GVMA"
     ; (* Decoder *)
       "encdec_backwards"
+    ; "encdec_forwards"
     ; (* CSR names validity check *)
       "csr_name_map_backwards_matches"
     ; (* Registers *)
