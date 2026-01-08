@@ -12,7 +12,7 @@ pub const fn rem_round_zero(n: i128, m: i128) -> i128 {
     n % m
 }
 
-pub fn sign_extend<const M: i128, const N: i128>( n: i128, input: BitVector<M>) -> BitVector<N> {
+pub fn sign_extend<const M: i128, const N: i128>(n: i128, input: BitVector<M>) -> BitVector<N> {
     sail_sign_extend(input, n)
 }
 
@@ -99,11 +99,17 @@ mod tests {
 
         // Test shift >= N for positive number - should become all zeros
         assert_eq!(shift_right_arith(bv::<8>(0b01110111), 8).bits(), 0b00000000);
-        assert_eq!(shift_right_arith(bv::<8>(0b01110111), 10).bits(), 0b00000000);
+        assert_eq!(
+            shift_right_arith(bv::<8>(0b01110111), 10).bits(),
+            0b00000000
+        );
 
         // Test shift >= N for negative number - should become all ones
         assert_eq!(shift_right_arith(bv::<8>(0b10110111), 8).bits(), 0b11111111);
-        assert_eq!(shift_right_arith(bv::<8>(0b10110111), 10).bits(), 0b11111111);
+        assert_eq!(
+            shift_right_arith(bv::<8>(0b10110111), 10).bits(),
+            0b11111111
+        );
 
         // Test with different bit widths - 16-bit
         assert_eq!(
@@ -120,9 +126,18 @@ mod tests {
         );
 
         // Test with 32-bit values
-        assert_eq!(shift_right_arith(bv::<32>(0x7FFFFFFF), 16).bits(), 0x00007FFF);
-        assert_eq!(shift_right_arith(bv::<32>(0x80000000), 16).bits(), 0xFFFF8000);
-        assert_eq!(shift_right_arith(bv::<32>(0xFFFFFFFF), 16).bits(), 0xFFFFFFFF);
+        assert_eq!(
+            shift_right_arith(bv::<32>(0x7FFFFFFF), 16).bits(),
+            0x00007FFF
+        );
+        assert_eq!(
+            shift_right_arith(bv::<32>(0x80000000), 16).bits(),
+            0xFFFF8000
+        );
+        assert_eq!(
+            shift_right_arith(bv::<32>(0xFFFFFFFF), 16).bits(),
+            0xFFFFFFFF
+        );
 
         // Test with 64-bit values (edge case for mask calculation)
         assert_eq!(
@@ -144,7 +159,13 @@ mod tests {
         assert_eq!(shift_right_arith(bv::<4>(0b1000), 2).bits(), 0b1110);
 
         // Test negative shift - should return original value
-        assert_eq!(shift_right_arith(bv::<8>(0b10110111), -1).bits(), 0b10110111);
-        assert_eq!(shift_right_arith(bv::<8>(0b01110111), -5).bits(), 0b01110111);
+        assert_eq!(
+            shift_right_arith(bv::<8>(0b10110111), -1).bits(),
+            0b10110111
+        );
+        assert_eq!(
+            shift_right_arith(bv::<8>(0b01110111), -5).bits(),
+            0b01110111
+        );
     }
 }
