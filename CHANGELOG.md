@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0]
+
+### RISC-V 64
+
+- Add support for `flush_TLB`
+- Add support for `csr_name_map_backwards_matches`
+- Add support for `handle_illegal`
+- [**breaking**] Handle trap after execute
+
+### Compiler
+
+- Add support for expression in for loop ranges
+- Add support for `vector_length`
+- Add support for vector access
+
 ## [0.5.0]
 
 ### Armv9-A
