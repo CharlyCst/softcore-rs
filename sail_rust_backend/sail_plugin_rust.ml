@@ -1,12 +1,6 @@
 open Libsail
-open Ast
 open Ast_util
-open Ast_defs
 open Interactive.State
-open Rust_transform
-open Rust_gen
-open Call_set
-open Context
 
 let opt_arch = ref Arch.Rv64.rv64
 
@@ -24,7 +18,7 @@ let rust_options =
   ]
 ;;
 
-let collect_rust_name_info ast =
+let _collect_rust_name_info ast =
   let open Ast in
   let open Ast_defs in
   let reserved = ref Util.StringSet.empty in

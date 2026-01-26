@@ -233,7 +233,7 @@ let rec strip_generic_parameters (typ : rs_type) : rs_type =
   in
   match typ with
   | RsTypTuple typs -> RsTypTuple (List.map strip_generic_parameters typs)
-  | RsTypGenericParam (name, gen_params) -> RsTypId name
+  | RsTypGenericParam (name, _) -> RsTypId name
   | RsTypArray (typ, size) -> RsTypArray (strip_typ_params typ, strip_typ_params size)
   | RsTypOption typ -> RsTypOption (strip_typ_params typ)
   | _ -> typ
@@ -280,11 +280,11 @@ and generics_of_exp (exp : rs_exp) : SSet.t =
     generics_of_exp app
     |> SSet.union (SSet.of_list gens)
     |> SSet.union (generics_of_exps args)
-  | RsMethodApp { exp; generics = gens; args } ->
+  | RsMethodApp { exp; generics = gens; args; name = _ } ->
     generics_of_exp exp
     |> SSet.union (SSet.of_list gens)
     |> SSet.union (generics_of_exps args)
-  | RsStaticApp (typ, name, args) ->
+  | RsStaticApp (typ, _, args) ->
     generics_of_typ typ |> SSet.union (generics_of_exps args)
   | RsId id -> if id_is_generic id then SSet.singleton id else SSet.empty
   | RsLit _ -> SSet.empty
@@ -427,7 +427,7 @@ let string_of_const (const : bool) : string = if const then "const " else ""
 
 let string_of_derive (derive : string list) : string =
   match derive with
-  | head :: tail -> "#[derive(" ^ String.concat ", " derive ^ ")]\n"
+  | _ :: _ -> "#[derive(" ^ String.concat ", " derive ^ ")]\n"
   | [] -> ""
 ;;
 

@@ -1,15 +1,6 @@
 open Libsail
-open Ast
-open Ast_util
-open Jib
-open Jib_compile
-open Jib_util
 open Type_check
-open PPrint
-open Value2
 module Document = Pretty_print_sail.Document
-open Anf
-open Rust_gen
 open Call_set
 open Core_config
 module Big_int = Nat_big_num
@@ -43,7 +34,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   (* ——————————————————————————————— Type Utils ——————————————————————————————— *)
 
   let map_union (a : 'a SMap.t) (b : 'a SMap.t) : 'a SMap.t =
-    let select key elt_a elt_b = Some elt_a in
+    let select _key elt_a _elt_b = Some elt_a in
     SMap.union select a b
   ;;
 
@@ -67,7 +58,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     }
   ;;
 
-  let defs_add_union (defs : defs) (union : unionmap) : defs =
+  let _defs_add_union (defs : defs) (union : unionmap) : defs =
     let unions = map_union union defs.unions in
     { defs with unions }
   ;;
@@ -96,7 +87,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   (** Return true if the type is a bitvector **)
   let is_bitvector (typ : typ) : bool =
     match typ with
-    | Typ_aux (Typ_app (id, args), _) when string_of_id id = "bitvector" -> true
+    | Typ_aux (Typ_app (id, _args), _) when string_of_id id = "bitvector" -> true
     | _ -> false
   ;;
 
@@ -146,9 +137,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     in
     match l with
     | Parse_ast.Unknown -> None
-    | Parse_ast.Unique (n, l) -> pretty_loc l
+    | Parse_ast.Unique (_n, l) -> pretty_loc l
     | Parse_ast.Generated l -> pretty_loc l
-    | Parse_ast.Hint (_, l1, l2) -> pretty_loc l
+    | Parse_ast.Hint (_, _l1, _l2) -> pretty_loc l
     | Parse_ast.Range (lx1, lx2) ->
       let l1, l2 = lx1.pos_lnum, lx2.pos_lnum in
       let lines =
@@ -168,17 +159,17 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   let process_scattered scattered : rs_program =
     print_string "Scattered ";
     (match scattered with
-     | SD_function (id, tannot) ->
+     | SD_function (id, _tannot) ->
        print_string "function";
        print_id id
-     | SD_funcl funcl -> print_string "funcl"
-     | SD_variant (id, typquant) ->
+     | SD_funcl _funcl -> print_string "funcl"
+     | SD_variant (id, _typquant) ->
        print_string "variant";
        print_id id
-     | SD_unioncl (id, union_type) ->
+     | SD_unioncl (id, _union_type) ->
        print_string "union";
        print_id id
-     | SD_mapping (id, tannot_opt) ->
+     | SD_mapping (id, _tannot_opt) ->
        print_string "mapping";
        print_id id
      | _ -> ());
@@ -222,9 +213,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | L_bin s -> RsLitBin s
     | L_string s -> RsLitStr s
     | L_undef -> RsLitTodo
-    | L_real s -> RsLitTodo
+    | L_real _s -> RsLitTodo
 
-  and process_pat (P_aux (pat, annot)) : rs_pat =
+  and process_pat (P_aux (pat, _annot)) : rs_pat =
     match pat with
     | P_lit lit -> RsPatLit (process_lit lit)
     | P_id id -> RsPatId (sanitize_id (string_of_id id))
@@ -362,7 +353,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
             (* First, we find the type variables and contraints *)
             let kind_ids, constraints =
               match typ with
-              | Typ_aux (Typ_exist (kinded_ids, constraints, ret_typ), _) ->
+              | Typ_aux (Typ_exist (kinded_ids, constraints, _ret_typ), _) ->
                 kinded_ids, constraints
               | Typ_aux (_, l) ->
                 Reporting.warn
@@ -389,11 +380,11 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       RsArraySize (process_exp ctx item, process_exp ctx size)
     | E_app (id, exp_list) ->
       RsApp (RsId (sanitize_id (string_of_id id)), [], List.map (process_exp ctx) exp_list)
-    | E_app_infix (exp1, id, exp2) -> RsTodo "E_app_infix"
+    | E_app_infix (_exp1, _id, _exp2) -> RsTodo "E_app_infix"
     | E_tuple exp_list -> RsTuple (List.map (process_exp ctx) exp_list)
     | E_if (exp1, exp2, exp3) ->
       RsIf (process_exp ctx exp1, process_exp ctx exp2, process_exp ctx exp3)
-    | E_loop (loop, measure, exp1, exp2) -> RsTodo "E_loop"
+    | E_loop (_loop, _measure, _exp1, _exp2) -> RsTodo "E_loop"
     | E_for (id, exp_start, exp_end, step, order, exp4) when string_of_exp step = "1" ->
       (match order with
        | Ord_aux (Ord_inc, _) ->
@@ -407,22 +398,22 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_for (_, _, _, _, _, _) -> RsTodo "E_for"
     | E_vector exp_list -> process_vector ctx exp_list typ
     | E_vector_access (exp1, exp2) -> RsIndex (process_exp ctx exp1, process_exp ctx exp2)
-    | E_vector_subrange (exp1, exp2, exp3) -> RsTodo "E_vector_subrange"
-    | E_vector_update (exp1, exp2, exp3) -> RsTodo "E_vector_update"
-    | E_vector_update_subrange (exp1, exp2, exp3, exp4) -> RsTodo "E_update_subrange"
-    | E_vector_append (exp1, exp2) -> RsTodo "E_vector_append"
-    | E_list exp_list -> RsTodo "E_list"
-    | E_cons (exp1, exp2) -> RsTodo "E_cons"
+    | E_vector_subrange (_exp1, _exp2, _exp3) -> RsTodo "E_vector_subrange"
+    | E_vector_update (_exp1, _exp2, _exp3) -> RsTodo "E_vector_update"
+    | E_vector_update_subrange (_exp1, _exp2, _exp3, _exp4) -> RsTodo "E_update_subrange"
+    | E_vector_append (_exp1, _exp2) -> RsTodo "E_vector_append"
+    | E_list _exp_list -> RsTodo "E_list"
+    | E_cons (_exp1, _exp2) -> RsTodo "E_cons"
     | E_struct fexp_list ->
       let typ = typ_to_rust typ in
       RsStruct (strip_generic_parameters typ, process_fexp_entries ctx fexp_list)
-    | E_struct_update (exp, fexp_list) ->
+    | E_struct_update (_exp, fexp_list) ->
       (match fexp_list with
        (* The struct update is expexted to return the new struct with the field updated *)
        | [ FE_aux (FE_fexp (field, fexp), _) ] ->
          let struct_typ =
            match typ with
-           | Typ_aux (Typ_id id, l) -> RsTypId (string_of_id id)
+           | Typ_aux (Typ_id id, _l) -> RsTypId (string_of_id id)
            | Typ_aux (_, l) ->
              Reporting.warn
                "Could not infer struct type in field update"
@@ -446,29 +437,29 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_var (lexp, value, next) ->
       RsLetMut (process_lexp ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
-    | E_sizeof nexp -> RsTodo "E_sizeof"
+    | E_sizeof _nexp -> RsTodo "E_sizeof"
     | E_return exp -> RsReturn (process_exp ctx exp)
-    | E_exit exp ->
+    | E_exit _exp ->
       RsApp (RsId "panic!", [], [ RsLit (RsLitStr "exit") ])
       (* How should we handle exits? *)
-    | E_ref id -> RsTodo "E_ref"
-    | E_throw exp ->
+    | E_ref _id -> RsTodo "E_ref"
+    | E_throw _exp ->
       RsApp (RsId "panic!", [], [ RsLit (RsLitStr "todo_process_panic_type") ])
-    | E_try (exp, pexp_list) -> RsTodo "E_try"
+    | E_try (_exp, _pexp_list) -> RsTodo "E_try"
     | E_assert (exp1, E_aux (E_lit (L_aux (L_string err_msg, _)), _)) ->
       RsApp (RsId "assert!", [], [ process_exp ctx exp1; RsLit (RsLitStr err_msg) ])
-    | E_assert (exp1, exp2) ->
+    | E_assert (exp1, _exp2) ->
       RsApp
         ( RsId "assert!"
         , []
         , [ process_exp ctx exp1
           ; RsLit (RsLitStr "[Compiler TODO] process non-trivial error messages")
           ] )
-    | E_internal_plet (pat, exp1, exp2) -> RsTodo "E_internal_plet"
-    | E_internal_return exp -> RsTodo "E_internal_return"
-    | E_internal_value value -> RsTodo "E_internal_value"
-    | E_internal_assume (n_constraint, exp) -> RsTodo "E_internal_assume"
-    | E_constraint n_constraint -> RsTodo "E_constraint"
+    | E_internal_plet (_pat, _exp1, _exp2) -> RsTodo "E_internal_plet"
+    | E_internal_return _exp -> RsTodo "E_internal_return"
+    | E_internal_value _value -> RsTodo "E_internal_value"
+    | E_internal_assume (_n_constraint, _exp) -> RsTodo "E_internal_assume"
+    | E_constraint _n_constraint -> RsTodo "E_constraint"
     | E_config cfgs ->
       (match config_find rv64_config cfgs with
        (* known values are inlined directly *)
@@ -484,7 +475,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
          (* set flag *)
          construct_fields (RsField (RsId core_ctx, "config")) cfgs)
 
-  and process_lexp (ctx : context) (LE_aux (lexp, annot)) : rs_lexp =
+  and process_lexp (ctx : context) (LE_aux (lexp, _annot)) : rs_lexp =
     match lexp with
     | LE_id id ->
       let id = sanitize_id (string_of_id id) in
@@ -499,7 +490,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
          should store that information somewhere so a transformation pass can
          re-write operations of the form `x[i] = y`, which are not supported
          in Rust for bitvectors and should use a setter method instead.
-         
+
          Here is a way to retrieve the type:
 
          ```
@@ -526,7 +517,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let typ = typ_to_rust typ in
       RsLexpTyp (id, typ)
 
-  and process_pexp (ctx : context) (Pat_aux (pexp, annot)) : rs_pexp =
+  and process_pexp (ctx : context) (Pat_aux (pexp, _annot)) : rs_pexp =
     match pexp with
     | Pat_exp (pat, exp) -> RsPexp (process_pat pat, process_exp ctx exp)
     | Pat_when (pat, exp1, exp2) ->
@@ -595,19 +586,19 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | P_app (id, _) -> string_of_id id
     | _ -> ""
 
-  and process_id_pat_list id_pat_list =
+  and _process_id_pat_list id_pat_list =
     match id_pat_list with
-    | (id, pat) :: t ->
+    | (id, _pat) :: t ->
       print_string "id/pat:";
       print_id id;
-      process_id_pat_list t
+      _process_id_pat_list t
     | _ -> ()
 
-  and extract_pat_name (pat : rs_pat) : string =
+  and _extract_pat_name (pat : rs_pat) : string =
     match pat with
     | RsPatLit lit -> string_of_rs_lit lit
     | RsPatId id -> id
-    | RsPatType (typ, pat) -> string_of_rs_pat pat
+    | RsPatType (_typ, pat) -> string_of_rs_pat pat
     | RsPatWildcard -> "_"
     | _ ->
       Reporting.simple_warn "`extaract_pat_name`: pattern not implemented";
@@ -631,11 +622,11 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     in
     match typ with
     (* We expect all num types to be represented as ranges *)
-    | Typ_app (id, [ start; A_aux (A_nexp (Nexp_aux (nexp, l)), _) ])
+    | Typ_app (id, [ _start; A_aux (A_nexp (Nexp_aux (nexp, l)), _) ])
       when string_of_id id = "range" ->
       (match nexp with
        (* We expect a range of the form 2 ^ X - 1 *)
-       | Nexp_minus (Nexp_aux (Nexp_exp exponent, _), Nexp_aux (Nexp_constant n, _)) ->
+       | Nexp_minus (Nexp_aux (Nexp_exp exponent, _), Nexp_aux (Nexp_constant _n, _)) ->
          Option.map Big_int.to_int64 (big_int_of_nexp exponent)
        | _ ->
          Reporting.warn
@@ -658,19 +649,19 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
            (string_of_typ (Typ_aux (typ, l))));
       None
 
-  and process_args_pat (P_aux (pat_aux, annot)) : rs_pat list =
+  and process_args_pat (P_aux (pat_aux, _annot)) : rs_pat list =
     match pat_aux with
-    | P_app (id, [ P_aux (P_tuple pats, _) ]) ->
+    | P_app (_id, [ P_aux (P_tuple pats, _) ]) ->
       List.flatten (List.map process_args_pat pats)
     | P_app (id, pats) ->
       [ RsPatApp
           ( RsPatId (sanitize_id (string_of_id id))
           , List.flatten (List.map process_args_pat pats) )
       ]
-    | P_struct (id_pat_list, field_pat_wildcard) -> [ RsPatId "TodoArgsStruct" ]
-    | P_list pats -> [ RsPatId "TodoArgsList" ]
-    | P_var (var, typ) -> [ RsPatId "TodoArgsVar" ]
-    | P_cons (h, t) -> [ RsPatId "TodoArgsCons" ]
+    | P_struct (_id_pat_list, _field_pat_wildcard) -> [ RsPatId "TodoArgsStruct" ]
+    | P_list _pats -> [ RsPatId "TodoArgsList" ]
+    | P_var (_var, _typ) -> [ RsPatId "TodoArgsVar" ]
+    | P_cons (_h, _t) -> [ RsPatId "TodoArgsCons" ]
     | P_tuple pats -> List.flatten (List.map process_args_pat pats)
     | P_id id -> [ RsPatId (string_of_id id) ]
     | P_typ (_, pat) -> process_args_pat pat
@@ -704,8 +695,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     in
     let rec add_missing_args args args_type new_args : rs_pat list =
       match args, args_type with
-      | ha :: ta, ht :: tt -> add_missing_args ta tt (new_args @ [ ha ])
-      | [], ht :: tt -> add_missing_args [] tt (new_args @ [ fresh_arg () ])
+      | ha :: ta, _ :: tt -> add_missing_args ta tt (new_args @ [ ha ])
+      | [], _ :: tt -> add_missing_args [] tt (new_args @ [ fresh_arg () ])
       | _, [] -> new_args
     in
     let arg_names = process_args_pat pat in
@@ -756,7 +747,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       match func with
       | FCL_funcl (id, pexp) -> id, pexp
     in
-    let pexp, annot =
+    let pexp, _annot =
       match pexp with
       | Pat_aux (pexp, annot) -> pexp, annot
     in
@@ -766,7 +757,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       match pexp with
       | Pat_exp (pat, exp) ->
         RsProg [ RsFn (build_function FunKindFunc name pat exp ctx l doc_comment) ]
-      | Pat_when (pat1, exp, pat2) -> RsProg [])
+      | Pat_when (_pat1, _exp, _pat2) -> RsProg [])
     else (
       match pexp with
       | Pat_exp (pat, exp) ->
@@ -793,7 +784,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | h :: t -> merge_rs_prog (process_func h s) (process_funcl t s)
     | [] -> RsProg []
 
-  and process_fundef (FD_function (rec_opt, tannot_opt, funcl)) (s : context) : rs_program
+  and process_fundef (FD_function (_rec_opt, _tannot_opt, funcl)) (s : context)
+    : rs_program
     =
     process_funcl funcl s
 
@@ -809,11 +801,11 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
 
   and process_unions (members : Ast.type_union list) : (string * rs_type option) list =
     match members with
-    | Tu_aux (Tu_ty_id (typ, id), annot) :: v ->
+    | Tu_aux (Tu_ty_id (typ, id), _annot) :: v ->
       (string_of_id id, Some (typ_to_rust typ)) :: process_unions v
     | [] -> []
 
-  and typequant_to_generics (TypQ_aux (_, l) as typq : typquant) : rs_generic list =
+  and typequant_to_generics (TypQ_aux _ as typq : typquant) : rs_generic list =
     let kset = ref KidSet.empty in
     let tyvars_of_quant_item (QI_aux (qi, _)) : (kind * kid) option =
       match qi with
@@ -869,7 +861,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   and typdef_to_rust (s : context) (TD_aux (typ, (l, _))) : rs_program =
     match typ with
     | TD_enum (id, members, _) -> RsProg [ RsEnum (enum_to_rust id members l) ]
-    | TD_variant (id, typq, members, _) when string_of_id id = "option" ->
+    | TD_variant (id, _typq, _members, _) when string_of_id id = "option" ->
       RsProg [] (* Special semantics in rust *)
     | TD_variant (id, typq, members, _) ->
       RsProg [ RsEnum (variant_to_rust id typq members l) ]
@@ -886,7 +878,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       RsProg [ RsAlias alias ]
     (* TODO *)
     (* NOTE: we should create a constant for numeral types only if there is no constant with the same name already defined. *)
-    | TD_abbrev (id, typq, A_aux (A_nexp nexp, _))
+    | TD_abbrev (id, _typq, A_aux (A_nexp nexp, _))
       when not (SSet.mem (string_of_id id) s.defs.constants) ->
       let value =
         match big_int_of_nexp nexp with
@@ -898,7 +890,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | TD_abbrev _ -> RsProg [] (* Ignore all other abbreviations *)
     | _ -> RsProg []
 
-  and toplevel_let_to_rust (LB_aux (LB_val (pat, exp), aux)) (ctx : context) : rs_program =
+  and toplevel_let_to_rust (LB_aux (LB_val (pat, exp), _aux)) (ctx : context) : rs_program
+    =
     let pat = process_pat pat in
     let rexp = process_exp ctx exp in
     let rexp = Rust_transform.simplify_rs_exp ctx rexp in
@@ -911,12 +904,12 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       RsProg [ RsConst const ]
     | _ -> RsProg []
 
-  and def_to_rust (DEF_aux (def, annot)) (s : context) : rs_program =
+  and def_to_rust (DEF_aux (def, _annot)) (s : context) : rs_program =
     match def with
-    | DEF_register (DEC_aux (dec_spec, annot)) ->
+    | DEF_register (DEC_aux (_dec_spec, _annot)) ->
       RsProg [] (* We handle registers in a previous pass *)
-    | DEF_scattered (SD_aux (scattered, annot)) -> process_scattered scattered
-    | DEF_fundef (FD_aux (fundef, annot)) -> process_fundef fundef s
+    | DEF_scattered (SD_aux (scattered, _annot)) -> process_scattered scattered
+    | DEF_fundef (FD_aux (fundef, _annot)) -> process_fundef fundef s
     | DEF_impl funcl -> process_func funcl s
     | DEF_type typ -> typdef_to_rust s typ
     | DEF_let binding -> toplevel_let_to_rust binding s
@@ -934,9 +927,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
 
   and gather_registers defs : (string * rs_type * 'a exp option) list =
     match defs with
-    | DEF_aux (DEF_register (DEC_aux (dec_spec, annot)), _) :: t ->
+    | DEF_aux (DEF_register (DEC_aux (dec_spec, _annot)), _) :: t ->
       process_register dec_spec :: gather_registers t
-    | h :: t -> gather_registers t
+    | _ :: t -> gather_registers t
     | [] -> []
 
   (** We decompose the configuration into multiple Rust struct to stay close
@@ -1047,7 +1040,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let core = RsId core_ctx in
       let initialize_reg (name, _, exp) =
         match exp with
-        | Some exp ->
+        | Some _exp ->
           let app = RsApp (RsId ("_reset_" ^ name), [], []) in
           Some (RsAssign (RsLexpField (core, name), app))
         | None -> None
@@ -1082,7 +1075,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | _ -> RsTodo "TodoNConstraint"
 
   and nexp_to_rs_exp (nexp : nexp) : rs_exp =
-    let (Nexp_aux (nexp, l)) = nexp_simp nexp in
+    let (Nexp_aux (nexp, _)) = nexp_simp nexp in
     match nexp with
     | Nexp_constant n -> mk_big_num n
     | Nexp_times (n, m) -> RsBinop (nexp_to_rs_exp n, RsBinopMult, nexp_to_rs_exp m)
@@ -1100,8 +1093,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | Nexp_neg n -> RsUnop (RsUnopNeg, nexp_to_rs_exp n)
     | Nexp_id id -> RsId (string_of_id id)
     | Nexp_var kid -> RsId (sanitize_generic_id (string_of_kid kid)) (* variable *)
-    | Nexp_app (fn, args) -> RsTodo "TodoAppExpr" (* app *)
-    | Nexp_if (cond, if_block, else_block) -> RsTodo "TodoIfExpr" (* if-then-else *)
+    | Nexp_app (_fn, _args) -> RsTodo "TodoAppExpr" (* app *)
+    | Nexp_if (_cond, _if_block, _else_block) -> RsTodo "TodoIfExpr" (* if-then-else *)
 
   and get_first_two_elements lst =
     assert (List.length lst = 2);
@@ -1171,7 +1164,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     (* We ignore the type quantifier for now, there is no `forall` on most types of interest *)
     let (TypSchm_ts (typq, typ)) = typeschm in
     let generics = typequant_to_generics typq in
-    let (Typ_aux (typ, l)) = typ in
+    let (Typ_aux (typ, _l)) = typ in
     match typ with
     (* When Sail infers type, it sometimes uses a single tuple as argument.
                In such cases, we flatten the tuple. *)
@@ -1185,7 +1178,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
 
   let val_fun_def (val_spec : val_spec_aux) : defmap =
     let map = SMap.empty in
-    let (VS_val_spec (typeschm, id, extern)) = val_spec in
+    let (VS_val_spec (typeschm, id, _extern)) = val_spec in
     let id = string_of_id id in
     (* print_string id; *)
     (* print_string ": "; *)
@@ -1211,10 +1204,10 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
 
   let type_def_fun_def (TD_aux (typ, _)) : unionmap =
     match typ with
-    | TD_abbrev (id, typquant, typ_arg) -> SMap.empty
-    | TD_record (id, typquant, items, _) -> SMap.empty
-    | TD_variant (id, typquant, members, _) -> type_union_defs members
-    | TD_enum (id, member, _) -> SMap.empty
+    | TD_abbrev (_id, _typquant, _typ_arg) -> SMap.empty
+    | TD_record (_id, _typquant, _items, _) -> SMap.empty
+    | TD_variant (_id, _typquant, members, _) -> type_union_defs members
+    | TD_enum (_id, _member, _) -> SMap.empty
     | TD_bitfield _ -> SMap.empty
     | _ ->
       print_endline "TypeFunDef: other";
@@ -1223,13 +1216,13 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
 
   (* ——————————————————————— Iterating over definitions ——————————————————————— *)
 
-  let node_defs (DEF_aux (def, annot)) : defs =
+  let node_defs (DEF_aux (def, _annot)) : defs =
     match def with
-    | DEF_val (VS_aux (val_spec, annot)) -> defs_from_funs (val_fun_def val_spec)
-    | DEF_register (DEC_aux (dec_spec, annot)) -> defs_empty
-    | DEF_scattered (SD_aux (scattered, annot)) -> defs_empty
-    | DEF_fundef (FD_aux (fundef, annot)) -> defs_empty
-    | DEF_impl funcl -> defs_empty
+    | DEF_val (VS_aux (val_spec, _annot)) -> defs_from_funs (val_fun_def val_spec)
+    | DEF_register (DEC_aux (_dec_spec, _annot)) -> defs_empty
+    | DEF_scattered (SD_aux (_scattered, _annot)) -> defs_empty
+    | DEF_fundef (FD_aux (_fundef, _annot)) -> defs_empty
+    | DEF_impl _funcl -> defs_empty
     | DEF_type typ -> defs_from_union (type_def_fun_def typ)
     | DEF_let (LB_aux (LB_val (pat, _), _)) ->
       let pat = process_pat pat in
@@ -1262,12 +1255,12 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   let rec ast_union_type_list_to_string_list (members : Ast.type_union list) : string list
     =
     match members with
-    | Tu_aux (Tu_ty_id (typ, id), annot) :: v ->
+    | Tu_aux (Tu_ty_id (_typ, id), _annot) :: v ->
       string_of_id id :: ast_union_type_list_to_string_list v
     | [] -> []
   ;;
 
-  let process_enum_entries_aux (DEF_aux (def, annot)) : (string * string) list =
+  let process_enum_entries_aux (DEF_aux (def, _annot)) : (string * string) list =
     match def with
     | DEF_type (TD_aux (TD_enum (id, members, _), _)) ->
       gen_enum_list id (ast_id_list_to_string_list members)
@@ -1298,13 +1291,13 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     let rec funs obj =
       match obj with
       | RsFn fn :: tail -> (fn.name, fn) :: funs tail
-      | head :: tail -> funs tail
+      | _head :: tail -> funs tail
       | [] -> []
     in
     funs obj
   ;;
 
-  let compile_ast env effect_info ast =
+  let compile_ast _env _effect_info ast =
     try
       (* Compute call set *)
       let sail_ctx = get_call_set CodegenConfig.arch ast in
