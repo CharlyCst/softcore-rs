@@ -21,25 +21,18 @@ let add_fn (fn : string) (ctx : sail_ctx) : sail_ctx =
 ;;
 
 let add_config (config : string) (t : typ) (ctx : sail_ctx) : sail_ctx =
-  { ctx with config_map = SMap.add config t ctx.config_map }
-;;
-
-let ctx_union (ctx1 : sail_ctx) (ctx2 : sail_ctx) : sail_ctx =
-  let choose_typ (_ : string) (a : typ) (b : typ) : typ option =
-    let ret = Some a in
-    if a <> b
-    then (
-      Reporting.simple_warn
-        (Printf.sprintf
-           "Config used with different types: %s and %s"
-           (string_of_typ a)
-           (string_of_typ b));
-      ret)
-    else ret
-  in
-  { call_set = SSet.union ctx1.call_set ctx2.call_set
-  ; config_map = SMap.union choose_typ ctx1.config_map ctx2.config_map
-  }
+  let res = { ctx with config_map = SMap.add config t ctx.config_map } in
+  (match SMap.find_opt config ctx.config_map with
+   | Some t' ->
+     if t <> t'
+     then
+       Reporting.simple_warn
+         (Printf.sprintf
+            "Config used with different types: %s and %s"
+            (string_of_typ t)
+            (string_of_typ t'))
+   | None -> ());
+  res
 ;;
 
 let rec exp_call_set (texp : tannot exp) (arch : arch_t) (ctx : sail_ctx) : sail_ctx =
@@ -56,42 +49,47 @@ let rec exp_call_set (texp : tannot exp) (arch : arch_t) (ctx : sail_ctx) : sail
     else (
       let ctx = add_fn id ctx in
       List.fold_left (fold_set arch) ctx exp_list)
-  | E_app_infix (exp1, _, exp2) ->
-    ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx)
+  | E_app_infix (exp1, _, exp2) -> ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
   | E_tuple exp_list -> List.fold_left (fold_set arch) ctx exp_list
   | E_if (exp1, exp2, exp3) ->
-    let s = exp_call_set exp1 arch ctx in
-    let s = exp_call_set exp2 arch s in
-    let s = exp_call_set exp3 arch s in
-    s
-  | E_loop (_, _, exp1, exp2) ->
-    ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx)
+    ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch |> exp_call_set exp3 arch
+  | E_loop (_, _, exp1, exp2) -> ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
   | E_for (_, exp1, exp2, exp3, _, exp4) ->
-    let s = ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx) in
-    let s = ctx_union (exp_call_set exp3 arch s) s in
-    ctx_union (exp_call_set exp4 arch s) s
+    ctx
+    |> exp_call_set exp1 arch
+    |> exp_call_set exp2 arch
+    |> exp_call_set exp3 arch
+    |> exp_call_set exp4 arch
   | E_vector exp_list -> List.fold_left (fold_set arch) ctx exp_list
   | E_vector_access (exp1, exp2) ->
-    ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx)
-  (* NOTES(Gurvan): Shouldn't the following exp also be added to the context ? *)
-  | E_vector_subrange (exp1, exp2, exp3) -> ctx
-  | E_vector_update (exp1, exp2, exp3) -> ctx
-  | E_vector_update_subrange (exp1, exp2, exp3, exp4) -> ctx
-  | E_vector_append (exp1, exp2) -> ctx
+    ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
+  | E_vector_subrange (exp1, exp2, exp3) ->
+    ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch |> exp_call_set exp3 arch
+  | E_vector_update (exp1, exp2, exp3) ->
+    ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch |> exp_call_set exp3 arch
+  | E_vector_update_subrange (exp1, exp2, exp3, exp4) ->
+    ctx
+    |> exp_call_set exp1 arch
+    |> exp_call_set exp2 arch
+    |> exp_call_set exp3 arch
+    |> exp_call_set exp4 arch
+  | E_vector_append (exp1, exp2) ->
+    ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
   | E_list exp_list -> List.fold_left (fold_set arch) ctx exp_list
-  | E_cons (exp1, exp2) -> ctx
-  | E_struct fexp_list -> ctx
-  | E_struct_update (exp, fexp_list) -> ctx
+  | E_cons (exp1, exp2) -> ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
+  | E_struct fexp_list -> List.fold_left (fun c f -> fexp_call_set f arch c) ctx fexp_list
+  | E_struct_update (exp, fexp_list) ->
+    List.fold_left (fun c f -> fexp_call_set f arch c) ctx fexp_list
+    |> exp_call_set exp arch
   | E_field (exp, _) -> exp_call_set exp arch ctx
   | E_match (exp, pexp_list) ->
     let s = exp_call_set exp arch ctx in
-    let fold_set_pexp s pexp = ctx_union s (pexp_call_set pexp arch s) in
+    let fold_set_pexp s pexp = pexp_call_set pexp arch s in
     List.fold_left fold_set_pexp s pexp_list
   | E_let (LB_aux (LB_val (_, let_exp), _), exp) ->
     let s = exp_call_set let_exp arch ctx in
     exp_call_set exp arch s
-  | E_var (_, exp1, exp2) ->
-    ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx)
+  | E_var (_, exp1, exp2) -> ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
   | E_assign (_, exp) -> exp_call_set exp arch ctx
   | E_sizeof _ -> ctx
   | E_return exp -> exp_call_set exp arch ctx
@@ -99,8 +97,7 @@ let rec exp_call_set (texp : tannot exp) (arch : arch_t) (ctx : sail_ctx) : sail
   | E_ref _ -> ctx
   | E_throw _ -> ctx
   | E_try (_, _) -> ctx
-  | E_assert (exp1, exp2) ->
-    ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx)
+  | E_assert (exp1, exp2) -> ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
   | E_internal_plet _ -> ctx
   | E_internal_return _ -> ctx
   | E_internal_value _ -> ctx
@@ -111,6 +108,10 @@ let rec exp_call_set (texp : tannot exp) (arch : arch_t) (ctx : sail_ctx) : sail
     let cfg = String.concat "." cfgs in
     add_config cfg typ ctx
 
+and fexp_call_set (fexp : 't fexp) (arch : arch_t) (ctx : sail_ctx) : sail_ctx =
+  let (FE_aux (FE_fexp (_, e), _)) = fexp in
+  exp_call_set e arch ctx
+
 and pexp_call_set (Pat_aux (pexp, _)) (arch : arch_t) (ctx : sail_ctx) : sail_ctx =
   match pexp with
   | Pat_exp (P_aux (P_id id, _), _)
@@ -119,12 +120,9 @@ and pexp_call_set (Pat_aux (pexp, _)) (arch : arch_t) (ctx : sail_ctx) : sail_ct
   | Pat_when (P_aux (P_app (id, _), _), _, _)
     when SSet.mem (string_of_id id) arch.unsupported_match -> ctx
   | Pat_exp (_, exp) -> exp_call_set exp arch ctx
-  | Pat_when (_, exp1, exp2) ->
-    ctx_union (exp_call_set exp1 arch ctx) (exp_call_set exp2 arch ctx)
+  | Pat_when (_, exp1, exp2) -> ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
 
-and fold_set (arch : arch_t) (ctx : sail_ctx) exp =
-  ctx_union ctx (exp_call_set exp arch ctx)
-;;
+and fold_set (arch : arch_t) (ctx : sail_ctx) exp = exp_call_set exp arch ctx
 
 (* Return the ID of an application pattern as a string, or "" otherwise. *)
 let pat_app_name (P_aux (pat_aux, _)) =
@@ -161,7 +159,7 @@ let rec funcl_call_set (funcl : tannot funcl list) (arch : arch_t) (ctx : sail_c
   : sail_ctx
   =
   match funcl with
-  | h :: t -> ctx_union (func_call_set h arch ctx) (funcl_call_set t arch ctx)
+  | h :: t -> ctx |> func_call_set h arch |> funcl_call_set t arch
   | [] -> ctx
 ;;
 
@@ -194,7 +192,7 @@ let rec defs_call_set (defs : (tannot, env) def list) (arch : arch_t) (ctx : sai
   : sail_ctx
   =
   match defs with
-  | h :: t -> ctx_union (node_call_set h arch ctx) (defs_call_set t arch ctx)
+  | h :: t -> ctx |> node_call_set h arch |> defs_call_set t arch
   | [] -> ctx
 ;;
 
