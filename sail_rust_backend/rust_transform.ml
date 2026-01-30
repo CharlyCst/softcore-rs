@@ -60,6 +60,8 @@ and transform_lexp (ct : expr_type_transform) (ctx : context) (lexp : rs_lexp) :
       ( transform_lexp ct ctx lexp
       , transform_exp ct ctx range_start
       , transform_exp ct ctx range_end )
+  | RsLexpBitVectorAccess (lexp, exp) ->
+    RsLexpBitVectorAccess (transform_lexp ct ctx lexp, transform_exp ct ctx exp)
   | RsLexpTodo -> RsLexpTodo
 
 and transform_exp (ct : expr_type_transform) (ctx : context) (exp : rs_exp) : rs_exp =
@@ -356,6 +358,15 @@ let bitvec_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp =
   | RsMatch (RsTuple exp_tuple, patterns) ->
     RsMatch
       (bitvec_transform_match_tuple exp_tuple (parse_first_tuple_entry patterns), patterns)
+  | RsAssign (RsLexpBitVectorAccess (lexp, exp_idx), exp) ->
+    RsAssign
+      ( lexp
+      , RsMethodApp
+          { exp = lexp_to_exp lexp
+          ; name = "set_bit"
+          ; generics = []
+          ; args = [ exp_idx; exp ]
+          } )
   | _ -> exp
 
 and uint_to_bitvector (n : int) : rs_type =
@@ -593,6 +604,8 @@ and propagate_in_lexp (ctx : bindings) (lexp : rs_lexp) : rs_lexp =
   | RsLexpIndexRange (lexp, start, end') ->
     RsLexpIndexRange
       (propagate lexp, propagate_in_exp ctx start, propagate_in_exp ctx end')
+  | RsLexpBitVectorAccess (lexp, exp) ->
+    RsLexpBitVectorAccess (propagate_in_lexp ctx lexp, propagate_in_exp ctx exp)
   | RsLexpTodo -> RsLexpTodo
 ;;
 
@@ -860,6 +873,8 @@ and rename_in_lexp (rn : string * string) (lexp : rs_lexp) : rs_lexp =
   | RsLexpIndex (lexp, exp) -> RsLexpIndex (rename_in_lexp lexp, rename_in_exp rn exp)
   | RsLexpIndexRange (lexp, start, end') ->
     RsLexpIndexRange (rename_in_lexp lexp, rename_in_exp rn start, rename_in_exp rn end')
+  | RsLexpBitVectorAccess (lexp, exp) ->
+    RsLexpBitVectorAccess (rename_in_lexp lexp, rename_in_exp rn exp)
   | RsLexpTodo -> RsLexpTodo
 ;;
 

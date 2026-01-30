@@ -110,6 +110,7 @@ and rs_lexp =
   | RsLexpField of rs_exp * string
   | RsLexpIndex of rs_lexp * rs_exp
   | RsLexpIndexRange of rs_lexp * rs_exp * rs_exp
+  | RsLexpBitVectorAccess of rs_lexp * rs_exp
   | RsLexpTodo
 
 and rs_pexp =
@@ -699,6 +700,10 @@ and string_of_rs_lexp (n : int) (lexp : rs_lexp) : string =
       (string_of_rs_exp 0 range_start)
       (string_of_rs_exp 0 range_end)
     (* string_of_rs_lexp n lexp *)
+  | RsLexpBitVectorAccess _ ->
+    (* TODO: This constructor should no longer be available so we should
+           fail *)
+    assert false (* TODO(Gurvan) *)
   | RsLexpTodo -> "LEXP_TODO"
 
 and string_of_rs_pexp (n : int) (pexp : rs_pexp) : string =

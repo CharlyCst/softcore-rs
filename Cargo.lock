@@ -91,6 +91,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "vec"
+version = "0.1.0"
+dependencies = [
+ "softcore-prelude",
+]
+
+[[package]]
 name = "wfi"
 version = "0.1.0"
 dependencies = [

@@ -486,23 +486,17 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         RsLexpField (RsId core_ctx, id))
       else RsLexpId id
     | LE_vector (lexp, idx) ->
-      (* TODO: here we should check the type, and if lexp is a bitvector we
-         should store that information somewhere so a transformation pass can
-         re-write operations of the form `x[i] = y`, which are not supported
-         in Rust for bitvectors and should use a setter method instead.
-
-         Here is a way to retrieve the type:
-
-         ```
-         let (LE_aux (_, (_, tannot))) = lexp in
-         let _ =
-           match destruct_tannot tannot with
-           | None -> ()
-           | Some (_, typ) ->
-             Printf.printf "---------- %s: %s \n" (string_of_lexp lexp) (string_of_typ typ)
-         in
-         ``` *)
-      RsLexpIndex (process_lexp ctx lexp, RsAs (process_exp ctx idx, usize_typ))
+      let (LE_aux (_, (_, tannot))) = lexp in
+      (match destruct_tannot tannot with
+       | None ->
+         (* TODO(Gurvan): Probably unreachable at this point? *)
+         Printf.printf "no annotation\n";
+         assert false
+       | Some (_, typ) ->
+         (match typ with
+          | Typ_aux (Typ_app (Id_aux (Id "bitvector", _), _), _) ->
+            RsLexpBitVectorAccess (process_lexp ctx lexp, process_exp ctx idx)
+          | _ -> RsLexpIndex (process_lexp ctx lexp, RsAs (process_exp ctx idx, usize_typ))))
     | LE_vector_range (lexp, range_start, range_end) ->
       RsLexpIndexRange
         (process_lexp ctx lexp, process_exp ctx range_start, process_exp ctx range_end)
@@ -524,6 +518,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       RsPexpWhen (process_pat pat, process_exp ctx exp1, process_exp ctx exp2)
 
   and process_vector (ctx : context) (items : 'a exp list) (typ : typ) : rs_exp =
+    (* TODO(Gurvan): What is the purpose of taking acc as a parameter here? *)
     let is_only_bits acc exp =
       match exp with
       | E_aux (E_lit (L_aux (lit, _)), _) ->
