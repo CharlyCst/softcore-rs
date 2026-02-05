@@ -851,3 +851,13 @@ mod tests {
         assert_eq!(result.bits(), 0x0000000000000000); // Should remain unchanged
     }
 }
+
+pub const fn undefined_bitvector<const N: i128>(n: i128) -> BitVector<N> {
+    assert!(n == N, "Compiler bug");
+    bv(0)
+}
+
+pub fn undefined_vector<T: Copy, const N: usize>(n: usize, v: T) -> [T; N] {
+    assert!(n == N, "Compiler bug");
+    [v; N]
+}

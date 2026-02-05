@@ -40,10 +40,6 @@ pub const fn integer_subrange<const L: i128>(i: i128, hi: i128, lo: i128) -> Bit
 /// Returns an undefined bitvector of the given size.
 ///
 /// For now we return 0, but we might want to track undefined values in the future.
-pub const fn undefined_bitvector<const N: i128>(n: i128) -> BitVector<N> {
-    assert!(n == N, "Compiler bug");
-    bv(0)
-}
 
 pub const fn undefined_bool(_: ()) -> bool {
     false
