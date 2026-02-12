@@ -425,12 +425,12 @@ pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitVector<65536>) {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L323-334.
 pub fn read_single_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> [BitVector<M>; N] {
     let bv: vregtype = rV_bits(core_ctx, vrid);
-    let mut result: [BitVector<M>; N] = [zeros(__id(SEW)); __id(num_elem)];
+    let mut result: [BitVector<M>; N] = [zeros(__id(SEW)); N];
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:327.29-327.30");
         for i in 0..=(num_elem - 1) {
             let start_index = (i * SEW);
-            result[(i as usize)] = slice(core_ctx, bv, start_index, SEW)
+            result[(i as usize)] = slice(bv, start_index, SEW)
         };
         result
     }
@@ -453,7 +453,7 @@ pub fn write_single_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num
 /// Generated from the Sail sources at `tests/vec/arch.sail` L352-386.
 pub fn read_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> [BitVector<M>; N] {
     let vrid_val = vregidx_bits(vrid).unsigned();
-    let mut result: [BitVector<M>; N] = [zeros(__id(SEW)); __id(num_elem)];
+    let mut result: [BitVector<M>; N] = [zeros(__id(SEW)); N];
     {
         let LMUL_pow_reg = if {(LMUL_pow < 0)} {
             0
@@ -500,7 +500,7 @@ pub fn write_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: 
     let num_elem_single: i128 = quot_round_zero(512, SEW);
     assert!((__id(num_elem_single) >= 0), "tests/vec/arch.sail:394.30-394.31");
     for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
-        let mut single_vec: [BitVector<M>; NUM_ELEM_SINGLE] = [zeros(__id(SEW)); __id(num_elem_single)];
+        let mut single_vec: [BitVector<M>; NUM_ELEM_SINGLE] = [zeros(__id(SEW)); NUM_ELEM_SINGLE];
         {
             let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits::<5>(5, i_lmul));
             let r_start_i: i128 = (i_lmul * __id(num_elem_single));
@@ -623,12 +623,9 @@ pub fn init_masked_result<const N: usize, const M: i128>(core_ctx: &mut Core, nu
     let end_element = get_end_element(core_ctx, ());
     let tail_ag: agtype = get_vtype_vta(core_ctx, ());
     let mask_ag: agtype = get_vtype_vma(core_ctx, ());
-    let mut mask: BitVector<N> = undefined_bitvector(core_ctx, bitvector_length(vm_val));
+    let mut mask: BitVector<N> = undefined_bitvector(bitvector_length(vm_val));
     {
-        let mut result: [BitVector<M>; N] = {
-            let var_1 = undefined_bitvector(core_ctx, __id(SEW));
-            undefined_vector(core_ctx, bitvector_length(vm_val), var_1)
-        };
+        let mut result: [BitVector<M>; N] = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
         {
             let real_num_elem = if {(LMUL_pow >= 0)} {
                 num_elem
@@ -690,35 +687,5 @@ pub fn execute(core_ctx: &mut Core, funct6: ast) -> ExecutionResult {
     } else {
         ()
     };
-    let n = num_elem;
-    let m = SEW;
-    let vm_val: BitVector<N> = read_vmask(core_ctx, num_elem, vm, zvreg);
-    let vs1_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
-    let vs2_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
-    let vd_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
-    let (initial_result, mask): ([BitVector<M>; N], BitVector<N>) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
-        result::Ok(v) => {v}
-        result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
-        _ => {panic!("Unreachable code")}
-    };
-    let mut result = initial_result;
-    {
-        for i in 0..=(num_elem - 1) {
-            if {(bitvector_access(mask, i) == true)} {
-                result[(i as usize)] = match funct6 {
-                    vvfunct6::VV_VADD => {vs2_val[(i as usize)].wrapped_add(vs1_val[(i as usize)])}
-                    vvfunct6::VV_VSUB => {sub_vec(vs2_val[(i as usize)], vs1_val[(i as usize)])}
-                    vvfunct6::VV_VAND => {(vs2_val[(i as usize)] & vs1_val[(i as usize)])}
-                    vvfunct6::VV_VOR => {(vs2_val[(i as usize)] | vs1_val[(i as usize)])}
-                    vvfunct6::VV_VXOR => {(vs2_val[(i as usize)] ^ vs1_val[(i as usize)])}
-                    _ => {panic!("Unreachable code")}
-                }
-            } else {
-                ()
-            }
-        };
-        write_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd, result);
-        set_vstart(core_ctx, zeros::<16>(16));
-        ExecutionResult::Retire_Success(())
-    }
+    todo!("Dependent type on non-constant value")
 }

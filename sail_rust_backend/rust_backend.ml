@@ -116,7 +116,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
 
   (** Format a location in a human readeable format. **)
   let rec pretty_loc (l : l) =
-    (* Some files have the full path in thei file location, this removes the prefix *)
+    (* Some files have the full path in their file location, this removes the prefix *)
     let strip_prefix s =
       let rec drop n lst =
         if n <= 0
@@ -152,6 +152,47 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     match pretty_loc l with
     | Some loc -> "Generated from the Sail sources at " ^ loc ^ "."
     | None -> "Generated from the Sail sources."
+  ;;
+
+  (* This function should tell us: Are we binding any P_typ? *)
+  (* TODO(Gurvan):
+        - This function should tell us: Are we binding any P_typ?
+        - This function should also take as a parameter the let_exp because we
+        also want to know what are the dependencies here between bound variable
+        and the expression.
+  *)
+  let pat_t_var p : SSet.t =
+    let typ_pat (acc : SSet.t) (TP_aux (tp, _)) : SSet.t =
+      match tp with
+      | TP_wild -> acc
+      | TP_var (Kid_aux (Var kid, _)) -> SSet.add kid acc
+      | TP_app (_x, _tps) ->
+        Format.printf "TODO(Gurvan): pat_t_var P_struct\n";
+        acc
+    in
+    let rec pat_t_var_aux (acc : SSet.t) (P_aux (p, _)) : SSet.t =
+      match p with
+      | P_lit _ -> acc
+      | P_wild -> acc
+      | P_or (p1, p2) -> pat_t_var_aux (pat_t_var_aux acc p1) p2
+      | P_not p' -> pat_t_var_aux acc p'
+      | P_as (p', _) -> pat_t_var_aux acc p'
+      | P_typ (_, p') -> pat_t_var_aux acc p'
+      | P_id _ -> acc
+      | P_var (p', tp) -> pat_t_var_aux (typ_pat acc tp) p'
+      | P_app (_, ps) -> List.fold_left pat_t_var_aux acc ps
+      | P_vector ps -> List.fold_left pat_t_var_aux acc ps
+      | P_vector_concat ps -> List.fold_left pat_t_var_aux acc ps
+      | P_vector_subrange _ -> acc
+      | P_tuple ps -> List.fold_left pat_t_var_aux acc ps
+      | P_list ps -> List.fold_left pat_t_var_aux acc ps
+      | P_cons (p1, p2) -> pat_t_var_aux (pat_t_var_aux acc p1) p2
+      | P_string_append ps -> List.fold_left pat_t_var_aux acc ps
+      | P_struct _ ->
+        Format.printf "TODO(Gurvan): pat_t_var P_struct\n";
+        acc
+    in
+    pat_t_var_aux SSet.empty p
   ;;
 
   (* ———————————————————————— Sail-to-Rust Conversion ————————————————————————— *)
@@ -337,6 +378,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let id = sanitize_id (string_of_id id) in
       let exp_list = List.map (process_exp ctx) exp_list in
       let bindings = instantiation_of (E_aux (exp, aux)) in
+      (* TODO(Gurvan): Why is this necessarily 'n ? *)
       (match KBindings.find_opt (as_kid "n") bindings with
        (* The type variable depends on another variable.
                        For now we leave that case to the Rust type inference,
@@ -377,7 +419,12 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
        (* We found the type variable, but it is not a nexp! *)
        | Some (A_aux (_, l)) -> Reporting.unreachable l __POS__ "Expected a nexp")
     | E_app (id, [ size; item ]) when string_of_id id = "vector_init" ->
-      RsArraySize (process_exp ctx item, process_exp ctx size)
+      (* If possible, try to get the size using the const parameter of the type *)
+      (match typ_to_rust typ with
+       | RsTypArray (_, RsTypParamNum size') -> RsArraySize (process_exp ctx item, size')
+       | RsTypArray (_, RsTypParamTyp (RsTypId size')) ->
+         RsArraySize (process_exp ctx item, RsId size')
+       | _ -> RsArraySize (process_exp ctx item, process_exp ctx size))
     | E_app (id, exp_list) ->
       RsApp (RsId (sanitize_id (string_of_id id)), [], List.map (process_exp ctx) exp_list)
     | E_app_infix (_exp1, _id, _exp2) -> RsTodo "E_app_infix"
@@ -427,13 +474,31 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_match (exp, pexp_list) ->
       RsMatch (process_exp ctx exp, List.map (process_pexp ctx) pexp_list)
     | E_let (LB_aux (LB_val (let_var, let_exp), _), exp) ->
-      let new_pat = process_pat let_var in
-      let new_pat =
-        match new_pat with
-        | RsPatType (typ, exp) -> RsPatType (typ, exp)
-        | _ -> new_pat
-      in
-      RsLet (new_pat, process_exp ctx let_exp, process_exp ctx exp)
+      (* TODO:
+            P_var can be nested arbitrarily deep. We want a function which takes
+            a pat and return all p_var that this pat depends on.
+            For each of those, we do a case enumeration on their value.
+            Maybe we should just insert here that we should do this and not
+            actually do it until the very last minute because it will make
+            everything explode and will duplicate a lot of code
+      *)
+      let tmp = pat_t_var let_var in
+      if 0 < SSet.cardinal tmp
+      then (
+          Format.printf "non empty dependency for pattern %s\n" (string_of_pat let_var);
+          SSet.iter (Format.printf "--> %s\n") tmp;
+         (* TODO: We need to monomorphize here. We need a match on the let_exp on
+           all possible value it can take. If this is too big, then we should
+           maybe either issue a warning or fail to avoid a huge blow-up. *)
+         RsTodo "Dependent type on non-constant value"
+     )
+     else
+     let new_pat =
+       match process_pat let_var with
+       | RsPatType (typ, exp) -> RsPatType (typ, exp)
+       | p -> p
+     in
+     RsLet (new_pat, process_exp ctx let_exp, process_exp ctx exp)
     | E_var (lexp, value, next) ->
       RsLetMut (process_lexp ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
