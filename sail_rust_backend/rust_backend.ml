@@ -1324,7 +1324,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let rust_program = Rust_transform.transform rust_program ctx in
       let rust_program_string = string_of_rs_prog rust_program in
       (* Post processing stage: replace illegals # and ' in rust *)
-      (* TODO: Rewrite in the future, as the code is a bit hugly *)
+      (* TODO: Rewrite in the future, as the code is a bit ugly *)
       let replace_hashtags input =
         let regex = Str.regexp "#" in
         let regex2 = Str.regexp "_hashtag_\\[" in

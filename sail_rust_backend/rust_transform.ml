@@ -863,7 +863,7 @@ and rename_in_lexp (rn : string * string) (lexp : rs_lexp) : rs_lexp =
   | RsLexpTodo -> RsLexpTodo
 ;;
 
-(* Wehter an expression should be hoisted. *)
+(* Wheter an expression should be hoisted. *)
 let rec should_hoist_exp (is_nested : bool) (exp : rs_exp) : bool =
   let core_ctx = RsId core_ctx in
   match exp with
