@@ -3,7 +3,7 @@ TEST_ARCH_RUST = $(addsuffix /arch.rs, $(addprefix tests/, $(TEST_ARCHS)))
 
 .PHONY: tests test test2 clean
 
-install: 
+install:
 	sudo apt-get install opam
 	sudo apt-get install z3
 
@@ -11,9 +11,9 @@ install:
 	eval $(opam env)
 
 	opam install dune
-	opam install libsail.0.17.1
-	opam install sail.0.17.1
-	
+	opam install libsail.0.19.1
+	opam install sail.0.19.1
+
 all: build
 
 tests: $(TEST_ARCH_RUST)

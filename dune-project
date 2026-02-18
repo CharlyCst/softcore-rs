@@ -8,4 +8,4 @@
   (name sail_rust_backend)
   (synopsis "Sail to Rust translation")
   (depends
-    (libsail (= 0.19))))
+    (libsail (= 0.19.1))))

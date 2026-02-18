@@ -957,7 +957,7 @@ pub const fn sail_branch_announce<const ADDRSIZE: i128>(_: i128, _: BitVector<AD
 
 /// Access_variety
 /// 
-/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L57-61.
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write_v1.sail` L58-62.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_variety {
     AV_plain,
@@ -967,7 +967,7 @@ pub enum Access_variety {
 
 /// Access_strength
 /// 
-/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L66-70.
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write_v1.sail` L67-71.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_strength {
     AS_normal,
@@ -977,7 +977,7 @@ pub enum Access_strength {
 
 /// Explicit_access_kind
 /// 
-/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L75-78.
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write_v1.sail` L76-79.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Explicit_access_kind {
     pub variety: Access_variety,
@@ -986,7 +986,7 @@ pub struct Explicit_access_kind {
 
 /// Access_kind
 /// 
-/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L83-88.
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write_v1.sail` L84-89.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_kind<ARCH_AK> {
     AK_explicit(Explicit_access_kind),
@@ -997,7 +997,7 @@ pub enum Access_kind<ARCH_AK> {
 
 /// Mem_read_request
 /// 
-/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write.sail` L93-104.
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write_v1.sail` L94-105.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, TS, ARCH_AK> {
     pub access_kind: Access_kind<ARCH_AK>,
