@@ -77,7 +77,8 @@ let rec exp_call_set (texp : tannot exp) (arch : arch_t) (ctx : sail_ctx) : sail
     ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
   | E_list exp_list -> List.fold_left (fold_set arch) ctx exp_list
   | E_cons (exp1, exp2) -> ctx |> exp_call_set exp1 arch |> exp_call_set exp2 arch
-  | E_struct fexp_list -> List.fold_left (fun c f -> fexp_call_set f arch c) ctx fexp_list
+  | E_struct (_, fexp_list) ->
+    List.fold_left (fun c f -> fexp_call_set f arch c) ctx fexp_list
   | E_struct_update (exp, fexp_list) ->
     List.fold_left (fun c f -> fexp_call_set f arch c) ctx fexp_list
     |> exp_call_set exp arch

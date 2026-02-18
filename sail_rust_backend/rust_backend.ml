@@ -234,7 +234,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | P_list _ -> RsPatId "TODO_PAT_list"
     | P_cons (_, _) -> RsPatId "TODO_PAT_cons"
     | P_string_append _ -> RsPatId "TODO_PAT_string_append"
-    | P_struct (_, _) -> RsPatId "TODO_PAT_struct"
+    | P_struct (_, _, _) -> RsPatId "TODO_PAT_struct"
 
   (** Translate a Sail binary operation into a Rust Binary operation.
 
@@ -404,7 +404,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_vector_append (_exp1, _exp2) -> RsTodo "E_vector_append"
     | E_list _exp_list -> RsTodo "E_list"
     | E_cons (_exp1, _exp2) -> RsTodo "E_cons"
-    | E_struct fexp_list ->
+    | E_struct (_, fexp_list) ->
       let typ = typ_to_rust typ in
       RsStruct (strip_generic_parameters typ, process_fexp_entries ctx fexp_list)
     | E_struct_update (_exp, fexp_list) ->
@@ -658,7 +658,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
           ( RsPatId (sanitize_id (string_of_id id))
           , List.flatten (List.map process_args_pat pats) )
       ]
-    | P_struct (_id_pat_list, _field_pat_wildcard) -> [ RsPatId "TodoArgsStruct" ]
+    | P_struct (_struct_name, _id_pat_list, _field_pat_wildcard) ->
+      [ RsPatId "TodoArgsStruct" ]
     | P_list _pats -> [ RsPatId "TodoArgsList" ]
     | P_var (_var, _typ) -> [ RsPatId "TodoArgsVar" ]
     | P_cons (_h, _t) -> [ RsPatId "TodoArgsCons" ]
