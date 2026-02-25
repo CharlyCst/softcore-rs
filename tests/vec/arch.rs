@@ -687,5 +687,35 @@ pub fn execute(core_ctx: &mut Core, funct6: ast) -> ExecutionResult {
     } else {
         ()
     };
-    todo!("Dependent type on non-constant value")
+    let n = num_elem;
+    let m = SEW;
+    let vm_val: BitVector<N> = read_vmask(core_ctx, num_elem, vm, zvreg);
+    let vs1_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
+    let vs2_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
+    let vd_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
+    let (initial_result, mask): ([BitVector<M>; N], BitVector<N>) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
+        result::Ok(v) => {v}
+        result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
+        _ => {panic!("Unreachable code")}
+    };
+    let mut result = initial_result;
+    {
+        for i in 0..=(num_elem - 1) {
+            if {(bitvector_access(mask, i) == true)} {
+                result[(i as usize)] = match funct6 {
+                    vvfunct6::VV_VADD => {vs2_val[(i as usize)].wrapped_add(vs1_val[(i as usize)])}
+                    vvfunct6::VV_VSUB => {sub_vec(vs2_val[(i as usize)], vs1_val[(i as usize)])}
+                    vvfunct6::VV_VAND => {(vs2_val[(i as usize)] & vs1_val[(i as usize)])}
+                    vvfunct6::VV_VOR => {(vs2_val[(i as usize)] | vs1_val[(i as usize)])}
+                    vvfunct6::VV_VXOR => {(vs2_val[(i as usize)] ^ vs1_val[(i as usize)])}
+                    _ => {panic!("Unreachable code")}
+                }
+            } else {
+                ()
+            }
+        };
+        write_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd, result);
+        set_vstart(core_ctx, zeros::<16>(16));
+        ExecutionResult::Retire_Success(())
+    }
 }

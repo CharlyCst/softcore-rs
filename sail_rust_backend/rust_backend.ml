@@ -160,39 +160,38 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         - This function should also take as a parameter the let_exp because we
         also want to know what are the dependencies here between bound variable
         and the expression.
+        - This would be much easier to do on ANF
   *)
-  let pat_t_var p : SSet.t =
-    let typ_pat (acc : SSet.t) (TP_aux (tp, _)) : SSet.t =
+  let pat_t_var p e : tannot exp SMap.t =
+    let typ_pat (acc : tannot exp SMap.t) (TP_aux (tp, _)) e : tannot exp SMap.t =
       match tp with
       | TP_wild -> acc
-      | TP_var (Kid_aux (Var kid, _)) -> SSet.add kid acc
+      | TP_var (Kid_aux (Var kid, _)) -> SMap.add kid e acc
       | TP_app (_x, _tps) ->
         Format.printf "TODO(Gurvan): pat_t_var P_struct\n";
         acc
     in
-    let rec pat_t_var_aux (acc : SSet.t) (P_aux (p, _)) : SSet.t =
+    let rec pat_t_var_aux (acc : tannot exp SMap.t) (P_aux (p, _)) e : tannot exp SMap.t =
       match p with
       | P_lit _ -> acc
       | P_wild -> acc
-      | P_or (p1, p2) -> pat_t_var_aux (pat_t_var_aux acc p1) p2
-      | P_not p' -> pat_t_var_aux acc p'
-      | P_as (p', _) -> pat_t_var_aux acc p'
-      | P_typ (_, p') -> pat_t_var_aux acc p'
+      | P_or (p1, p2) -> Format.printf "TODO(Gurvan): or pattern\n"; acc
+      | P_not p' -> Format.printf "TODO(Gurvan): not pattern\n"; acc
+      | P_as (p', _) -> Format.printf "TODO(Gurvan): as pattern\n"; acc
+      | P_typ (_, p') -> pat_t_var_aux acc p' e
       | P_id _ -> acc
-      | P_var (p', tp) -> pat_t_var_aux (typ_pat acc tp) p'
-      | P_app (_, ps) -> List.fold_left pat_t_var_aux acc ps
-      | P_vector ps -> List.fold_left pat_t_var_aux acc ps
-      | P_vector_concat ps -> List.fold_left pat_t_var_aux acc ps
+      | P_var (p', tp) -> pat_t_var_aux (typ_pat acc tp e) p' e
+      | P_app (_, ps) -> Format.printf "TODO(Gurvan): app pattern\n"; acc
+      | P_vector ps -> Format.printf "TODO(Gurvan): vector pattern\n"; acc
+      | P_vector_concat ps -> Format.printf "TODO(Gurvan): vector concat\n"; acc
       | P_vector_subrange _ -> acc
-      | P_tuple ps -> List.fold_left pat_t_var_aux acc ps
-      | P_list ps -> List.fold_left pat_t_var_aux acc ps
-      | P_cons (p1, p2) -> pat_t_var_aux (pat_t_var_aux acc p1) p2
-      | P_string_append ps -> List.fold_left pat_t_var_aux acc ps
-      | P_struct _ ->
-        Format.printf "TODO(Gurvan): pat_t_var P_struct\n";
-        acc
+      | P_tuple ps -> Format.printf "TODO(Gurvan): tuple pattern\n"; acc
+      | P_list ps -> Format.printf "TODO(Gurvan): list pattern\n"; acc
+      | P_cons (p1, p2) -> Format.printf "TODO(Gurvan): cons pattern\n"; acc
+      | P_string_append ps -> Format.printf "TODO(Gurvan): string append\n"; acc
+      | P_struct _ -> Format.printf "TODO(Gurvan): struct pattern\n"; acc
     in
-    pat_t_var_aux SSet.empty p
+    pat_t_var_aux SMap.empty p e
   ;;
 
   (* ———————————————————————— Sail-to-Rust Conversion ————————————————————————— *)
@@ -474,31 +473,21 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_match (exp, pexp_list) ->
       RsMatch (process_exp ctx exp, List.map (process_pexp ctx) pexp_list)
     | E_let (LB_aux (LB_val (let_var, let_exp), _), exp) ->
-      (* TODO:
-            P_var can be nested arbitrarily deep. We want a function which takes
-            a pat and return all p_var that this pat depends on.
-            For each of those, we do a case enumeration on their value.
-            Maybe we should just insert here that we should do this and not
-            actually do it until the very last minute because it will make
-            everything explode and will duplicate a lot of code
-      *)
-      let tmp = pat_t_var let_var in
-      if 0 < SSet.cardinal tmp
+        (* TODO(Gurvan): Find a better name then `tmp` here *)
+      let tmp = pat_t_var let_var let_exp in
+      if not (SMap.is_empty tmp)
       then (
-          Format.printf "non empty dependency for pattern %s\n" (string_of_pat let_var);
-          SSet.iter (Format.printf "--> %s\n") tmp;
-         (* TODO: We need to monomorphize here. We need a match on the let_exp on
-           all possible value it can take. If this is too big, then we should
-           maybe either issue a warning or fail to avoid a huge blow-up. *)
-         RsTodo "Dependent type on non-constant value"
+        Format.printf "non empty dependency for pattern %s\n" (string_of_pat let_var);
+        SMap.iter (fun k v -> Format.printf "--> %s %s\n" k (string_of_exp v)) tmp;
+         (* TODO(Gurvan): We need to monomorphize here.
+           We need to know all possible value in tmp can take, and switch on
+           them
+           If this is too big, then we should maybe either issue a warning or
+           fail to avoid a huge blow-up. *)
+        RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
      )
      else
-     let new_pat =
-       match process_pat let_var with
-       | RsPatType (typ, exp) -> RsPatType (typ, exp)
-       | p -> p
-     in
-     RsLet (new_pat, process_exp ctx let_exp, process_exp ctx exp)
+     RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
     | E_var (lexp, value, next) ->
       RsLetMut (process_lexp ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
