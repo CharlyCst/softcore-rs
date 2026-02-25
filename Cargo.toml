@@ -21,6 +21,7 @@ members = [
     "tests/csr",
     "tests/wfi",
     "tests/vec",
+    "tests/vec_mini",
 ]
 
 # Packages published to crates.io
