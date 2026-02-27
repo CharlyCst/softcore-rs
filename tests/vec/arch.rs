@@ -13,7 +13,7 @@ use crate::arch_prelude::*;
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
     pub vtype: Vtype,
-    pub vstart: BitVector<16>,
+    pub vstart: BitVector,
     pub vl: xlenbits,
     pub vr0: vregtype,
     pub vr1: vregtype,
@@ -81,21 +81,21 @@ pub enum result<A, B> {
 /// to_bits
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L59.
-pub fn to_bits<const L: i128>(l: i128, n: i128) -> BitVector<L> {
+pub fn to_bits(l: i128, n: i128) -> BitVector {
     get_slice_int(l, n, 0)
 }
 
 /// zeros
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L62.
-pub const fn zeros<const N: i128>(n: i128) -> BitVector<N> {
+pub const fn zeros(n: i128) -> BitVector {
     sail_zeros(n)
 }
 
 /// ones
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L65.
-pub const fn ones<const N: i128>(n: i128) -> BitVector<N> {
+pub const fn ones(n: i128) -> BitVector {
     sail_ones(n)
 }
 
@@ -107,50 +107,48 @@ pub const xlen_bytes: i128 = i128::pow(2, ((3 as u32) as u32));
 
 pub const xlen: i128 = (xlen_bytes * 8);
 
-pub type xlenbits = BitVector<xlen>;
+pub type xlenbits = BitVector;
 
 /// Vtype
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L96-103.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Vtype {
-    pub bits: BitVector<{
-    64
-}>,
+    pub bits: BitVector,
 }
 
 /// _get_Vtype_vill
 /// 
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vill(v: Vtype) -> BitVector<1> {
+pub fn _get_Vtype_vill(v: Vtype) -> BitVector {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// _get_Vtype_vlmul
 /// 
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vlmul(v: Vtype) -> BitVector<3> {
+pub fn _get_Vtype_vlmul(v: Vtype) -> BitVector {
     v.bits.subrange::<0, 3, 3>()
 }
 
 /// _get_Vtype_vma
 /// 
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vma(v: Vtype) -> BitVector<1> {
+pub fn _get_Vtype_vma(v: Vtype) -> BitVector {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _get_Vtype_vsew
 /// 
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vsew(v: Vtype) -> BitVector<3> {
+pub fn _get_Vtype_vsew(v: Vtype) -> BitVector {
     v.bits.subrange::<3, 6, 3>()
 }
 
 /// _get_Vtype_vta
 /// 
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vta(v: Vtype) -> BitVector<1> {
+pub fn _get_Vtype_vta(v: Vtype) -> BitVector {
     v.bits.subrange::<6, 7, 1>()
 }
 
@@ -162,10 +160,10 @@ pub fn get_sew_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
         let var_1 = core_ctx.vtype;
         _get_Vtype_vsew(var_1)
     } {
-        b__0 if {(b__0 == BitVector::<3>::new(0b000))} => {3}
-        b__1 if {(b__1 == BitVector::<3>::new(0b001))} => {4}
-        b__2 if {(b__2 == BitVector::<3>::new(0b010))} => {5}
-        b__3 if {(b__3 == BitVector::<3>::new(0b011))} => {6}
+        b__0 if {(b__0 == BitVector::new(3, 0b000))} => {3}
+        b__1 if {(b__1 == BitVector::new(3, 0b001))} => {4}
+        b__2 if {(b__2 == BitVector::new(3, 0b010))} => {5}
+        b__3 if {(b__3 == BitVector::new(3, 0b011))} => {6}
         _ => {{
             assert!(false, "invalid vsew field in vtype");
             panic!("exit")
@@ -200,13 +198,13 @@ pub fn get_lmul_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
         let var_1 = core_ctx.vtype;
         _get_Vtype_vlmul(var_1)
     } {
-        b__0 if {(b__0 == BitVector::<3>::new(0b101))} => {-3}
-        b__1 if {(b__1 == BitVector::<3>::new(0b110))} => {-2}
-        b__2 if {(b__2 == BitVector::<3>::new(0b111))} => {-1}
-        b__3 if {(b__3 == BitVector::<3>::new(0b000))} => {0}
-        b__4 if {(b__4 == BitVector::<3>::new(0b001))} => {1}
-        b__5 if {(b__5 == BitVector::<3>::new(0b010))} => {2}
-        b__6 if {(b__6 == BitVector::<3>::new(0b011))} => {3}
+        b__0 if {(b__0 == BitVector::new(3, 0b101))} => {-3}
+        b__1 if {(b__1 == BitVector::new(3, 0b110))} => {-2}
+        b__2 if {(b__2 == BitVector::new(3, 0b111))} => {-1}
+        b__3 if {(b__3 == BitVector::new(3, 0b000))} => {0}
+        b__4 if {(b__4 == BitVector::new(3, 0b001))} => {1}
+        b__5 if {(b__5 == BitVector::new(3, 0b010))} => {2}
+        b__6 if {(b__6 == BitVector::new(3, 0b011))} => {3}
         _ => {{
             assert!(false, "invalid vlmul field in vtype");
             panic!("exit")
@@ -227,9 +225,9 @@ pub enum agtype {
 /// decode_agtype
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L152-157.
-pub fn decode_agtype(ag: BitVector<1>) -> agtype {
+pub fn decode_agtype(ag: BitVector) -> agtype {
     match ag {
-        b__0 if {(b__0 == BitVector::<1>::new(0b0))} => {agtype::UNDISTURBED}
+        b__0 if {(b__0 == BitVector::new(1, 0b0))} => {agtype::UNDISTURBED}
         _ => {agtype::AGNOSTIC}
         _ => {panic!("Unreachable code")}
     }
@@ -268,7 +266,7 @@ pub const vlenmax: i128 = 65536;
 
 pub const VLEN: i128 = 512;
 
-pub type vreglenbits = BitVector<vlenmax>;
+pub type vreglenbits = BitVector;
 
 pub type vregtype = vreglenbits;
 
@@ -289,7 +287,7 @@ pub enum vvfunct6 {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L188.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregidx {
-    Vregidx(BitVector<5>)
+    Vregidx(BitVector)
 }
 
 /// vregno
@@ -310,23 +308,23 @@ pub fn vregidx_to_vregno(vregidx::Vregidx(b): vregidx) -> vregno {
 /// vregidx_offset
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L192.
-pub fn vregidx_offset(vregidx::Vregidx(r): vregidx, o: BitVector<5>) -> vregidx {
+pub fn vregidx_offset(vregidx::Vregidx(r): vregidx, o: BitVector) -> vregidx {
     vregidx::Vregidx(r.wrapped_add(o))
 }
 
 /// vregidx_bits
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L193.
-pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitVector<5> {
+pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitVector {
     b
 }
 
-pub const zvreg: vregidx = vregidx::Vregidx(BitVector::<5>::new(0b00000));
+pub const zvreg: vregidx = vregidx::Vregidx(BitVector::new(5, 0b00000));
 
 /// rV
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L231-266.
-pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitVector<65536> {
+pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitVector {
     match r {
         l__31 if {(l__31 == 0)} => {core_ctx.vr0}
         l__32 if {(l__32 == 1)} => {core_ctx.vr1}
@@ -367,7 +365,7 @@ pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitVector<65536> {
 /// wV
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L268-311.
-pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitVector<65536>) {
+pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitVector) {
     match r {
         l__0 if {(l__0 == 0)} => {core_ctx.vr0 = v}
         l__1 if {(l__1 == 1)} => {core_ctx.vr1 = v}
@@ -409,23 +407,23 @@ pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitVector<65536>) {
 /// rV_bits
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L313.
-pub fn rV_bits(core_ctx: &mut Core, i: vregidx) -> BitVector<65536> {
+pub fn rV_bits(core_ctx: &mut Core, i: vregidx) -> BitVector {
     rV(core_ctx, vregidx_to_vregno(i))
 }
 
 /// wV_bits
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L315-317.
-pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitVector<65536>) {
+pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitVector) {
     wV(core_ctx, vregidx_to_vregno(i), data)
 }
 
 /// read_single_vreg
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L323-334.
-pub fn read_single_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> [BitVector<M>; N] {
+pub fn read_single_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> [BitVector; N] {
     let bv: vregtype = rV_bits(core_ctx, vrid);
-    let mut result: [BitVector<M>; N] = [zeros(__id(SEW)); N];
+    let mut result: [BitVector; N] = [zeros(__id(SEW)); N];
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:327.29-327.30");
         for i in 0..=(num_elem - 1) {
@@ -439,8 +437,8 @@ pub fn read_single_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_
 /// write_single_vreg
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L338-348.
-pub fn write_single_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: [BitVector<M>; N]) {
-    let mut r: vregtype = zeros::<65536>(65536);
+pub fn write_single_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: [BitVector; N]) {
+    let mut r: vregtype = zeros(65536);
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:341.29-341.30");
         todo!("E_for_dec");
@@ -451,9 +449,9 @@ pub fn write_single_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num
 /// read_vreg
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L352-386.
-pub fn read_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> [BitVector<M>; N] {
+pub fn read_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> [BitVector; N] {
     let vrid_val = vregidx_bits(vrid).unsigned();
-    let mut result: [BitVector<M>; N] = [zeros(__id(SEW)); N];
+    let mut result: [BitVector; N] = [zeros(__id(SEW)); N];
     {
         let LMUL_pow_reg = if {(LMUL_pow < 0)} {
             0
@@ -473,8 +471,8 @@ pub fn read_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i
                 for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
                     let r_start_i: i128 = (i_lmul * __id(num_elem_single));
                     let r_end_i: i128 = ((r_start_i + __id(num_elem_single)) - 1);
-                    let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits::<5>(5, i_lmul));
-                    let single_result: [BitVector<M>; NUM_ELEM_SINGLE] = read_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul);
+                    let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
+                    let single_result: [BitVector; NUM_ELEM_SINGLE] = read_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul);
                     for r_i in r_start_i..=r_end_i {
                         let s_i: i128 = (r_i - r_start_i);
                         assert!(((0 <= r_i) && (r_i < num_elem)), "tests/vec/arch.sail:377.42-377.43");
@@ -491,7 +489,7 @@ pub fn read_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i
 /// write_vreg
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L390-408.
-pub fn write_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx, vec: [BitVector<M>; N]) {
+pub fn write_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx, vec: [BitVector; N]) {
     let LMUL_pow_reg = if {(LMUL_pow < 0)} {
         0
     } else {
@@ -500,9 +498,9 @@ pub fn write_vreg<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: 
     let num_elem_single: i128 = quot_round_zero(512, SEW);
     assert!((__id(num_elem_single) >= 0), "tests/vec/arch.sail:394.30-394.31");
     for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
-        let mut single_vec: [BitVector<M>; NUM_ELEM_SINGLE] = [zeros(__id(SEW)); NUM_ELEM_SINGLE];
+        let mut single_vec: [BitVector; NUM_ELEM_SINGLE] = [zeros(__id(SEW)); NUM_ELEM_SINGLE];
         {
-            let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits::<5>(5, i_lmul));
+            let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
             let r_start_i: i128 = (i_lmul * __id(num_elem_single));
             let r_end_i: i128 = ((r_start_i + __id(num_elem_single)) - 1);
             for r_i in r_start_i..=r_end_i {
@@ -533,12 +531,12 @@ pub fn get_num_elem(LMUL_pow: i128, SEW: i128) -> i128 {
 /// read_vmask
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L423-437.
-pub fn read_vmask<const N: i128>(core_ctx: &mut Core, num_elem: i128, vm: BitVector<1>, vrid: vregidx) -> BitVector<N> {
+pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitVector, vrid: vregidx) -> BitVector {
     assert!((num_elem <= 65536), "tests/vec/arch.sail:424.36-424.37");
     let vreg_val: vregtype = rV_bits(core_ctx, vrid);
-    let mut result: BitVector<N> = ones(__id(num_elem));
+    let mut result: BitVector = ones(__id(num_elem));
     {
-        if {(vm == BitVector::<1>::new(0b1))} {
+        if {(vm == BitVector::new(1, 0b1))} {
             return result;
         } else {
             ()
@@ -564,7 +562,7 @@ pub enum ExecutionResult {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L463.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    VVTYPE((vvfunct6, BitVector<1>, vregidx, vregidx, vregidx))
+    VVTYPE((vvfunct6, BitVector, vregidx, vregidx, vregidx))
 }
 
 /// valid_vtype
@@ -574,20 +572,20 @@ pub fn valid_vtype(core_ctx: &mut Core, unit_arg: ()) -> bool {
     ({
         let var_1 = core_ctx.vtype;
         _get_Vtype_vill(var_1)
-    } == BitVector::<1>::new(0b0))
+    } == BitVector::new(1, 0b0))
 }
 
 /// valid_rd_mask
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L486-488.
-pub fn valid_rd_mask(rd: vregidx, vm: BitVector<1>) -> bool {
-    ((vm != BitVector::<1>::new(0b0)) || (rd != zvreg))
+pub fn valid_rd_mask(rd: vregidx, vm: BitVector) -> bool {
+    ((vm != BitVector::new(1, 0b0)) || (rd != zvreg))
 }
 
 /// illegal_normal
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L492-494.
-pub fn illegal_normal(core_ctx: &mut Core, vd: vregidx, vm: BitVector<1>) -> bool {
+pub fn illegal_normal(core_ctx: &mut Core, vd: vregidx, vm: BitVector) -> bool {
     (!(valid_vtype(core_ctx, ())) || !(valid_rd_mask(vd, vm)))
 }
 
@@ -614,7 +612,7 @@ pub fn get_end_element(core_ctx: &mut Core, unit_arg: ()) -> i128 {
 /// init_masked_result
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L526-574.
-pub fn init_masked_result<const N: usize, const M: i128>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vd_val: [BitVector<M>; N], vm_val: BitVector<N>) -> result<([BitVector<M>; N], BitVector<N>), ()> {
+pub fn init_masked_result<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vd_val: [BitVector; N], vm_val: BitVector) -> result<([BitVector; N], BitVector), ()> {
     let start_element: nat = match get_start_element(core_ctx, ()) {
         result::Ok(v) => {v}
         result::Err(()) => {return result::Err(());}
@@ -623,9 +621,9 @@ pub fn init_masked_result<const N: usize, const M: i128>(core_ctx: &mut Core, nu
     let end_element = get_end_element(core_ctx, ());
     let tail_ag: agtype = get_vtype_vta(core_ctx, ());
     let mask_ag: agtype = get_vtype_vma(core_ctx, ());
-    let mut mask: BitVector<N> = undefined_bitvector(bitvector_length(vm_val));
+    let mut mask: BitVector = undefined_bitvector(bitvector_length(vm_val));
     {
-        let mut result: [BitVector<M>; N] = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
+        let mut result: [BitVector; N] = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
         {
             let real_num_elem = if {(LMUL_pow >= 0)} {
                 num_elem
@@ -670,8 +668,8 @@ pub fn init_masked_result<const N: usize, const M: i128>(core_ctx: &mut Core, nu
 /// set_vstart
 /// 
 /// Generated from the Sail sources at `tests/vec/arch.sail` L578-584.
-pub fn set_vstart(core_ctx: &mut Core, value: BitVector<16>) {
-    core_ctx.vstart = value.subrange::<0, 9, 9>().zero_extend::<16>()
+pub fn set_vstart(core_ctx: &mut Core, value: BitVector) {
+    core_ctx.vstart = value.subrange::<0, 9, 9>().zero_extend(16)
 }
 
 /// execute
@@ -689,11 +687,11 @@ pub fn execute(core_ctx: &mut Core, funct6: ast) -> ExecutionResult {
     };
     let n = num_elem;
     let m = SEW;
-    let vm_val: BitVector<N> = read_vmask(core_ctx, num_elem, vm, zvreg);
-    let vs1_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
-    let vs2_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
-    let vd_val: [BitVector<M>; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
-    let (initial_result, mask): ([BitVector<M>; N], BitVector<N>) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
+    let vm_val: BitVector = read_vmask(core_ctx, num_elem, vm, zvreg);
+    let vs1_val: [BitVector; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
+    let vs2_val: [BitVector; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
+    let vd_val: [BitVector; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
+    let (initial_result, mask): ([BitVector; N], BitVector) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
         result::Ok(v) => {v}
         result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
         _ => {panic!("Unreachable code")}
@@ -715,7 +713,7 @@ pub fn execute(core_ctx: &mut Core, funct6: ast) -> ExecutionResult {
             }
         };
         write_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd, result);
-        set_vstart(core_ctx, zeros::<16>(16));
+        set_vstart(core_ctx, zeros(16));
         ExecutionResult::Retire_Success(())
     }
 }

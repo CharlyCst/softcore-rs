@@ -23,29 +23,22 @@ pub fn bitvector_length(e: BitVector) -> i128 {
     e.len
 }
 
-pub fn parse_hex_bits<const N: i128>(_n: i128, _hex_str: &str) -> BitVector {
+pub fn parse_hex_bits(_n: i128, _hex_str: &str) -> BitVector {
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
-pub fn bitvector_concat(
-    e1: BitVector,
-    e2: BitVector,
-) -> BitVector {
+pub fn bitvector_concat(e1: BitVector, e2: BitVector) -> BitVector {
     bv(e1.len + e2.len, (e1.bits() << e2.len) | e2.bits())
 }
 
-pub const fn get_slice_int<const L: i128>(l: i128, n: i128, start: i128) -> BitVector {
+pub const fn get_slice_int(l: i128, n: i128, start: i128) -> BitVector {
     let val = (n >> start) & (mask128(l as usize) as i128);
-    bv(L, val as u64)
+    bv(l, val as u64)
 }
 
-pub const fn slice<const N: i128, const M: i128>(
-    bits: BitVector,
-    start: i128,
-    len: i128,
-) -> BitVector {
+pub const fn slice(bits: BitVector, start: i128, len: i128) -> BitVector {
     let mask = mask(len as usize);
-    bv(N, (bits.bits() >> start) & mask)
+    bv(len, (bits.bits() >> start) & mask)
 }
 
 pub fn get_16_random_bits(_unit: ()) -> BitVector {
@@ -82,10 +75,7 @@ pub fn truncate(v: BitVector, size: i128) -> BitVector {
     v
 }
 
-pub fn sail_sign_extend(
-    input: BitVector,
-    n: i128,
-) -> BitVector {
+pub fn sail_sign_extend(input: BitVector, n: i128) -> BitVector {
     assert!(n >= input.len, "Cannot sign extend to smaller size");
     assert!(n <= 64, "Maximum supported size is 64 for now");
 
@@ -103,7 +93,11 @@ pub fn sail_sign_extend(
     } else {
         // Negative number - fill upper bits with 1s
         // Handle the case where M=64 to avoid shift overflow
-        let mask = if input.len == 64 { 0u64 } else { (1u64 << input.len) - 1 };
+        let mask = if input.len == 64 {
+            0u64
+        } else {
+            (1u64 << input.len) - 1
+        };
         let extension_bits = !mask & if n == 64 { u64::MAX } else { (1u64 << n) - 1 };
         bv(n, input.bits() | extension_bits)
     }
@@ -153,23 +147,12 @@ pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {
     }
 }
 
-pub fn subrange_bits<const OUT: i128>(
-    vec: BitVector,
-    end: i128,
-    start: i128,
-) -> BitVector {
-    assert_eq!((end - start + 1), OUT);
-    assert!(OUT <= vec.len);
-
-    bv(OUT, (vec.bits >> start) & mask(OUT as usize))
+pub fn subrange_bits(vec: BitVector, end: i128, start: i128) -> BitVector {
+    let out = end - start + 1;
+    bv(out, (vec.bits >> start) & mask(out as usize))
 }
 
-pub fn update_subrange_bits(
-    bits: BitVector,
-    to: u64,
-    from: u64,
-    value: BitVector,
-) -> BitVector {
+pub fn update_subrange_bits(bits: BitVector, to: u64, from: u64, value: BitVector) -> BitVector {
     assert!(to - from + 1 == value.len as u64, "size don't match");
 
     // Generate the 111111 mask
@@ -188,8 +171,8 @@ pub fn bitvector_update(v: BitVector, pos: i128, value: bool) -> BitVector {
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
 pub struct BitVector {
-    len:    i128,
-    bits:   u64,
+    len: i128,
+    bits: u64,
 }
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
@@ -199,7 +182,9 @@ pub struct BitField {
 
 impl BitField {
     pub const fn new(len: i128, value: u64) -> Self {
-        BitField { bits: bv(len, value) }
+        BitField {
+            bits: bv(len, value),
+        }
     }
 
     pub const fn subrange<const A: i128, const B: i128, const C: i128>(self) -> BitVector {
@@ -244,12 +229,19 @@ impl BitVector {
                 bits: val & ((1 << len) - 1),
             }
         } else {
-            Self { len: len, bits: val }
+            Self {
+                len: len,
+                bits: val,
+            }
         }
     }
 
     pub const fn new_empty(len: i128) -> Self {
         Self { len: len, bits: 0 }
+    }
+
+    pub const fn len(self) -> i128 {
+        self.len
     }
 
     pub const fn bits(self) -> u64 {
@@ -657,10 +649,7 @@ mod tests {
 
         for i in 0..(1 << (SIZE as usize)) {
             let v = bv(SIZE, i);
-            assert_eq!(
-                bitvector_concat(v, v).bits,
-                i + (i << (SIZE as usize))
-            );
+            assert_eq!(bitvector_concat(v, v).bits, i + (i << (SIZE as usize)));
         }
     }
 

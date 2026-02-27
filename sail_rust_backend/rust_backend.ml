@@ -154,68 +154,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | None -> "Generated from the Sail sources."
   ;;
 
-  (* This function should tell us: Are we binding any P_typ? *)
-  (* TODO(Gurvan):
-        - This function should tell us: Are we binding any P_typ?
-        - This function should also take as a parameter the let_exp because we
-        also want to know what are the dependencies here between bound variable
-        and the expression.
-        - This would be much easier to do on ANF
-  *)
-  let pat_t_var p e : tannot exp SMap.t =
-    let typ_pat (acc : tannot exp SMap.t) (TP_aux (tp, _)) e : tannot exp SMap.t =
-      match tp with
-      | TP_wild -> acc
-      | TP_var (Kid_aux (Var kid, _)) -> SMap.add kid e acc
-      | TP_app (_x, _tps) ->
-        Format.printf "TODO(Gurvan): pat_t_var P_struct\n";
-        acc
-    in
-    let rec pat_t_var_aux (acc : tannot exp SMap.t) (P_aux (p, _)) e : tannot exp SMap.t =
-      match p with
-      | P_lit _ -> acc
-      | P_wild -> acc
-      | P_or (p1, p2) ->
-        Format.printf "TODO(Gurvan): or pattern\n";
-        acc
-      | P_not p' ->
-        Format.printf "TODO(Gurvan): not pattern\n";
-        acc
-      | P_as (p', _) ->
-        Format.printf "TODO(Gurvan): as pattern\n";
-        acc
-      | P_typ (_, p') -> pat_t_var_aux acc p' e
-      | P_id _ -> acc
-      | P_var (p', tp) -> pat_t_var_aux (typ_pat acc tp e) p' e
-      | P_app (_, ps) ->
-        Format.printf "TODO(Gurvan): app pattern\n";
-        acc
-      | P_vector ps ->
-        Format.printf "TODO(Gurvan): vector pattern\n";
-        acc
-      | P_vector_concat ps ->
-        Format.printf "TODO(Gurvan): vector concat\n";
-        acc
-      | P_vector_subrange _ -> acc
-      | P_tuple ps ->
-        Format.printf "TODO(Gurvan): tuple pattern\n";
-        acc
-      | P_list ps ->
-        Format.printf "TODO(Gurvan): list pattern\n";
-        acc
-      | P_cons (p1, p2) ->
-        Format.printf "TODO(Gurvan): cons pattern\n";
-        acc
-      | P_string_append ps ->
-        Format.printf "TODO(Gurvan): string append\n";
-        acc
-      | P_struct _ ->
-        Format.printf "TODO(Gurvan): struct pattern\n";
-        acc
-    in
-    pat_t_var_aux SMap.empty p e
-  ;;
-
   (* ———————————————————————— Sail-to-Rust Conversion ————————————————————————— *)
 
   let process_scattered scattered : rs_program =
@@ -353,92 +291,11 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_app (id, [ e1; e2 ]) when string_of_id id = "mult_atom" ->
       process_binop_exp ctx e1 RsBinopMult e2
     | E_app (id, exp_list) when string_of_id id = "bitvector_concat" ->
-      (* We need to infer the vectors dimensions. To do so we look-up the type variable bindings in the typing context. *)
-      let bindings = instantiation_of (E_aux (exp, aux)) in
-      let n = KBindings.find_opt (as_kid "n") bindings in
-      let m = KBindings.find_opt (as_kid "m") bindings in
-      (match n, m with
-       | Some n, Some m ->
-         let as_int64 (A_aux (typ, l)) =
-           match typ with
-           | A_nexp nexp ->
-             (match big_int_of_nexp nexp with
-              | Some n -> Big_int.to_int64 n
-              | None ->
-                Reporting.warn
-                  "Could not infer 'bitvector_concat' type"
-                  l
-                  (Printf.sprintf "found %s" (string_of_typ_arg (A_aux (typ, l))));
-                64L)
-           | _ ->
-             Reporting.warn
-               "Could not infer 'bitvector_concat' type"
-               l
-               (Printf.sprintf "found %s" (string_of_typ_arg (A_aux (typ, l))));
-             64L
-         in
-         let nm = Int64.to_string (Int64.add (as_int64 n) (as_int64 m)) in
-         let n = Int64.to_string (as_int64 n) in
-         let m = Int64.to_string (as_int64 m) in
-         RsApp
-           ( RsId (sanitize_id (string_of_id id))
-           , [ n; m; nm ]
-           , List.map (process_exp ctx) exp_list )
-       | _ -> RsTodo "Could not infer sizes of `bitvector_concat`")
+      RsApp (RsId (sanitize_id (string_of_id id)), [], List.map (process_exp ctx) exp_list)
     | E_app (id, exp_list)
       when let sid = string_of_id id in
            sid = "ones" || sid = "sail_ones" ->
-      (* Those functions' const generic type might not always be
-                   known at compile time as it might depend the configuration.
-                   When it can not be known, we need to use a conservative
-                   approximation.
-
-                   When we do an approximation, we use the SMT solver to prove
-                   that the approximation is correct. In this case correct
-                   means that we use more bits rather than fewer.*)
-      let id = sanitize_id (string_of_id id) in
-      let exp_list = List.map (process_exp ctx) exp_list in
-      let bindings = instantiation_of (E_aux (exp, aux)) in
-      (* TODO(Gurvan): Why is this necessarily 'n ? *)
-      (match KBindings.find_opt (as_kid "n") bindings with
-       (* The type variable depends on another variable.
-                       For now we leave that case to the Rust type inference,
-                       and simply omit the generic. *)
-       | None -> RsApp (RsId id, [], exp_list)
-       (* We found the type variable *)
-       | Some (A_aux (A_nexp n, _)) ->
-         (match big_int_of_nexp n with
-          | Some n ->
-            (* The constant can be determined at compile time *)
-            RsApp (RsId id, [ Big_int.to_string n ], exp_list)
-          | None ->
-            (* If the constant is unknown, we need to make a conservative approximation *)
-            (* First, we find the type variables and contraints *)
-            let kind_ids, constraints =
-              match typ with
-              | Typ_aux (Typ_exist (kinded_ids, constraints, _ret_typ), _) ->
-                kinded_ids, constraints
-              | Typ_aux (_, l) ->
-                Reporting.warn
-                  ("Found an unexpected type while processing `" ^ id ^ "`")
-                  l
-                  ("Found type type: " ^ string_of_typ typ);
-                ( []
-                , nc_true
-                  (* This is a placeholder, the output will most likely be invalid *) )
-            in
-            (* Then we add them to the current environment *)
-            let env = add_existential (fst aux) kind_ids constraints env in
-            (* And finally we use the SMT solver to prove that our approximation is conservative *)
-            if prove __POS__ env (nc_lteq n (nconstant (Big_int.of_int 64)))
-            then RsApp (RsId id, [ "64" ], exp_list)
-            else
-              Reporting.unreachable
-                (fst aux)
-                __POS__
-                "Could not prove that the bit width is less or equal to 64")
-       (* We found the type variable, but it is not a nexp! *)
-       | Some (A_aux (_, l)) -> Reporting.unreachable l __POS__ "Expected a nexp")
+      RsApp (RsId (sanitize_id (string_of_id id)), [], List.map (process_exp ctx) exp_list)
     | E_app (id, [ size; item ]) when string_of_id id = "vector_init" ->
       (* If possible, try to get the size using the const parameter of the type *)
       (match typ_to_rust typ with
@@ -495,19 +352,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_match (exp, pexp_list) ->
       RsMatch (process_exp ctx exp, List.map (process_pexp ctx) pexp_list)
     | E_let (LB_aux (LB_val (let_var, let_exp), _), exp) ->
-      (* TODO(Gurvan): Find a better name then `tmp` here *)
-      let tmp = pat_t_var let_var let_exp in
-      if not (SMap.is_empty tmp)
-      then (
-        Format.printf "non empty dependency for pattern %s\n" (string_of_pat let_var);
-        SMap.iter (fun k v -> Format.printf "--> %s %s\n" k (string_of_exp v)) tmp;
-        (* TODO(Gurvan): We need to monomorphize here.
-           We need to know all possible value in tmp can take, and switch on
-           them
-           If this is too big, then we should maybe either issue a warning or
-           fail to avoid a huge blow-up. *)
-        RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp))
-      else RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
+      RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
     | E_var (lexp, value, next) ->
       RsLetMut (process_lexp ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
@@ -561,6 +406,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       else RsLexpId id
     | LE_vector (lexp, idx) ->
       let (LE_aux (_, (_, tannot))) = lexp in
+      (* TODO(Gurvan): There is probably a way to do this without a match *)
       (match destruct_tannot tannot with
        | None ->
          (* TODO(Gurvan): Probably unreachable at this point? *)
@@ -617,9 +463,10 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       (* Generate a bitvector literal *)
       let vector_length = List.length items in
       RsStaticApp
-        ( RsTypGenericParam ("BitVector::", [ RsTypParamNum (mk_num vector_length) ])
+        ( RsTypId "BitVector"
         , "new"
-        , [ RsLit
+        , [ mk_num vector_length
+          ; RsLit
               (RsLitBin
                  (Printf.sprintf "0b%s" (String.concat "" (List.map string_of_bit items))))
           ] ))
@@ -1220,15 +1067,18 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         (ret : rs_type)
     : (int * int) list
     =
-    (* For now we focus on simple function with one generic and one
-           argument that return a bitvector whose size is the argument. *)
-    match generics, args, ret with
-    | ( [ RsGenConst (x, _) ]
-      , [ RsTypGenericParam (arg_t, [ RsTypParamTyp (RsTypId y) ]) ]
-      , RsTypGenericParam ("bitvector", [ RsTypParamTyp (RsTypId z) ]) )
-      when x = y && y = z && (arg_t = "atom" || arg_t = "implicit") -> [ 0, 0 ]
-    | _ -> []
+    []
   ;;
+
+  (*   (* For now we focus on simple function with one generic and one *)
+  (*          argument that return a bitvector whose size is the argument. *) *)
+  (*   match generics, args, ret with *)
+  (*   | ( [ RsGenConst (x, _) ] *)
+  (*     , [ RsTypGenericParam (arg_t, [ RsTypParamTyp (RsTypId y) ]) ] *)
+  (*     , RsTypGenericParam ("bitvector", [ RsTypParamTyp (RsTypId z) ]) ) *)
+  (*     when x = y && y = z && (arg_t = "atom" || arg_t = "implicit") -> [ 0, 0 ] *)
+  (*   | _ -> [] *)
+  (* ;; *)
 
   let extract_types (TypSchm_aux (typeschm, _)) : rs_fn_type =
     (* We ignore the type quantifier for now, there is no `forall` on most types of interest *)

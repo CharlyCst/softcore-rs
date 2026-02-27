@@ -32,9 +32,9 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector<xlen>;
+pub type xlenbits = BitVector;
 
-pub type regbits = BitVector<5>;
+pub type regbits = BitVector;
 
 /// ast
 /// 
@@ -48,13 +48,13 @@ pub enum ast {
 /// 
 /// Generated from the Sail sources at `tests/hoisting/arch.sail` L24-34.
 pub fn execute(ast::TEST(()): ast) {
-    if {let foo_var_1 = BitVector::<3>::new(0b101);
-    (BitVector::<3>::new(0b101) != foo_var_1)} {
+    if {let foo_var_1 = BitVector::new(3, 0b101);
+    (BitVector::new(3, 0b101) != foo_var_1)} {
         assert!(false, "Branch should not be taken")
     } else {
         ()
     };
-    let a = BitVector::<3>::new(0b100);
-    let a__quote = BitVector::<3>::new(0b101);
+    let a = BitVector::new(3, 0b100);
+    let a__quote = BitVector::new(3, 0b101);
     assert!((a != a__quote), "Those variables should be different!")
 }

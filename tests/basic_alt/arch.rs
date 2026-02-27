@@ -33,14 +33,14 @@ pub fn _reset_all_registers() {
 /// EXTZ
 /// 
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L7.
-pub fn EXTZ<const N: i128, const M: i128>(m: i128, v: BitVector<N>) -> BitVector<M> {
-    v.zero_extend()
+pub fn EXTZ(m: i128, v: BitVector) -> BitVector {
+    v.zero_extend(m)
 }
 
 /// EXTS
 /// 
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L10.
-pub fn EXTS<const N: i128, const M: i128>(m: i128, v: BitVector<N>) -> BitVector<M> {
+pub fn EXTS(m: i128, v: BitVector) -> BitVector {
     sail_sign_extend(v, m)
 }
 
@@ -48,16 +48,16 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector<xlen>;
+pub type xlenbits = BitVector;
 
-pub type regbits = BitVector<5>;
+pub type regbits = BitVector;
 
 /// rX
 /// 
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L31-35.
-pub fn rX(core_ctx: &mut Core, r: BitVector<5>) -> BitVector<64> {
+pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
     match r {
-        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {EXTZ(64, BitVector::<4>::new(0b0000))}
+        b__0 if {(b__0 == BitVector::new(5, 0b00000))} => {EXTZ(64, BitVector::new(4, 0b0000))}
         _ => {core_ctx.Xs[(r.unsigned() as usize)]}
         _ => {panic!("Unreachable code")}
     }
@@ -66,8 +66,8 @@ pub fn rX(core_ctx: &mut Core, r: BitVector<5>) -> BitVector<64> {
 /// wX
 /// 
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L38-41.
-pub fn wX(core_ctx: &mut Core, r: BitVector<5>, v: BitVector<64>) {
-    if {(r != BitVector::<5>::new(0b00000))} {
+pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
+    if {(r != BitVector::new(5, 0b00000))} {
         core_ctx.Xs[(r.unsigned() as usize)] = v
     } else {
         ()
@@ -92,8 +92,8 @@ pub enum iop {
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    ITYPE((BitVector<12>, BitVector<5>, BitVector<5>, iop)),
-    LOAD((BitVector<12>, BitVector<5>, BitVector<5>))
+    ITYPE((BitVector, BitVector, BitVector, iop)),
+    LOAD((BitVector, BitVector, BitVector))
 }
 
 /// execute
@@ -110,9 +110,9 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) {
                 _ => {false}
                 _ => {panic!("Unreachable code")}
             };
-            wX(core_ctx, rd, EXTZ(64, BitVector::<1>::new(0b0)));
+            wX(core_ctx, rd, EXTZ(64, BitVector::new(1, 0b0)));
             if {(result != result)} {
-                let z: xlenbits = EXTZ(64, BitVector::<1>::new(0b0));
+                let z: xlenbits = EXTZ(64, BitVector::new(1, 0b0));
                 wX(core_ctx, rd, z)
             } else {
                 wX(core_ctx, rd, result)

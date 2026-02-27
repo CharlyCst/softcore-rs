@@ -39,9 +39,9 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector<xlen>;
+pub type xlenbits = BitVector;
 
-pub type priv_level = BitVector<2>;
+pub type priv_level = BitVector;
 
 /// Privilege
 /// 
@@ -63,11 +63,11 @@ pub const fn haveUsrMode(unit_arg: ()) -> bool {
 /// privLevel_to_bits
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L46-51.
-pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
+pub fn privLevel_to_bits(p: Privilege) -> BitVector {
     match p {
-        Privilege::User => {BitVector::<2>::new(0b00)}
-        Privilege::Supervisor => {BitVector::<2>::new(0b01)}
-        Privilege::Machine => {BitVector::<2>::new(0b11)}
+        Privilege::User => {BitVector::new(2, 0b00)}
+        Privilege::Supervisor => {BitVector::new(2, 0b01)}
+        Privilege::Machine => {BitVector::new(2, 0b11)}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -75,11 +75,11 @@ pub fn privLevel_to_bits(p: Privilege) -> BitVector<2> {
 /// privLevel_of_bits
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L54-60.
-pub fn privLevel_of_bits(p: BitVector<2>) -> Privilege {
+pub fn privLevel_of_bits(p: BitVector) -> Privilege {
     match p {
-        b__0 if {(b__0 == BitVector::<2>::new(0b00))} => {Privilege::User}
-        b__1 if {(b__1 == BitVector::<2>::new(0b01))} => {Privilege::Supervisor}
-        b__2 if {(b__2 == BitVector::<2>::new(0b11))} => {Privilege::Machine}
+        b__0 if {(b__0 == BitVector::new(2, 0b00))} => {Privilege::User}
+        b__1 if {(b__1 == BitVector::new(2, 0b01))} => {Privilege::Supervisor}
+        b__2 if {(b__2 == BitVector::new(2, 0b11))} => {Privilege::Machine}
         _ => {not_implemented("Invalid privilege level")}
         _ => {panic!("Unreachable code")}
     }
@@ -88,44 +88,44 @@ pub fn privLevel_of_bits(p: BitVector<2>) -> Privilege {
 /// pc_alignment_mask
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L62-63.
-pub fn pc_alignment_mask(unit_arg: ()) -> BitVector<64> {
-    !(BitVector::<2>::new(0b10).zero_extend::<64>())
+pub fn pc_alignment_mask(unit_arg: ()) -> BitVector {
+    !(BitVector::new(2, 0b10).zero_extend(64))
 }
 
-pub type regidx = BitVector<5>;
+pub type regidx = BitVector;
 
-pub type cregidx = BitVector<3>;
+pub type cregidx = BitVector;
 
-pub type csreg = BitVector<12>;
+pub type csreg = BitVector;
 
 /// Mstatus
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L81-105.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
-    pub bits: BitVector<64>,
+    pub bits: BitVector,
 }
 
 /// _get_Mstatus_MPIE
 /// 
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_MPIE(v: Mstatus) -> BitVector<1> {
+pub fn _get_Mstatus_MPIE(v: Mstatus) -> BitVector {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _get_Mstatus_MPP
 /// 
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_MPP(v: Mstatus) -> BitVector<2> {
+pub fn _get_Mstatus_MPP(v: Mstatus) -> BitVector {
     v.bits.subrange::<11, 13, 2>()
 }
 
 /// rX
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L116-120.
-pub fn rX(core_ctx: &mut Core, r: BitVector<5>) -> BitVector<64> {
+pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
     match r {
-        b__0 if {(b__0 == BitVector::<5>::new(0b00000))} => {BitVector::<4>::new(0b0000).zero_extend::<64>()}
+        b__0 if {(b__0 == BitVector::new(5, 0b00000))} => {BitVector::new(4, 0b0000).zero_extend(64)}
         _ => {core_ctx.Xs[(r.unsigned() as usize)]}
         _ => {panic!("Unreachable code")}
     }
@@ -134,8 +134,8 @@ pub fn rX(core_ctx: &mut Core, r: BitVector<5>) -> BitVector<64> {
 /// wX
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L123-126.
-pub fn wX(core_ctx: &mut Core, r: BitVector<5>, v: BitVector<64>) {
-    if {(r != BitVector::<5>::new(0b00000))} {
+pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
+    if {(r != BitVector::new(5, 0b00000))} {
         core_ctx.Xs[(r.unsigned() as usize)] = v
     } else {
         ()
@@ -145,7 +145,7 @@ pub fn wX(core_ctx: &mut Core, r: BitVector<5>, v: BitVector<64>) {
 /// set_next_pc
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L142-144.
-pub fn set_next_pc(core_ctx: &mut Core, pc: BitVector<64>) {
+pub fn set_next_pc(core_ctx: &mut Core, pc: BitVector) {
     core_ctx.nextPC = pc
 }
 
@@ -159,7 +159,7 @@ pub fn handle_illegal(unit_arg: ()) {
 /// get_xret_target
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L152-157.
-pub fn get_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<64> {
+pub fn get_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector {
     match p {
         Privilege::Machine => {core_ctx.mepc}
         Privilege::Supervisor => {core_ctx.sepc}
@@ -171,14 +171,14 @@ pub fn get_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<64> {
 /// prepare_xret_target
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L171-172.
-pub fn prepare_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector<64> {
+pub fn prepare_xret_target(core_ctx: &mut Core, p: Privilege) -> BitVector {
     get_xret_target(core_ctx, p)
 }
 
 /// exception_handler
 /// 
 /// Generated from the Sail sources at `tests/mret/arch.sail` L174-184.
-pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitVector<64>) -> BitVector<64> {
+pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitVector) -> BitVector {
     let prev_priv = core_ctx.cur_privilege;
     core_ctx.mstatus.bits = {
         let var_1 = {
@@ -187,7 +187,7 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitVector
         };
         core_ctx.mstatus.bits.set_subrange::<3, 4, 1>(var_1)
     };
-    core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<7, 8, 1>(BitVector::<1>::new(0b1));
+    core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<7, 8, 1>(BitVector::new(1, 0b1));
     core_ctx.cur_privilege = {
         let var_3 = {
             let var_4 = core_ctx.mstatus;
@@ -197,7 +197,7 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitVector
     };
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<11, 13, 2>(privLevel_to_bits(Privilege::User));
     if {(core_ctx.cur_privilege != Privilege::Machine)} {
-        core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<17, 18, 1>(BitVector::<1>::new(0b0))
+        core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<17, 18, 1>(BitVector::new(1, 0b0))
     } else {
         ()
     };
@@ -224,9 +224,9 @@ pub enum ast {
 /// encdec_forwards
 /// 
 /// Generated from the Sail sources.
-pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector<32> {
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
     match arg_hashtag_ {
-        ast::MRET(()) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0011000), bitvector_concat::<5, 20, 25>(BitVector::<5>::new(0b00010), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::MRET(()) => {bitvector_concat(BitVector::new(7, 0b0011000), bitvector_concat(BitVector::new(5, 0b00010), bitvector_concat(BitVector::new(5, 0b00000), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -234,9 +234,9 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector<32> {
 /// encdec_backwards
 /// 
 /// Generated from the Sail sources.
-pub fn encdec_backwards(arg_hashtag_: BitVector<32>) -> ast {
+pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
     match arg_hashtag_ {
-        v__0 if {(v__0 == BitVector::<32>::new(0b00110000001000000000000001110011))} => {ast::MRET(())}
+        v__0 if {(v__0 == BitVector::new(32, 0b00110000001000000000000001110011))} => {ast::MRET(())}
         _ => {panic!("Unreachable code")}
     }
 }

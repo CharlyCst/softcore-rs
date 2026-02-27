@@ -342,16 +342,10 @@ let bitvec_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp =
       }
     in
     RsAssign (lexp, RsMethodApp method_app)
-  | RsApp (RsId "zero_extend", _generics, [ RsLit (RsLitNum size); e ]) ->
-    RsMethodApp
-      { exp = e; name = "zero_extend"; generics = [ Big_int.to_string size ]; args = [] }
-  (* The size is given as a constant, force the return dimension with a generic *)
-  | RsApp (RsId "sail_zero_extend", _generics, [ e; RsLit (RsLitNum size) ]) ->
-    RsMethodApp
-      { exp = e; name = "zero_extend"; generics = [ Big_int.to_string size ]; args = [] }
-  (* If the size is not a constant, then rely on Rust type inference *)
-  | RsApp (RsId "sail_zero_extend", _generics, [ e; _size ]) ->
-    RsMethodApp { exp = e; name = "zero_extend"; generics = []; args = [] }
+  | RsApp (RsId "zero_extend", _generics, [ size; e ]) ->
+    RsMethodApp { exp = e; name = "zero_extend"; generics = []; args = [ size ] }
+  | RsApp (RsId "sail_zero_extend", _generics, [ e; size ]) ->
+    RsMethodApp { exp = e; name = "zero_extend"; generics = []; args = [ size ] }
   | RsMatch (exp, pat :: pats) when is_bitvec_lit pat ->
     let method_app = { exp; name = "bits"; generics = []; args = [] } in
     RsMatch (RsMethodApp method_app, pat :: pats)
@@ -383,12 +377,12 @@ and uint_to_bitvector (n : int) : rs_type =
 
 let bitvec_transform_type (_ctx : context) (typ : rs_type) : rs_type =
   match typ with
-  | RsTypGenericParam ("bitvector", t) -> RsTypGenericParam ("BitVector", t)
-  | RsTypGenericParam ("bits", t) -> RsTypGenericParam ("BitVector", t)
+  | RsTypGenericParam ("bitvector", _t) -> RsTypId "BitVector"
+  | RsTypGenericParam ("bits", _t) -> RsTypId "BitVector"
   (* TODO: This violate the fact that vector or bits != bitvector. Change it in the future *)
-  | RsTypGenericParam ("vector", t) -> RsTypGenericParam ("BitVector", t)
+  | RsTypGenericParam ("vector", _t) -> RsTypId "BitVector"
   (* TODO: once we resolve type aliasing we can remove those manual conversions *)
-  | RsTypId "regbits" -> RsTypGenericParam ("BitVector", [ RsTypParamNum (mk_num 5) ])
+  | RsTypId "regbits" -> RsTypId "BitVector"
   (* Otherwise keep as is *)
   | _ -> typ
 ;;
@@ -1241,51 +1235,6 @@ let remove_unused_generics_func (_ctx : context) (func : rs_fn) : rs_fn =
 
 let remove_unused_generics : func_transform = { func = remove_unused_generics_func }
 
-(* ————————————————————————— Link Generics to Args —————————————————————————— *)
-(* In some cases Sail generics are determined by the value of an argument.    *)
-(* In Rust we emulate that by using both a generic and an argument.           *)
-(* Therefore, we need to ensure that both match.                              *)
-(* —————————————————————————————————————————————————————————————————————————— *)
-
-let link_generics_to_args_exp (ctx : context) (exp : rs_exp) : rs_exp =
-  match exp with
-  (* Spcial case for well known Sail functions *)
-  | RsApp (RsId id, [], args) when id = "subrange_bits" ->
-    (match args with
-     | [ _vec; RsLit (RsLitNum vec_end); RsLit (RsLitNum vec_start) ] ->
-       let out_size = Big_int.add (Big_int.sub vec_end vec_start) (Big_int.of_int 1) in
-       RsApp (RsId id, [ "_"; Big_int.to_string out_size ], args)
-     | _ -> exp)
-  | RsApp (RsId id, [], args) when id = "to_bits" ->
-    (* NOTE: This is a RISC-V specific function. If we ever need more
-         we should factor them out into the rv64 arch layer. *)
-    (match args with
-     | [ RsLit (RsLitNum size); _value ] ->
-       RsApp (RsId id, [ Big_int.to_string size ], args)
-     | _ -> exp)
-  | RsApp (RsId fn, [], args) when SMap.mem fn ctx.defs.fun_typs ->
-    let signature = SMap.find fn ctx.defs.fun_typs in
-    (match signature.linked_gen_args, signature.generics with
-     (* We only support one genreic/argument pair right now *)
-     | [ (_, arg_idx) ], [ _ ] ->
-       let arg = List.nth args arg_idx in
-       (match arg with
-        | RsLit (RsLitNum n) -> RsApp (RsId fn, [ Big_int.to_string n ], args)
-        | _ -> exp)
-     | _ -> exp)
-  | _ -> exp
-;;
-
-let link_generics_to_args =
-  { exp = link_generics_to_args_exp
-  ; lexp = id_lexp
-  ; pexp = id_pexp
-  ; typ = id_typ
-  ; pat = id_pat
-  ; obj = id_obj
-  }
-;;
-
 (* ———————————————————————— Enumeration binder ————————————————————————— *)
 
 let rec enum_prefix_inserter (key : string) (lst : (string * string) list) : string =
@@ -1763,7 +1712,6 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> rust_transform_func enum_arg_namespace ctx
     |> rust_transform_func fix_scattered_func ctx
     |> rust_transform_func fix_generic_type ctx
-    |> rust_transform_expr link_generics_to_args ctx
     |> rust_transform_expr enum_binder ctx
     |> rust_remove_type_bits
     |> rust_prelude_func_filter

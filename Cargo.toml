@@ -6,7 +6,7 @@ members = [
 
     # The Sail models
     "rv64",
-    "armv9a",
+    # "armv9a",
 
     # Our tests
     "tests/basic",
@@ -28,5 +28,5 @@ members = [
 default-members = [
     "prelude",
     "rv64",
-    "armv9a",
+    # "armv9a",
 ]

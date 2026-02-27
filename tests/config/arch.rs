@@ -48,7 +48,7 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector<xlen>;
+pub type xlenbits = BitVector;
 
 /// extension
 /// 
@@ -70,7 +70,7 @@ pub fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
     }
 }
 
-pub type regbits = BitVector<5>;
+pub type regbits = BitVector;
 
 /// ast
 /// 

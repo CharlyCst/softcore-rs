@@ -29,7 +29,7 @@ pub fn _reset_all_registers() {
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector<xlen>;
+pub type xlenbits = BitVector;
 
 pub const xlen: i128 = 64;
 
@@ -57,7 +57,7 @@ pub enum physaddr {
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L27-29.
 pub fn pmpMatchAddr(physaddr::Physaddr(addr): physaddr) -> bool {
-    (addr != BitVector::<64>::new(0b0000000000000000000000000000000000000000000000000000000000000000))
+    (addr != BitVector::new(64, 0b0000000000000000000000000000000000000000000000000000000000000000))
 }
 
 /// handle_int
@@ -113,21 +113,21 @@ pub enum ast {
 /// zeros
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L66.
-pub const fn zeros<const N: i128>(n: i128) -> BitVector<N> {
+pub const fn zeros(n: i128) -> BitVector {
     sail_zeros(n)
 }
 
 /// hex_bits_backwards
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L77.
-pub fn hex_bits_backwards<const M: i128>(m: i128, str: &'static str) -> BitVector<M> {
+pub fn hex_bits_backwards(m: i128, str: &'static str) -> BitVector {
     parse_hex_bits(m, str)
 }
 
 /// validDoubleRegs
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L80-85.
-pub fn validDoubleRegs<const N: usize>(n: i128, regs: [BitVector<5>; N]) -> bool {
+pub fn validDoubleRegs<const N: usize>(n: i128, regs: [BitVector; N]) -> bool {
     for i in 0..=(n - 1) {
         if {(bitvector_access(regs[(i as usize)], 0) == true)} {
             return false;
@@ -141,7 +141,7 @@ pub fn validDoubleRegs<const N: usize>(n: i128, regs: [BitVector<5>; N]) -> bool
 /// X_read
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L91-93.
-pub fn X_read<const WIDTH: i128>(n: i128, width: i128) -> BitVector<WIDTH> {
+pub fn X_read(n: i128, width: i128) -> BitVector {
     zeros(width)
 }
 
@@ -160,7 +160,7 @@ pub enum Access_kind<ARCH_AK> {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, ARCH_AK> {
     pub access_kind: Access_kind<ARCH_AK>,
-    pub va: Option<BitVector<VASIZE>>,
+    pub va: Option<BitVector>,
     pub pa: PA,
     pub size: i128,
     pub tag: bool,
@@ -196,7 +196,7 @@ pub enum exception {
 /// Generated from the Sail sources at `tests/types/arch.sail` L124-128.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct {
-    pub field1: BitVector<5>,
+    pub field1: BitVector,
     pub field2: i128,
     pub field3: &'static str,
 }
@@ -206,19 +206,19 @@ pub struct My_struct {
 /// Generated from the Sail sources at `tests/types/arch.sail` L130-132.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct_generic<const N: i128> {
-    pub foo: BitVector<N>,
+    pub foo: BitVector,
 }
 
 /// exceptionType_to_bits
 /// 
 /// Generated from the Sail sources at `tests/types/arch.sail` L135-142.
-pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<8> {
+pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector {
     match e {
-        ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::<8>::new(0b00000000)}
-        ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::<8>::new(0b00000001)}
-        ExceptionType::E_Illegal_Instr(()) => {BitVector::<8>::new(0b00000010)}
-        ExceptionType::E_Breakpoint(()) => {BitVector::<8>::new(0b00000011)}
-        ExceptionType::E_Extension(_) => {BitVector::<8>::new(0b00000100)}
+        ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::new(8, 0b00000000)}
+        ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::new(8, 0b00000001)}
+        ExceptionType::E_Illegal_Instr(()) => {BitVector::new(8, 0b00000010)}
+        ExceptionType::E_Breakpoint(()) => {BitVector::new(8, 0b00000011)}
+        ExceptionType::E_Extension(_) => {BitVector::new(8, 0b00000100)}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -231,9 +231,9 @@ pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
     let d = handle_retired(());
     let e = handle_union(());
     let f = hex_bits_backwards(8, "00");
-    let g = pmpMatchAddr(physaddr::Physaddr(BitVector::<64>::new(0b0000000000000000000000000000000011011110101011011011111011101111)));
-    let h: BitVector<64> = X_read(10, 64);
-    if {(f != BitVector::<8>::new(0b00000000))} {
+    let g = pmpMatchAddr(physaddr::Physaddr(BitVector::new(64, 0b0000000000000000000000000000000011011110101011011011111011101111)));
+    let h: BitVector = X_read(10, 64);
+    if {(f != BitVector::new(8, 0b00000000))} {
         assert!(false, "failed to parse hex)")
     } else {
         ()
@@ -244,18 +244,18 @@ pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
         let idx = i;
         ()
     };
-    let ok = validDoubleRegs(2, [BitVector::<5>::new(0b11011), BitVector::<5>::new(0b01111)]);
+    let ok = validDoubleRegs(2, [BitVector::new(5, 0b11011), BitVector::new(5, 0b01111)]);
     let s: My_struct = My_struct {
-        field1: BitVector::<5>::new(0b11111),
+        field1: BitVector::new(5, 0b11111),
         field2: 5,
         field3: "test"
     };
     let s2: My_struct_generic<4> = My_struct_generic {
-        foo: BitVector::<4>::new(0b1010)
+        foo: BitVector::new(4, 0b1010)
     };
     let G: i128 = core_ctx.config.unknown_at_compile_time;
-    let mask: xlenbits = sail_ones::<64>(min_int(G, 64)).zero_extend::<64>();
-    let mask2 = sail_ones::<8>(8);
+    let mask: xlenbits = sail_ones(min_int(G, 64)).zero_extend(64);
+    let mask2 = sail_ones(8);
     let value = exceptionType_to_bits(ExceptionType::E_Fetch_Addr_Align(()));
     ()
 }
