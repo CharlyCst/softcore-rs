@@ -175,21 +175,43 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       match p with
       | P_lit _ -> acc
       | P_wild -> acc
-      | P_or (p1, p2) -> Format.printf "TODO(Gurvan): or pattern\n"; acc
-      | P_not p' -> Format.printf "TODO(Gurvan): not pattern\n"; acc
-      | P_as (p', _) -> Format.printf "TODO(Gurvan): as pattern\n"; acc
+      | P_or (p1, p2) ->
+        Format.printf "TODO(Gurvan): or pattern\n";
+        acc
+      | P_not p' ->
+        Format.printf "TODO(Gurvan): not pattern\n";
+        acc
+      | P_as (p', _) ->
+        Format.printf "TODO(Gurvan): as pattern\n";
+        acc
       | P_typ (_, p') -> pat_t_var_aux acc p' e
       | P_id _ -> acc
       | P_var (p', tp) -> pat_t_var_aux (typ_pat acc tp e) p' e
-      | P_app (_, ps) -> Format.printf "TODO(Gurvan): app pattern\n"; acc
-      | P_vector ps -> Format.printf "TODO(Gurvan): vector pattern\n"; acc
-      | P_vector_concat ps -> Format.printf "TODO(Gurvan): vector concat\n"; acc
+      | P_app (_, ps) ->
+        Format.printf "TODO(Gurvan): app pattern\n";
+        acc
+      | P_vector ps ->
+        Format.printf "TODO(Gurvan): vector pattern\n";
+        acc
+      | P_vector_concat ps ->
+        Format.printf "TODO(Gurvan): vector concat\n";
+        acc
       | P_vector_subrange _ -> acc
-      | P_tuple ps -> Format.printf "TODO(Gurvan): tuple pattern\n"; acc
-      | P_list ps -> Format.printf "TODO(Gurvan): list pattern\n"; acc
-      | P_cons (p1, p2) -> Format.printf "TODO(Gurvan): cons pattern\n"; acc
-      | P_string_append ps -> Format.printf "TODO(Gurvan): string append\n"; acc
-      | P_struct _ -> Format.printf "TODO(Gurvan): struct pattern\n"; acc
+      | P_tuple ps ->
+        Format.printf "TODO(Gurvan): tuple pattern\n";
+        acc
+      | P_list ps ->
+        Format.printf "TODO(Gurvan): list pattern\n";
+        acc
+      | P_cons (p1, p2) ->
+        Format.printf "TODO(Gurvan): cons pattern\n";
+        acc
+      | P_string_append ps ->
+        Format.printf "TODO(Gurvan): string append\n";
+        acc
+      | P_struct _ ->
+        Format.printf "TODO(Gurvan): struct pattern\n";
+        acc
     in
     pat_t_var_aux SMap.empty p e
   ;;
@@ -473,21 +495,19 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_match (exp, pexp_list) ->
       RsMatch (process_exp ctx exp, List.map (process_pexp ctx) pexp_list)
     | E_let (LB_aux (LB_val (let_var, let_exp), _), exp) ->
-        (* TODO(Gurvan): Find a better name then `tmp` here *)
+      (* TODO(Gurvan): Find a better name then `tmp` here *)
       let tmp = pat_t_var let_var let_exp in
       if not (SMap.is_empty tmp)
       then (
         Format.printf "non empty dependency for pattern %s\n" (string_of_pat let_var);
         SMap.iter (fun k v -> Format.printf "--> %s %s\n" k (string_of_exp v)) tmp;
-         (* TODO(Gurvan): We need to monomorphize here.
+        (* TODO(Gurvan): We need to monomorphize here.
            We need to know all possible value in tmp can take, and switch on
            them
            If this is too big, then we should maybe either issue a warning or
            fail to avoid a huge blow-up. *)
-        RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
-     )
-     else
-     RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
+        RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp))
+      else RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
     | E_var (lexp, value, next) ->
       RsLetMut (process_lexp ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
