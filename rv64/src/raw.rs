@@ -6945,7 +6945,7 @@ pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> 
     };
     match tvec_addr(tvec, cause) {
         Some(epc) => {epc}
-        None => {panic!("{}, l {}: {} {:?} {:?}", "riscv_sys_exceptions.sail", 29, "Invalid tvec mode", tvec, cause)}
+        None => {panic!("{}, l {}: {}", "riscv_sys_exceptions.sail", 29, "Invalid tvec mode")}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -7707,8 +7707,8 @@ pub fn is_CSR_defined(core_ctx: &mut Core, merge_hashtag_var: BitVector) -> bool
         b__59 if {(b__59 == BitVector::new(12, 0b000101001101))} => {(currentlyEnabled(core_ctx, extension::Ext_S) && currentlyEnabled(core_ctx, extension::Ext_Sstc))}
         b__60 if {(b__60 == BitVector::new(12, 0b000101011101))} => {false}
         b__61 if {(b__61 == BitVector::new(12, 0b000110000000))} => {currentlyEnabled(core_ctx, extension::Ext_S)}
-        _ => {panic!("{:?}", merge_hashtag_var)}
-        // _ => {panic!("Unreachable code")}
+        _ => {false}
+        _ => {panic!("Unreachable code")}
     }
 }
 
