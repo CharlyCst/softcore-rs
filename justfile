@@ -33,6 +33,7 @@ download_models:
     cmake -S ./sail_models/sail-riscv -B ./sail_models/sail-riscv/build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
     # Arm
+    rm -rf sail_models/sail-arm
     git clone https://github.com/rems-project/sail-arm.git sail_models/sail-arm
     cd ./sail_models/sail-arm && git apply ../arm.patch
 

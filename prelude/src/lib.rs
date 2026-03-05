@@ -299,6 +299,7 @@ impl BitVector {
         bv(self.len, new_value)
     }
 
+    // NOTE(Gurvan): We could also not be taking C here and have A and B be normal parameters now?
     pub const fn subrange<const A: i128, const B: i128, const C: i128>(self) -> Self {
         assert!(B - A == C, "Invalid subrange parameters");
         assert!(B <= self.len, "Invalid subrange");
@@ -306,7 +307,7 @@ impl BitVector {
         let mut val = self.bits; // The current value
         val &= BitVector::bit_mask(B); // Remove top bits
         val >>= A; // Shift all the bits
-        bv(self.len, val)
+        bv(C, val)
     }
 
     pub const fn set_subrange<const A: i128, const B: i128, const C: i128>(
@@ -516,10 +517,10 @@ mod tests {
         assert_eq!(v.subrange::<2, 7, 5>().bits(), 0b01101);
 
         let v = bv(32, 0b10110111);
-        assert_eq!(v.set_subrange::<0, 1, 1>(bv(0b0)).bits(), 0b10110110);
-        assert_eq!(v.set_subrange::<0, 1, 1>(bv(0b1)).bits(), 0b10110111);
-        assert_eq!(v.set_subrange::<0, 2, 2>(bv(0b00)).bits(), 0b10110100);
-        assert_eq!(v.set_subrange::<2, 5, 3>(bv(0b010)).bits(), 0b10101011);
+        assert_eq!(v.set_subrange::<0, 1, 1>(bv(1, 0b0)).bits(), 0b10110110);
+        assert_eq!(v.set_subrange::<0, 1, 1>(bv(1, 0b1)).bits(), 0b10110111);
+        assert_eq!(v.set_subrange::<0, 2, 2>(bv(2, 0b00)).bits(), 0b10110100);
+        assert_eq!(v.set_subrange::<2, 5, 3>(bv(3, 0b010)).bits(), 0b10101011);
 
         assert_eq!(
             bv(64, 0x0000000000000000).subrange::<60, 64, 4>().bits(),
@@ -554,7 +555,7 @@ mod tests {
     // TODO: In the future squash with the previous function
     #[test]
     fn subrange_bitfield() {
-        let bitfield = BitField::<32>::new(0b10110111);
+        let bitfield = BitField::new(32, 0b10110111);
 
         assert_eq!(bitfield.subrange::<0, 1, 1>().bits(), 0b1);
         assert_eq!(bitfield.subrange::<0, 2, 2>().bits(), 0b11);
@@ -569,10 +570,10 @@ mod tests {
         assert_eq!(bitfield.subrange::<2, 7, 5>().bits(), 0b01101);
 
         let v = bv(32, 0b10110111);
-        assert_eq!(v.set_subrange::<0, 1, 1>(bv(0b0)).bits(), 0b10110110);
-        assert_eq!(v.set_subrange::<0, 1, 1>(bv(0b1)).bits(), 0b10110111);
-        assert_eq!(v.set_subrange::<0, 2, 2>(bv(0b00)).bits(), 0b10110100);
-        assert_eq!(v.set_subrange::<2, 5, 3>(bv(0b010)).bits(), 0b10101011);
+        assert_eq!(v.set_subrange::<0, 1, 1>(bv(1, 0b0)).bits(), 0b10110110);
+        assert_eq!(v.set_subrange::<0, 1, 1>(bv(1, 0b1)).bits(), 0b10110111);
+        assert_eq!(v.set_subrange::<0, 2, 2>(bv(2, 0b00)).bits(), 0b10110100);
+        assert_eq!(v.set_subrange::<2, 5, 3>(bv(3, 0b010)).bits(), 0b10101011);
     }
 
     #[test]
