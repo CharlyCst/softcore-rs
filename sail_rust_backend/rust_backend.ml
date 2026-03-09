@@ -1026,17 +1026,16 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | Typ_var (Kid_aux (Var x, _)) -> RsTypGeneric (sanitize_generic_id x)
     | Typ_tuple types -> RsTypTuple (List.map typ_to_rust types)
     | Typ_fn _ -> RsTypId "TodoFnType"
+    | Typ_app (id, params) when string_of_id id = "vector" ->
+      let size, typ = get_first_two_elements (List.map extract_type_arg params) in
+      let size =
+        match size with
+        | RsTypParamNum n -> RsTypParamNum (RsAs (n, usize_typ))
+        | _ -> size
+      in
+      RsTypArray (typ, size)
     | Typ_app (id, params) ->
-      if string_of_id id = "vector"
-      then (
-        let size, typ = get_first_two_elements (List.map extract_type_arg params) in
-        let size =
-          match size with
-          | RsTypParamNum n -> RsTypParamNum (RsAs (n, usize_typ))
-          | _ -> size
-        in
-        RsTypArray (typ, size))
-      else RsTypGenericParam (string_of_id id, List.map extract_type_arg params)
+      RsTypGenericParam (string_of_id id, List.map extract_type_arg params)
     | Typ_internal_unknown -> RsTypId "TodoUnknownType"
     | Typ_bidir (_, _) -> RsTypId "TodoBidirType"
     | Typ_exist (_, _, typ) -> typ_to_rust typ
