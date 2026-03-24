@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -21,7 +21,7 @@ pub struct Config {
 }
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
     
@@ -36,7 +36,7 @@ pub type xlenbits = BitVector;
 pub type priv_level = BitVector;
 
 /// Privilege
-/// 
+///
 /// Generated from the Sail sources at `tests/decoder/arch.sail` L34.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
@@ -52,7 +52,7 @@ pub type cregidx = BitVector;
 pub type csreg = BitVector;
 
 /// bool_bits_forwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector {
     match arg_hashtag_ {
@@ -63,7 +63,7 @@ pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector {
 }
 
 /// bool_bits_backwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn bool_bits_backwards(arg_hashtag_: BitVector) -> bool {
     match arg_hashtag_ {
@@ -74,7 +74,7 @@ pub fn bool_bits_backwards(arg_hashtag_: BitVector) -> bool {
 }
 
 /// bool_bits_backwards_matches
-/// 
+///
 /// Generated from the Sail sources.
 pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector) -> bool {
     match arg_hashtag_ {
@@ -86,7 +86,7 @@ pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector) -> bool {
 }
 
 /// iop
-/// 
+///
 /// Generated from the Sail sources at `tests/decoder/arch.sail` L58.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
@@ -99,7 +99,7 @@ pub enum iop {
 }
 
 /// csrop
-/// 
+///
 /// Generated from the Sail sources at `tests/decoder/arch.sail` L59.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum csrop {
@@ -109,7 +109,7 @@ pub enum csrop {
 }
 
 /// Retired
-/// 
+///
 /// Generated from the Sail sources at `tests/decoder/arch.sail` L60.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
@@ -118,7 +118,7 @@ pub enum Retired {
 }
 
 /// ast
-/// 
+///
 /// Generated from the Sail sources at `tests/decoder/arch.sail` L62.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
@@ -132,7 +132,7 @@ pub enum ast {
 }
 
 /// encdec_csrop_forwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector {
     match arg_hashtag_ {
@@ -144,7 +144,7 @@ pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector {
 }
 
 /// encdec_csrop_backwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_csrop_backwards(arg_hashtag_: BitVector) -> csrop {
     match arg_hashtag_ {
@@ -156,7 +156,7 @@ pub fn encdec_csrop_backwards(arg_hashtag_: BitVector) -> csrop {
 }
 
 /// encdec_csrop_backwards_matches
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector) -> bool {
     match arg_hashtag_ {
@@ -171,7 +171,7 @@ pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector) -> bool {
 pub type csrRW = BitVector;
 
 /// encdec_forwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
     match arg_hashtag_ {
@@ -187,7 +187,7 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
 }
 
 /// encdec_backwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
     let head_exp_hashtag_ = arg_hashtag_;

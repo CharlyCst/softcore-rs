@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -38,7 +38,7 @@ pub struct ConfigU {
 }
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
     
@@ -51,7 +51,7 @@ pub const xlen_bytes: i128 = 8;
 pub type xlenbits = BitVector;
 
 /// extension
-/// 
+///
 /// Generated from the Sail sources at `tests/config/arch.sail` L12.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum extension {
@@ -60,7 +60,7 @@ pub enum extension {
 }
 
 /// hartSupports
-/// 
+///
 /// Generated from the Sail sources at `tests/config/arch.sail` L18.
 pub fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
     match merge_hashtag_var {
@@ -73,7 +73,7 @@ pub fn hartSupports(core_ctx: &mut Core, merge_hashtag_var: extension) -> bool {
 pub type regbits = BitVector;
 
 /// ast
-/// 
+///
 /// Generated from the Sail sources at `tests/config/arch.sail` L32.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
@@ -81,7 +81,7 @@ pub enum ast {
 }
 
 /// execute
-/// 
+///
 /// Generated from the Sail sources at `tests/config/arch.sail` L37-41.
 pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
     if {hartSupports(core_ctx, extension::Ext_U)} {

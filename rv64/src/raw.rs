@@ -4011,7 +4011,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitVector {
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
 pub fn csr_id_read_callback(csr: BitVector, value: BitVector) {
     let name = csr_name_map_forwards(csr);
-
+    
 }
 
 pub type regtype = xlenbits;
@@ -7828,10 +7828,10 @@ pub fn tval(excinfo: Option<BitVector>) -> BitVector {
 pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
-
+            
         }}
         Privilege::Supervisor => {{
-
+            
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 217, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
@@ -9024,7 +9024,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitVector, rs1_val: BitVector, rd: regidx
                 _ => {panic!("Unreachable code")}
             };
             let final_val = write_CSR(core_ctx, csr, new_val);
-
+            
         } else {
             csr_id_read_callback(csr, csr_val)
         };

@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -22,7 +22,7 @@ pub struct Config {
 }
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
     
@@ -37,7 +37,7 @@ pub type xlenbits = BitVector;
 pub type regbits = BitVector;
 
 /// ast
-/// 
+///
 /// Generated from the Sail sources at `tests/hoisting/arch.sail` L19.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
@@ -45,7 +45,7 @@ pub enum ast {
 }
 
 /// execute
-/// 
+///
 /// Generated from the Sail sources at `tests/hoisting/arch.sail` L24-34.
 pub fn execute(ast::TEST(()): ast) {
     if {let foo_var_1 = BitVector::new(3, 0b101);

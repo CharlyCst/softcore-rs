@@ -90,6 +90,8 @@ and rs_exp =
   | RsTuple of rs_exp list
   | RsArray of rs_exp list
   | RsArraySize of rs_exp * rs_exp
+  | RsVec of rs_exp list
+  | RsVecSize of rs_exp * rs_exp
   | RsAssign of rs_lexp * rs_exp
   | RsIndex of rs_exp * rs_exp
   | RsBinop of rs_exp * rs_binop * rs_exp
@@ -308,6 +310,8 @@ and generics_of_exp (exp : rs_exp) : SSet.t =
   | RsTuple exps -> generics_of_exps exps
   | RsArray exps -> generics_of_exps exps
   | RsArraySize (exp1, exp2) -> SSet.union (generics_of_exp exp1) (generics_of_exp exp2)
+  | RsVec exps -> generics_of_exps exps
+  | RsVecSize (exp1, exp2) -> SSet.union (generics_of_exp exp1) (generics_of_exp exp2)
   | RsAssign (lexp, exp) -> SSet.union (generics_of_lexp lexp) (generics_of_exp exp)
   | RsIndex (exp1, exp2) -> SSet.union (generics_of_exp exp1) (generics_of_exp exp2)
   | RsBinop (exp1, _, exp2) -> SSet.union (generics_of_exp exp1) (generics_of_exp exp2)
@@ -419,8 +423,8 @@ let rec lexp_to_exp (lexp : rs_lexp) : rs_exp =
 
 let rec string_of_doc (doc : string list) : string =
   match doc with
-  | head :: [] -> "/// " ^ head ^ "\n"
-  | head :: tail -> "/// " ^ head ^ "\n" ^ string_of_doc tail
+  | head :: tail ->
+    "///" ^ (if head = "" then "" else " " ^ head) ^ "\n" ^ string_of_doc tail
   | [] -> ""
 ;;
 
@@ -634,6 +638,10 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
     Printf.sprintf "[%s]" (String.concat ", " (List.map (string_of_rs_exp n) exps))
   | RsArraySize (exp, size) ->
     Printf.sprintf "[%s; %s]" (string_of_rs_exp n exp) (string_of_rs_exp n size)
+  | RsVec exps ->
+    Printf.sprintf "vec![%s]" (String.concat ", " (List.map (string_of_rs_exp n) exps))
+  | RsVecSize (exp, size) ->
+    Printf.sprintf "vec![%s; %s]" (string_of_rs_exp n exp) (string_of_rs_exp n size)
   | RsAssign (exp1, exp2) ->
     Printf.sprintf "%s = %s" (string_of_rs_lexp n exp1) (string_of_rs_exp n exp2)
   | RsIndex (exp1, exp2) ->

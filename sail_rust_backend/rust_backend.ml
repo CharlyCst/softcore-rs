@@ -1014,6 +1014,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | Nexp_if (_cond, _if_block, _else_block) -> RsTodo "TodoIfExpr" (* if-then-else *)
 
   and get_first_two_elements lst =
+    (* TODO(Gurvan): Following assert is useless since already handled by the
+       failwith *)
     assert (List.length lst = 2);
     match lst with
     | first :: second :: _ -> first, second

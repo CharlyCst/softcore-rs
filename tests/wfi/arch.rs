@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -29,14 +29,14 @@ pub struct Config {
 }
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
     
 }
 
 /// (operator <_u)
-/// 
+///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L9.
 pub fn _operator_smaller_u_(x: BitVector, y: BitVector) -> bool {
     (x.unsigned() < y.unsigned())
@@ -49,7 +49,7 @@ pub type xlenbits = BitVector;
 pub type priv_level = BitVector;
 
 /// Privilege
-/// 
+///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L21.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
@@ -65,7 +65,7 @@ pub type cregidx = BitVector;
 pub type csreg = BitVector;
 
 /// Mstatus
-/// 
+///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L39-63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
@@ -73,21 +73,21 @@ pub struct Mstatus {
 }
 
 /// _get_Mstatus_TW
-/// 
+///
 /// Generated from the Sail sources.
 pub fn _get_Mstatus_TW(v: Mstatus) -> BitVector {
     v.bits.subrange::<21, 22, 1>()
 }
 
 /// handle_illegal
-/// 
+///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L71-74.
 pub fn handle_illegal(unit_arg: ()) {
     
 }
 
 /// platform_wfi
-/// 
+///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L76-84.
 pub fn platform_wfi(core_ctx: &mut Core, unit_arg: ()) {
     if {{
@@ -103,7 +103,7 @@ pub fn platform_wfi(core_ctx: &mut Core, unit_arg: ()) {
 }
 
 /// Retired
-/// 
+///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L87.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
@@ -112,7 +112,7 @@ pub enum Retired {
 }
 
 /// ast
-/// 
+///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L89.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
@@ -120,7 +120,7 @@ pub enum ast {
 }
 
 /// encdec_forwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
     match arg_hashtag_ {
@@ -130,7 +130,7 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
 }
 
 /// encdec_backwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
     match arg_hashtag_ {
@@ -140,7 +140,7 @@ pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
 }
 
 /// execute
-/// 
+///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L102-109.
 pub fn execute(core_ctx: &mut Core, ast::WFI(()): ast) -> Retired {
     match core_ctx.cur_privilege {

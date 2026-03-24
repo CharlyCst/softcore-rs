@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -41,21 +41,21 @@ pub struct Config {
 }
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
     
 }
 
 /// signed_extend
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L10.
 pub fn signed_extend(m: i128, v: BitVector) -> BitVector {
     sail_sign_extend(v, m)
 }
 
 /// bit_to_bool
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L19-22.
 pub fn bit_to_bool(b: bool) -> bool {
     match b {
@@ -66,7 +66,7 @@ pub fn bit_to_bool(b: bool) -> bool {
 }
 
 /// bool_to_bit
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L25.
 pub fn bool_to_bit(x: bool) -> bool {
     if {x} {
@@ -77,21 +77,21 @@ pub fn bool_to_bit(x: bool) -> bool {
 }
 
 /// bool_to_bits
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L28.
 pub fn bool_to_bits(x: bool) -> BitVector {
     BitVector::new(0).set_bit(0, bool_to_bit(x))
 }
 
 /// (operator >=_u)
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L42.
 pub fn _operator_biggerequal_u_(x: BitVector, y: BitVector) -> bool {
     (x.unsigned() >= y.unsigned())
 }
 
 /// (operator <_u)
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L45.
 pub fn _operator_smaller_u_(x: BitVector, y: BitVector) -> bool {
     (x.unsigned() < y.unsigned())
@@ -106,7 +106,7 @@ pub type xlenbits = BitVector;
 pub type priv_level = BitVector;
 
 /// Privilege
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L56.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Privilege {
@@ -116,7 +116,7 @@ pub enum Privilege {
 }
 
 /// privLevel_to_bits
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L59-64.
 pub fn privLevel_to_bits(p: Privilege) -> BitVector {
     match p {
@@ -128,21 +128,21 @@ pub fn privLevel_to_bits(p: Privilege) -> BitVector {
 }
 
 /// haveSupMode
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L66.
 pub const fn haveSupMode(unit_arg: ()) -> bool {
     true
 }
 
 /// haveUsrMode
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L67.
 pub const fn haveUsrMode(unit_arg: ()) -> bool {
     true
 }
 
 /// exception
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L73-76.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
@@ -156,7 +156,7 @@ pub type cregidx = BitVector;
 pub type csreg = BitVector;
 
 /// Medeleg
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L99-114.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Medeleg {
@@ -164,7 +164,7 @@ pub struct Medeleg {
 }
 
 /// Mcause
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L117-120.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mcause {
@@ -172,7 +172,7 @@ pub struct Mcause {
 }
 
 /// Mstatus
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L125-149.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
@@ -180,7 +180,7 @@ pub struct Mstatus {
 }
 
 /// Mtvec
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L152-155.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mtvec {
@@ -188,56 +188,56 @@ pub struct Mtvec {
 }
 
 /// _get_Mcause_Cause
-/// 
+///
 /// Generated from the Sail sources.
 pub fn _get_Mcause_Cause(v: Mcause) -> BitVector {
     v.bits.subrange::<0, 63, 63>()
 }
 
 /// _get_Mcause_IsInterrupt
-/// 
+///
 /// Generated from the Sail sources.
 pub fn _get_Mcause_IsInterrupt(v: Mcause) -> BitVector {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// _get_Mstatus_MIE
-/// 
+///
 /// Generated from the Sail sources.
 pub fn _get_Mstatus_MIE(v: Mstatus) -> BitVector {
     v.bits.subrange::<3, 4, 1>()
 }
 
 /// _get_Mstatus_SIE
-/// 
+///
 /// Generated from the Sail sources.
 pub fn _get_Mstatus_SIE(v: Mstatus) -> BitVector {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// _get_Mstatus_UIE
-/// 
+///
 /// Generated from the Sail sources.
 pub fn _get_Mstatus_UIE(v: Mstatus) -> BitVector {
     v.bits.subrange::<0, 1, 1>()
 }
 
 /// _get_Mtvec_Base
-/// 
+///
 /// Generated from the Sail sources.
 pub fn _get_Mtvec_Base(v: Mtvec) -> BitVector {
     v.bits.subrange::<2, 64, 62>()
 }
 
 /// _get_Mtvec_Mode
-/// 
+///
 /// Generated from the Sail sources.
 pub fn _get_Mtvec_Mode(v: Mtvec) -> BitVector {
     v.bits.subrange::<0, 2, 2>()
 }
 
 /// rX
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L168-172.
 pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
     match r {
@@ -248,7 +248,7 @@ pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
 }
 
 /// wX
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L175-178.
 pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
     if {(r != BitVector::new(5, 0b00000))} {
@@ -259,7 +259,7 @@ pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
 }
 
 /// bool_bits_forwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector {
     match arg_hashtag_ {
@@ -270,7 +270,7 @@ pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector {
 }
 
 /// bool_bits_backwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn bool_bits_backwards(arg_hashtag_: BitVector) -> bool {
     match arg_hashtag_ {
@@ -281,7 +281,7 @@ pub fn bool_bits_backwards(arg_hashtag_: BitVector) -> bool {
 }
 
 /// bool_bits_backwards_matches
-/// 
+///
 /// Generated from the Sail sources.
 pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector) -> bool {
     match arg_hashtag_ {
@@ -293,7 +293,7 @@ pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector) -> bool {
 }
 
 /// ExceptionType
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L193-210.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExceptionType {
@@ -318,7 +318,7 @@ pub enum ExceptionType {
 pub type exc_code = BitVector;
 
 /// num_of_ExceptionType
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L215-233.
 pub fn num_of_ExceptionType(e: ExceptionType) -> i128 {
     match e {
@@ -343,7 +343,7 @@ pub fn num_of_ExceptionType(e: ExceptionType) -> i128 {
 }
 
 /// exceptionType_to_bits
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L236-254.
 pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector {
     match e {
@@ -368,7 +368,7 @@ pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector {
 }
 
 /// sync_exception
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L256-259.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct sync_exception {
@@ -377,7 +377,7 @@ pub struct sync_exception {
 }
 
 /// ctl_result
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L262-264.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ctl_result {
@@ -387,7 +387,7 @@ pub enum ctl_result {
 pub type tv_mode = BitVector;
 
 /// TrapVectorMode
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L267.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum TrapVectorMode {
@@ -397,14 +397,14 @@ pub enum TrapVectorMode {
 }
 
 /// set_next_pc
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L270-272.
 pub fn set_next_pc(core_ctx: &mut Core, pc: BitVector) {
     core_ctx.nextPC = pc
 }
 
 /// tval
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L274-279.
 pub fn tval(excinfo: Option<BitVector>) -> BitVector {
     match excinfo {
@@ -415,7 +415,7 @@ pub fn tval(excinfo: Option<BitVector>) -> BitVector {
 }
 
 /// trapVectorMode_of_bits
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L282-287.
 pub fn trapVectorMode_of_bits(m: BitVector) -> TrapVectorMode {
     match m {
@@ -427,7 +427,7 @@ pub fn trapVectorMode_of_bits(m: BitVector) -> TrapVectorMode {
 }
 
 /// tvec_addr
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L290-299.
 pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector> {
     let base: xlenbits = bitvector_concat(_get_Mtvec_Base(m), BitVector::new(2, 0b00));
@@ -444,7 +444,7 @@ pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector> {
 }
 
 /// prepare_trap_vector
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L302-312.
 pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitVector {
     let tvec: Mtvec = match p {
@@ -461,7 +461,7 @@ pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> 
 }
 
 /// trap_handler
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L314-365.
 pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: BitVector, pc: BitVector, info: Option<BitVector>) -> BitVector {
     match del_priv {
@@ -544,7 +544,7 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
 }
 
 /// exception_delegatee
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L370-380.
 pub fn exception_delegatee(core_ctx: &mut Core, e: ExceptionType, p: Privilege) -> Privilege {
     let idx = num_of_ExceptionType(e);
@@ -565,7 +565,7 @@ pub fn exception_delegatee(core_ctx: &mut Core, e: ExceptionType, p: Privilege) 
 }
 
 /// exception_handler
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L382-390.
 pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_result, pc: BitVector) -> BitVector {
     match (cur_priv, ctl) {
@@ -578,7 +578,7 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_resu
 }
 
 /// handle_illegal
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L392-396.
 pub fn handle_illegal(core_ctx: &mut Core, unit_arg: ()) {
     let t: sync_exception = sync_exception {
@@ -596,7 +596,7 @@ pub fn handle_illegal(core_ctx: &mut Core, unit_arg: ()) {
 }
 
 /// iop
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L400.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
@@ -609,7 +609,7 @@ pub enum iop {
 }
 
 /// csrop
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L401.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum csrop {
@@ -619,7 +619,7 @@ pub enum csrop {
 }
 
 /// Retired
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L402.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
@@ -628,7 +628,7 @@ pub enum Retired {
 }
 
 /// ast
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L404.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
@@ -637,7 +637,7 @@ pub enum ast {
 }
 
 /// encdec_csrop_forwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector {
     match arg_hashtag_ {
@@ -649,7 +649,7 @@ pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector {
 }
 
 /// encdec_csrop_backwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_csrop_backwards(arg_hashtag_: BitVector) -> csrop {
     match arg_hashtag_ {
@@ -661,7 +661,7 @@ pub fn encdec_csrop_backwards(arg_hashtag_: BitVector) -> csrop {
 }
 
 /// encdec_csrop_backwards_matches
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector) -> bool {
     match arg_hashtag_ {
@@ -676,21 +676,21 @@ pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector) -> bool {
 pub type csrRW = BitVector;
 
 /// csrAccess
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L436.
 pub fn csrAccess(csr: BitVector) -> BitVector {
     csr.subrange::<10, 12, 2>()
 }
 
 /// csrPriv
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L437.
 pub fn csrPriv(csr: BitVector) -> BitVector {
     csr.subrange::<8, 10, 2>()
 }
 
 /// encdec_forwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
     match arg_hashtag_ {
@@ -701,7 +701,7 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
 }
 
 /// encdec_backwards
-/// 
+///
 /// Generated from the Sail sources.
 pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
     let head_exp_hashtag_ = arg_hashtag_;
@@ -733,7 +733,7 @@ pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
 }
 
 /// is_CSR_defined
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L442-447.
 pub fn is_CSR_defined(csr: BitVector, p: Privilege) -> bool {
     match csr {
@@ -745,21 +745,21 @@ pub fn is_CSR_defined(csr: BitVector, p: Privilege) -> bool {
 }
 
 /// check_CSR_access
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L450-452.
 pub fn check_CSR_access(csrrw: BitVector, csrpr: BitVector, p: Privilege, isWrite: bool) -> bool {
     (!(((isWrite == true) && (csrrw == BitVector::new(2, 0b11)))) && _operator_biggerequal_u_(privLevel_to_bits(p), csrpr))
 }
 
 /// check_CSR
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L454-455.
 pub fn check_CSR(csr: BitVector, p: Privilege, isWrite: bool) -> bool {
     (is_CSR_defined(csr, p) && check_CSR_access(csrAccess(csr), csrPriv(csr), p, isWrite))
 }
 
 /// readCSR
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L457-465.
 pub fn readCSR(core_ctx: &mut Core, csr: BitVector) -> BitVector {
     let res: xlenbits = match (csr, 64) {
@@ -772,7 +772,7 @@ pub fn readCSR(core_ctx: &mut Core, csr: BitVector) -> BitVector {
 }
 
 /// writeCSR
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L467-474.
 pub fn writeCSR(core_ctx: &mut Core, csr: BitVector, value: BitVector) {
     let res: Option<xlenbits> = match (csr, 64) {
@@ -791,7 +791,7 @@ pub fn writeCSR(core_ctx: &mut Core, csr: BitVector, value: BitVector) {
 }
 
 /// execute
-/// 
+///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L417-423.
 pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> Retired {
     match merge_hashtag_var {

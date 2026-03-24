@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -24,21 +24,21 @@ pub struct Config {
 }
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
     
 }
 
 /// EXTZ
-/// 
+///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L7.
 pub fn EXTZ(m: i128, v: BitVector) -> BitVector {
     v.zero_extend(m)
 }
 
 /// EXTS
-/// 
+///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L10.
 pub fn EXTS(m: i128, v: BitVector) -> BitVector {
     sail_sign_extend(v, m)
@@ -53,7 +53,7 @@ pub type xlenbits = BitVector;
 pub type regbits = BitVector;
 
 /// rX
-/// 
+///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L31-35.
 pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
     match r {
@@ -64,7 +64,7 @@ pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
 }
 
 /// wX
-/// 
+///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L38-41.
 pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
     if {(r != BitVector::new(5, 0b00000))} {
@@ -75,7 +75,7 @@ pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
 }
 
 /// iop
-/// 
+///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L61.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum iop {
@@ -88,7 +88,7 @@ pub enum iop {
 }
 
 /// ast
-/// 
+///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
@@ -97,7 +97,7 @@ pub enum ast {
 }
 
 /// execute
-/// 
+///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L75-89.
 pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) {
     match merge_hashtag_var {

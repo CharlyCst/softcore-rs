@@ -27,6 +27,9 @@ type expr_type_transform =
   ; obj : context -> rs_obj -> rs_obj
   }
 
+(* TODO(Gurvan): We could have id_expr_type_transform it would remove some code
+   deduplication below *)
+
 let rec transform_pat (ct : expr_type_transform) (ctx : context) (pat : rs_pat) : rs_pat =
   let pat = ct.pat ctx pat in
   match pat with
@@ -100,6 +103,9 @@ and transform_exp (ct : expr_type_transform) (ctx : context) (exp : rs_exp) : rs
   | RsArray exps -> RsArray (List.map (transform_exp ct ctx) exps)
   | RsArraySize (exp, size) ->
     RsArraySize (transform_exp ct ctx exp, transform_exp ct ctx size)
+  | RsVec exps -> RsVec (List.map (transform_exp ct ctx) exps)
+  | RsVecSize (exp, size) ->
+    RsVecSize (transform_exp ct ctx exp, transform_exp ct ctx size)
   | RsAssign (lexp, exp) -> RsAssign (transform_lexp ct ctx lexp, transform_exp ct ctx exp)
   | RsIndex (exp1, exp2) -> RsIndex (transform_exp ct ctx exp1, transform_exp ct ctx exp2)
   | RsBinop (exp1, binop, exp2) ->
@@ -559,6 +565,8 @@ let rec propagate_in_exp (ctx : bindings) (exp : rs_exp) : rs_exp =
   | RsTuple exps -> RsTuple (propagate_list exps)
   | RsArray exps -> RsArray (propagate_list exps)
   | RsArraySize (exp, size) -> RsArraySize (propagate exp, propagate size)
+  | RsVec exps -> RsArray (propagate_list exps)
+  | RsVecSize (exp, size) -> RsArraySize (propagate exp, propagate size)
   | RsAssign (lexp, exp) -> RsAssign (propagate_in_lexp ctx lexp, propagate exp)
   | RsIndex (exp1, exp2) -> RsIndex (propagate exp1, propagate exp2)
   | RsBinop (exp1, op, exp2) -> RsBinop (propagate exp1, op, propagate exp2)
@@ -827,6 +835,8 @@ let rec rename_in_exp (rn : string * string) (exp : rs_exp) : rs_exp =
   | RsTuple exps -> RsTuple (rename_in_exps exps)
   | RsArray exps -> RsArray (rename_in_exps exps)
   | RsArraySize (exp, size) -> RsArraySize (rename_in_exp exp, rename_in_exp size)
+  | RsVec exps -> RsVec (rename_in_exps exps)
+  | RsVecSize (exp, size) -> RsVecSize (rename_in_exp exp, rename_in_exp size)
   | RsAssign (lexp, exp) -> RsAssign (rename_in_lexp rn lexp, rename_in_exp exp)
   | RsIndex (exp1, exp2) -> RsIndex (rename_in_exp exp1, rename_in_exp exp2)
   | RsBinop (exp1, op, exp2) -> RsBinop (rename_in_exp exp1, op, rename_in_exp exp2)
@@ -1172,6 +1182,7 @@ let fix_scattered_func : func_transform = { func = fix_scattered_func }
 
 (* ———————————————————————————— Fix Generic Type ———————————————————————————— *)
 
+(* TODO(Gurvan): This is probably the problem we have *)
 let fix_generic_type_func (_ctx : context) (func : rs_fn) : rs_fn =
   let rec get_array_type_vars (typs : rs_type list) =
     match typs with
@@ -1647,7 +1658,88 @@ let remove_unsupported_match : expr_type_transform =
   }
 ;;
 
+(* ————————————————————— Update constants in context ———————————————————————— *)
+
+let update_context_constants (ctx : context) (RsProg objs : rs_program) : context =
+  let update_constants (defs : defs) (obj : rs_obj) : defs =
+    match obj with
+    | RsConst const -> { defs with constants = SSet.add const.name defs.constants }
+    | RsFn f ->
+      let constants =
+        if f.const then SSet.add f.name defs.constants else defs.constants
+      in
+      { defs with constants }
+    | _ -> defs
+  in
+  { ctx with defs = List.fold_left update_constants ctx.defs objs }
+;;
+
+(* ———————————————————————————— Dynamic Vectors ————————————————————————————— *)
+
+let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
+  match e with
+  | RsLit _ | RsConstBlock _ -> true
+  | RsAs (e, typ) -> is_const_rs_exp ctx e && is_const_rs_typ ctx typ
+  | RsId x -> SSet.mem x ctx.defs.constants
+  | RsVec _ | RsVecSize _ -> false
+  | e ->
+    Format.eprintf "%s\n" (string_of_rs_exp 0 e);
+    assert false (* TODO(Gurvan) *)
+
+and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
+  match typ with
+  | RsTypId x ->
+    Format.eprintf "rstypid %s\n" x;
+    true
+    (* TODO(Gurvan): Actually depends on the id, this is used both for
+      builtins like usize and variables *)
+  | RsTypTuple params -> List.for_all (is_const_rs_typ ctx) params
+  | RsTypGeneric x -> assert false (* TODO *)
+  | RsTypGenericParam (x, params) -> assert false (* TODO *)
+  | RsTypTodo _ -> assert false (* TODO *)
+  | RsTypArray (typ1, typ2) ->
+    is_const_rs_typ_param ctx typ1 && is_const_rs_typ_param ctx typ2
+  | RsTypOption param -> is_const_rs_typ_param ctx param
+  | RsTypUnit -> true
+
+and is_const_rs_typ_param (ctx : context) (param : rs_type_param) : bool =
+  match param with
+  | RsTypParamTyp t -> is_const_rs_typ ctx t
+  | RsTypParamNum e -> is_const_rs_exp ctx e
+;;
+
+let use_dynamic_vector_typ (ctx : context) (typ : rs_type) : rs_type =
+  match typ with
+  | RsTypArray (typ', size) ->
+    (* assert false *)
+    if is_const_rs_typ_param ctx size then typ else RsTypGenericParam ("Vec", [ typ' ])
+  | _ -> typ
+;;
+
+let use_dynamic_vector_exp (_ctx : context) (e : rs_exp) : rs_exp =
+  match e with
+  | RsArray _es -> e
+  | RsArraySize (_size, _e') -> e
+  | _ -> e
+;;
+
+let use_dynamic_vectors (ctx : context) (rust_program : rs_program) : rs_program =
+  let ctx = update_context_constants ctx rust_program in
+  rust_transform_expr
+    { exp = id_exp
+    ; lexp = id_lexp
+    ; pexp = id_pexp
+    ; typ = use_dynamic_vector_typ
+    ; pat = id_pat
+    ; obj = id_obj
+    }
+    ctx
+    rust_program
+;;
+
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
+
+(* TODO(Gurvan: could be made polymorphic, limit should be called fuel *)
 
 (** Computes the fix point of a function. **)
 let rec fix_point fn ctx limit rs_program =
@@ -1659,12 +1751,21 @@ let rec fix_point fn ctx limit rs_program =
   if limit = 0 then new_args else fix_point fn ctx (limit - 1) new_args
 ;;
 
+(* TODO(Gurvan): It seems like this optimizer is trying to outsmart the rust
+   compiler for no valid reason. Constant propagation should only be done by
+   propagating `const` qualifiers where possible.
+   This means that num_constants and inline_fun could also be removed from
+   context?
+   what we want, since it might complicate everything for no reason.
+*)
 let optimizer (ctx : context) (rust_program : rs_program) : rs_program =
   let get_num_constants (RsProg obj : rs_program) : (string * Big_int.num) list =
     let rec constants obj =
       match obj with
       | RsConst { value = RsLit (RsLitNum n); name; typ = _ } :: tail ->
         (name, n) :: constants tail
+      (* TODO: Should this also take const functions into account? Should const
+         function be a different thing ? *)
       | _ :: tail -> constants tail
       | [] -> []
     in
@@ -1682,6 +1783,9 @@ let optimizer (ctx : context) (rust_program : rs_program) : rs_program =
     in
     funs obj
   in
+  (* TODO(Gurvan): This could be optimized by creating a SMap directly instead
+     of first creating a list and then doing SMap.of_list constants. We are also
+     traversing the rs_program twice which is not efficient *)
   let constants = get_num_constants rust_program in
   let inline_fun = get_inline_funs rust_program in
   let defs =
@@ -1728,6 +1832,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> fix_point optimizer ctx 5
     (* Optimizer: Dead code elimination *)
     |> rust_transform_expr dead_code_remover ctx
+    |> use_dynamic_vectors ctx
   in
   (* Filter unsupported items *)
   let rust_program =

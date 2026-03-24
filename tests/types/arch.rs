@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -21,7 +21,7 @@ pub struct Config {
 }
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
     
@@ -34,7 +34,7 @@ pub type xlenbits = BitVector;
 pub const xlen: i128 = 64;
 
 /// ExceptionType
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L15-23.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ExceptionType {
@@ -46,7 +46,7 @@ pub enum ExceptionType {
 }
 
 /// physaddr
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L25.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum physaddr {
@@ -54,56 +54,56 @@ pub enum physaddr {
 }
 
 /// pmpMatchAddr
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L27-29.
 pub fn pmpMatchAddr(physaddr::Physaddr(addr): physaddr) -> bool {
     (addr != BitVector::new(64, 0b0000000000000000000000000000000000000000000000000000000000000000))
 }
 
 /// handle_int
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L33-35.
 pub fn handle_int(a1: i128) -> i128 {
     (a1 + 4)
 }
 
 /// handle_int_int
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L37-39.
 pub fn handle_int_int(a1: i128, a2: i128) -> bool {
     false
 }
 
 /// handle_int_int_bool_int
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L41-43.
 pub fn handle_int_int_bool_int(a1: i128, a2: i128, a3: bool, a4: i128) -> i128 {
     131
 }
 
 /// handle_bool
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L46-48.
 pub fn handle_bool(factor_bool: bool) {
     
 }
 
 /// handle_union
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L50-52.
 pub fn handle_union(unit_arg: ()) -> ExceptionType {
     ExceptionType::E_Illegal_Instr(())
 }
 
 /// handle_empty
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L54-57.
 pub fn handle_empty(unit_arg: ()) {
     
 }
 
 /// ast
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L59.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
@@ -111,21 +111,21 @@ pub enum ast {
 }
 
 /// zeros
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L66.
 pub const fn zeros(n: i128) -> BitVector {
     sail_zeros(n)
 }
 
 /// hex_bits_backwards
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L77.
 pub fn hex_bits_backwards(m: i128, str: &'static str) -> BitVector {
     parse_hex_bits(m, str)
 }
 
 /// validDoubleRegs
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L80-85.
 pub fn validDoubleRegs<const N: usize>(n: i128, regs: [BitVector; N]) -> bool {
     for i in 0..=(n - 1) {
@@ -139,14 +139,14 @@ pub fn validDoubleRegs<const N: usize>(n: i128, regs: [BitVector; N]) -> bool {
 }
 
 /// X_read
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L91-93.
 pub fn X_read(n: i128, width: i128) -> BitVector {
     zeros(width)
 }
 
 /// Access_kind
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L95-98.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Access_kind<ARCH_AK> {
@@ -155,7 +155,7 @@ pub enum Access_kind<ARCH_AK> {
 }
 
 /// Mem_read_request
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L100-106.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, ARCH_AK> {
@@ -167,7 +167,7 @@ pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, ARCH_AK> {
 }
 
 /// Retired
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L114.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum Retired {
@@ -176,14 +176,14 @@ pub enum Retired {
 }
 
 /// handle_retired
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L115-117.
 pub fn handle_retired(unit_arg: ()) -> Retired {
     Retired::RETIRE_SUCCESS
 }
 
 /// exception
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L119-122.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum exception {
@@ -192,7 +192,7 @@ pub enum exception {
 }
 
 /// My_struct
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L124-128.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct {
@@ -202,7 +202,7 @@ pub struct My_struct {
 }
 
 /// My_struct_generic
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L130-132.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct_generic<const N: i128> {
@@ -210,7 +210,7 @@ pub struct My_struct_generic<const N: i128> {
 }
 
 /// exceptionType_to_bits
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L135-142.
 pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector {
     match e {
@@ -224,7 +224,7 @@ pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector {
 }
 
 /// execute
-/// 
+///
 /// Generated from the Sail sources at `tests/types/arch.sail` L144-187.
 pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
     let a = handle_int(1234);

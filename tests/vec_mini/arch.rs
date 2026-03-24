@@ -5,10 +5,10 @@ use softcore_prelude::*;
 use crate::arch_prelude::*;
 
 /// The software core.
-/// 
+///
 /// This struct represents a software core, and holds all the registers as well as the core configuration.
 /// The core is the main abstraction exposed by the softcore library and represents a single execution thread.
-/// 
+///
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
@@ -24,7 +24,7 @@ pub struct Config {
 }
 
 /// Initialize all registers.
-/// 
+///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
     core_ctx.rsize = 8;
@@ -32,35 +32,35 @@ pub fn _reset_all_registers() {
 }
 
 /// Initialize the rsize register.
-/// 
+///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L7.
 pub const fn _reset_rsize() -> i128 {
     8
 }
 
 /// Initialize the rcount register.
-/// 
+///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L8.
 pub const fn _reset_rcount() -> i128 {
     1
 }
 
 /// __id
-/// 
+///
 /// Generated from the Sail sources at `sail/lib/flow.sail` L107.
 pub fn __id(x: i128) -> i128 {
     x
 }
 
 /// zeros
-/// 
+///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L5.
 pub const fn zeros(n: i128) -> BitVector {
     sail_zeros(n)
 }
 
 /// read
-/// 
+///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L13-22.
 pub fn read<const N: usize>(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> [BitVector; N] {
     let mut result: [BitVector; N] = [zeros(__id(elem_size)); N];
@@ -74,7 +74,7 @@ pub fn read<const N: usize>(core_ctx: &mut Core, elem_count: i128, elem_size: i1
 }
 
 /// execute
-/// 
+///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L25-33.
 pub fn execute(core_ctx: &mut Core, unit_arg: ()) {
     let elem_size = core_ctx.rsize;
