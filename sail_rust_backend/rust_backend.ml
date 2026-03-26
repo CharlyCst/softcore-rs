@@ -273,9 +273,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       RsTodo (Printf.sprintf "Binop%s" (string_of_rs_binop binop))
 
   and process_exp (ctx : context) (E_aux (exp, aux)) : rs_exp =
-    let as_kid str = kid_of_id (mk_id str) in
     let typ = typ_of_annot aux in
-    let env = env_of_annot aux in
     match exp with
     | E_block exp_list -> RsBlock (List.map (process_exp ctx) exp_list)
     | E_id id ->
@@ -300,8 +298,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       (* If possible, try to get the size using the const parameter of the type *)
       (match typ_to_rust typ with
        | RsTypArray (_, RsTypParamNum size') -> RsArraySize (process_exp ctx item, size')
-       | RsTypArray (_, RsTypParamTyp (RsTypId size')) ->
-         RsArraySize (process_exp ctx item, RsId size')
        | _ -> RsArraySize (process_exp ctx item, process_exp ctx size))
     | E_app (id, exp_list) ->
       RsApp (RsId (sanitize_id (string_of_id id)), [], List.map (process_exp ctx) exp_list)
@@ -930,7 +926,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
        ]
        @ config_structs)
 
-  and genetare_registers_initialization defs (ctx : context) : rs_program =
+  and generate_registers_initialization defs (ctx : context) : rs_program =
     let get_initializer ((name, typ, exp) : string * rs_type * tannot exp option) =
       match exp with
       | Some exp ->
@@ -1203,7 +1199,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   let sail_to_rust (ast : ('a, 'b) ast) (ctx : context) : rs_program =
     merge_rs_prog_list
       [ generate_core_ctx ast.defs ctx
-      ; genetare_registers_initialization ast.defs ctx
+      ; generate_registers_initialization ast.defs ctx
       ; defs_to_rust ast.defs ctx
       ]
   ;;

@@ -1182,30 +1182,36 @@ let fix_scattered_func : func_transform = { func = fix_scattered_func }
 
 (* ———————————————————————————— Fix Generic Type ———————————————————————————— *)
 
-(* TODO(Gurvan): This is probably the problem we have *)
-let fix_generic_type_func (_ctx : context) (func : rs_fn) : rs_fn =
-  let rec get_array_type_vars (typs : rs_type list) =
-    match typs with
-    | RsTypArray (_, RsTypParamTyp (RsTypId n)) :: tail -> n :: get_array_type_vars tail
-    | _ :: tail -> get_array_type_vars tail
-    | [] -> []
-  in
-  let set_array_generic_types (should_set : string list) (generic : rs_generic) =
-    match generic with
-    | RsGenConst (s, _typ) when List.mem s should_set -> RsGenConst (s, "usize")
-    | _ -> generic
-  in
-  let array_type_vars =
-    get_array_type_vars func.signature.args @ get_array_type_vars [ func.signature.ret ]
-  in
-  let new_generics =
-    List.map (set_array_generic_types array_type_vars) func.signature.generics
-  in
-  let signature = { func.signature with generics = new_generics } in
-  { func with signature }
-;;
-
-let fix_generic_type : func_transform = { func = fix_generic_type_func }
+(* TODO(Gurvan):
+  This is probably the problem we need to fix:
+  We don't know how functions will be used, so we cannot say that the calling
+  context will know the size of array and that they won't use dependent type
+  NOTE: Commenting it does not seem to change anything, except the fact that
+  generics which used to be usize are now i128
+*)
+(* let fix_generic_type_func (_ctx : context) (func : rs_fn) : rs_fn = *)
+(*   let rec get_array_type_vars (typs : rs_type list) = *)
+(*     match typs with *)
+(*     | RsTypArray (_, RsTypParamTyp (RsTypId n)) :: tail -> n :: get_array_type_vars tail *)
+(*     | _ :: tail -> get_array_type_vars tail *)
+(*     | [] -> [] *)
+(*   in *)
+(*   let set_array_generic_types (should_set : string list) (generic : rs_generic) = *)
+(*     match generic with *)
+(*     | RsGenConst (s, _typ) when List.mem s should_set -> RsGenConst (s, "usize") *)
+(*     | _ -> generic *)
+(*   in *)
+(*   let array_type_vars = *)
+(*     get_array_type_vars func.signature.args @ get_array_type_vars [ func.signature.ret ] *)
+(*   in *)
+(*   let new_generics = *)
+(*     List.map (set_array_generic_types array_type_vars) func.signature.generics *)
+(*   in *)
+(*   let signature = { func.signature with generics = new_generics } in *)
+(*   { func with signature } *)
+(* ;; *)
+(**)
+(* let fix_generic_type : func_transform = { func = fix_generic_type_func } *)
 
 (* ———————————————————————— Removed Unused Generics ————————————————————————— *)
 
@@ -1215,7 +1221,7 @@ let fix_generic_type : func_transform = { func = fix_generic_type_func }
 
     For instance, Sail might restrict the possible values of an argument, such as:
     > forall 'width, 'width in {32, 64}.
-    Yet if 'with is not part of an argument or return type (such as a vector
+    Yet if 'width is not part of an argument or return type (such as a vector
     width), then it has no impact on the Rust code gen, and the Sail
     front-end already enforced the invariant.**)
 let remove_unused_generics_func (_ctx : context) (func : rs_fn) : rs_fn =
@@ -1660,21 +1666,30 @@ let remove_unsupported_match : expr_type_transform =
 
 (* ————————————————————— Update constants in context ———————————————————————— *)
 
+(* TODO(Gurvan): This might break with scoping issues, but Sail generally forbid
+   shadowing *)
 let update_context_constants (ctx : context) (RsProg objs : rs_program) : context =
   let update_constants (defs : defs) (obj : rs_obj) : defs =
     match obj with
     | RsConst const -> { defs with constants = SSet.add const.name defs.constants }
-    | RsFn f ->
-      let constants =
-        if f.const then SSet.add f.name defs.constants else defs.constants
-      in
-      { defs with constants }
+    | RsFn f when f.const ->
+      { defs with constants = SSet.add f.name defs.constants }
     | _ -> defs
   in
   { ctx with defs = List.fold_left update_constants ctx.defs objs }
 ;;
 
 (* ———————————————————————————— Dynamic Vectors ————————————————————————————— *)
+
+let is_const_rs_typ_id (ctx : context) (x : string) : bool =
+  match x with
+  (* TODO(Gurvan): We should probably have a cleaner way to figure out built-ins *)
+  | "usize" | "i128" | "i64" -> true
+  | _ ->
+      Format.eprintf "non constant rstypid %s\n" x;
+      (* TODO(Gurvan): Actually, in some case it could still be a a const
+         we need to check the context. We don't want to check parameters however *)
+      false
 
 let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
   match e with
@@ -1683,16 +1698,13 @@ let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
   | RsId x -> SSet.mem x ctx.defs.constants
   | RsVec _ | RsVecSize _ -> false
   | e ->
-    Format.eprintf "%s\n" (string_of_rs_exp 0 e);
+    Format.eprintf "Error: %s\n" (string_of_rs_exp 0 e);
     assert false (* TODO(Gurvan) *)
 
 and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
   match typ with
   | RsTypId x ->
-    Format.eprintf "rstypid %s\n" x;
-    true
-    (* TODO(Gurvan): Actually depends on the id, this is used both for
-      builtins like usize and variables *)
+    is_const_rs_typ_id ctx x
   | RsTypTuple params -> List.for_all (is_const_rs_typ ctx) params
   | RsTypGeneric x -> assert false (* TODO *)
   | RsTypGenericParam (x, params) -> assert false (* TODO *)
@@ -1718,15 +1730,17 @@ let use_dynamic_vector_typ (ctx : context) (typ : rs_type) : rs_type =
 
 let use_dynamic_vector_exp (_ctx : context) (e : rs_exp) : rs_exp =
   match e with
+  (* TODO: We need to figure out the type of the expression here to know if it
+     is constant, which is annoying… We might also need to add a `as usize` *)
   | RsArray _es -> e
-  | RsArraySize (_size, _e') -> e
+  | RsArraySize (_e', _size) -> e
   | _ -> e
 ;;
 
 let use_dynamic_vectors (ctx : context) (rust_program : rs_program) : rs_program =
   let ctx = update_context_constants ctx rust_program in
   rust_transform_expr
-    { exp = id_exp
+    { exp = use_dynamic_vector_exp
     ; lexp = id_lexp
     ; pexp = id_pexp
     ; typ = use_dynamic_vector_typ
@@ -1815,7 +1829,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> rust_transform_expr bitvec_transform ctx
     |> rust_transform_func enum_arg_namespace ctx
     |> rust_transform_func fix_scattered_func ctx
-    |> rust_transform_func fix_generic_type ctx
+    (* |> rust_transform_func fix_generic_type ctx *)
     |> rust_transform_expr enum_binder ctx
     |> rust_remove_type_bits
     |> rust_prelude_func_filter
@@ -1828,11 +1842,11 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> rust_transform_func atom_rewriter ctx
     |> rust_transform_func const_fn_rewriter ctx
     |> rust_transform_func operator_rewriter ctx
-    |> rust_transform_func remove_unused_generics ctx
     |> fix_point optimizer ctx 5
     (* Optimizer: Dead code elimination *)
     |> rust_transform_expr dead_code_remover ctx
     |> use_dynamic_vectors ctx
+    |> rust_transform_func remove_unused_generics ctx
   in
   (* Filter unsupported items *)
   let rust_program =

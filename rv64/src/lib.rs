@@ -624,7 +624,10 @@ mod tests {
         );
 
         // Illegal
-        assert_eq!(ctx.decode_instr(0x30001072), ast::ILLEGAL(bv(32, 0x30001072)));
+        assert_eq!(
+            ctx.decode_instr(0x30001072),
+            ast::ILLEGAL(bv(32, 0x30001072))
+        );
     }
 
     #[test]

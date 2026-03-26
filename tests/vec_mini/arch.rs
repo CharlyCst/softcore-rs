@@ -62,8 +62,8 @@ pub const fn zeros(n: i128) -> BitVector {
 /// read
 ///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L13-22.
-pub fn read<const N: usize>(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> [BitVector; N] {
-    let mut result: [BitVector; N] = [zeros(__id(elem_size)); N];
+pub fn read(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> Vec<BitVector> {
+    let mut result: Vec<BitVector> = vec![zeros(__id(elem_size)); 4];
     {
         for i in 0..=(elem_count - 1) {
             let start_index = (i * elem_size);
@@ -81,6 +81,6 @@ pub fn execute(core_ctx: &mut Core, unit_arg: ()) {
     let elem_count = core_ctx.rcount;
     let n = elem_count;
     let m = elem_size;
-    let vs: [BitVector; N] = read(core_ctx, elem_count, elem_size);
+    let vs: Vec<BitVector> = read(core_ctx, elem_count, elem_size);
     ()
 }

@@ -9081,7 +9081,7 @@ pub fn haveDoubleFPU(core_ctx: &mut Core, unit_arg: ()) -> bool {
 /// validDoubleRegs
 ///
 /// Generated from the Sail sources at `riscv_insts_dext.sail` L234-241.
-pub fn validDoubleRegs<const N: usize>(core_ctx: &mut Core, n: i128, regs: [fregidx; N]) -> bool {
+pub fn validDoubleRegs(core_ctx: &mut Core, n: i128, regs: Vec<fregidx>) -> bool {
     true
 }
 

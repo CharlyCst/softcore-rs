@@ -421,9 +421,9 @@ pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitVector) {
 /// read_single_vreg
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L323-334.
-pub fn read_single_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> [BitVector; N] {
+pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> Vec<BitVector> {
     let bv: vregtype = rV_bits(core_ctx, vrid);
-    let mut result: [BitVector; N] = [zeros(__id(SEW)); N];
+    let mut result: Vec<BitVector> = [zeros(__id(SEW)); __id(num_elem)];
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:327.29-327.30");
         for i in 0..=(num_elem - 1) {
@@ -437,7 +437,7 @@ pub fn read_single_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW
 /// write_single_vreg
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L338-348.
-pub fn write_single_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: [BitVector; N]) {
+pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: Vec<BitVector>) {
     let mut r: vregtype = zeros(65536);
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:341.29-341.30");
@@ -449,9 +449,9 @@ pub fn write_single_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SE
 /// read_vreg
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L352-386.
-pub fn read_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> [BitVector; N] {
+pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> Vec<BitVector> {
     let vrid_val = vregidx_bits(vrid).unsigned();
-    let mut result: [BitVector; N] = [zeros(__id(SEW)); N];
+    let mut result: Vec<BitVector> = [zeros(__id(SEW)); __id(num_elem)];
     {
         let LMUL_pow_reg = if {(LMUL_pow < 0)} {
             0
@@ -472,7 +472,7 @@ pub fn read_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128,
                     let r_start_i: i128 = (i_lmul * __id(num_elem_single));
                     let r_end_i: i128 = ((r_start_i + __id(num_elem_single)) - 1);
                     let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
-                    let single_result: [BitVector; NUM_ELEM_SINGLE] = read_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul);
+                    let single_result: Vec<BitVector> = read_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul);
                     for r_i in r_start_i..=r_end_i {
                         let s_i: i128 = (r_i - r_start_i);
                         assert!(((0 <= r_i) && (r_i < num_elem)), "tests/vec/arch.sail:377.42-377.43");
@@ -489,7 +489,7 @@ pub fn read_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128,
 /// write_vreg
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L390-408.
-pub fn write_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx, vec: [BitVector; N]) {
+pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx, vec: Vec<BitVector>) {
     let LMUL_pow_reg = if {(LMUL_pow < 0)} {
         0
     } else {
@@ -498,7 +498,7 @@ pub fn write_vreg<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128
     let num_elem_single: i128 = quot_round_zero(512, SEW);
     assert!((__id(num_elem_single) >= 0), "tests/vec/arch.sail:394.30-394.31");
     for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
-        let mut single_vec: [BitVector; NUM_ELEM_SINGLE] = [zeros(__id(SEW)); NUM_ELEM_SINGLE];
+        let mut single_vec: Vec<BitVector> = [zeros(__id(SEW)); __id(num_elem_single)];
         {
             let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
             let r_start_i: i128 = (i_lmul * __id(num_elem_single));
@@ -612,7 +612,7 @@ pub fn get_end_element(core_ctx: &mut Core, unit_arg: ()) -> i128 {
 /// init_masked_result
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L526-574.
-pub fn init_masked_result<const N: usize>(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vd_val: [BitVector; N], vm_val: BitVector) -> result<([BitVector; N], BitVector), ()> {
+pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vd_val: Vec<BitVector>, vm_val: BitVector) -> result<(Vec<BitVector>, BitVector), ()> {
     let start_element: nat = match get_start_element(core_ctx, ()) {
         result::Ok(v) => {v}
         result::Err(()) => {return result::Err(());}
@@ -623,7 +623,7 @@ pub fn init_masked_result<const N: usize>(core_ctx: &mut Core, num_elem: i128, S
     let mask_ag: agtype = get_vtype_vma(core_ctx, ());
     let mut mask: BitVector = undefined_bitvector(bitvector_length(vm_val));
     {
-        let mut result: [BitVector; N] = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
+        let mut result: Vec<BitVector> = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
         {
             let real_num_elem = if {(LMUL_pow >= 0)} {
                 num_elem
@@ -688,10 +688,10 @@ pub fn execute(core_ctx: &mut Core, funct6: ast) -> ExecutionResult {
     let n = num_elem;
     let m = SEW;
     let vm_val: BitVector = read_vmask(core_ctx, num_elem, vm, zvreg);
-    let vs1_val: [BitVector; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
-    let vs2_val: [BitVector; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
-    let vd_val: [BitVector; N] = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
-    let (initial_result, mask): ([BitVector; N], BitVector) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
+    let vs1_val: Vec<BitVector> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
+    let vs2_val: Vec<BitVector> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
+    let vd_val: Vec<BitVector> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
+    let (initial_result, mask): (Vec<BitVector>, BitVector) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
         result::Ok(v) => {v}
         result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
         _ => {panic!("Unreachable code")}
