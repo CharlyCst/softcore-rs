@@ -1672,8 +1672,7 @@ let update_context_constants (ctx : context) (RsProg objs : rs_program) : contex
   let update_constants (defs : defs) (obj : rs_obj) : defs =
     match obj with
     | RsConst const -> { defs with constants = SSet.add const.name defs.constants }
-    | RsFn f when f.const ->
-      { defs with constants = SSet.add f.name defs.constants }
+    | RsFn f when f.const -> { defs with constants = SSet.add f.name defs.constants }
     | _ -> defs
   in
   { ctx with defs = List.fold_left update_constants ctx.defs objs }
@@ -1686,10 +1685,11 @@ let is_const_rs_typ_id (ctx : context) (x : string) : bool =
   (* TODO(Gurvan): We should probably have a cleaner way to figure out built-ins *)
   | "usize" | "i128" | "i64" -> true
   | _ ->
-      Format.eprintf "non constant rstypid %s\n" x;
-      (* TODO(Gurvan): Actually, in some case it could still be a a const
+    Format.eprintf "non constant rstypid %s\n" x;
+    (* TODO(Gurvan): Actually, in some case it could still be a a const
          we need to check the context. We don't want to check parameters however *)
-      false
+    false
+;;
 
 let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
   match e with
@@ -1698,13 +1698,15 @@ let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
   | RsId x -> SSet.mem x ctx.defs.constants
   | RsVec _ | RsVecSize _ -> false
   | e ->
-    Format.eprintf "Error: %s\n" (string_of_rs_exp 0 e);
-    assert false (* TODO(Gurvan) *)
+    Reporting.simple_warn
+      (Format.sprintf
+         "Couldn't figure out if expression %s is constant, considering it is not"
+         (string_of_rs_exp 0 e));
+    false
 
 and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
   match typ with
-  | RsTypId x ->
-    is_const_rs_typ_id ctx x
+  | RsTypId x -> is_const_rs_typ_id ctx x
   | RsTypTuple params -> List.for_all (is_const_rs_typ ctx) params
   | RsTypGeneric x -> assert false (* TODO *)
   | RsTypGenericParam (x, params) -> assert false (* TODO *)
@@ -1723,17 +1725,22 @@ and is_const_rs_typ_param (ctx : context) (param : rs_type_param) : bool =
 let use_dynamic_vector_typ (ctx : context) (typ : rs_type) : rs_type =
   match typ with
   | RsTypArray (typ', size) ->
-    (* assert false *)
     if is_const_rs_typ_param ctx size then typ else RsTypGenericParam ("Vec", [ typ' ])
   | _ -> typ
 ;;
 
-let use_dynamic_vector_exp (_ctx : context) (e : rs_exp) : rs_exp =
+let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp =
   match e with
-  (* TODO: We need to figure out the type of the expression here to know if it
-     is constant, which is annoying… We might also need to add a `as usize` *)
-  | RsArray _es -> e
-  | RsArraySize (_e', _size) -> e
+  | RsArray _es ->
+    Reporting.simple_warn
+      (Printf.sprintf "Using RsArray might not work with dynamic vector");
+    (* TODO(Gurvan): Figure out if the safest bet is to use vec! or to not use
+            vec!. Seems like not using it works for the base rv64 model but
+            breaks some tests (tests/types/arch.rs). Very annoying that we don't
+            have the type information which can allow us to do these kinds of
+            things…*)
+    e
+  | RsArraySize (e', size) -> if is_const_rs_exp ctx size then e else RsVecSize (e', size)
   | _ -> e
 ;;
 

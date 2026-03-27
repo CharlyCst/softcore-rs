@@ -858,7 +858,11 @@ pub const fn undefined_bitvector(n: i128) -> BitVector {
     bv(n, 0)
 }
 
-pub fn undefined_vector<T: Copy, const N: usize>(n: usize, v: T) -> [T; N] {
+pub fn undefined_array<T: Copy, const N: usize>(n: usize, v: T) -> [T; N] {
     assert!(n == N, "Compiler bug");
     [v; N]
+}
+
+pub fn undefined_vector<T: Copy>(n: usize, v: T) -> Vec<T> {
+    vec![v; n]
 }
