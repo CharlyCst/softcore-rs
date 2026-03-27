@@ -244,7 +244,7 @@ pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
         let idx = i;
         ()
     };
-    let ok = validDoubleRegs(2, [BitVector::new(5, 0b11011), BitVector::new(5, 0b01111)]);
+    let ok = validDoubleRegs(2, [BitVector::new(5, 0b11011), BitVector::new(5, 0b01111)].to_vec());
     let s: My_struct = My_struct {
         field1: BitVector::new(5, 0b11111),
         field2: 5,

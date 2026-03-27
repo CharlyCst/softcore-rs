@@ -59,7 +59,7 @@ pub struct Config {
 ///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
-
+    
 }
 
 /// __id
@@ -464,7 +464,7 @@ pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128,
             assert!(false, "invalid register group: vrid is not a multiple of EMUL")
         } else {
             if {(LMUL_pow < 0)} {
-                result = read_single_vreg(core_ctx, result.len() as i128, SEW, vrid)
+                result = read_single_vreg(core_ctx, result.len(), SEW, vrid)
             } else {
                 let num_elem_single: i128 = quot_round_zero(512, SEW);
                 assert!((__id(num_elem_single) >= 0), "tests/vec/arch.sail:369.34-369.35");
@@ -498,7 +498,7 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
     let num_elem_single: i128 = quot_round_zero(512, SEW);
     assert!((__id(num_elem_single) >= 0), "tests/vec/arch.sail:394.30-394.31");
     for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
-        let mut single_vec: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem_single) as usize];
+        let mut single_vec: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem_single)];
         {
             let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
             let r_start_i: i128 = (i_lmul * __id(num_elem_single));
