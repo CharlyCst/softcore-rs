@@ -59,7 +59,7 @@ pub struct Config {
 ///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
-    
+
 }
 
 /// __id
@@ -623,7 +623,7 @@ pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_p
     let mask_ag: agtype = get_vtype_vma(core_ctx, ());
     let mut mask: BitVector = undefined_bitvector(bitvector_length(vm_val));
     {
-        let mut result: Vec<BitVector> = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
+        let mut result: Vec<BitVector> = undefined_vector(bitvector_length(vm_val) as usize, undefined_bitvector(__id(SEW)));
         {
             let real_num_elem = if {(LMUL_pow >= 0)} {
                 num_elem

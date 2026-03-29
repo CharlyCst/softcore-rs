@@ -186,8 +186,8 @@ type rs_program = RsProg of rs_obj list
 let core_ctx = "core_ctx"
 let default_copy_derive = [ "Eq"; "PartialEq"; "Clone"; "Copy"; "Debug" ]
 let default_move_derive = [ "Eq"; "PartialEq"; "Clone"; "Debug" ]
-let nat_typ = RsTypId "u128"
-let int_typ = RsTypId "i128"
+let nat_typ = RsTypId "u128" (* TODO(Gurvan): Should maybe be just nat since we define it in prelude *)
+let int_typ = RsTypId "i128" (* TODO(Gurvan): Maybe should be defined in prelude *)
 let bool_typ = RsTypId "bool"
 let usize_typ = RsTypId "usize"
 

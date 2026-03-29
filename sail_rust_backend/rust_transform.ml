@@ -369,18 +369,6 @@ let bitvec_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp =
           } )
   | _ -> exp
 
-and uint_to_bitvector (n : int) : rs_type =
-  if n <= 8
-  then RsTypId "u8"
-  else if n <= 16
-  then RsTypId "u16"
-  else if n <= 32
-  then RsTypId "u32"
-  else if n <= 64
-  then RsTypId "u64"
-  else RsTypId "InvalidBitVectorSize"
-;;
-
 let bitvec_transform_type (_ctx : context) (typ : rs_type) : rs_type =
   match typ with
   | RsTypGenericParam ("bitvector", _t) -> RsTypId "BitVector"

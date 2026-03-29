@@ -37,10 +37,6 @@ pub const fn integer_subrange<const L: i128>(i: i128, hi: i128, lo: i128) -> Bit
     get_slice_int((hi - lo) + 1, i, lo)
 }
 
-/// Returns an undefined bitvector of the given size.
-///
-/// For now we return 0, but we might want to track undefined values in the future.
-
 pub const fn undefined_bool(_: ()) -> bool {
     false
 }
