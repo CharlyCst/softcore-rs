@@ -15,9 +15,11 @@ module SMap = Types.SMap
 
 type core_config = int SMap.t
 
+(* TODO(Gurvan): If we don't need this anymore, this can go *)
 (** The RV64 static configuration **)
 let rv64_config : core_config =
-  SMap.of_list [ "extensions.V.vlen_exp", 3 (* Must be in range(3, 16) *) ]
+  (* SMap.of_list [ "extensions.V.vlen_exp", 3 (* Must be in range(3, 16) *) ] *)
+  SMap.empty
 ;;
 
 (** Returns the config value, if known at compile time. **)

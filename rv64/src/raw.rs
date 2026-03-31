@@ -930,13 +930,15 @@ pub fn get_elen_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
 /// get_vlen_pow
 ///
 /// Generated from the Sail sources at `riscv_vlen.sail` L16.
-pub const fn get_vlen_pow(unit_arg: ()) -> i128 {
-    3
+pub fn get_vlen_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
+    core_ctx.config.extensions.V.vlen_exp
 }
 
 pub const vlenmax: i128 = 65536;
 
-pub const VLEN: i128 = 8;
+pub fn get_vlen(core_ctx: &mut Core) -> i128 {
+    i128::pow(2, (get_vlen_pow(core_ctx, ()) as u32))
+}
 
 pub type physaddrbits = BitVector;
 
@@ -6395,8 +6397,8 @@ pub fn legalize_satp(core_ctx: &mut Core, arch: Architecture, prev_value: BitVec
 /// get_vlenb
 ///
 /// Generated from the Sail sources at `riscv_sys_regs.sail` L919-921.
-pub fn get_vlenb(unit_arg: ()) -> BitVector {
-    to_bits(64, (8 / 8))
+pub fn get_vlenb(core_ctx: &mut Core, unit_arg: ()) -> BitVector {
+    to_bits(64, (i128::pow(2, (get_vlen_pow(core_ctx, ()) as u32)) / 8))
 }
 
 /// _get_Vtype_vill
@@ -7085,7 +7087,7 @@ pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitVector) {
         _ => {panic!("Unreachable code")}
     };
     dirty_v_context(core_ctx, ());
-    assert!(((0 < 8) && (8 <= 65536)), "riscv_vext_regs.sail:176.43-176.44")
+    assert!(((0 < get_vlen(core_ctx)) && (get_vlen(core_ctx) <= 65536)), "riscv_vext_regs.sail:176.43-176.44")
 }
 
 /// rV_bits
@@ -7128,13 +7130,13 @@ pub fn ext_write_vcsr(core_ctx: &mut Core, vxrm_val: BitVector, vxsat_val: BitVe
 /// get_num_elem
 ///
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L241-248.
-pub fn get_num_elem(LMUL_pow: i128, SEW: i128) -> i128 {
+pub fn get_num_elem(core_ctx: &mut Core, LMUL_pow: i128, SEW: i128) -> i128 {
     let LMUL_pow_reg = if {(LMUL_pow < 0)} {
         0
     } else {
         LMUL_pow
     };
-    let num_elem = quot_round_zero((i128::pow(2, (LMUL_pow_reg as u32)) * 8), SEW);
+    let num_elem = quot_round_zero((i128::pow(2, (LMUL_pow_reg as u32)) * get_vlen(core_ctx)), SEW);
     assert!((num_elem > 0), "riscv_vext_regs.sail:246.21-246.22");
     num_elem
 }
@@ -7144,7 +7146,7 @@ pub fn get_num_elem(LMUL_pow: i128, SEW: i128) -> i128 {
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L252-263.
 pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> Vec<BitVector> {
     let bv: vregtype = rV_bits(core_ctx, vrid);
-    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem) as usize];
+    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)];
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "riscv_vext_regs.sail:256.29-256.30");
         for i in 0..=(num_elem - 1) {
@@ -7172,7 +7174,7 @@ pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: v
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L281-315.
 pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> Vec<BitVector> {
     let vrid_val = vregidx_bits(vrid).unsigned();
-    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem) as usize];
+    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)];
     {
         let LMUL_pow_reg = if {(LMUL_pow < 0)} {
             0
@@ -7187,7 +7189,7 @@ pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128,
             if {(LMUL_pow < 0)} {
                 result = read_single_vreg(core_ctx, result.len() as i128, SEW, vrid)
             } else {
-                let num_elem_single: i128 = quot_round_zero(8, SEW);
+                let num_elem_single: i128 = quot_round_zero(get_vlen(core_ctx), SEW);
                 assert!((__id(num_elem_single) >= 0), "riscv_vext_regs.sail:298.34-298.35");
                 for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
                     let r_start_i: i128 = (i_lmul * __id(num_elem_single));
@@ -7216,10 +7218,10 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
     } else {
         LMUL_pow
     };
-    let num_elem_single: i128 = quot_round_zero(8, SEW);
+    let num_elem_single: i128 = quot_round_zero(get_vlen(core_ctx), SEW);
     assert!((__id(num_elem_single) >= 0), "riscv_vext_regs.sail:336.30-336.31");
     for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
-        let mut single_vec: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem_single) as usize];
+        let mut single_vec: Vec<BitVector> = vec![zeros(__id(SEW)); (__id(num_elem_single) as usize)];
         {
             let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
             let r_start_i: i128 = (i_lmul * __id(num_elem_single));
@@ -7260,7 +7262,8 @@ pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitVector, vrid: vreg
 /// Generated from the Sail sources at `riscv_vext_control.sail` L15-20.
 pub fn set_vstart(core_ctx: &mut Core, value: BitVector) {
     dirty_v_context(core_ctx, ());
-    core_ctx.vstart = value.subrange::<0, 3, 3>().zero_extend(16)
+    let vstart_length = get_vlen_pow(core_ctx, ());
+    core_ctx.vstart = subrange_bits(value, (vstart_length - 1), 0).zero_extend(16)
 }
 
 pub type ext_exception = ();
@@ -8637,9 +8640,9 @@ pub fn zvk_valid_reg_overlap(rs: vregidx, rd: vregidx, emul_pow: i128) -> bool {
 pub fn zvk_check_encdec(core_ctx: &mut Core, EGW: i128, EGS: i128) -> bool {
     let LMUL_pow = get_lmul_pow(core_ctx, ());
     let LMUL_times_VLEN: i128 = if {(LMUL_pow < 0)} {
-        (8 / i128::pow(2, (i128::abs(LMUL_pow) as u32)))
+        (get_vlen(core_ctx) / i128::pow(2, (i128::abs(LMUL_pow) as u32)))
     } else {
-        (i128::pow(2, (LMUL_pow as u32)) * 8)
+        (i128::pow(2, (LMUL_pow as u32)) * get_vlen(core_ctx))
     };
     ((((core_ctx.vl.unsigned() as usize) % (EGS as usize)) == 0) && (((((core_ctx.vstart.unsigned() as usize) % (EGS as usize)) == 0) && (LMUL_times_VLEN >= EGW)) as bool))
 }
@@ -9017,7 +9020,7 @@ pub fn read_CSR(core_ctx: &mut Core, merge_hashtag_var: BitVector) -> BitVector 
         b__32 if {(b__32 == BitVector::new(12, 0b000000001111))} => {core_ctx.vcsr.bits.zero_extend(64)}
         b__33 if {(b__33 == BitVector::new(12, 0b110000100000))} => {core_ctx.vl}
         b__34 if {(b__34 == BitVector::new(12, 0b110000100001))} => {core_ctx.vtype.bits}
-        b__35 if {(b__35 == BitVector::new(12, 0b110000100010))} => {get_vlenb(())}
+        b__35 if {(b__35 == BitVector::new(12, 0b110000100010))} => {get_vlenb(core_ctx, ())}
         b__36 if {(b__36 == BitVector::new(12, 0b000100000101))} => {get_stvec(core_ctx, ())}
         b__37 if {(b__37 == BitVector::new(12, 0b000101000001))} => {get_xepc(core_ctx, Privilege::Supervisor)}
         b__38 if {(b__38 == BitVector::new(12, 0b001100000101))} => {get_mtvec(core_ctx, ())}
@@ -9476,8 +9479,9 @@ pub fn illegal_normal(core_ctx: &mut Core, vd: vregidx, vm: BitVector) -> bool {
 /// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L209-222.
 pub fn get_start_element(core_ctx: &mut Core, unit_arg: ()) -> result<i128, ()> {
     let start_element = core_ctx.vstart.unsigned();
+    let VLEN_pow = get_vlen_pow(core_ctx, ());
     let SEW_pow = get_sew_pow(core_ctx, ());
-    if {(start_element > (i128::pow(2, ((6 - SEW_pow) as u32)) - 1))} {
+    if {(start_element > (i128::pow(2, (((3 + VLEN_pow) - SEW_pow) as u32)) - 1))} {
         result::Err(())
     } else {
         result::Ok(start_element)
@@ -11820,7 +11824,7 @@ pub fn encdec_forwards(core_ctx: &mut Core, arg_hashtag_: ast) -> BitVector {
         ast::ZICOND_RTYPE((rs2, rs1, rd, zicondop::CZERO_NEZ)) if {currentlyEnabled(core_ctx, extension::Ext_Zicond)} => {bitvector_concat(BitVector::new(7, 0b0000111), bitvector_concat(encdec_reg_forwards(rs2), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(BitVector::new(3, 0b111), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b0110011))))))}
         ast::VSETVLI((ma, ta, sew, lmul, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(BitVector::new(4, 0b0000), bitvector_concat((ma as BitVector), bitvector_concat((ta as BitVector), bitvector_concat((sew as BitVector), bitvector_concat((lmul as BitVector), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(BitVector::new(3, 0b111), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b1010111)))))))))}
         ast::VSETVL((rs2, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(BitVector::new(7, 0b1000000), bitvector_concat(encdec_reg_forwards(rs2), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(BitVector::new(3, 0b111), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b1010111))))))}
-        ast::VSETIVLI((ma, ta, sew, lmul, uimm, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VSETIVLI'")}
+        ast::VSETIVLI((ma, ta, sew, lmul, uimm, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(BitVector::new(4, 0b1100), bitvector_concat((ma as BitVector), bitvector_concat((ta as BitVector), bitvector_concat((sew as BitVector), bitvector_concat((lmul as BitVector), bitvector_concat((uimm as BitVector), bitvector_concat(BitVector::new(3, 0b111), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b1010111)))))))))}
         ast::VVTYPE((funct6, vm, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(encdec_vvfunct6_forwards(funct6), bitvector_concat((vm as BitVector), bitvector_concat(encdec_vreg_forwards(vs2), bitvector_concat(encdec_vreg_forwards(vs1), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(encdec_vreg_forwards(vd), BitVector::new(7, 0b1010111)))))))}
         ast::NVSTYPE((funct6, vm, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NVSTYPE'")}
         ast::NVTYPE((funct6, vm, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NVTYPE'")}
@@ -19896,6 +19900,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let SEW_pow_ori = get_sew_pow(core_ctx, ());
             let ratio_pow_ori = (SEW_pow_ori - LMUL_pow_ori);
             core_ctx.vtype.bits = bitvector_concat(BitVector::new(1, 0b0), bitvector_concat(zeros(55), bitvector_concat(ma, bitvector_concat(ta, bitvector_concat(sew, lmul)))));
+            let VLEN_pow = get_vlen_pow(core_ctx, ());
             let ELEN_pow = get_elen_pow(core_ctx, ());
             let LMUL_pow_new = get_lmul_pow(core_ctx, ());
             let SEW_pow_new = get_sew_pow(core_ctx, ());
@@ -19905,7 +19910,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             } else {
                 ()
             };
-            let VLMAX = i128::pow(2, (((3 + LMUL_pow_new) - SEW_pow_new) as u32));
+            let VLMAX = i128::pow(2, (((VLEN_pow + LMUL_pow_new) - SEW_pow_new) as u32));
             if {(rs1 != zreg)} {
                 let rs1_val = rX_bits(core_ctx, rs1);
                 let AVL = rs1_val.unsigned();
@@ -19939,6 +19944,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let SEW_pow_ori = get_sew_pow(core_ctx, ());
             let ratio_pow_ori = (SEW_pow_ori - LMUL_pow_ori);
             core_ctx.vtype.bits = rX_bits(core_ctx, rs2);
+            let VLEN_pow = get_vlen_pow(core_ctx, ());
             let ELEN_pow = get_elen_pow(core_ctx, ());
             let LMUL_pow_new = get_lmul_pow(core_ctx, ());
             let SEW_pow_new = get_sew_pow(core_ctx, ());
@@ -19948,7 +19954,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             } else {
                 ()
             };
-            let VLMAX = i128::pow(2, (((3 + LMUL_pow_new) - SEW_pow_new) as u32));
+            let VLMAX = i128::pow(2, (((VLEN_pow + LMUL_pow_new) - SEW_pow_new) as u32));
             if {(rs1 != zreg)} {
                 let rs1_val = rX_bits(core_ctx, rs1);
                 let AVL = rs1_val.unsigned();
@@ -19977,12 +19983,34 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             set_vstart(core_ctx, zeros(16));
             RETIRE_SUCCESS
         }}
-        ast::VSETIVLI((ma, ta, sew, lmul, uimm, rd)) => {todo!("Unsupported: 'VSETIVLI'")}
+        ast::VSETIVLI((ma, ta, sew, lmul, uimm, rd)) => {{
+            core_ctx.vtype.bits = bitvector_concat(BitVector::new(1, 0b0), bitvector_concat(zeros(55), bitvector_concat(ma, bitvector_concat(ta, bitvector_concat(sew, lmul)))));
+            let VLEN_pow = get_vlen_pow(core_ctx, ());
+            let ELEN_pow = get_elen_pow(core_ctx, ());
+            let LMUL_pow_new = get_lmul_pow(core_ctx, ());
+            let SEW_pow_new = get_sew_pow(core_ctx, ());
+            if {(SEW_pow_new > (LMUL_pow_new + ELEN_pow))} {
+                handle_illegal_vtype(core_ctx, ());
+                return RETIRE_SUCCESS;
+            } else {
+                ()
+            };
+            let VLMAX = i128::pow(2, (((VLEN_pow + LMUL_pow_new) - SEW_pow_new) as u32));
+            let AVL = uimm.unsigned();
+            core_ctx.vl = calculate_new_vl(core_ctx, AVL, VLMAX);
+            {
+                let var_45 = core_ctx.vl;
+                wX_bits(core_ctx, rd, var_45)
+            };
+            set_vstart(core_ctx, zeros(16));
+            RETIRE_SUCCESS
+        }}
         ast::VVTYPE((funct6, vm, vs2, vs1, vd)) => {{
             let SEW_pow = get_sew_pow(core_ctx, ());
             let SEW = get_sew(core_ctx, ());
             let LMUL_pow = get_lmul_pow(core_ctx, ());
-            let num_elem = get_num_elem(LMUL_pow, SEW);
+            let VLEN_pow = get_vlen_pow(core_ctx, ());
+            let num_elem = get_num_elem(core_ctx, LMUL_pow, SEW);
             if {illegal_normal(core_ctx, vd, vm)} {
                 return ExecutionResult::Illegal_Instruction(());
             } else {
@@ -20040,25 +20068,19 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                             }}
                             vvfunct6::VV_VSSRL => {{
                                 let shift_amount = get_shift_amount(vs1_val[(i as usize)], SEW);
-                                let rounding_incr = get_fixed_rounding_incr(core_ctx, vs2_val[(i as usize)], shift_amount);
+                                let rounding_incr = get_fixed_rounding_incr(core_ctx, vs2_val[(i as usize)], shift_amount as i128);
                                 (vs2_val[(i as usize)] >> shift_amount).wrapped_add(rounding_incr.zero_extend(__id(m)))
                             }}
                             vvfunct6::VV_VSSRA => {{
                                 let shift_amount = get_shift_amount(vs1_val[(i as usize)], SEW);
-                                let rounding_incr = get_fixed_rounding_incr(core_ctx, vs2_val[(i as usize)], shift_amount);
+                                let rounding_incr = get_fixed_rounding_incr(core_ctx, vs2_val[(i as usize)], shift_amount as i128);
                                 let v_double: BitVector = sign_extend((__id(m) * 2), vs2_val[(i as usize)]);
                                 slice((v_double >> shift_amount), 0, SEW).wrapped_add(rounding_incr.zero_extend(__id(m)))
                             }}
                             vvfunct6::VV_VMINU => {to_bits(SEW, min_int(vs2_val[(i as usize)].unsigned(), vs1_val[(i as usize)].unsigned()))}
                             vvfunct6::VV_VMIN => {to_bits(SEW, min_int(vs2_val[(i as usize)].signed(), vs1_val[(i as usize)].signed()))}
-                            vvfunct6::VV_VMAXU => {{
-                                let var_45 = max_int(vs2_val[(i as usize)].unsigned(), vs1_val[(i as usize)].unsigned());
-                                to_bits(SEW, var_45)
-                            }}
-                            vvfunct6::VV_VMAX => {{
-                                let var_46 = max_int(vs2_val[(i as usize)].signed(), vs1_val[(i as usize)].signed());
-                                to_bits(SEW, var_46)
-                            }}
+                            vvfunct6::VV_VMAXU => {to_bits(SEW, max_int(vs2_val[(i as usize)].unsigned(), vs1_val[(i as usize)].unsigned()))}
+                            vvfunct6::VV_VMAX => {to_bits(SEW, max_int(vs2_val[(i as usize)].signed(), vs1_val[(i as usize)].signed()))}
                             vvfunct6::VV_VRGATHER => {{
                                 if {((vs1 == vd) || (vs2 == vd))} {
                                     return ExecutionResult::Illegal_Instruction(());
@@ -20066,7 +20088,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                                     ()
                                 };
                                 let idx = vs1_val[(i as usize)].unsigned();
-                                let VLMAX = i128::pow(2, (((LMUL_pow + 3) - SEW_pow) as u32));
+                                let VLMAX = i128::pow(2, (((LMUL_pow + VLEN_pow) - SEW_pow) as u32));
                                 assert!((VLMAX <= __id(n)), "riscv_insts_vext_arith.sail:123.48-123.49");
                                 if {(idx < VLMAX)} {
                                     vs2_val[(idx as usize)]
@@ -20082,7 +20104,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                                 };
                                 let vs1_new: Vec<BitVector> = read_vreg(core_ctx, num_elem, 16, ((4 + LMUL_pow) - SEW_pow), vs1);
                                 let idx = vs1_new[(i as usize)].unsigned();
-                                let VLMAX = i128::pow(2, (((LMUL_pow + 3) - SEW_pow) as u32));
+                                let VLMAX = i128::pow(2, (((LMUL_pow + VLEN_pow) - SEW_pow) as u32));
                                 assert!((VLMAX <= __id(n)), "riscv_insts_vext_arith.sail:132.48-132.49");
                                 if {(idx < VLMAX)} {
                                     vs2_val[(idx as usize)]
@@ -20190,24 +20212,24 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
         ast::RMVVTYPE((funct6, vm, vs2, vs1, vd)) => {todo!("Unsupported: 'RMVVTYPE'")}
         ast::RFVVTYPE((funct6, vm, vs2, vs1, vd)) => {todo!("Unsupported: 'RFVVTYPE'")}
         ast::ZICBOM((cbop_zicbom::CBO_CLEAN, rs1)) => {if {{
-            let var_47 = core_ctx.cur_privilege;
-            cbo_clean_flush_enabled(core_ctx, var_47)
+            let var_46 = core_ctx.cur_privilege;
+            cbo_clean_flush_enabled(core_ctx, var_46)
         }} {
             process_clean_inval(core_ctx, rs1, cbop_zicbom::CBO_CLEAN)
         } else {
             ExecutionResult::Illegal_Instruction(())
         }}
         ast::ZICBOM((cbop_zicbom::CBO_FLUSH, rs1)) => {if {{
-            let var_48 = core_ctx.cur_privilege;
-            cbo_clean_flush_enabled(core_ctx, var_48)
+            let var_47 = core_ctx.cur_privilege;
+            cbo_clean_flush_enabled(core_ctx, var_47)
         }} {
             process_clean_inval(core_ctx, rs1, cbop_zicbom::CBO_FLUSH)
         } else {
             ExecutionResult::Illegal_Instruction(())
         }}
         ast::ZICBOM((cbop_zicbom::CBO_INVAL, rs1)) => {match {
-            let var_49 = core_ctx.cur_privilege;
-            cbop_priv_check(core_ctx, var_49)
+            let var_48 = core_ctx.cur_privilege;
+            cbop_priv_check(core_ctx, var_48)
         } {
             checked_cbop::CBOP_ILLEGAL => {ExecutionResult::Illegal_Instruction(())}
             checked_cbop::CBOP_ILLEGAL_VIRTUAL => {panic!("{}, l {}: {}", "riscv_insts_zicbom.sail", 151, "unimplemented")}
@@ -20261,8 +20283,8 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         ExecutionResult::Memory_Exception((addr, ExceptionType::E_Fetch_Addr_Align(())))
                     } else {
                         {
-                            let var_50 = get_next_pc(core_ctx, ());
-                            wX_bits(core_ctx, rd, var_50)
+                            let var_49 = get_next_pc(core_ctx, ());
+                            wX_bits(core_ctx, rd, var_49)
                         };
                         set_next_pc(core_ctx, target);
                         RETIRE_SUCCESS
