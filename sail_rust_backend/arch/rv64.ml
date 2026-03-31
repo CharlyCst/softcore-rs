@@ -68,6 +68,7 @@ let external_func : SSet.t =
       ; "sign_extend"
       ; "sail_sign_extend"
       ; "sail_ones"
+      ; "max_int"
       ; "min_int"
       ; "__exit"
       ; "signed"
@@ -183,7 +184,7 @@ let unsupported_match : SSet.t =
     ; "VCLMUL_VX"
     ; "VCLMULH_VV"
     ; "VCLMULH_VX"
-    ; "VVTYPE"
+    (* ; "VVTYPE" (* TODO(Gurvan): Comment out *) *)
     ; "NVSTYPE"
     ; "NVTYPE"
     ; "MASKTYPEV"
@@ -272,8 +273,8 @@ let unsupported_match : SSet.t =
     ; "VIMCTYPE"
     ; "VIMSTYPE"
     ; "VICMPTYPE"
-    ; "VSETVLI"
-    ; "VSETVL"
+    (* ; "VSETVLI" *)
+    (* ; "VSETVL" *)
     ; "VSETIVLI"
     ; "FLI_H"
     ; "FLI_S"

@@ -677,7 +677,7 @@ let native_func_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp =
   | RsApp (RsId "mult_int", _gens, _) -> RsId "BUILTIN_mult_int_TODO"
   | RsApp (RsId "neg_int", _gens, _) -> RsId "BUILTIN_neg_int_TODO"
   | RsApp (RsId "abs_int", _gens, _) -> RsId "BUILTIN_abs_int_TODO"
-  | RsApp (RsId "max_int", _gens, _) -> RsId "BUILTIN_max_int_TODO"
+  (* | RsApp (RsId "max_int", _gens, _) -> RsId "BUILTIN_max_int_TODO" *)
   (*| RsApp (RsId "min_int", _gens, _) -> RsId "BUILTIN_min_int_TODO" *)
   | RsApp (RsId "tdiv_int", _gens, [ e1; e2 ]) -> RsBinop (e1, RsBinopDiv, e2)
   | RsApp (RsId "tmod_int", _gens, _) -> RsId "BUILTIN_tmod_int_TODO"
@@ -1734,11 +1734,12 @@ let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp =
             have the type information which can allow us to do these kinds of
             things…*)
     e
-  | RsArraySize (e', size) -> if is_const_rs_exp ctx size then e else RsVecSize (e', size)
+  | RsArraySize (e', size) -> if is_const_rs_exp ctx size then e else RsVecSize
+  (e', RsAs (size, usize_typ))
   | RsApp (RsId "undefined_vector", _generics, [ size; value ] ) ->
     if is_const_rs_exp ctx size
     then
-      RsArraySize (value, size)
+      RsArraySize (value, RsAs (size, usize_typ))
     else e
   | _ -> e
 ;;

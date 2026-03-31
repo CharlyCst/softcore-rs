@@ -4,6 +4,7 @@ mod bitvector;
 
 use core::ops;
 use std::cmp::min;
+use std::cmp::max;
 
 // NOTE: Ideally we would use unbounded integers for natural numbers. Yet in practice this would
 // mess up with things such as the SMT solver during symbolic execution.
@@ -119,6 +120,10 @@ pub const fn sail_shiftright(bits: BitVector, shift: i128) -> BitVector {
 
 pub const fn sail_shiftleft(bits: BitVector, shift: i128) -> BitVector {
     bv(bits.len, bits.bits() << (shift as u64))
+}
+
+pub fn max_int(v1: i128, v2: i128) -> i128 {
+    max(v1, v2)
 }
 
 pub fn min_int(v1: i128, v2: i128) -> i128 {
@@ -383,6 +388,17 @@ impl ops::Shl<usize> for BitVector {
     }
 }
 
+impl ops::Shl<u128> for BitVector {
+    type Output = Self;
+
+    fn shl(self, rhs: u128) -> Self::Output {
+        Self {
+            len: self.len,
+            bits: self.bits << rhs,
+        }
+    }
+}
+
 impl ops::Shl<i128> for BitVector {
     type Output = Self;
 
@@ -409,6 +425,17 @@ impl ops::Shr<usize> for BitVector {
     type Output = Self;
 
     fn shr(self, rhs: usize) -> Self::Output {
+        Self {
+            len: self.len,
+            bits: self.bits >> rhs,
+        }
+    }
+}
+
+impl ops::Shr<u128> for BitVector {
+    type Output = Self;
+
+    fn shr(self, rhs: u128) -> Self::Output {
         Self {
             len: self.len,
             bits: self.bits >> rhs,

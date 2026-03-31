@@ -34,6 +34,7 @@ let external_func : SSet.t =
       ; "bitvector_access"
       ; "bitvector_concat"
       ; "subrange_bits"
+      ; "max_int"
       ; "min_int"
       ; "format!"
       ; "assert!"

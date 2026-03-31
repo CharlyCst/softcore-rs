@@ -28,7 +28,10 @@ pub const MINIMAL: raw::Config = raw::Config {
         U: raw::ConfigU { supported: false },
         V: raw::ConfigV {
             supported: false,
+            // TODO: Check following parameters
             vlen_exp: 3,
+            vl_use_ceil: false,
+            elen_exp: 0,
         },
         Zaamo: raw::ConfigZaamo { supported: false },
         Zabha: raw::ConfigZabha { supported: false },
@@ -109,7 +112,10 @@ pub const U74: raw::Config = raw::Config {
         U: raw::ConfigU { supported: true },
         V: raw::ConfigV {
             supported: false,
+            // TODO: Check the following
             vlen_exp: 3,
+            elen_exp: 0,
+            vl_use_ceil: false,
         },
         Zaamo: raw::ConfigZaamo { supported: false },
         Zabha: raw::ConfigZabha { supported: false },

@@ -321,7 +321,9 @@ pub struct ConfigU {
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigV {
+    pub elen_exp: i128,
     pub supported: bool,
+    pub vl_use_ceil: bool,
     pub vlen_exp: i128,
 }
 
@@ -870,6 +872,23 @@ pub fn rotatel(v: BitVector, n: i128) -> BitVector {
     ((v << n) | (v >> (bitvector_length(v) - n)))
 }
 
+/// log2
+///
+/// Generated from the Sail sources at `prelude.sail` L207-218.
+pub fn log2(n: i128) -> i128 {
+    let result: i128 = match n {
+        l__803 if {(l__803 == 1)} => {0}
+        l__804 if {(l__804 == 2)} => {1}
+        l__805 if {(l__805 == 4)} => {2}
+        l__806 if {(l__806 == 8)} => {3}
+        l__807 if {(l__807 == 16)} => {4}
+        l__808 if {(l__808 == 32)} => {5}
+        _ => {6}
+        _ => {panic!("Unreachable code")}
+    };
+    result
+}
+
 pub const max_mem_access: i128 = 4096;
 
 pub type mem_access_width = i128;
@@ -900,6 +919,13 @@ pub type flenbits = BitVector;
 pub const flen_bytes: i128 = 8;
 
 pub const flen: i128 = 64;
+
+/// get_elen_pow
+///
+/// Generated from the Sail sources at `riscv_vlen.sail` L9.
+pub fn get_elen_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
+    core_ctx.config.extensions.V.elen_exp
+}
 
 /// get_vlen_pow
 ///
@@ -4011,7 +4037,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitVector {
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
 pub fn csr_id_read_callback(csr: BitVector, value: BitVector) {
     let name = csr_name_map_forwards(csr);
-    
+
 }
 
 pub type regtype = xlenbits;
@@ -6373,6 +6399,13 @@ pub fn get_vlenb(unit_arg: ()) -> BitVector {
     to_bits(64, (8 / 8))
 }
 
+/// _get_Vtype_vill
+///
+/// Generated from the Sail sources.
+pub fn _get_Vtype_vill(v: Vtype) -> BitVector {
+    v.bits.subrange::<63, 64, 1>()
+}
+
 /// _get_Vtype_vlmul
 ///
 /// Generated from the Sail sources.
@@ -6380,11 +6413,25 @@ pub fn _get_Vtype_vlmul(v: Vtype) -> BitVector {
     v.bits.subrange::<0, 3, 3>()
 }
 
+/// _get_Vtype_vma
+///
+/// Generated from the Sail sources.
+pub fn _get_Vtype_vma(v: Vtype) -> BitVector {
+    v.bits.subrange::<7, 8, 1>()
+}
+
 /// _get_Vtype_vsew
 ///
 /// Generated from the Sail sources.
 pub fn _get_Vtype_vsew(v: Vtype) -> BitVector {
     v.bits.subrange::<3, 6, 3>()
+}
+
+/// _get_Vtype_vta
+///
+/// Generated from the Sail sources.
+pub fn _get_Vtype_vta(v: Vtype) -> BitVector {
+    v.bits.subrange::<6, 7, 1>()
 }
 
 /// get_sew_pow
@@ -6455,6 +6502,39 @@ pub fn get_lmul_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
 pub enum agtype {
     UNDISTURBED,
     AGNOSTIC
+}
+
+/// decode_agtype
+///
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L988-993.
+pub fn decode_agtype(ag: BitVector) -> agtype {
+    match ag {
+        b__0 if {(b__0 == BitVector::new(1, 0b0))} => {agtype::UNDISTURBED}
+        _ => {agtype::AGNOSTIC}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// get_vtype_vma
+///
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L996.
+pub fn get_vtype_vma(core_ctx: &mut Core, unit_arg: ()) -> agtype {
+    let var_1 = {
+        let var_2 = core_ctx.vtype;
+        _get_Vtype_vma(var_2)
+    };
+    decode_agtype(var_1)
+}
+
+/// get_vtype_vta
+///
+/// Generated from the Sail sources at `riscv_sys_regs.sail` L999.
+pub fn get_vtype_vta(core_ctx: &mut Core, unit_arg: ()) -> agtype {
+    let var_1 = {
+        let var_2 = core_ctx.vtype;
+        _get_Vtype_vta(var_2)
+    };
+    decode_agtype(var_1)
 }
 
 /// PmpAddrMatchType
@@ -6847,11 +6927,42 @@ pub enum vregno {
     Vregno(i128)
 }
 
+/// vregidx_to_vregno
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L11.
+pub fn vregidx_to_vregno(vregidx::Vregidx(b): vregidx) -> vregno {
+    vregno::Vregno(b.unsigned())
+}
+
+/// vregno_to_vregidx
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L12.
+pub fn vregno_to_vregidx(vregno::Vregno(b): vregno) -> vregidx {
+    vregidx::Vregidx(to_bits(5, b))
+}
+
+/// vregidx_offset
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L13.
+pub fn vregidx_offset(vregidx::Vregidx(r): vregidx, o: BitVector) -> vregidx {
+    vregidx::Vregidx(r.wrapped_add(o))
+}
+
 /// vregidx_bits
 ///
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L14.
 pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitVector {
     b
+}
+
+/// encdec_vreg_forwards
+///
+/// Generated from the Sail sources.
+pub fn encdec_vreg_forwards(arg_hashtag_: vregidx) -> BitVector {
+    match arg_hashtag_ {
+        vregidx::Vregidx(r) => {r}
+        _ => {panic!("Unreachable code")}
+    }
 }
 
 /// encdec_vreg_backwards
@@ -6875,6 +6986,13 @@ pub fn encdec_vreg_backwards_matches(arg_hashtag_: BitVector) -> bool {
     }
 }
 
+/// vreg_write_callback
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L19.
+pub const fn vreg_write_callback(_: vregidx, missing_arg_0: BitVector) {
+    ()
+}
+
 pub const zvreg: vregidx = vregidx::Vregidx(BitVector::new(5, 0b00000));
 
 /// dirty_v_context
@@ -6884,6 +7002,104 @@ pub fn dirty_v_context(core_ctx: &mut Core, unit_arg: ()) {
     assert!(hartSupports(core_ctx, extension::Ext_V), "riscv_vext_regs.sail:95.28-95.29");
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<9, 11, 2>(extStatus_to_bits(ExtStatus::Dirty));
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange::<63, 64, 1>(BitVector::new(1, 0b1))
+}
+
+/// rV
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L101-136.
+pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitVector {
+    match r {
+        l__264 if {(l__264 == 0)} => {core_ctx.vr0}
+        l__265 if {(l__265 == 1)} => {core_ctx.vr1}
+        l__266 if {(l__266 == 2)} => {core_ctx.vr2}
+        l__267 if {(l__267 == 3)} => {core_ctx.vr3}
+        l__268 if {(l__268 == 4)} => {core_ctx.vr4}
+        l__269 if {(l__269 == 5)} => {core_ctx.vr5}
+        l__270 if {(l__270 == 6)} => {core_ctx.vr6}
+        l__271 if {(l__271 == 7)} => {core_ctx.vr7}
+        l__272 if {(l__272 == 8)} => {core_ctx.vr8}
+        l__273 if {(l__273 == 9)} => {core_ctx.vr9}
+        l__274 if {(l__274 == 10)} => {core_ctx.vr10}
+        l__275 if {(l__275 == 11)} => {core_ctx.vr11}
+        l__276 if {(l__276 == 12)} => {core_ctx.vr12}
+        l__277 if {(l__277 == 13)} => {core_ctx.vr13}
+        l__278 if {(l__278 == 14)} => {core_ctx.vr14}
+        l__279 if {(l__279 == 15)} => {core_ctx.vr15}
+        l__280 if {(l__280 == 16)} => {core_ctx.vr16}
+        l__281 if {(l__281 == 17)} => {core_ctx.vr17}
+        l__282 if {(l__282 == 18)} => {core_ctx.vr18}
+        l__283 if {(l__283 == 19)} => {core_ctx.vr19}
+        l__284 if {(l__284 == 20)} => {core_ctx.vr20}
+        l__285 if {(l__285 == 21)} => {core_ctx.vr21}
+        l__286 if {(l__286 == 22)} => {core_ctx.vr22}
+        l__287 if {(l__287 == 23)} => {core_ctx.vr23}
+        l__288 if {(l__288 == 24)} => {core_ctx.vr24}
+        l__289 if {(l__289 == 25)} => {core_ctx.vr25}
+        l__290 if {(l__290 == 26)} => {core_ctx.vr26}
+        l__291 if {(l__291 == 27)} => {core_ctx.vr27}
+        l__292 if {(l__292 == 28)} => {core_ctx.vr28}
+        l__293 if {(l__293 == 29)} => {core_ctx.vr29}
+        l__294 if {(l__294 == 30)} => {core_ctx.vr30}
+        _ => {core_ctx.vr31}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// wV
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L138-178.
+pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitVector) {
+    match r {
+        l__233 if {(l__233 == 0)} => {core_ctx.vr0 = v}
+        l__234 if {(l__234 == 1)} => {core_ctx.vr1 = v}
+        l__235 if {(l__235 == 2)} => {core_ctx.vr2 = v}
+        l__236 if {(l__236 == 3)} => {core_ctx.vr3 = v}
+        l__237 if {(l__237 == 4)} => {core_ctx.vr4 = v}
+        l__238 if {(l__238 == 5)} => {core_ctx.vr5 = v}
+        l__239 if {(l__239 == 6)} => {core_ctx.vr6 = v}
+        l__240 if {(l__240 == 7)} => {core_ctx.vr7 = v}
+        l__241 if {(l__241 == 8)} => {core_ctx.vr8 = v}
+        l__242 if {(l__242 == 9)} => {core_ctx.vr9 = v}
+        l__243 if {(l__243 == 10)} => {core_ctx.vr10 = v}
+        l__244 if {(l__244 == 11)} => {core_ctx.vr11 = v}
+        l__245 if {(l__245 == 12)} => {core_ctx.vr12 = v}
+        l__246 if {(l__246 == 13)} => {core_ctx.vr13 = v}
+        l__247 if {(l__247 == 14)} => {core_ctx.vr14 = v}
+        l__248 if {(l__248 == 15)} => {core_ctx.vr15 = v}
+        l__249 if {(l__249 == 16)} => {core_ctx.vr16 = v}
+        l__250 if {(l__250 == 17)} => {core_ctx.vr17 = v}
+        l__251 if {(l__251 == 18)} => {core_ctx.vr18 = v}
+        l__252 if {(l__252 == 19)} => {core_ctx.vr19 = v}
+        l__253 if {(l__253 == 20)} => {core_ctx.vr20 = v}
+        l__254 if {(l__254 == 21)} => {core_ctx.vr21 = v}
+        l__255 if {(l__255 == 22)} => {core_ctx.vr22 = v}
+        l__256 if {(l__256 == 23)} => {core_ctx.vr23 = v}
+        l__257 if {(l__257 == 24)} => {core_ctx.vr24 = v}
+        l__258 if {(l__258 == 25)} => {core_ctx.vr25 = v}
+        l__259 if {(l__259 == 26)} => {core_ctx.vr26 = v}
+        l__260 if {(l__260 == 27)} => {core_ctx.vr27 = v}
+        l__261 if {(l__261 == 28)} => {core_ctx.vr28 = v}
+        l__262 if {(l__262 == 29)} => {core_ctx.vr29 = v}
+        l__263 if {(l__263 == 30)} => {core_ctx.vr30 = v}
+        _ => {core_ctx.vr31 = v}
+        _ => {panic!("Unreachable code")}
+    };
+    dirty_v_context(core_ctx, ());
+    assert!(((0 < 8) && (8 <= 65536)), "riscv_vext_regs.sail:176.43-176.44")
+}
+
+/// rV_bits
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L180.
+pub fn rV_bits(core_ctx: &mut Core, i: vregidx) -> BitVector {
+    rV(core_ctx, vregidx_to_vregno(i))
+}
+
+/// wV_bits
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L182-184.
+pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitVector) {
+    wV(core_ctx, vregidx_to_vregno(i), data)
 }
 
 /// _get_Vcsr_vxrm
@@ -6907,6 +7123,136 @@ pub fn ext_write_vcsr(core_ctx: &mut Core, vxrm_val: BitVector, vxsat_val: BitVe
     core_ctx.vcsr.bits = core_ctx.vcsr.bits.set_subrange::<1, 3, 2>(vxrm_val);
     core_ctx.vcsr.bits = core_ctx.vcsr.bits.set_subrange::<0, 1, 1>(vxsat_val);
     dirty_v_context(core_ctx, ())
+}
+
+/// get_num_elem
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L241-248.
+pub fn get_num_elem(LMUL_pow: i128, SEW: i128) -> i128 {
+    let LMUL_pow_reg = if {(LMUL_pow < 0)} {
+        0
+    } else {
+        LMUL_pow
+    };
+    let num_elem = quot_round_zero((i128::pow(2, (LMUL_pow_reg as u32)) * 8), SEW);
+    assert!((num_elem > 0), "riscv_vext_regs.sail:246.21-246.22");
+    num_elem
+}
+
+/// read_single_vreg
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L252-263.
+pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> Vec<BitVector> {
+    let bv: vregtype = rV_bits(core_ctx, vrid);
+    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem) as usize];
+    {
+        assert!(((8 <= SEW) && (SEW <= 64)), "riscv_vext_regs.sail:256.29-256.30");
+        for i in 0..=(num_elem - 1) {
+            let start_index = (i * SEW);
+            result[(i as usize)] = slice(bv, start_index, SEW)
+        };
+        result
+    }
+}
+
+/// write_single_vreg
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L267-277.
+pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: Vec<BitVector>) {
+    let mut r: vregtype = zeros(65536);
+    {
+        assert!(((8 <= SEW) && (SEW <= 64)), "riscv_vext_regs.sail:270.29-270.30");
+        todo!("E_for_dec");
+        wV_bits(core_ctx, vrid, r)
+    }
+}
+
+/// read_vreg
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L281-315.
+pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> Vec<BitVector> {
+    let vrid_val = vregidx_bits(vrid).unsigned();
+    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem) as usize];
+    {
+        let LMUL_pow_reg = if {(LMUL_pow < 0)} {
+            0
+        } else {
+            LMUL_pow
+        };
+        if {((vrid_val + i128::pow(2, (LMUL_pow_reg as u32))) > 32)} {
+            assert!(false, "invalid register group: vrid overflow the largest number")
+        } else if {(((vrid_val as usize) % (i128::pow(2, (LMUL_pow_reg as u32)) as usize)) != 0)} {
+            assert!(false, "invalid register group: vrid is not a multiple of EMUL")
+        } else {
+            if {(LMUL_pow < 0)} {
+                result = read_single_vreg(core_ctx, result.len() as i128, SEW, vrid)
+            } else {
+                let num_elem_single: i128 = quot_round_zero(8, SEW);
+                assert!((__id(num_elem_single) >= 0), "riscv_vext_regs.sail:298.34-298.35");
+                for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
+                    let r_start_i: i128 = (i_lmul * __id(num_elem_single));
+                    let r_end_i: i128 = ((r_start_i + __id(num_elem_single)) - 1);
+                    let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
+                    let single_result: Vec<BitVector> = read_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul);
+                    for r_i in r_start_i..=r_end_i {
+                        let s_i: i128 = (r_i - r_start_i);
+                        assert!(((0 <= r_i) && (r_i < num_elem)), "riscv_vext_regs.sail:306.42-306.43");
+                        assert!(((0 <= s_i) && (s_i < __id(num_elem_single))), "riscv_vext_regs.sail:307.50-307.51");
+                        result[(r_i as usize)] = single_result[(s_i as usize)]
+                    }
+                }
+            }
+        };
+        result
+    }
+}
+
+/// write_vreg
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L332-350.
+pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx, vec: Vec<BitVector>) {
+    let LMUL_pow_reg = if {(LMUL_pow < 0)} {
+        0
+    } else {
+        LMUL_pow
+    };
+    let num_elem_single: i128 = quot_round_zero(8, SEW);
+    assert!((__id(num_elem_single) >= 0), "riscv_vext_regs.sail:336.30-336.31");
+    for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
+        let mut single_vec: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem_single) as usize];
+        {
+            let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
+            let r_start_i: i128 = (i_lmul * __id(num_elem_single));
+            let r_end_i: i128 = ((r_start_i + __id(num_elem_single)) - 1);
+            for r_i in r_start_i..=r_end_i {
+                let s_i: i128 = (r_i - r_start_i);
+                assert!(((0 <= r_i) && (r_i < num_elem)), "riscv_vext_regs.sail:344.38-344.39");
+                assert!(((0 <= s_i) && (s_i < __id(num_elem_single))), "riscv_vext_regs.sail:345.46-345.47");
+                single_vec[(s_i as usize)] = vec[(r_i as usize)]
+            };
+            write_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul, single_vec)
+        }
+    }
+}
+
+/// read_vmask
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L375-389.
+pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitVector, vrid: vregidx) -> BitVector {
+    assert!((num_elem <= 65536), "riscv_vext_regs.sail:376.36-376.37");
+    let vreg_val: vregtype = rV_bits(core_ctx, vrid);
+    let mut result: BitVector = ones(__id(num_elem));
+    {
+        if {(vm == BitVector::new(1, 0b1))} {
+            return result;
+        } else {
+            ()
+        };
+        for i in 0..=(num_elem - 1) {
+            result = result.set_bit(i, bitvector_access(vreg_val, i))
+        };
+        result
+    }
 }
 
 /// set_vstart
@@ -7828,10 +8174,10 @@ pub fn tval(excinfo: Option<BitVector>) -> BitVector {
 pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
-            
+
         }}
         Privilege::Supervisor => {{
-            
+
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 217, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
@@ -9024,7 +9370,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitVector, rs1_val: BitVector, rd: regidx
                 _ => {panic!("Unreachable code")}
             };
             let final_val = write_CSR(core_ctx, csr, new_val);
-            
+
         } else {
             csr_id_read_callback(csr, csr_val)
         };
@@ -9100,6 +9446,226 @@ pub fn haveHalfMin(core_ctx: &mut Core, unit_arg: ()) -> bool {
 }
 
 pub type nfields = i128;
+
+/// valid_vtype
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L42-44.
+pub fn valid_vtype(core_ctx: &mut Core, unit_arg: ()) -> bool {
+    ({
+        let var_1 = core_ctx.vtype;
+        _get_Vtype_vill(var_1)
+    } == BitVector::new(1, 0b0))
+}
+
+/// valid_rd_mask
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L59-61.
+pub fn valid_rd_mask(rd: vregidx, vm: BitVector) -> bool {
+    ((vm != BitVector::new(1, 0b0)) || (rd != zvreg))
+}
+
+/// illegal_normal
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L99-101.
+pub fn illegal_normal(core_ctx: &mut Core, vd: vregidx, vm: BitVector) -> bool {
+    (!(valid_vtype(core_ctx, ())) || !(valid_rd_mask(vd, vm)))
+}
+
+/// get_start_element
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L209-222.
+pub fn get_start_element(core_ctx: &mut Core, unit_arg: ()) -> result<i128, ()> {
+    let start_element = core_ctx.vstart.unsigned();
+    let SEW_pow = get_sew_pow(core_ctx, ());
+    if {(start_element > (i128::pow(2, ((6 - SEW_pow) as u32)) - 1))} {
+        result::Err(())
+    } else {
+        result::Ok(start_element)
+    }
+}
+
+/// get_end_element
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L226.
+pub fn get_end_element(core_ctx: &mut Core, unit_arg: ()) -> i128 {
+    (core_ctx.vl.unsigned() - 1)
+}
+
+/// init_masked_result
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L237-285.
+pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vd_val: Vec<BitVector>, vm_val: BitVector) -> result<(Vec<BitVector>, BitVector), ()> {
+    let start_element: i128 = match get_start_element(core_ctx, ()) {
+        result::Ok(v) => {v}
+        result::Err(()) => {return result::Err(());}
+        _ => {panic!("Unreachable code")}
+    };
+    let end_element = get_end_element(core_ctx, ());
+    let tail_ag: agtype = get_vtype_vta(core_ctx, ());
+    let mask_ag: agtype = get_vtype_vma(core_ctx, ());
+    let mut mask: BitVector = undefined_bitvector(bitvector_length(vm_val));
+    {
+        let mut result: Vec<BitVector> = undefined_vector(bitvector_length(vm_val) as usize, undefined_bitvector(__id(SEW)));
+        {
+            let real_num_elem = if {(LMUL_pow >= 0)} {
+                num_elem
+            } else {
+                (num_elem / i128::pow(2, ((0 - LMUL_pow) as u32)))
+            };
+            assert!((num_elem >= real_num_elem), "riscv_insts_vext_utils.sail:250.34-250.35");
+            for i in 0..=(num_elem - 1) {
+                if {(i < start_element)} {
+                    result[(i as usize)] = vd_val[(i as usize)];
+                    mask = mask.set_bit(i, false)
+                } else if {(i > end_element)} {
+                    result[(i as usize)] = match tail_ag {
+                        agtype::UNDISTURBED => {vd_val[(i as usize)]}
+                        agtype::AGNOSTIC => {vd_val[(i as usize)]}
+                        _ => {panic!("Unreachable code")}
+                    };
+                    mask = mask.set_bit(i, false)
+                } else if {(i >= real_num_elem)} {
+                    result[(i as usize)] = match tail_ag {
+                        agtype::UNDISTURBED => {vd_val[(i as usize)]}
+                        agtype::AGNOSTIC => {vd_val[(i as usize)]}
+                        _ => {panic!("Unreachable code")}
+                    };
+                    mask = mask.set_bit(i, false)
+                } else if {(bitvector_access(vm_val, i) == false)} {
+                    result[(i as usize)] = match mask_ag {
+                        agtype::UNDISTURBED => {vd_val[(i as usize)]}
+                        agtype::AGNOSTIC => {vd_val[(i as usize)]}
+                        _ => {panic!("Unreachable code")}
+                    };
+                    mask = mask.set_bit(i, false)
+                } else {
+                    mask = mask.set_bit(i, true)
+                }
+            };
+            result::Ok((result, mask))
+        }
+    }
+}
+
+/// get_shift_amount
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L437-441.
+pub fn get_shift_amount(bit_val: BitVector, SEW: i128) -> i128 {
+    let lowlog2bits = log2(SEW);
+    assert!(((0 < lowlog2bits) && (lowlog2bits < bitvector_length(bit_val))), "riscv_insts_vext_utils.sail:439.43-439.44");
+    subrange_bits(bit_val, (lowlog2bits - 1), 0).unsigned()
+}
+
+/// get_fixed_rounding_incr
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L445-458.
+pub fn get_fixed_rounding_incr(core_ctx: &mut Core, vec_elem: BitVector, shift_amount: i128) -> BitVector {
+    if {(shift_amount == 0)} {
+        BitVector::new(1, 0b0)
+    } else {
+        let rounding_mode = {
+            let var_1 = core_ctx.vcsr;
+            _get_Vcsr_vxrm(var_1)
+        };
+        match rounding_mode {
+            b__0 if {(b__0 == BitVector::new(2, 0b00))} => {slice(vec_elem, (shift_amount - 1), 1)}
+            b__1 if {(b__1 == BitVector::new(2, 0b01))} => {bool_to_bits(((slice(vec_elem, (shift_amount - 1), 1) == BitVector::new(1, 0b1)) && ((slice(vec_elem, 0, (shift_amount - 1)) != zeros((__id(shift_amount) - 1))) || (slice(vec_elem, shift_amount, 1) == BitVector::new(1, 0b1)))))}
+            b__2 if {(b__2 == BitVector::new(2, 0b10))} => {BitVector::new(1, 0b0)}
+            _ => {bool_to_bits((!((slice(vec_elem, shift_amount, 1) == BitVector::new(1, 0b1))) && (slice(vec_elem, 0, shift_amount) != zeros(__id(shift_amount)))))}
+            _ => {panic!("Unreachable code")}
+        }
+    }
+}
+
+/// unsigned_saturation
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L462-469.
+pub fn unsigned_saturation(core_ctx: &mut Core, len: i128, elem: BitVector) -> BitVector {
+    if {(elem.unsigned() > ones(__id(len)).unsigned())} {
+        core_ctx.vcsr.bits = core_ctx.vcsr.bits.set_subrange::<0, 1, 1>(BitVector::new(1, 0b1));
+        ones(__id(len))
+    } else {
+        subrange_bits(elem, (__id(len) - 1), 0)
+    }
+}
+
+/// signed_saturation
+///
+/// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L473-483.
+pub fn signed_saturation(core_ctx: &mut Core, len: i128, elem: BitVector) -> BitVector {
+    if {(elem.signed() > bitvector_concat(BitVector::new(1, 0b0), ones((__id(len) - 1))).signed())} {
+        core_ctx.vcsr.bits = core_ctx.vcsr.bits.set_subrange::<0, 1, 1>(BitVector::new(1, 0b1));
+        bitvector_concat(BitVector::new(1, 0b0), ones((__id(len) - 1)))
+    } else if {(elem.signed() < bitvector_concat(BitVector::new(1, 0b1), zeros((__id(len) - 1))).signed())} {
+        core_ctx.vcsr.bits = core_ctx.vcsr.bits.set_subrange::<0, 1, 1>(BitVector::new(1, 0b1));
+        bitvector_concat(BitVector::new(1, 0b1), zeros((__id(len) - 1)))
+    } else {
+        subrange_bits(elem, (__id(len) - 1), 0)
+    }
+}
+
+/// handle_illegal_vtype
+///
+/// Generated from the Sail sources at `riscv_insts_vext_vset.sail` L45-53.
+pub fn handle_illegal_vtype(core_ctx: &mut Core, unit_arg: ()) {
+    core_ctx.vtype.bits = bitvector_concat(BitVector::new(1, 0b1), zeros(63));
+    core_ctx.vl = zeros(64)
+}
+
+/// vl_use_ceil
+///
+/// Generated from the Sail sources at `riscv_insts_vext_vset.sail` L55.
+pub fn vl_use_ceil(core_ctx: &mut Core, unit_arg: ()) -> bool {
+    core_ctx.config.extensions.V.vl_use_ceil
+}
+
+/// calculate_new_vl
+///
+/// Generated from the Sail sources at `riscv_insts_vext_vset.sail` L57-70.
+pub fn calculate_new_vl(core_ctx: &mut Core, AVL: i128, VLMAX: i128) -> BitVector {
+    let new_vl = if {(AVL <= VLMAX)} {
+        AVL
+    } else if {(AVL < (2 * VLMAX))} {
+        if {vl_use_ceil(core_ctx, ())} {
+            ((AVL + 1) / 2)
+        } else {
+            VLMAX
+        }
+    } else {
+        VLMAX
+    };
+    to_bits(64, new_vl)
+}
+
+/// encdec_vvfunct6_forwards
+///
+/// Generated from the Sail sources.
+pub fn encdec_vvfunct6_forwards(arg_hashtag_: vvfunct6) -> BitVector {
+    match arg_hashtag_ {
+        vvfunct6::VV_VADD => {BitVector::new(6, 0b000000)}
+        vvfunct6::VV_VSUB => {BitVector::new(6, 0b000010)}
+        vvfunct6::VV_VMINU => {BitVector::new(6, 0b000100)}
+        vvfunct6::VV_VMIN => {BitVector::new(6, 0b000101)}
+        vvfunct6::VV_VMAXU => {BitVector::new(6, 0b000110)}
+        vvfunct6::VV_VMAX => {BitVector::new(6, 0b000111)}
+        vvfunct6::VV_VAND => {BitVector::new(6, 0b001001)}
+        vvfunct6::VV_VOR => {BitVector::new(6, 0b001010)}
+        vvfunct6::VV_VXOR => {BitVector::new(6, 0b001011)}
+        vvfunct6::VV_VRGATHER => {BitVector::new(6, 0b001100)}
+        vvfunct6::VV_VRGATHEREI16 => {BitVector::new(6, 0b001110)}
+        vvfunct6::VV_VSADDU => {BitVector::new(6, 0b100000)}
+        vvfunct6::VV_VSADD => {BitVector::new(6, 0b100001)}
+        vvfunct6::VV_VSSUBU => {BitVector::new(6, 0b100010)}
+        vvfunct6::VV_VSSUB => {BitVector::new(6, 0b100011)}
+        vvfunct6::VV_VSLL => {BitVector::new(6, 0b100101)}
+        vvfunct6::VV_VSMUL => {BitVector::new(6, 0b100111)}
+        vvfunct6::VV_VSRL => {BitVector::new(6, 0b101000)}
+        vvfunct6::VV_VSRA => {BitVector::new(6, 0b101001)}
+        vvfunct6::VV_VSSRL => {BitVector::new(6, 0b101010)}
+        vvfunct6::VV_VSSRA => {BitVector::new(6, 0b101011)}
+        _ => {panic!("Unreachable code")}
+    }
+}
 
 /// encdec_vvfunct6_backwards
 ///
@@ -11252,10 +11818,10 @@ pub fn encdec_forwards(core_ctx: &mut Core, arg_hashtag_: ast) -> BitVector {
         ast::XPERM4((rs2, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbkx)} => {bitvector_concat(BitVector::new(7, 0b0010100), bitvector_concat(encdec_reg_forwards(rs2), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(BitVector::new(3, 0b010), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b0110011))))))}
         ast::ZICOND_RTYPE((rs2, rs1, rd, zicondop::CZERO_EQZ)) if {currentlyEnabled(core_ctx, extension::Ext_Zicond)} => {bitvector_concat(BitVector::new(7, 0b0000111), bitvector_concat(encdec_reg_forwards(rs2), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(BitVector::new(3, 0b101), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b0110011))))))}
         ast::ZICOND_RTYPE((rs2, rs1, rd, zicondop::CZERO_NEZ)) if {currentlyEnabled(core_ctx, extension::Ext_Zicond)} => {bitvector_concat(BitVector::new(7, 0b0000111), bitvector_concat(encdec_reg_forwards(rs2), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(BitVector::new(3, 0b111), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b0110011))))))}
-        ast::VSETVLI((ma, ta, sew, lmul, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VSETVLI'")}
-        ast::VSETVL((rs2, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VSETVL'")}
+        ast::VSETVLI((ma, ta, sew, lmul, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(BitVector::new(4, 0b0000), bitvector_concat((ma as BitVector), bitvector_concat((ta as BitVector), bitvector_concat((sew as BitVector), bitvector_concat((lmul as BitVector), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(BitVector::new(3, 0b111), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b1010111)))))))))}
+        ast::VSETVL((rs2, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(BitVector::new(7, 0b1000000), bitvector_concat(encdec_reg_forwards(rs2), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(BitVector::new(3, 0b111), bitvector_concat(encdec_reg_forwards(rd), BitVector::new(7, 0b1010111))))))}
         ast::VSETIVLI((ma, ta, sew, lmul, uimm, rd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VSETIVLI'")}
-        ast::VVTYPE((funct6, vm, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VVTYPE'")}
+        ast::VVTYPE((funct6, vm, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(encdec_vvfunct6_forwards(funct6), bitvector_concat((vm as BitVector), bitvector_concat(encdec_vreg_forwards(vs2), bitvector_concat(encdec_vreg_forwards(vs1), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(encdec_vreg_forwards(vd), BitVector::new(7, 0b1010111)))))))}
         ast::NVSTYPE((funct6, vm, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NVSTYPE'")}
         ast::NVTYPE((funct6, vm, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NVTYPE'")}
         ast::MASKTYPEV((vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'MASKTYPEV'")}
@@ -19325,10 +19891,216 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             wX_bits(core_ctx, rd, result);
             RETIRE_SUCCESS
         }}
-        ast::VSETVLI((ma, ta, sew, lmul, rs1, rd)) => {todo!("Unsupported: 'VSETVLI'")}
-        ast::VSETVL((rs2, rs1, rd)) => {todo!("Unsupported: 'VSETVL'")}
+        ast::VSETVLI((ma, ta, sew, lmul, rs1, rd)) => {{
+            let LMUL_pow_ori = get_lmul_pow(core_ctx, ());
+            let SEW_pow_ori = get_sew_pow(core_ctx, ());
+            let ratio_pow_ori = (SEW_pow_ori - LMUL_pow_ori);
+            core_ctx.vtype.bits = bitvector_concat(BitVector::new(1, 0b0), bitvector_concat(zeros(55), bitvector_concat(ma, bitvector_concat(ta, bitvector_concat(sew, lmul)))));
+            let ELEN_pow = get_elen_pow(core_ctx, ());
+            let LMUL_pow_new = get_lmul_pow(core_ctx, ());
+            let SEW_pow_new = get_sew_pow(core_ctx, ());
+            if {(SEW_pow_new > (LMUL_pow_new + ELEN_pow))} {
+                handle_illegal_vtype(core_ctx, ());
+                return RETIRE_SUCCESS;
+            } else {
+                ()
+            };
+            let VLMAX = i128::pow(2, (((3 + LMUL_pow_new) - SEW_pow_new) as u32));
+            if {(rs1 != zreg)} {
+                let rs1_val = rX_bits(core_ctx, rs1);
+                let AVL = rs1_val.unsigned();
+                core_ctx.vl = calculate_new_vl(core_ctx, AVL, VLMAX);
+                {
+                    let var_42 = core_ctx.vl;
+                    wX_bits(core_ctx, rd, var_42)
+                }
+            } else if {(rd != zreg)} {
+                let AVL = ones(64).unsigned();
+                core_ctx.vl = to_bits(64, VLMAX);
+                {
+                    let var_41 = core_ctx.vl;
+                    wX_bits(core_ctx, rd, var_41)
+                }
+            } else {
+                let AVL = core_ctx.vl.unsigned();
+                let ratio_pow_new = (SEW_pow_new - LMUL_pow_new);
+                if {(ratio_pow_new != ratio_pow_ori)} {
+                    handle_illegal_vtype(core_ctx, ());
+                    return RETIRE_SUCCESS;
+                } else {
+                    ()
+                }
+            };
+            set_vstart(core_ctx, zeros(16));
+            RETIRE_SUCCESS
+        }}
+        ast::VSETVL((rs2, rs1, rd)) => {{
+            let LMUL_pow_ori = get_lmul_pow(core_ctx, ());
+            let SEW_pow_ori = get_sew_pow(core_ctx, ());
+            let ratio_pow_ori = (SEW_pow_ori - LMUL_pow_ori);
+            core_ctx.vtype.bits = rX_bits(core_ctx, rs2);
+            let ELEN_pow = get_elen_pow(core_ctx, ());
+            let LMUL_pow_new = get_lmul_pow(core_ctx, ());
+            let SEW_pow_new = get_sew_pow(core_ctx, ());
+            if {(SEW_pow_new > (LMUL_pow_new + ELEN_pow))} {
+                handle_illegal_vtype(core_ctx, ());
+                return RETIRE_SUCCESS;
+            } else {
+                ()
+            };
+            let VLMAX = i128::pow(2, (((3 + LMUL_pow_new) - SEW_pow_new) as u32));
+            if {(rs1 != zreg)} {
+                let rs1_val = rX_bits(core_ctx, rs1);
+                let AVL = rs1_val.unsigned();
+                core_ctx.vl = calculate_new_vl(core_ctx, AVL, VLMAX);
+                {
+                    let var_44 = core_ctx.vl;
+                    wX_bits(core_ctx, rd, var_44)
+                }
+            } else if {(rd != zreg)} {
+                let AVL = ones(64).unsigned();
+                core_ctx.vl = to_bits(64, VLMAX);
+                {
+                    let var_43 = core_ctx.vl;
+                    wX_bits(core_ctx, rd, var_43)
+                }
+            } else {
+                let AVL = core_ctx.vl.unsigned();
+                let ratio_pow_new = (SEW_pow_new - LMUL_pow_new);
+                if {(ratio_pow_new != ratio_pow_ori)} {
+                    handle_illegal_vtype(core_ctx, ());
+                    return RETIRE_SUCCESS;
+                } else {
+                    ()
+                }
+            };
+            set_vstart(core_ctx, zeros(16));
+            RETIRE_SUCCESS
+        }}
         ast::VSETIVLI((ma, ta, sew, lmul, uimm, rd)) => {todo!("Unsupported: 'VSETIVLI'")}
-        ast::VVTYPE((funct6, vm, vs2, vs1, vd)) => {todo!("Unsupported: 'VVTYPE'")}
+        ast::VVTYPE((funct6, vm, vs2, vs1, vd)) => {{
+            let SEW_pow = get_sew_pow(core_ctx, ());
+            let SEW = get_sew(core_ctx, ());
+            let LMUL_pow = get_lmul_pow(core_ctx, ());
+            let num_elem = get_num_elem(LMUL_pow, SEW);
+            if {illegal_normal(core_ctx, vd, vm)} {
+                return ExecutionResult::Illegal_Instruction(());
+            } else {
+                ()
+            };
+            let n = num_elem;
+            let m = SEW;
+            let vm_val: BitVector = read_vmask(core_ctx, num_elem, vm, zvreg);
+            let vs1_val: Vec<BitVector> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
+            let vs2_val: Vec<BitVector> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
+            let vd_val: Vec<BitVector> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
+            let (initial_result, mask): (Vec<BitVector>, BitVector) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
+                result::Ok(v) => {v}
+                result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
+                _ => {panic!("Unreachable code")}
+            };
+            let mut result = initial_result;
+            {
+                for i in 0..=(num_elem - 1) {
+                    if {(bitvector_access(mask, i) == true)} {
+                        result[(i as usize)] = match funct6 {
+                            vvfunct6::VV_VADD => {vs2_val[(i as usize)].wrapped_add(vs1_val[(i as usize)])}
+                            vvfunct6::VV_VSUB => {sub_vec(vs2_val[(i as usize)], vs1_val[(i as usize)])}
+                            vvfunct6::VV_VAND => {(vs2_val[(i as usize)] & vs1_val[(i as usize)])}
+                            vvfunct6::VV_VOR => {(vs2_val[(i as usize)] | vs1_val[(i as usize)])}
+                            vvfunct6::VV_VXOR => {(vs2_val[(i as usize)] ^ vs1_val[(i as usize)])}
+                            vvfunct6::VV_VSADDU => {unsigned_saturation(core_ctx, __id(m), vs2_val[(i as usize)].zero_extend((__id(m) + 1)).wrapped_add(vs1_val[(i as usize)].zero_extend((__id(m) + 1))))}
+                            vvfunct6::VV_VSADD => {signed_saturation(core_ctx, __id(m), sign_extend((__id(m) + 1), vs2_val[(i as usize)]).wrapped_add(sign_extend((__id(m) + 1), vs1_val[(i as usize)])))}
+                            vvfunct6::VV_VSSUBU => {{
+                                if {(vs2_val[(i as usize)].unsigned() < vs1_val[(i as usize)].unsigned())} {
+                                    zeros(__id(m))
+                                } else {
+                                    unsigned_saturation(core_ctx, __id(m), sub_vec(vs2_val[(i as usize)].zero_extend((__id(m) + 1)), vs1_val[(i as usize)].zero_extend((__id(m) + 1))))
+                                }
+                            }}
+                            vvfunct6::VV_VSSUB => {signed_saturation(core_ctx, __id(m), sub_vec(sign_extend((__id(m) + 1), vs2_val[(i as usize)]), sign_extend((__id(m) + 1), vs1_val[(i as usize)])))}
+                            vvfunct6::VV_VSMUL => {{
+                                let result_mul = to_bits((__id(m) * 2), (vs2_val[(i as usize)].signed() * vs1_val[(i as usize)].signed()));
+                                let rounding_incr = get_fixed_rounding_incr(core_ctx, result_mul, (__id(m) - 1));
+                                let result_wide = (result_mul >> (__id(m) - 1)).wrapped_add(rounding_incr.zero_extend((__id(m) * 2)));
+                                signed_saturation(core_ctx, __id(m), subrange_bits(result_wide, __id(m), 0))
+                            }}
+                            vvfunct6::VV_VSLL => {{
+                                let shift_amount = get_shift_amount(vs1_val[(i as usize)], SEW);
+                                (vs2_val[(i as usize)] << shift_amount)
+                            }}
+                            vvfunct6::VV_VSRL => {{
+                                let shift_amount = get_shift_amount(vs1_val[(i as usize)], SEW);
+                                (vs2_val[(i as usize)] >> shift_amount)
+                            }}
+                            vvfunct6::VV_VSRA => {{
+                                let shift_amount = get_shift_amount(vs1_val[(i as usize)], SEW);
+                                let v_double: BitVector = sign_extend((__id(m) * 2), vs2_val[(i as usize)]);
+                                slice((v_double >> shift_amount), 0, SEW)
+                            }}
+                            vvfunct6::VV_VSSRL => {{
+                                let shift_amount = get_shift_amount(vs1_val[(i as usize)], SEW);
+                                let rounding_incr = get_fixed_rounding_incr(core_ctx, vs2_val[(i as usize)], shift_amount);
+                                (vs2_val[(i as usize)] >> shift_amount).wrapped_add(rounding_incr.zero_extend(__id(m)))
+                            }}
+                            vvfunct6::VV_VSSRA => {{
+                                let shift_amount = get_shift_amount(vs1_val[(i as usize)], SEW);
+                                let rounding_incr = get_fixed_rounding_incr(core_ctx, vs2_val[(i as usize)], shift_amount);
+                                let v_double: BitVector = sign_extend((__id(m) * 2), vs2_val[(i as usize)]);
+                                slice((v_double >> shift_amount), 0, SEW).wrapped_add(rounding_incr.zero_extend(__id(m)))
+                            }}
+                            vvfunct6::VV_VMINU => {to_bits(SEW, min_int(vs2_val[(i as usize)].unsigned(), vs1_val[(i as usize)].unsigned()))}
+                            vvfunct6::VV_VMIN => {to_bits(SEW, min_int(vs2_val[(i as usize)].signed(), vs1_val[(i as usize)].signed()))}
+                            vvfunct6::VV_VMAXU => {{
+                                let var_45 = max_int(vs2_val[(i as usize)].unsigned(), vs1_val[(i as usize)].unsigned());
+                                to_bits(SEW, var_45)
+                            }}
+                            vvfunct6::VV_VMAX => {{
+                                let var_46 = max_int(vs2_val[(i as usize)].signed(), vs1_val[(i as usize)].signed());
+                                to_bits(SEW, var_46)
+                            }}
+                            vvfunct6::VV_VRGATHER => {{
+                                if {((vs1 == vd) || (vs2 == vd))} {
+                                    return ExecutionResult::Illegal_Instruction(());
+                                } else {
+                                    ()
+                                };
+                                let idx = vs1_val[(i as usize)].unsigned();
+                                let VLMAX = i128::pow(2, (((LMUL_pow + 3) - SEW_pow) as u32));
+                                assert!((VLMAX <= __id(n)), "riscv_insts_vext_arith.sail:123.48-123.49");
+                                if {(idx < VLMAX)} {
+                                    vs2_val[(idx as usize)]
+                                } else {
+                                    zeros(__id(m))
+                                }
+                            }}
+                            vvfunct6::VV_VRGATHEREI16 => {{
+                                if {((vs1 == vd) || (vs2 == vd))} {
+                                    return ExecutionResult::Illegal_Instruction(());
+                                } else {
+                                    ()
+                                };
+                                let vs1_new: Vec<BitVector> = read_vreg(core_ctx, num_elem, 16, ((4 + LMUL_pow) - SEW_pow), vs1);
+                                let idx = vs1_new[(i as usize)].unsigned();
+                                let VLMAX = i128::pow(2, (((LMUL_pow + 3) - SEW_pow) as u32));
+                                assert!((VLMAX <= __id(n)), "riscv_insts_vext_arith.sail:132.48-132.49");
+                                if {(idx < VLMAX)} {
+                                    vs2_val[(idx as usize)]
+                                } else {
+                                    zeros(__id(m))
+                                }
+                            }}
+                            _ => {panic!("Unreachable code")}
+                        }
+                    } else {
+                        ()
+                    }
+                };
+                write_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd, result);
+                set_vstart(core_ctx, zeros(16));
+                RETIRE_SUCCESS
+            }
+        }}
         ast::NVSTYPE((funct6, vm, vs2, vs1, vd)) => {todo!("Unsupported: 'NVSTYPE'")}
         ast::NVTYPE((funct6, vm, vs2, vs1, vd)) => {todo!("Unsupported: 'NVTYPE'")}
         ast::MASKTYPEV((vs2, vs1, vd)) => {todo!("Unsupported: 'MASKTYPEV'")}
@@ -19418,24 +20190,24 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
         ast::RMVVTYPE((funct6, vm, vs2, vs1, vd)) => {todo!("Unsupported: 'RMVVTYPE'")}
         ast::RFVVTYPE((funct6, vm, vs2, vs1, vd)) => {todo!("Unsupported: 'RFVVTYPE'")}
         ast::ZICBOM((cbop_zicbom::CBO_CLEAN, rs1)) => {if {{
-            let var_41 = core_ctx.cur_privilege;
-            cbo_clean_flush_enabled(core_ctx, var_41)
+            let var_47 = core_ctx.cur_privilege;
+            cbo_clean_flush_enabled(core_ctx, var_47)
         }} {
             process_clean_inval(core_ctx, rs1, cbop_zicbom::CBO_CLEAN)
         } else {
             ExecutionResult::Illegal_Instruction(())
         }}
         ast::ZICBOM((cbop_zicbom::CBO_FLUSH, rs1)) => {if {{
-            let var_42 = core_ctx.cur_privilege;
-            cbo_clean_flush_enabled(core_ctx, var_42)
+            let var_48 = core_ctx.cur_privilege;
+            cbo_clean_flush_enabled(core_ctx, var_48)
         }} {
             process_clean_inval(core_ctx, rs1, cbop_zicbom::CBO_FLUSH)
         } else {
             ExecutionResult::Illegal_Instruction(())
         }}
         ast::ZICBOM((cbop_zicbom::CBO_INVAL, rs1)) => {match {
-            let var_43 = core_ctx.cur_privilege;
-            cbop_priv_check(core_ctx, var_43)
+            let var_49 = core_ctx.cur_privilege;
+            cbop_priv_check(core_ctx, var_49)
         } {
             checked_cbop::CBOP_ILLEGAL => {ExecutionResult::Illegal_Instruction(())}
             checked_cbop::CBOP_ILLEGAL_VIRTUAL => {panic!("{}, l {}: {}", "riscv_insts_zicbom.sail", 151, "unimplemented")}
@@ -19489,8 +20261,8 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         ExecutionResult::Memory_Exception((addr, ExceptionType::E_Fetch_Addr_Align(())))
                     } else {
                         {
-                            let var_44 = get_next_pc(core_ctx, ());
-                            wX_bits(core_ctx, rd, var_44)
+                            let var_50 = get_next_pc(core_ctx, ());
+                            wX_bits(core_ctx, rd, var_50)
                         };
                         set_next_pc(core_ctx, target);
                         RETIRE_SUCCESS

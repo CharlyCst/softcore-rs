@@ -59,7 +59,7 @@ pub struct Config {
 ///
 /// This function should be called before using a fresh core, otherwise the core might not be in a valid state.
 pub fn _reset_all_registers() {
-
+    
 }
 
 /// __id
@@ -423,7 +423,7 @@ pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitVector) {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L323-334.
 pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> Vec<BitVector> {
     let bv: vregtype = rV_bits(core_ctx, vrid);
-    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem)];
+    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)];
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:327.29-327.30");
         for i in 0..=(num_elem - 1) {
@@ -451,7 +451,7 @@ pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: v
 /// Generated from the Sail sources at `tests/vec/arch.sail` L352-386.
 pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> Vec<BitVector> {
     let vrid_val = vregidx_bits(vrid).unsigned();
-    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem)];
+    let mut result: Vec<BitVector> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)];
     {
         let LMUL_pow_reg = if {(LMUL_pow < 0)} {
             0
@@ -498,7 +498,7 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
     let num_elem_single: i128 = quot_round_zero(512, SEW);
     assert!((__id(num_elem_single) >= 0), "tests/vec/arch.sail:394.30-394.31");
     for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
-        let mut single_vec: Vec<BitVector> = vec![zeros(__id(SEW)); __id(num_elem_single)];
+        let mut single_vec: Vec<BitVector> = vec![zeros(__id(SEW)); (__id(num_elem_single) as usize)];
         {
             let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
             let r_start_i: i128 = (i_lmul * __id(num_elem_single));
@@ -623,7 +623,7 @@ pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_p
     let mask_ag: agtype = get_vtype_vma(core_ctx, ());
     let mut mask: BitVector = undefined_bitvector(bitvector_length(vm_val));
     {
-        let mut result: Vec<BitVector> = undefined_vector(bitvector_length(vm_val) as usize, undefined_bitvector(__id(SEW)));
+        let mut result: Vec<BitVector> = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
         {
             let real_num_elem = if {(LMUL_pow >= 0)} {
                 num_elem
