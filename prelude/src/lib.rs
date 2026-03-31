@@ -1,5 +1,7 @@
 #![allow(incomplete_features, non_camel_case_types)]
 
+mod bitvector;
+
 use core::ops;
 use std::cmp::min;
 
