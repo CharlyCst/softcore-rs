@@ -275,7 +275,7 @@ let unsupported_match : SSet.t =
     ; "VICMPTYPE"
     (* ; "VSETVLI" *)
     (* ; "VSETVL" *)
-    ; "VSETIVLI"
+    (* ; "VSETIVLI" *)
     ; "FLI_H"
     ; "FLI_S"
     ; "FLI_D"
