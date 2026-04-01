@@ -290,7 +290,7 @@ impl BitVector {
 
     pub const fn zero_extend(self, len: i128) -> Self {
         assert!(len >= self.len, "Can not zero-extend to a smaller size!");
-        assert!(len <= 64, "Maximum zero-extend supported size if 64");
+        assert!(len <= 64, "Maximum zero-extend supported size is 64");
 
         // Here we have nothing to do, we already use 64 bits with zeroes for MSBs
         bv(len, self.bits)

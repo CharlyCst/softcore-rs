@@ -7087,7 +7087,7 @@ pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitVector) {
         _ => {panic!("Unreachable code")}
     };
     dirty_v_context(core_ctx, ());
-    assert!(((0 < get_vlen(core_ctx)) && (get_vlen(core_ctx) <= 65536)), "riscv_vext_regs.sail:176.43-176.44")
+    assert!(((0 < get_vlen(core_ctx)) && (get_vlen(core_ctx) <= get_vlen(core_ctx))), "riscv_vext_regs.sail:176.43-176.44")
 }
 
 /// rV_bits
@@ -7161,13 +7161,13 @@ pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vr
 ///
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L267-277.
 pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: Vec<BitVector>) {
-    let mut r: vregtype = zeros(65536);
+    let mut r: vregtype = zeros(get_vlen(core_ctx));
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "riscv_vext_regs.sail:270.29-270.30");
         for i in (0..=(num_elem - 1)).rev() {
             {
                 r = (r << SEW);
-                r = (r | v[(i as usize)].zero_extend(65536))
+                r = (r | v[(i as usize)].zero_extend(get_vlen(core_ctx)))
             }
         };
         wV_bits(core_ctx, vrid, r)
@@ -7246,7 +7246,7 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
 ///
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L375-389.
 pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitVector, vrid: vregidx) -> BitVector {
-    assert!((num_elem <= 65536), "riscv_vext_regs.sail:376.36-376.37");
+    assert!((num_elem <= get_vlen(core_ctx)), "riscv_vext_regs.sail:376.36-376.37");
     let vreg_val: vregtype = rV_bits(core_ctx, vrid);
     let mut result: BitVector = ones(__id(num_elem));
     {
