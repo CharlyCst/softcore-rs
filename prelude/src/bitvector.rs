@@ -17,27 +17,32 @@ pub struct BitDynamic {
 }
 
 impl BitStorage for BitDynamic {
-    fn len(&self) -> i128 { self.len }
+    fn len(&self) -> i128 {
+        self.len
+    }
     fn as_i128(&self) -> i128 {
         self.bits as i128
     }
 
     fn new(len: i128, val: u64) -> Self {
         if len < 64 {
-            Self { len: len, bits: val & ((1 << len) - 1) }
+            Self {
+                len: len,
+                bits: val & ((1 << len) - 1),
+            }
         } else {
-            Self { len: len, bits: val }
+            Self {
+                len: len,
+                bits: val,
+            }
         }
     }
-
 }
 
 impl BitDynamic {
     fn to_static<const LEN: i128>(&self) -> BitStatic<LEN> {
         assert!(self.len <= LEN);
-        BitStatic {
-            bits: self.bits,
-        }
+        BitStatic { bits: self.bits }
     }
 }
 
@@ -49,19 +54,25 @@ pub struct BitStatic<const N: i128> {
 }
 
 impl<const LEN: i128> BitStorage for BitStatic<LEN> {
-    fn len(&self) -> i128 { LEN }
-    fn as_i128(&self) -> i128 { self.bits as i128 }
+    fn len(&self) -> i128 {
+        LEN
+    }
+    fn as_i128(&self) -> i128 {
+        self.bits as i128
+    }
     fn new(len: i128, val: u64) -> Self {
         assert!(len == LEN);
         if LEN < 64 {
-            Self { bits: val & ((1 << LEN) - 1) }
+            Self {
+                bits: val & ((1 << LEN) - 1),
+            }
         } else {
             Self { bits: val }
         }
     }
 }
 
-impl <const LEN: i128> BitStatic<LEN> {
+impl<const LEN: i128> BitStatic<LEN> {
     fn to_dynamic(&self) -> BitDynamic {
         BitDynamic {
             len: LEN,
@@ -77,13 +88,17 @@ pub struct BitVector<S: BitStorage> {
     pub storage: S,
 }
 
-impl <BS: BitStorage> BitVector<BS> {
+impl<BS: BitStorage> BitVector<BS> {
     pub fn new(len: i128, val: u64) -> Self {
-        Self { storage: BS::new(len, val) }
+        Self {
+            storage: BS::new(len, val),
+        }
     }
 
     pub fn new_empty(len: i128) -> Self {
-        Self { storage: BS::new(len, 0) }
+        Self {
+            storage: BS::new(len, 0),
+        }
     }
 
     pub fn len(self) -> i128 {

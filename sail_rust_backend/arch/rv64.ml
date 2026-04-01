@@ -183,8 +183,7 @@ let unsupported_match : SSet.t =
     ; "VCLMUL_VV"
     ; "VCLMUL_VX"
     ; "VCLMULH_VV"
-    ; "VCLMULH_VX"
-    (* ; "VVTYPE" (* TODO(Gurvan): Comment out *) *)
+    ; "VCLMULH_VX" (* ; "VVTYPE" (* TODO(Gurvan): Comment out *) *)
     ; "NVSTYPE"
     ; "NVTYPE"
     ; "MASKTYPEV"
@@ -193,8 +192,7 @@ let unsupported_match : SSet.t =
     ; "NXSTYPE"
     ; "NXTYPE"
     ; "VXSG"
-    ; "MASKTYPEX"
-    (* ; "MOVETYPEX" *)
+    ; "MASKTYPEX" (* ; "MOVETYPEX" *)
     ; "VITYPE"
     ; "NISTYPE"
     ; "NITYPE"
@@ -255,8 +253,7 @@ let unsupported_match : SSet.t =
     ; "VLUXSEGTYPE"
     ; "VLOXSEGTYPE"
     ; "VSUXSEGTYPE"
-    ; "VSOXSEGTYPE"
-    (* --- *)
+    ; "VSOXSEGTYPE" (* --- *)
     ; "VLRETYPE"
     ; "VSRETYPE"
     ; "VMTYPE"
@@ -274,9 +271,9 @@ let unsupported_match : SSet.t =
     ; "VIMCTYPE"
     ; "VIMSTYPE"
     ; "VICMPTYPE"
-    (* ; "VSETVLI" *)
-    (* ; "VSETVL" *)
-    (* ; "VSETIVLI" *)
+      (* ; "VSETVLI" *)
+      (* ; "VSETVL" *)
+      (* ; "VSETIVLI" *)
     ; "FLI_H"
     ; "FLI_S"
     ; "FLI_D"

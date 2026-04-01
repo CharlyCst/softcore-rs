@@ -121,6 +121,12 @@ and transform_exp (ct : expr_type_transform) (ctx : context) (exp : rs_exp) : rs
       , transform_exp ct ctx start
       , transform_exp ct ctx until
       , transform_exp ct ctx body )
+  | RsForRev (var, start, until, body) ->
+    RsForRev
+      ( var
+      , transform_exp ct ctx start
+      , transform_exp ct ctx until
+      , transform_exp ct ctx body )
   | RsStruct (typ, entries) ->
     RsStruct
       ( transform_type ct ctx typ
@@ -368,6 +374,7 @@ let bitvec_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp =
           ; args = [ exp_idx; exp ]
           } )
   | _ -> exp
+;;
 
 let bitvec_transform_type (_ctx : context) (typ : rs_type) : rs_type =
   match typ with
@@ -564,6 +571,7 @@ let rec propagate_in_exp (ctx : bindings) (exp : rs_exp) : rs_exp =
   | RsNone -> RsNone
   | RsPathSeparator (typ, typ') -> RsPathSeparator (typ, typ')
   | RsFor (typ, lit, lit', exp) -> RsFor (typ, lit, lit', propagate exp)
+  | RsForRev (typ, lit, lit', exp) -> RsForRev (typ, lit, lit', propagate exp)
   | RsStruct (typ, fields) ->
     RsStruct (typ, List.map (fun (s, exp) -> s, propagate exp) fields)
   | RsStructAssign (st, field, value) ->
@@ -834,6 +842,7 @@ let rec rename_in_exp (rn : string * string) (exp : rs_exp) : rs_exp =
   | RsNone -> RsNone
   | RsPathSeparator (typ, typ') -> RsPathSeparator (typ, typ')
   | RsFor (typ, lit, lit', exp) -> RsFor (typ, lit, lit', rename_in_exp exp)
+  | RsForRev (typ, lit, lit', exp) -> RsForRev (typ, lit, lit', rename_in_exp exp)
   | RsStruct (typ, fields) ->
     RsStruct (typ, List.map (fun (s, exp) -> s, rename_in_exp exp) fields)
   | RsStructAssign (st, field, value) ->
@@ -1695,7 +1704,8 @@ let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
   | RsVec _ | RsVecSize _ -> false
   | e ->
     Reporting.simple_warn
-      (Format.sprintf "Couldn't figure out if an expression is constant, considering it is not");
+      (Format.sprintf
+         "Couldn't figure out if an expression is constant, considering it is not");
     false
 
 and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
@@ -1734,13 +1744,10 @@ let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp =
             have the type information which can allow us to do these kinds of
             things…*)
     e
-  | RsArraySize (e', size) -> if is_const_rs_exp ctx size then e else RsVecSize
-  (e', RsAs (size, usize_typ))
-  | RsApp (RsId "undefined_vector", _generics, [ size; value ] ) ->
-    if is_const_rs_exp ctx size
-    then
-      RsArraySize (value, RsAs (size, usize_typ))
-    else e
+  | RsArraySize (e', size) ->
+    if is_const_rs_exp ctx size then e else RsVecSize (e', RsAs (size, usize_typ))
+  | RsApp (RsId "undefined_vector", _generics, [ size; value ]) ->
+    if is_const_rs_exp ctx size then RsArraySize (value, RsAs (size, usize_typ)) else e
   | _ -> e
 ;;
 
@@ -1763,20 +1770,20 @@ let use_dynamic_vectors (ctx : context) (rust_program : rs_program) : rs_program
    changed from an array to a vec, and we used to call it with an array
    argument, then we need to cast it. *)
 
-let cast_if_array_to_vec (typ: rs_type) (e: rs_exp) =
+let cast_if_array_to_vec (typ : rs_type) (e : rs_exp) =
   match typ, e with
   | RsTypGenericParam ("Vec", _), (RsArray _ | RsArraySize _) ->
-      RsMethodApp { exp=e; name = "to_vec"; generics=[]; args=[]; }
+    RsMethodApp { exp = e; name = "to_vec"; generics = []; args = [] }
   | _ -> e
+;;
 
 let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp =
   match e with
   | RsApp (RsId id, generics, args) ->
-      begin match ctx_fun id ctx with
-      | Some fn ->
-          RsApp (RsId id, generics, List.map2 cast_if_array_to_vec fn.signature.args args)
-      | None -> e
-      end
+    (match ctx_fun id ctx with
+     | Some fn ->
+       RsApp (RsId id, generics, List.map2 cast_if_array_to_vec fn.signature.args args)
+     | None -> e)
   | _ -> e
 ;;
 
@@ -1793,7 +1800,6 @@ let use_dynamic_vectors_args (ctx : context) (rust_program : rs_program) : rs_pr
     ctx
     rust_program
 ;;
-
 
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
 

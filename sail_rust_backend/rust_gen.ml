@@ -101,6 +101,7 @@ and rs_exp =
   | RsNone
   | RsPathSeparator of rs_type * rs_type
   | RsFor of rs_type * rs_exp * rs_exp * rs_exp
+  | RsForRev of rs_type * rs_exp * rs_exp * rs_exp
   | RsStruct of rs_type * (string * rs_exp) list
   | RsStructAssign of rs_exp * string * rs_exp
   | RsReturn of rs_exp
@@ -186,7 +187,12 @@ type rs_program = RsProg of rs_obj list
 let core_ctx = "core_ctx"
 let default_copy_derive = [ "Eq"; "PartialEq"; "Clone"; "Copy"; "Debug" ]
 let default_move_derive = [ "Eq"; "PartialEq"; "Clone"; "Debug" ]
-let nat_typ = RsTypId "u128" (* TODO(Gurvan): Should maybe be just nat since we define it in prelude *)
+
+let nat_typ =
+  RsTypId
+    "u128" (* TODO(Gurvan): Should maybe be just nat since we define it in prelude *)
+;;
+
 let int_typ = RsTypId "i128" (* TODO(Gurvan): Maybe should be defined in prelude *)
 let bool_typ = RsTypId "bool"
 let usize_typ = RsTypId "usize"
@@ -322,6 +328,7 @@ and generics_of_exp (exp : rs_exp) : SSet.t =
   | RsPathSeparator (typ1, typ2) ->
     SSet.union (generics_of_typ typ1) (generics_of_typ typ2)
   | RsFor (typ, _, _, body) -> SSet.union (generics_of_typ typ) (generics_of_exp body)
+  | RsForRev (typ, _, _, body) -> SSet.union (generics_of_typ typ) (generics_of_exp body)
   | RsStruct (typ, fields) ->
     SSet.union
       (generics_of_typ typ)
@@ -663,6 +670,15 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
   | RsFor (var, start, until, body) ->
     Printf.sprintf
       "for %s in %s..=%s {\n%s%s\n%s}"
+      (string_of_rs_type var)
+      (string_of_rs_exp 0 start)
+      (string_of_rs_exp 0 until)
+      (indent (n + 1))
+      (string_of_rs_exp (n + 1) body)
+      (indent n)
+  | RsForRev (var, start, until, body) ->
+    Printf.sprintf
+      "for %s in (%s..=%s).rev() {\n%s%s\n%s}"
       (string_of_rs_type var)
       (string_of_rs_exp 0 start)
       (string_of_rs_exp 0 until)

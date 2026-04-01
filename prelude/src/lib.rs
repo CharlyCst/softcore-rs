@@ -3,8 +3,8 @@
 mod bitvector;
 
 use core::ops;
-use std::cmp::min;
 use std::cmp::max;
+use std::cmp::min;
 
 // NOTE: Ideally we would use unbounded integers for natural numbers. Yet in practice this would
 // mess up with things such as the SMT solver during symbolic execution.
@@ -910,6 +910,8 @@ mod tests {
 pub const fn undefined_bitvector(n: i128) -> BitVector {
     bv(n, 0)
 }
+
+/* TODO(Gurvan): Maybe the following should take i128 as a parameter */
 
 pub fn undefined_array<T: Copy, const N: usize>(v: T) -> [T; N] {
     [v; N]

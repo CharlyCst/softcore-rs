@@ -315,7 +315,12 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
            , process_exp ctx exp_end
            , process_exp ctx exp4 )
          (* TODO: Implement a more general for loop*)
-       | Ord_aux (Ord_dec, _) -> RsTodo "E_for_dec")
+       | Ord_aux (Ord_dec, _) ->
+         RsForRev
+           ( RsTypId (string_of_id id)
+           , process_exp ctx exp_end
+           , process_exp ctx exp_start
+           , process_exp ctx exp4 ))
     | E_for (_, _, _, _, _, _) -> RsTodo "E_for"
     | E_vector exp_list -> process_vector ctx exp_list typ
     | E_vector_access (exp1, exp2) -> RsIndex (process_exp ctx exp1, process_exp ctx exp2)

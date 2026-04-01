@@ -3668,19 +3668,6 @@ pub fn size_bytes_forwards(arg_hashtag_: word_width) -> i128 {
     }
 }
 
-/// size_bytes_backwards
-///
-/// Generated from the Sail sources.
-pub fn size_bytes_backwards(arg_hashtag_: i128) -> word_width {
-    match arg_hashtag_ {
-        l__687 if {(l__687 == 1)} => {word_width::BYTE}
-        l__688 if {(l__688 == 2)} => {word_width::HALF}
-        l__689 if {(l__689 == 4)} => {word_width::WORD}
-        _ => {word_width::DOUBLE}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
 pub type level_range<const V: i128> = i128;
 
 pub type ext_access_type = ();
@@ -4052,7 +4039,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitVector {
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
 pub fn csr_id_read_callback(csr: BitVector, value: BitVector) {
     let name = csr_name_map_forwards(csr);
-    
+
 }
 
 pub type regtype = xlenbits;
@@ -7177,7 +7164,12 @@ pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: v
     let mut r: vregtype = zeros(65536);
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "riscv_vext_regs.sail:270.29-270.30");
-        todo!("E_for_dec");
+        for i in (0..=(num_elem - 1)).rev() {
+            {
+                r = (r << SEW);
+                r = (r | v[(i as usize)].zero_extend(65536))
+            }
+        };
         wV_bits(core_ctx, vrid, r)
     }
 }
@@ -7247,22 +7239,6 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
             };
             write_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul, single_vec)
         }
-    }
-}
-
-/// write_single_element
-///
-/// Generated from the Sail sources at `riscv_vext_regs.sail` L354-371.
-pub fn write_single_element(core_ctx: &mut Core, EEW: i128, index: i128, vrid: vregidx, value: BitVector) {
-    let elem_per_reg: i128 = (get_vlen(core_ctx) / EEW);
-    assert!((__id(elem_per_reg) >= 0), "riscv_vext_regs.sail:356.27-356.28");
-    let real_vrid: vregidx = vregidx_offset(vrid, to_bits(5, quot_round_zero(index, __id(elem_per_reg))));
-    let real_index: i128 = ((index as i128) % (__id(elem_per_reg) as i128));
-    let vrid_val: Vec<BitVector> = read_single_vreg(core_ctx, __id(elem_per_reg), EEW, real_vrid);
-    let mut r: vregtype = zeros(65536);
-    {
-        todo!("E_for_dec");
-        wV_bits(core_ctx, real_vrid, r)
     }
 }
 
@@ -8206,10 +8182,10 @@ pub fn tval(excinfo: Option<BitVector>) -> BitVector {
 pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
-            
+
         }}
         Privilege::Supervisor => {{
-            
+
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 217, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
@@ -9402,7 +9378,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitVector, rs1_val: BitVector, rd: regidx
                 _ => {panic!("Unreachable code")}
             };
             let final_val = write_CSR(core_ctx, csr, new_val);
-            
+
         } else {
             csr_id_read_callback(csr, csr_val)
         };
@@ -10882,36 +10858,6 @@ pub fn encdec_fwffunct6_backwards_matches(arg_hashtag_: BitVector) -> bool {
     }
 }
 
-/// nfields_int_forwards
-///
-/// Generated from the Sail sources.
-pub fn nfields_int_forwards(arg_hashtag_: BitVector) -> i128 {
-    match arg_hashtag_ {
-        b__0 if {(b__0 == BitVector::new(3, 0b000))} => {1}
-        b__1 if {(b__1 == BitVector::new(3, 0b001))} => {2}
-        b__2 if {(b__2 == BitVector::new(3, 0b010))} => {3}
-        b__3 if {(b__3 == BitVector::new(3, 0b011))} => {4}
-        b__4 if {(b__4 == BitVector::new(3, 0b100))} => {5}
-        b__5 if {(b__5 == BitVector::new(3, 0b101))} => {6}
-        b__6 if {(b__6 == BitVector::new(3, 0b110))} => {7}
-        _ => {8}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
-/// encdec_vlewidth_forwards
-///
-/// Generated from the Sail sources.
-pub fn encdec_vlewidth_forwards(arg_hashtag_: vlewidth) -> BitVector {
-    match arg_hashtag_ {
-        vlewidth::VLE8 => {BitVector::new(3, 0b000)}
-        vlewidth::VLE16 => {BitVector::new(3, 0b101)}
-        vlewidth::VLE32 => {BitVector::new(3, 0b110)}
-        vlewidth::VLE64 => {BitVector::new(3, 0b111)}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
 /// encdec_vlewidth_backwards
 ///
 /// Generated from the Sail sources.
@@ -10936,72 +10882,6 @@ pub fn encdec_vlewidth_backwards_matches(arg_hashtag_: BitVector) -> bool {
         b__3 if {(b__3 == BitVector::new(3, 0b111))} => {true}
         _ => {false}
         _ => {panic!("Unreachable code")}
-    }
-}
-
-/// vlewidth_bytesnumber_forwards
-///
-/// Generated from the Sail sources.
-pub fn vlewidth_bytesnumber_forwards(arg_hashtag_: vlewidth) -> i128 {
-    match arg_hashtag_ {
-        vlewidth::VLE8 => {1}
-        vlewidth::VLE16 => {2}
-        vlewidth::VLE32 => {4}
-        vlewidth::VLE64 => {8}
-        _ => {panic!("Unreachable code")}
-    }
-}
-
-/// process_vlre
-///
-/// Generated from the Sail sources at `riscv_insts_vext_mem.sail` L579-617.
-pub fn process_vlre(core_ctx: &mut Core, nf: i128, vd: vregidx, load_width_bytes: i128, rs1: regidx, elem_per_reg: i128) -> ExecutionResult {
-    let width_type: word_width = size_bytes_backwards(load_width_bytes);
-    let start_element: i128 = match get_start_element(core_ctx, ()) {
-        result::Ok(v) => {v}
-        result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
-        _ => {panic!("Unreachable code")}
-    };
-    if {(start_element >= (nf * elem_per_reg))} {
-        return RETIRE_SUCCESS;
-    } else {
-        ()
-    };
-    let elem_to_align: i128 = ((start_element as i128) % (elem_per_reg as i128));
-    let mut cur_field: i128 = (start_element / elem_per_reg);
-    {
-        let mut cur_elem: i128 = start_element;
-        {
-            if {(elem_to_align > 0)} {
-                for i in elem_to_align..=(elem_per_reg - 1) {
-                    set_vstart(core_ctx, to_bits(16, cur_elem));
-                    let elem_offset = (cur_elem * load_width_bytes);
-                    match panic!("Unsupported function: 'vmem_read'") {
-                        result::Ok(elem) => {write_single_element(core_ctx, (load_width_bytes * 8), i, vregidx_offset(vd, to_bits(5, cur_field)), elem)}
-                        result::Err(e) => {return e;}
-                        _ => {panic!("Unreachable code")}
-                    };
-                    cur_elem = (cur_elem + 1)
-                };
-                cur_field = (cur_field + 1)
-            } else {
-                ()
-            };
-            for j in cur_field..=(nf - 1) {
-                for i in 0..=(elem_per_reg - 1) {
-                    set_vstart(core_ctx, to_bits(16, cur_elem));
-                    let elem_offset = (cur_elem * load_width_bytes);
-                    match panic!("Unsupported function: 'vmem_read'") {
-                        result::Ok(elem) => {write_single_element(core_ctx, (load_width_bytes * 8), i, vregidx_offset(vd, to_bits(5, j)), elem)}
-                        result::Err(e) => {return e;}
-                        _ => {panic!("Unreachable code")}
-                    };
-                    cur_elem = (cur_elem + 1)
-                }
-            };
-            set_vstart(core_ctx, zeros(16));
-            RETIRE_SUCCESS
-        }
     }
 }
 
@@ -12029,7 +11909,7 @@ pub fn encdec_forwards(core_ctx: &mut Core, arg_hashtag_: ast) -> BitVector {
         ast::VLOXSEGTYPE((nf, vm, vs2, rs1, width, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VLOXSEGTYPE'")}
         ast::VSUXSEGTYPE((nf, vm, vs2, rs1, width, vs3)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VSUXSEGTYPE'")}
         ast::VSOXSEGTYPE((nf, vm, vs2, rs1, width, vs3)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VSOXSEGTYPE'")}
-        ast::VLRETYPE((nf, rs1, width, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat((nf as BitVector), bitvector_concat(BitVector::new(1, 0b0), bitvector_concat(BitVector::new(2, 0b00), bitvector_concat(BitVector::new(1, 0b1), bitvector_concat(BitVector::new(5, 0b01000), bitvector_concat(encdec_reg_forwards(rs1), bitvector_concat(encdec_vlewidth_forwards(width), bitvector_concat(encdec_vreg_forwards(vd), BitVector::new(7, 0b0000111)))))))))}
+        ast::VLRETYPE((nf, rs1, width, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VLRETYPE'")}
         ast::VSRETYPE((nf, rs1, vs3)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VSRETYPE'")}
         ast::VMTYPE((rs1, vd_or_vs3, op)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VMTYPE'")}
         ast::MMTYPE((funct6, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'MMTYPE'")}
@@ -20358,19 +20238,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
         ast::VLOXSEGTYPE((nf, vm, vs2, rs1, width, vd)) => {todo!("Unsupported: 'VLOXSEGTYPE'")}
         ast::VSUXSEGTYPE((nf, vm, vs2, rs1, width, vs3)) => {todo!("Unsupported: 'VSUXSEGTYPE'")}
         ast::VSOXSEGTYPE((nf, vm, vs2, rs1, width, vs3)) => {todo!("Unsupported: 'VSOXSEGTYPE'")}
-        ast::VLRETYPE((nf, rs1, width, vd)) => {{
-            let load_width_bytes = vlewidth_bytesnumber_forwards(width);
-            let EEW = (load_width_bytes * 8);
-            let elem_per_reg: i128 = (get_vlen(core_ctx) / EEW);
-            let nf_int = nfields_int_forwards(nf);
-            assert!((elem_per_reg >= 0), "riscv_insts_vext_mem.sail:625.26-625.27");
-            if {!(((nf_int == 1) || ((nf_int == 2) || ((nf_int == 4) || (nf_int == 8)))))} {
-                return ExecutionResult::Illegal_Instruction(());
-            } else {
-                ()
-            };
-            process_vlre(core_ctx, nf_int, vd, load_width_bytes, rs1, elem_per_reg)
-        }}
+        ast::VLRETYPE((nf, rs1, width, vd)) => {todo!("Unsupported: 'VLRETYPE'")}
         ast::VSRETYPE((nf, rs1, vs3)) => {todo!("Unsupported: 'VSRETYPE'")}
         ast::VMTYPE((rs1, vd_or_vs3, op)) => {todo!("Unsupported: 'VMTYPE'")}
         ast::MMTYPE((funct6, vs2, vs1, vd)) => {todo!("Unsupported: 'MMTYPE'")}
