@@ -247,16 +247,18 @@ let unsupported_match : SSet.t =
     ; "VMSOF_M"
     ; "VIOTA_M"
     ; "VID_V"
-    ; "VLSEGTYPE"
+    (* TODO: Eventually be able to comment the following *)
+    (* ; "VLSEGTYPE" *)
     ; "VLSEGFFTYPE"
-    ; "VSSEGTYPE"
+    (* ; "VSSEGTYPE" *)
     ; "VLSSEGTYPE"
     ; "VSSSEGTYPE"
     ; "VLUXSEGTYPE"
     ; "VLOXSEGTYPE"
     ; "VSUXSEGTYPE"
     ; "VSOXSEGTYPE"
-    ; "VLRETYPE"
+    (* --- *)
+    (* ; "VLRETYPE" *)
     ; "VSRETYPE"
     ; "VMTYPE"
     ; "RIVVTYPE"
