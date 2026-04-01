@@ -153,7 +153,8 @@ impl Core {
     /// NOTE: Does not take into account any mask, nor vstart
     pub fn set_vec(&mut self, reg: VectorRegister, value: Vec<BitVector>) {
         // TODO(Gurvan): Check for endianness problem
-        // NOTE: For now we are kinda always considering that the tail policy is always undisturbed
+        // NOTE: For now we are kinda always considering that the tail policy is always
+        // undisturbed, but this is the safe option anyway
         let sew = raw::get_sew(self, ());
         let lmul_pow = raw::get_lmul_pow(self, ());
         let num_elem = raw::get_num_elem(self, lmul_pow, sew);

@@ -199,8 +199,8 @@ pub const VECTOR_TEST: raw::Config = raw::Config {
         U: raw::ConfigU { supported: true },
         V: raw::ConfigV {
             supported: true,
-            vlen_exp: 7,
-            elen_exp: 6,
+            vlen_exp: 3,
+            elen_exp: 3,
             vl_use_ceil: false,
         },
         Zaamo: raw::ConfigZaamo { supported: false },

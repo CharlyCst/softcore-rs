@@ -257,7 +257,7 @@ let unsupported_match : SSet.t =
     ; "VSUXSEGTYPE"
     ; "VSOXSEGTYPE"
     (* --- *)
-    (* ; "VLRETYPE" *)
+    ; "VLRETYPE"
     ; "VSRETYPE"
     ; "VMTYPE"
     ; "RIVVTYPE"
