@@ -339,6 +339,30 @@ impl BitVector {
 
         if len == 64 { u64::MAX } else { (1 << len) - 1 }
     }
+
+    pub fn to_raw_le(self) -> Vec<u8> {
+        self.bits.to_le_bytes().to_vec()
+    }
+
+    pub fn to_raw_be(self) -> Vec<u8> {
+        self.bits.to_be_bytes().to_vec()
+    }
+
+    pub fn from_raw_le(len: i128, bytes: &mut [u8]) -> Self {
+        let mut buffer = [0u8; 8];
+        let bytes_len = bytes.len().min(8); /* TODO: Remove this min(8) when we change BitVector implementation */
+        buffer[..bytes_len].copy_from_slice(&bytes[..bytes_len]);
+        let val = u64::from_le_bytes(buffer);
+        BitVector::new(len, val)
+    }
+
+    pub fn from_raw_be(len: i128, bytes: &mut [u8]) -> Self {
+        let mut buffer = [0u8; 8];
+        let bytes_len = bytes.len().min(8); /* TODO: Remove this min(8) when we change BitVector implementation */
+        buffer[..bytes_len].copy_from_slice(&bytes[..bytes_len]);
+        let val = u64::from_be_bytes(buffer);
+        BitVector::new(len, val)
+    }
 }
 
 impl ops::BitAnd for BitVector {

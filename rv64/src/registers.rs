@@ -332,6 +332,9 @@ pub const X31: regidx = regidx::Regidx(BitVector::new(5, 31));
 /// Temporary register in the RISC-V ABI.
 pub const T6: regidx = X31;
 
+/// The type of general purpose registers
+pub type VectorRegister = vregidx;
+
 ///// The V0 register.
 pub const V0: vregidx = vregidx::Vregidx(BitVector::new(5, 0));
 

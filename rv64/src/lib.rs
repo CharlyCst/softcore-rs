@@ -125,6 +125,48 @@ impl Core {
         raw::wX(self, raw::regno::Regno(reg), bv(64, value));
     }
 
+    /// Get the value of a single vector register.
+    pub fn get_single_vec(&mut self, reg: VectorRegister) -> BitVector {
+        raw::rV_bits(self, reg)
+    }
+
+    /// Set the value of a single vector register.
+    /// TODO: value should be a BitVector
+    pub fn set_single_vec(&mut self, reg: VectorRegister, value: BitVector) {
+        raw::wV_bits(self, reg, value)
+    }
+
+    /// Get the values of vector registers according to current Core vtype.
+    /// NOTE: Does not take into account any mask, nor vstart
+    pub fn get_vec(&mut self, reg: VectorRegister) -> Vec<BitVector> {
+        let sew = raw::get_sew(self, ());
+        let lmul_pow = raw::get_lmul_pow(self, ());
+        let num_elem = raw::get_num_elem(self, lmul_pow, sew);
+        let vl = self.vl.unsigned() as usize;
+        raw::read_vreg(self, num_elem, sew, lmul_pow, reg)
+            .into_iter()
+            .take(vl)
+            .collect()
+    }
+
+    /// Set the values of vector registers according to current Core vtype.
+    /// NOTE: Does not take into account any mask, nor vstart
+    pub fn set_vec(&mut self, reg: VectorRegister, value: Vec<BitVector>) {
+        // TODO(Gurvan): Check for endianness problem
+        // NOTE: For now we are kinda always considering that the tail policy is always undisturbed
+        let sew = raw::get_sew(self, ());
+        let lmul_pow = raw::get_lmul_pow(self, ());
+        let num_elem = raw::get_num_elem(self, lmul_pow, sew);
+        let vl = self.vl.unsigned() as usize;
+        let mut current_reg_state = raw::read_vreg(self, num_elem, sew, lmul_pow, reg);
+        let write_count = vl.min(value.len());
+        for i in 0..write_count {
+            current_reg_state[i] = value[i].clone();
+        }
+
+        raw::write_vreg(self, num_elem, sew, lmul_pow, reg, current_reg_state);
+    }
+
     /// Get the value of a CSR identified by its CSR index.
     ///
     /// This function returns [None] if the CSR can not be read by the current privilege level or
@@ -342,7 +384,7 @@ impl Core {
 
 /// Returns a fresh core instance with the provided configuration.
 ///
-/// IMPORTANT: The freshtly created core is not guaranteed to be in a valid state. Call
+/// IMPORTANT: The freshly created core is not guaranteed to be in a valid state. Call
 /// [Core::reset] or update CSRs manually to ensure the core enters a valid starting state.
 pub const fn new_core(config: raw::Config) -> Core {
     Core {

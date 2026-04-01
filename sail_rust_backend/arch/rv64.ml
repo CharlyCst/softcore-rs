@@ -194,7 +194,7 @@ let unsupported_match : SSet.t =
     ; "NXTYPE"
     ; "VXSG"
     ; "MASKTYPEX"
-    ; "MOVETYPEX"
+    (* ; "MOVETYPEX" *)
     ; "VITYPE"
     ; "NISTYPE"
     ; "NITYPE"
@@ -247,10 +247,9 @@ let unsupported_match : SSet.t =
     ; "VMSOF_M"
     ; "VIOTA_M"
     ; "VID_V"
-    (* TODO: Eventually be able to comment the following *)
-    (* ; "VLSEGTYPE" *)
+    ; "VLSEGTYPE" (* Vector Load Unit-Stride Normal & Segment *)
     ; "VLSEGFFTYPE"
-    (* ; "VSSEGTYPE" *)
+    ; "VSSEGTYPE" (* Vector Load Unit-Stride Normal & Segment *)
     ; "VLSSEGTYPE"
     ; "VSSSEGTYPE"
     ; "VLUXSEGTYPE"
