@@ -1,6 +1,7 @@
 //! The RISC-V registers
 
 use crate::raw::regidx;
+use crate::raw::vregidx;
 use softcore_prelude::BitVector;
 
 /// The type of general purpose registers
@@ -330,3 +331,99 @@ pub const X31: regidx = regidx::Regidx(BitVector::new(5, 31));
 ///
 /// Temporary register in the RISC-V ABI.
 pub const T6: regidx = X31;
+
+///// The V0 register.
+pub const V0: vregidx = vregidx::Vregidx(BitVector::new(5, 0));
+
+/// The V1 register.
+pub const V1: vregidx = vregidx::Vregidx(BitVector::new(5, 1));
+
+/// The V2 register.
+pub const V2: vregidx = vregidx::Vregidx(BitVector::new(5, 2));
+
+/// The V3 register.
+pub const V3: vregidx = vregidx::Vregidx(BitVector::new(5, 3));
+
+/// The V4 register.
+pub const V4: vregidx = vregidx::Vregidx(BitVector::new(5, 4));
+
+/// The V5 register.
+pub const V5: vregidx = vregidx::Vregidx(BitVector::new(5, 5));
+
+/// The V6 register.
+pub const V6: vregidx = vregidx::Vregidx(BitVector::new(5, 6));
+
+/// The V7 register.
+pub const V7: vregidx = vregidx::Vregidx(BitVector::new(5, 7));
+
+/// The V8 register.
+pub const V8: vregidx = vregidx::Vregidx(BitVector::new(5, 8));
+
+/// The V9 register.
+pub const V9: vregidx = vregidx::Vregidx(BitVector::new(5, 9));
+
+/// The V10 register.
+pub const V10: vregidx = vregidx::Vregidx(BitVector::new(5, 10));
+
+/// The V11 register.
+pub const V11: vregidx = vregidx::Vregidx(BitVector::new(5, 11));
+
+/// The V12 register.
+pub const V12: vregidx = vregidx::Vregidx(BitVector::new(5, 12));
+
+/// The V13 register.
+pub const V13: vregidx = vregidx::Vregidx(BitVector::new(5, 13));
+
+/// The V14 register.
+pub const V14: vregidx = vregidx::Vregidx(BitVector::new(5, 14));
+
+/// The V15 register.
+pub const V15: vregidx = vregidx::Vregidx(BitVector::new(5, 15));
+
+/// The V16 register.
+pub const V16: vregidx = vregidx::Vregidx(BitVector::new(5, 16));
+
+/// The V17 register.
+pub const V17: vregidx = vregidx::Vregidx(BitVector::new(5, 17));
+
+/// The V18 register.
+pub const V18: vregidx = vregidx::Vregidx(BitVector::new(5, 18));
+
+/// The V19 register.
+pub const V19: vregidx = vregidx::Vregidx(BitVector::new(5, 19));
+
+/// The V20 register.
+pub const V20: vregidx = vregidx::Vregidx(BitVector::new(5, 20));
+
+/// The V21 register.
+pub const V21: vregidx = vregidx::Vregidx(BitVector::new(5, 21));
+
+/// The V22 register.
+pub const V22: vregidx = vregidx::Vregidx(BitVector::new(5, 22));
+
+/// The V23 register.
+pub const V23: vregidx = vregidx::Vregidx(BitVector::new(5, 23));
+
+/// The V24 register.
+pub const V24: vregidx = vregidx::Vregidx(BitVector::new(5, 24));
+
+/// The V25 register.
+pub const V25: vregidx = vregidx::Vregidx(BitVector::new(5, 25));
+
+/// The V26 register.
+pub const V26: vregidx = vregidx::Vregidx(BitVector::new(5, 26));
+
+/// The V27 register.
+pub const V27: vregidx = vregidx::Vregidx(BitVector::new(5, 27));
+
+/// The V28 register.
+pub const V28: vregidx = vregidx::Vregidx(BitVector::new(5, 28));
+
+/// The V29 register.
+pub const V29: vregidx = vregidx::Vregidx(BitVector::new(5, 29));
+
+/// The V30 register.
+pub const V30: vregidx = vregidx::Vregidx(BitVector::new(5, 30));
+
+/// The V31 register
+pub const V31: vregidx = vregidx::Vregidx(BitVector::new(5, 31));
