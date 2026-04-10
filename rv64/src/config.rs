@@ -179,6 +179,8 @@ pub const U74: raw::Config = raw::Config {
     },
 };
 
+// TODO(Gurvan): Transform the following into a general purpose test board with all available
+// extensions
 /// A test configuration for the vector extensions.
 pub const VECTOR_TEST: raw::Config = raw::Config {
     extensions: raw::ConfigExtensions {

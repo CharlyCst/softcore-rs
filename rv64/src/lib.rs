@@ -152,17 +152,18 @@ impl Core {
     /// Set the values of vector registers according to current Core vtype.
     /// NOTE: Does not take into account any mask, nor vstart
     pub fn set_vec(&mut self, reg: VectorRegister, value: Vec<BitVector>) {
-        // TODO(Gurvan): Check for endianness problem
-        // NOTE: For now we are kinda always considering that the tail policy is always
-        // undisturbed, but this is the safe option anyway
+        // TODO(Gurvan): Check for possible endianness problem
+        // NOTE: For now we are always acting like the tail policy is undisturbed, but this is the
+        // safe option anyway
         let sew = raw::get_sew(self, ());
         let lmul_pow = raw::get_lmul_pow(self, ());
         let num_elem = raw::get_num_elem(self, lmul_pow, sew);
         let vl = self.vl.unsigned() as usize;
         let mut current_reg_state = raw::read_vreg(self, num_elem, sew, lmul_pow, reg);
+        // TODO(Gurvan): This should not be necessary, value.len should be equal to vl
         let write_count = vl.min(value.len());
         for i in 0..write_count {
-            current_reg_state[i] = value[i].clone();
+            current_reg_state[i] = value[i];
         }
 
         raw::write_vreg(self, num_elem, sew, lmul_pow, reg, current_reg_state);
@@ -1225,4 +1226,6 @@ mod tests {
             "Unsigned division should work correctly"
         );
     }
+
+    /* TODO(Gurvan): Add test for execute of arithmetic instructions */
 }
