@@ -40,6 +40,26 @@ const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent { bits: bv(0) };
 const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
 const ZEROES: BitVector<64> = bv(0);
 
+// ————————————————————————————— Trap Handling —————————————————————————————— //
+
+/// Wether or not a trap occured after executing an instruction.
+#[derive(Debug, Clone, Copy)]
+pub enum Trap {
+    /// The instruction trapped, contains the address of the trap handler.
+    Some(u64),
+    /// The instruction did not trap.
+    None,
+}
+
+impl Trap {
+    pub fn trapped(self) -> bool {
+        match self {
+            Trap::Some(_) => true,
+            Trap::None => false,
+        }
+    }
+}
+
 // —————————————————————————— Core implementation ——————————————————————————— //
 
 impl Core {
@@ -56,8 +76,37 @@ impl Core {
     }
 
     /// Execute one instruction
-    pub fn execute(&mut self, instr: ast) -> ExecutionResult {
-        raw::execute(self, instr)
+    pub fn execute(&mut self, instr: ast) -> Trap {
+        let exec_res = raw::execute(self, instr);
+        self.process_execution_result(exec_res, instr)
+    }
+
+    /// Handle the necessary steps post instruction execution, such as jumping to the trap handler
+    /// if necessary.
+    fn process_execution_result(&mut self, exec_res: ExecutionResult, instr: ast) -> Trap {
+        match exec_res {
+            ExecutionResult::Retire_Success(_) => Trap::None,
+            ExecutionResult::Wait_For_Interrupt(_) => Trap::None,
+            ExecutionResult::Illegal_Instruction(_) => {
+                let instr_bits = raw::encdec_forwards(self, instr);
+                raw::handle_illegal(self, instr_bits);
+                Trap::Some(self.nextPC.bits())
+            }
+            ExecutionResult::Trap((privilege, ctl, pc)) => {
+                let pc = raw::exception_handler(self, privilege, ctl, pc);
+                raw::set_next_pc(self, pc);
+                Trap::Some(self.nextPC.bits())
+            }
+            ExecutionResult::Memory_Exception(_) => todo!("handle Memory_Exception"),
+            ExecutionResult::Ext_CSR_Check_Failure(_) => todo!("handle Ext_CSR_Check_Failure"),
+            ExecutionResult::Ext_ControlAddr_Check_Failure(_) => {
+                todo!("handle Ext_ControlAddr_Check_Failure")
+            }
+            ExecutionResult::Ext_DataAddr_Check_Failure(_) => {
+                todo!("handle Ext_DataAddr_Check_Failure")
+            }
+            ExecutionResult::Ext_XRET_Priv_Failure(_) => todo!("handle Ext_XRET_Priv_Failure"),
+        }
     }
 
     /// Get the value of a general purpose register.
@@ -986,12 +1035,12 @@ mod tests {
         // Test basic ADDI: addi a1, x0, 0x42
         assert_eq!(core.get(A1), 0, "A1 should start at 0");
         let result = core.execute(ast::ITYPE((bv(0x42), X0, A1, iop::ADDI)));
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
         assert_eq!(core.get(A1), 0x42, "A1 should contain immediate value");
 
         // Test ADDI with register source: addi a1, a1, 0x20
         let result = core.execute(ast::ITYPE((bv(0x20), A1, A1, iop::ADDI)));
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
         assert_eq!(
             core.get(A1),
             0x62,
@@ -1001,7 +1050,7 @@ mod tests {
         // Test ADDI with negative immediate (sign extension)
         core.set(T0, 100);
         let result = core.execute(ast::ITYPE((bv((-10i64) as u64), T0, T1, iop::ADDI)));
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
         assert_eq!(
             core.get(T1),
             90,
@@ -1010,16 +1059,15 @@ mod tests {
 
         // Test ADDI with X0 as destination (should be ignored)
         let result = core.execute(ast::ITYPE((bv(0xFF), T0, X0, iop::ADDI)));
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
         assert_eq!(core.get(X0), 0, "X0 should remain hardwired to 0");
 
         // Test overflow behavior
         core.set(T2, u64::MAX);
         let result = core.execute(ast::ITYPE((bv(1), T2, T3, iop::ADDI)));
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
         assert_eq!(core.get(T3), 0, "Addition should wrap around on overflow");
     }
-
     #[test]
     fn execute_jalr() {
         let mut core = new_core(config::U74);
@@ -1035,7 +1083,7 @@ mod tests {
         // This should jump to (t0 + 8) & ~1 and store PC+4 in ra
         let result = core.execute(ast::JALR((bv(8), T0, RA)));
 
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
 
         // Check that return address was stored (old PC + 4)
         assert_eq!(
@@ -1068,7 +1116,7 @@ mod tests {
         };
         let result = core.execute(ast::MUL((T2, T1, T0, mul_op)));
 
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
 
         // Check that the multiplication result is correct
         let expected = 123u64.wrapping_mul(456u64);
@@ -1079,7 +1127,7 @@ mod tests {
         core.set(T2, 3);
 
         let result = core.execute(ast::MUL((T2, T1, T0, mul_op)));
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
 
         let expected = ((-5i64).wrapping_mul(3i64)) as u64;
         assert_eq!(
@@ -1099,7 +1147,7 @@ mod tests {
 
         let result = core.execute(ast::DIV((T2, T1, T0, true))); // true = signed division
 
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
 
         // Check signed division result
         let expected = (100i64 / 7i64) as u64;
@@ -1110,7 +1158,7 @@ mod tests {
         core.set(T2, 0);
 
         let result = core.execute(ast::DIV((T2, T1, T0, true)));
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
 
         assert_eq!(
             core.get(T0),
@@ -1123,7 +1171,7 @@ mod tests {
         core.set(T2, 3);
 
         let result = core.execute(ast::DIV((T2, T1, T0, true)));
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
 
         let expected = ((-20i64) / 3i64) as u64;
         assert_eq!(
@@ -1137,7 +1185,7 @@ mod tests {
         core.set(T2, 7);
 
         let result = core.execute(ast::DIV((T2, T1, T0, false))); // false = unsigned division
-        assert!(matches!(result, raw::ExecutionResult::Retire_Success(_)));
+        assert!(matches!(result, Trap::None));
 
         let expected = 100u64 / 7u64;
         assert_eq!(

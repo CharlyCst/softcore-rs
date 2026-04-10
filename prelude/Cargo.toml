@@ -1,6 +1,6 @@
 [package]
 name = "softcore-prelude"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2024"
 authors = ["Charly Castes", "François Costa"]
 license = "MIT OR Apache-2.0"

@@ -190,6 +190,7 @@ pub struct Config {
 
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct ConfigBase {
+    pub mtval_has_illegal_instruction_bits: bool,
     pub writable_fiom: bool,
     pub writable_hpm_counters: BitVector<32>,
     pub writable_misa: bool,
@@ -2313,7 +2314,7 @@ pub enum uop {
 /// 
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L9.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-enum vregidx {
+pub enum vregidx {
     Vregidx(BitVector<5>)
 }
 
@@ -2321,7 +2322,7 @@ enum vregidx {
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L285.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-enum brop_zba {
+pub enum brop_zba {
     SH1ADD,
     SH2ADD,
     SH3ADD
@@ -2331,7 +2332,7 @@ enum brop_zba {
 /// 
 /// Generated from the Sail sources at `riscv_types.sail` L293.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
-enum bropw_zba {
+pub enum bropw_zba {
     ADDUW,
     SH1ADDUW,
     SH2ADDUW,
@@ -3015,6 +3016,568 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitVector<12> {
         _ => {panic!("Unreachable code")}
     }
 }
+
+/// csr_name_map_backwards_matches
+/// 
+/// Generated from the Sail sources.
+pub fn csr_name_map_backwards_matches(arg_hashtag_: &'static str) -> bool {
+    let head_exp_hashtag_ = arg_hashtag_;
+    match match head_exp_hashtag_ {
+        "misa" => {Some(true)}
+        "mstatus" => {Some(true)}
+        "menvcfg" => {Some(true)}
+        "menvcfgh" => {Some(true)}
+        "senvcfg" => {Some(true)}
+        "mie" => {Some(true)}
+        "mip" => {Some(true)}
+        "medeleg" => {Some(true)}
+        "medelegh" => {Some(true)}
+        "mideleg" => {Some(true)}
+        "mcause" => {Some(true)}
+        "mtval" => {Some(true)}
+        "mscratch" => {Some(true)}
+        "scounteren" => {Some(true)}
+        "mcounteren" => {Some(true)}
+        "mcountinhibit" => {Some(true)}
+        "mvendorid" => {Some(true)}
+        "marchid" => {Some(true)}
+        "mimpid" => {Some(true)}
+        "mhartid" => {Some(true)}
+        "mconfigptr" => {Some(true)}
+        "sstatus" => {Some(true)}
+        "sip" => {Some(true)}
+        "sie" => {Some(true)}
+        "sscratch" => {Some(true)}
+        "scause" => {Some(true)}
+        "stval" => {Some(true)}
+        "tselect" => {Some(true)}
+        "tdata1" => {Some(true)}
+        "tdata2" => {Some(true)}
+        "tdata3" => {Some(true)}
+        "pmpcfg0" => {Some(true)}
+        "pmpcfg1" => {Some(true)}
+        "pmpcfg2" => {Some(true)}
+        "pmpcfg3" => {Some(true)}
+        "pmpcfg4" => {Some(true)}
+        "pmpcfg5" => {Some(true)}
+        "pmpcfg6" => {Some(true)}
+        "pmpcfg7" => {Some(true)}
+        "pmpcfg8" => {Some(true)}
+        "pmpcfg9" => {Some(true)}
+        "pmpcfg10" => {Some(true)}
+        "pmpcfg11" => {Some(true)}
+        "pmpcfg12" => {Some(true)}
+        "pmpcfg13" => {Some(true)}
+        "pmpcfg14" => {Some(true)}
+        "pmpcfg15" => {Some(true)}
+        "pmpaddr0" => {Some(true)}
+        "pmpaddr1" => {Some(true)}
+        "pmpaddr2" => {Some(true)}
+        "pmpaddr3" => {Some(true)}
+        "pmpaddr4" => {Some(true)}
+        "pmpaddr5" => {Some(true)}
+        "pmpaddr6" => {Some(true)}
+        "pmpaddr7" => {Some(true)}
+        "pmpaddr8" => {Some(true)}
+        "pmpaddr9" => {Some(true)}
+        "pmpaddr10" => {Some(true)}
+        "pmpaddr11" => {Some(true)}
+        "pmpaddr12" => {Some(true)}
+        "pmpaddr13" => {Some(true)}
+        "pmpaddr14" => {Some(true)}
+        "pmpaddr15" => {Some(true)}
+        "pmpaddr16" => {Some(true)}
+        "pmpaddr17" => {Some(true)}
+        "pmpaddr18" => {Some(true)}
+        "pmpaddr19" => {Some(true)}
+        "pmpaddr20" => {Some(true)}
+        "pmpaddr21" => {Some(true)}
+        "pmpaddr22" => {Some(true)}
+        "pmpaddr23" => {Some(true)}
+        "pmpaddr24" => {Some(true)}
+        "pmpaddr25" => {Some(true)}
+        "pmpaddr26" => {Some(true)}
+        "pmpaddr27" => {Some(true)}
+        "pmpaddr28" => {Some(true)}
+        "pmpaddr29" => {Some(true)}
+        "pmpaddr30" => {Some(true)}
+        "pmpaddr31" => {Some(true)}
+        "pmpaddr32" => {Some(true)}
+        "pmpaddr33" => {Some(true)}
+        "pmpaddr34" => {Some(true)}
+        "pmpaddr35" => {Some(true)}
+        "pmpaddr36" => {Some(true)}
+        "pmpaddr37" => {Some(true)}
+        "pmpaddr38" => {Some(true)}
+        "pmpaddr39" => {Some(true)}
+        "pmpaddr40" => {Some(true)}
+        "pmpaddr41" => {Some(true)}
+        "pmpaddr42" => {Some(true)}
+        "pmpaddr43" => {Some(true)}
+        "pmpaddr44" => {Some(true)}
+        "pmpaddr45" => {Some(true)}
+        "pmpaddr46" => {Some(true)}
+        "pmpaddr47" => {Some(true)}
+        "pmpaddr48" => {Some(true)}
+        "pmpaddr49" => {Some(true)}
+        "pmpaddr50" => {Some(true)}
+        "pmpaddr51" => {Some(true)}
+        "pmpaddr52" => {Some(true)}
+        "pmpaddr53" => {Some(true)}
+        "pmpaddr54" => {Some(true)}
+        "pmpaddr55" => {Some(true)}
+        "pmpaddr56" => {Some(true)}
+        "pmpaddr57" => {Some(true)}
+        "pmpaddr58" => {Some(true)}
+        "pmpaddr59" => {Some(true)}
+        "pmpaddr60" => {Some(true)}
+        "pmpaddr61" => {Some(true)}
+        "pmpaddr62" => {Some(true)}
+        "pmpaddr63" => {Some(true)}
+        "vstart" => {Some(true)}
+        "vxsat" => {Some(true)}
+        "vxrm" => {Some(true)}
+        "vcsr" => {Some(true)}
+        "vl" => {Some(true)}
+        "vtype" => {Some(true)}
+        "vlenb" => {Some(true)}
+        "stvec" => {Some(true)}
+        "sepc" => {Some(true)}
+        "mtvec" => {Some(true)}
+        "mepc" => {Some(true)}
+        "hpmcounter3" => {Some(true)}
+        "hpmcounter4" => {Some(true)}
+        "hpmcounter5" => {Some(true)}
+        "hpmcounter6" => {Some(true)}
+        "hpmcounter7" => {Some(true)}
+        "hpmcounter8" => {Some(true)}
+        "hpmcounter9" => {Some(true)}
+        "hpmcounter10" => {Some(true)}
+        "hpmcounter11" => {Some(true)}
+        "hpmcounter12" => {Some(true)}
+        "hpmcounter13" => {Some(true)}
+        "hpmcounter14" => {Some(true)}
+        "hpmcounter15" => {Some(true)}
+        "hpmcounter16" => {Some(true)}
+        "hpmcounter17" => {Some(true)}
+        "hpmcounter18" => {Some(true)}
+        "hpmcounter19" => {Some(true)}
+        "hpmcounter20" => {Some(true)}
+        "hpmcounter21" => {Some(true)}
+        "hpmcounter22" => {Some(true)}
+        "hpmcounter23" => {Some(true)}
+        "hpmcounter24" => {Some(true)}
+        "hpmcounter25" => {Some(true)}
+        "hpmcounter26" => {Some(true)}
+        "hpmcounter27" => {Some(true)}
+        "hpmcounter28" => {Some(true)}
+        "hpmcounter29" => {Some(true)}
+        "hpmcounter30" => {Some(true)}
+        "hpmcounter31" => {Some(true)}
+        "hpmcounter3h" => {Some(true)}
+        "hpmcounter4h" => {Some(true)}
+        "hpmcounter5h" => {Some(true)}
+        "hpmcounter6h" => {Some(true)}
+        "hpmcounter7h" => {Some(true)}
+        "hpmcounter8h" => {Some(true)}
+        "hpmcounter9h" => {Some(true)}
+        "hpmcounter10h" => {Some(true)}
+        "hpmcounter11h" => {Some(true)}
+        "hpmcounter12h" => {Some(true)}
+        "hpmcounter13h" => {Some(true)}
+        "hpmcounter14h" => {Some(true)}
+        "hpmcounter15h" => {Some(true)}
+        "hpmcounter16h" => {Some(true)}
+        "hpmcounter17h" => {Some(true)}
+        "hpmcounter18h" => {Some(true)}
+        "hpmcounter19h" => {Some(true)}
+        "hpmcounter20h" => {Some(true)}
+        "hpmcounter21h" => {Some(true)}
+        "hpmcounter22h" => {Some(true)}
+        "hpmcounter23h" => {Some(true)}
+        "hpmcounter24h" => {Some(true)}
+        "hpmcounter25h" => {Some(true)}
+        "hpmcounter26h" => {Some(true)}
+        "hpmcounter27h" => {Some(true)}
+        "hpmcounter28h" => {Some(true)}
+        "hpmcounter29h" => {Some(true)}
+        "hpmcounter30h" => {Some(true)}
+        "hpmcounter31h" => {Some(true)}
+        "mhpmevent3" => {Some(true)}
+        "mhpmevent4" => {Some(true)}
+        "mhpmevent5" => {Some(true)}
+        "mhpmevent6" => {Some(true)}
+        "mhpmevent7" => {Some(true)}
+        "mhpmevent8" => {Some(true)}
+        "mhpmevent9" => {Some(true)}
+        "mhpmevent10" => {Some(true)}
+        "mhpmevent11" => {Some(true)}
+        "mhpmevent12" => {Some(true)}
+        "mhpmevent13" => {Some(true)}
+        "mhpmevent14" => {Some(true)}
+        "mhpmevent15" => {Some(true)}
+        "mhpmevent16" => {Some(true)}
+        "mhpmevent17" => {Some(true)}
+        "mhpmevent18" => {Some(true)}
+        "mhpmevent19" => {Some(true)}
+        "mhpmevent20" => {Some(true)}
+        "mhpmevent21" => {Some(true)}
+        "mhpmevent22" => {Some(true)}
+        "mhpmevent23" => {Some(true)}
+        "mhpmevent24" => {Some(true)}
+        "mhpmevent25" => {Some(true)}
+        "mhpmevent26" => {Some(true)}
+        "mhpmevent27" => {Some(true)}
+        "mhpmevent28" => {Some(true)}
+        "mhpmevent29" => {Some(true)}
+        "mhpmevent30" => {Some(true)}
+        "mhpmevent31" => {Some(true)}
+        "mhpmcounter3" => {Some(true)}
+        "mhpmcounter4" => {Some(true)}
+        "mhpmcounter5" => {Some(true)}
+        "mhpmcounter6" => {Some(true)}
+        "mhpmcounter7" => {Some(true)}
+        "mhpmcounter8" => {Some(true)}
+        "mhpmcounter9" => {Some(true)}
+        "mhpmcounter10" => {Some(true)}
+        "mhpmcounter11" => {Some(true)}
+        "mhpmcounter12" => {Some(true)}
+        "mhpmcounter13" => {Some(true)}
+        "mhpmcounter14" => {Some(true)}
+        "mhpmcounter15" => {Some(true)}
+        "mhpmcounter16" => {Some(true)}
+        "mhpmcounter17" => {Some(true)}
+        "mhpmcounter18" => {Some(true)}
+        "mhpmcounter19" => {Some(true)}
+        "mhpmcounter20" => {Some(true)}
+        "mhpmcounter21" => {Some(true)}
+        "mhpmcounter22" => {Some(true)}
+        "mhpmcounter23" => {Some(true)}
+        "mhpmcounter24" => {Some(true)}
+        "mhpmcounter25" => {Some(true)}
+        "mhpmcounter26" => {Some(true)}
+        "mhpmcounter27" => {Some(true)}
+        "mhpmcounter28" => {Some(true)}
+        "mhpmcounter29" => {Some(true)}
+        "mhpmcounter30" => {Some(true)}
+        "mhpmcounter31" => {Some(true)}
+        "mhpmcounter3h" => {Some(true)}
+        "mhpmcounter4h" => {Some(true)}
+        "mhpmcounter5h" => {Some(true)}
+        "mhpmcounter6h" => {Some(true)}
+        "mhpmcounter7h" => {Some(true)}
+        "mhpmcounter8h" => {Some(true)}
+        "mhpmcounter9h" => {Some(true)}
+        "mhpmcounter10h" => {Some(true)}
+        "mhpmcounter11h" => {Some(true)}
+        "mhpmcounter12h" => {Some(true)}
+        "mhpmcounter13h" => {Some(true)}
+        "mhpmcounter14h" => {Some(true)}
+        "mhpmcounter15h" => {Some(true)}
+        "mhpmcounter16h" => {Some(true)}
+        "mhpmcounter17h" => {Some(true)}
+        "mhpmcounter18h" => {Some(true)}
+        "mhpmcounter19h" => {Some(true)}
+        "mhpmcounter20h" => {Some(true)}
+        "mhpmcounter21h" => {Some(true)}
+        "mhpmcounter22h" => {Some(true)}
+        "mhpmcounter23h" => {Some(true)}
+        "mhpmcounter24h" => {Some(true)}
+        "mhpmcounter25h" => {Some(true)}
+        "mhpmcounter26h" => {Some(true)}
+        "mhpmcounter27h" => {Some(true)}
+        "mhpmcounter28h" => {Some(true)}
+        "mhpmcounter29h" => {Some(true)}
+        "mhpmcounter30h" => {Some(true)}
+        "mhpmcounter31h" => {Some(true)}
+        "mhpmcounter3h" => {Some(true)}
+        "mhpmcounter4h" => {Some(true)}
+        "mhpmcounter5h" => {Some(true)}
+        "mhpmcounter6h" => {Some(true)}
+        "mhpmcounter7h" => {Some(true)}
+        "mhpmcounter8h" => {Some(true)}
+        "mhpmcounter9h" => {Some(true)}
+        "mhpmcounter10h" => {Some(true)}
+        "mhpmcounter11h" => {Some(true)}
+        "mhpmcounter12h" => {Some(true)}
+        "mhpmcounter13h" => {Some(true)}
+        "mhpmcounter14h" => {Some(true)}
+        "mhpmcounter15h" => {Some(true)}
+        "mhpmcounter16h" => {Some(true)}
+        "mhpmcounter17h" => {Some(true)}
+        "mhpmcounter18h" => {Some(true)}
+        "mhpmcounter19h" => {Some(true)}
+        "mhpmcounter20h" => {Some(true)}
+        "mhpmcounter21h" => {Some(true)}
+        "mhpmcounter22h" => {Some(true)}
+        "mhpmcounter23h" => {Some(true)}
+        "mhpmcounter24h" => {Some(true)}
+        "mhpmcounter25h" => {Some(true)}
+        "mhpmcounter26h" => {Some(true)}
+        "mhpmcounter27h" => {Some(true)}
+        "mhpmcounter28h" => {Some(true)}
+        "mhpmcounter29h" => {Some(true)}
+        "mhpmcounter30h" => {Some(true)}
+        "mhpmcounter31h" => {Some(true)}
+        "scountovf" => {Some(true)}
+        "seed" => {Some(true)}
+        "cycle" => {Some(true)}
+        "time" => {Some(true)}
+        "instret" => {Some(true)}
+        "cycleh" => {Some(true)}
+        "timeh" => {Some(true)}
+        "instreth" => {Some(true)}
+        "mcycle" => {Some(true)}
+        "minstret" => {Some(true)}
+        "mcycleh" => {Some(true)}
+        "minstreth" => {Some(true)}
+        "fflags" => {Some(true)}
+        "frm" => {Some(true)}
+        "fcsr" => {Some(true)}
+        "mcyclecfg" => {Some(true)}
+        "mcyclecfgh" => {Some(true)}
+        "minstretcfg" => {Some(true)}
+        "minstretcfgh" => {Some(true)}
+        "stimecmp" => {Some(true)}
+        "stimecmph" => {Some(true)}
+        "satp" => {Some(true)}
+        mapping0_hashtag_ if {hex_bits_12_backwards_matches(mapping0_hashtag_)} => {match hex_bits_12_backwards(mapping0_hashtag_) {
+            reg => {Some(true)}
+            _ => {None}
+            _ => {panic!("Unreachable code")}
+        }}
+        _ => {None}
+        _ => {panic!("Unreachable code")}
+    } {
+        Some(result) => {result}
+        None => {false}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+// encdec_reg_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_reg_forwards(arg_hashtag_: regidx) -> BitVector<5> {
+    match arg_hashtag_ {
+        regidx::Regidx(r) => {r}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// encdec_iop_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_iop_forwards(arg_hashtag_: iop) -> BitVector<3> {
+    match arg_hashtag_ {
+        iop::ADDI => {BitVector::<3>::new(0b000)}
+        iop::SLTI => {BitVector::<3>::new(0b010)}
+        iop::SLTIU => {BitVector::<3>::new(0b011)}
+        iop::ANDI => {BitVector::<3>::new(0b111)}
+        iop::ORI => {BitVector::<3>::new(0b110)}
+        iop::XORI => {BitVector::<3>::new(0b100)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+// encdec_bop_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_bop_forwards(arg_hashtag_: bop) -> BitVector<3> {
+    match arg_hashtag_ {
+        bop::BEQ => {BitVector::<3>::new(0b000)}
+        bop::BNE => {BitVector::<3>::new(0b001)}
+        bop::BLT => {BitVector::<3>::new(0b100)}
+        bop::BGE => {BitVector::<3>::new(0b101)}
+        bop::BLTU => {BitVector::<3>::new(0b110)}
+        bop::BGEU => {BitVector::<3>::new(0b111)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// encdec_uop_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_uop_forwards(arg_hashtag_: uop) -> BitVector<7> {
+    match arg_hashtag_ {
+        uop::LUI => {BitVector::<7>::new(0b0110111)}
+        uop::AUIPC => {BitVector::<7>::new(0b0010111)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// valid_load_encdec
+/// 
+/// Generated from the Sail sources at `riscv_insts_base.sail` L279-280.
+pub fn valid_load_encdec(width: word_width, is_unsigned: bool) -> bool {
+    ((size_bytes_forwards(width) < 8) || (!(is_unsigned) && ((size_bytes_forwards(width) <= 8) as bool)))
+}
+
+/// encdec_mul_op_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_mul_op_forwards(arg_hashtag_: mul_op) -> BitVector<3> {
+    match arg_hashtag_ {
+        TODO_PAT_struct => {BitVector::<3>::new(0b000)}
+        TODO_PAT_struct => {BitVector::<3>::new(0b001)}
+        TODO_PAT_struct => {BitVector::<3>::new(0b010)}
+        TODO_PAT_struct => {BitVector::<3>::new(0b011)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// bool_not_bits_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn bool_not_bits_forwards(arg_hashtag_: bool) -> BitVector<1> {
+    match arg_hashtag_ {
+        true => {BitVector::<1>::new(0b0)}
+        false => {BitVector::<1>::new(0b1)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+
+/// lrsc_width_valid
+/// 
+/// Generated from the Sail sources at `riscv_insts_aext.sail` L31-37.
+pub fn lrsc_width_valid(size: word_width) -> bool {
+    match size {
+        word_width::WORD => {true}
+        word_width::DOUBLE => {true}
+        _ => {false}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// encdec_csrop_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector<2> {
+    match arg_hashtag_ {
+        csrop::CSRRW => {BitVector::<2>::new(0b01)}
+        csrop::CSRRS => {BitVector::<2>::new(0b10)}
+        csrop::CSRRC => {BitVector::<2>::new(0b11)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+
+/// amo_width_valid
+/// 
+/// Generated from the Sail sources at `riscv_insts_aext.sail` L39-46.
+pub fn amo_width_valid(core_ctx: &mut Core, size: word_width) -> bool {
+    match size {
+        word_width::BYTE => {currentlyEnabled(core_ctx, extension::Ext_Zabha)}
+        word_width::HALF => {currentlyEnabled(core_ctx, extension::Ext_Zabha)}
+        word_width::WORD => {true}
+        word_width::DOUBLE => {true}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
+/// encdec_forwards
+/// 
+/// Generated from the Sail sources.
+pub fn encdec_forwards(core_ctx: &mut Core, arg_hashtag_: ast) -> BitVector<32> {
+    match arg_hashtag_ {
+        ast::UTYPE((imm, rd, op)) => {bitvector_concat::<20, 12, 32>((imm as BitVector<20>), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), encdec_uop_forwards(op)))}
+        ast::JAL((v__2, rd)) if {(v__2.subrange::<0, 1, 1>() == BitVector::<1>::new(0b0))} => {let imm_19: BitVector<1> = v__2.subrange::<20, 21, 1>();
+        let imm_8: BitVector<1> = v__2.subrange::<11, 12, 1>();
+        let imm_7_0: BitVector<8> = v__2.subrange::<12, 20, 8>();
+        let imm_19: BitVector<1> = v__2.subrange::<20, 21, 1>();
+        let imm_18_13: BitVector<6> = v__2.subrange::<5, 11, 6>();
+        let imm_12_9: BitVector<4> = v__2.subrange::<1, 5, 4>();
+        bitvector_concat::<1, 31, 32>((imm_19 as BitVector<1>), bitvector_concat::<6, 25, 31>((imm_18_13 as BitVector<6>), bitvector_concat::<4, 21, 25>((imm_12_9 as BitVector<4>), bitvector_concat::<1, 20, 21>((imm_8 as BitVector<1>), bitvector_concat::<8, 12, 20>((imm_7_0 as BitVector<8>), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b1101111)))))))}
+        ast::JALR((imm, rs1, rd)) => {bitvector_concat::<12, 20, 32>((imm as BitVector<12>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b1100111)))))}
+        ast::BTYPE((v__4, rs2, rs1, op)) if {(v__4.subrange::<0, 1, 1>() == BitVector::<1>::new(0b0))} => {let imm7_6: BitVector<1> = v__4.subrange::<12, 13, 1>();
+        let imm7_6: BitVector<1> = v__4.subrange::<12, 13, 1>();
+        let imm7_5_0: BitVector<6> = v__4.subrange::<5, 11, 6>();
+        let imm5_4_1: BitVector<4> = v__4.subrange::<1, 5, 4>();
+        let imm5_0: BitVector<1> = v__4.subrange::<11, 12, 1>();
+        bitvector_concat::<1, 31, 32>((imm7_6 as BitVector<1>), bitvector_concat::<6, 25, 31>((imm7_5_0 as BitVector<6>), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(encdec_bop_forwards(op), bitvector_concat::<4, 8, 12>((imm5_4_1 as BitVector<4>), bitvector_concat::<1, 7, 8>((imm5_0 as BitVector<1>), BitVector::<7>::new(0b1100011))))))))}
+        ast::ITYPE((imm, rs1, rd, op)) => {bitvector_concat::<12, 20, 32>((imm as BitVector<12>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(encdec_iop_forwards(op), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0010011)))))}
+        ast::SHIFTIOP((shamt, rs1, rd, sop::SLLI)) if {true} => {bitvector_concat::<6, 26, 32>(BitVector::<6>::new(0b000000), bitvector_concat::<6, 20, 26>((shamt as BitVector<6>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b001), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0010011))))))}
+        ast::SHIFTIOP((shamt, rs1, rd, sop::SRLI)) if {true} => {bitvector_concat::<6, 26, 32>(BitVector::<6>::new(0b000000), bitvector_concat::<6, 20, 26>((shamt as BitVector<6>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b101), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0010011))))))}
+        ast::SHIFTIOP((shamt, rs1, rd, sop::SRAI)) if {true} => {bitvector_concat::<6, 26, 32>(BitVector::<6>::new(0b010000), bitvector_concat::<6, 20, 26>((shamt as BitVector<6>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b101), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0010011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::ADD)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::SLT)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b010), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::SLTU)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b011), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::AND)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b111), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::OR)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b110), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::XOR)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b100), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::SLL)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b001), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::SRL)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b101), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::SUB)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0100000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RTYPE((rs2, rs1, rd, rop::SRA)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0100000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b101), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::LOAD((imm, rs1, rd, is_unsigned, width, false, false)) if {valid_load_encdec(width, is_unsigned)} => {todo!("Unsupported: 'LOAD'")}
+        ast::STORE((v__6, rs2, rs1, width, false, false)) if {(size_bytes_forwards(width) <= 8)} => {todo!("Unsupported: 'STORE'")}
+        ast::ADDIW((imm, rs1, rd)) if {true} => {bitvector_concat::<12, 20, 32>((imm as BitVector<12>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0011011)))))}
+        ast::RTYPEW((rs2, rs1, rd, ropw::ADDW)) if {true} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::RTYPEW((rs2, rs1, rd, ropw::SUBW)) if {true} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0100000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::RTYPEW((rs2, rs1, rd, ropw::SLLW)) if {true} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b001), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::RTYPEW((rs2, rs1, rd, ropw::SRLW)) if {true} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b101), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::RTYPEW((rs2, rs1, rd, ropw::SRAW)) if {true} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0100000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b101), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::SHIFTIWOP((shamt, rs1, rd, sopw::SLLIW)) if {true} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>((shamt as BitVector<5>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b001), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0011011))))))}
+        ast::SHIFTIWOP((shamt, rs1, rd, sopw::SRLIW)) if {true} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000000), bitvector_concat::<5, 20, 25>((shamt as BitVector<5>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b101), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0011011))))))}
+        ast::SHIFTIWOP((shamt, rs1, rd, sopw::SRAIW)) if {true} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0100000), bitvector_concat::<5, 20, 25>((shamt as BitVector<5>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b101), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0011011))))))}
+        ast::FENCE((pred, succ)) => {bitvector_concat::<4, 28, 32>(BitVector::<4>::new(0b0000), bitvector_concat::<4, 24, 28>((pred as BitVector<4>), bitvector_concat::<4, 20, 24>((succ as BitVector<4>), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b0001111)))))))}
+        ast::FENCE_TSO((pred, succ)) => {bitvector_concat::<4, 28, 32>(BitVector::<4>::new(0b1000), bitvector_concat::<4, 24, 28>((pred as BitVector<4>), bitvector_concat::<4, 20, 24>((succ as BitVector<4>), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b0001111)))))))}
+        ast::ECALL(()) => {bitvector_concat::<12, 20, 32>(BitVector::<12>::new(0b000000000000), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011)))))}
+        ast::MRET(()) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0011000), bitvector_concat::<5, 20, 25>(BitVector::<5>::new(0b00010), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::SRET(()) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0001000), bitvector_concat::<5, 20, 25>(BitVector::<5>::new(0b00010), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::EBREAK(()) => {bitvector_concat::<12, 20, 32>(BitVector::<12>::new(0b000000000001), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011)))))}
+        ast::WFI(()) => {bitvector_concat::<12, 20, 32>(BitVector::<12>::new(0b000100000101), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011)))))}
+        ast::SFENCE_VMA((rs1, rs2)) => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0001001), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::FENCEI(()) if {currentlyEnabled(core_ctx, extension::Ext_Zifencei)} => {bitvector_concat::<12, 20, 32>(BitVector::<12>::new(0b000000000000), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b001), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b0001111)))))}
+        ast::LOADRES((aq, rl, rs1, size, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_Zalrsc) && lrsc_width_valid(size))} => {todo!("Unsupported: 'LOADRES'")}
+        ast::STORECON((aq, rl, rs2, rs1, size, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_Zalrsc) && lrsc_width_valid(size))} => {todo!("Unsupported: 'STORECON'")}
+        ast::AMO((op, aq, rl, rs2, rs1, size, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_Zaamo) && amo_width_valid(core_ctx, size))} => {todo!("Unsupported: 'AMO'")}
+        ast::MUL((rs2, rs1, rd, mul_op)) if {(currentlyEnabled(core_ctx, extension::Ext_M) || currentlyEnabled(core_ctx, extension::Ext_Zmmul))} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000001), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(encdec_mul_op_forwards(mul_op), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::DIV((rs2, rs1, rd, s)) if {currentlyEnabled(core_ctx, extension::Ext_M)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000001), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<2, 13, 15>(BitVector::<2>::new(0b10), bitvector_concat::<1, 12, 13>(bool_not_bits_forwards(s), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011)))))))}
+        ast::REM((rs2, rs1, rd, s)) if {currentlyEnabled(core_ctx, extension::Ext_M)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000001), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<2, 13, 15>(BitVector::<2>::new(0b11), bitvector_concat::<1, 12, 13>(bool_not_bits_forwards(s), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011)))))))}
+        ast::MULW((rs2, rs1, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_M) || currentlyEnabled(core_ctx, extension::Ext_Zmmul))} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000001), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::DIVW((rs2, rs1, rd, s)) if {currentlyEnabled(core_ctx, extension::Ext_M)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000001), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<2, 13, 15>(BitVector::<2>::new(0b10), bitvector_concat::<1, 12, 13>(bool_not_bits_forwards(s), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011)))))))}
+        ast::REMW((rs2, rs1, rd, s)) if {currentlyEnabled(core_ctx, extension::Ext_M)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000001), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<2, 13, 15>(BitVector::<2>::new(0b11), bitvector_concat::<1, 12, 13>(bool_not_bits_forwards(s), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011)))))))}
+        ast::CSRReg((csr, rs1, rd, op)) => {bitvector_concat::<12, 20, 32>((csr as BitVector<12>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<1, 14, 15>(BitVector::<1>::new(0b0), bitvector_concat::<2, 12, 14>(encdec_csrop_forwards(op), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b1110011))))))}
+        ast::CSRImm((csr, imm, rd, op)) => {bitvector_concat::<12, 20, 32>((csr as BitVector<12>), bitvector_concat::<5, 15, 20>((imm as BitVector<5>), bitvector_concat::<1, 14, 15>(BitVector::<1>::new(0b1), bitvector_concat::<2, 12, 14>(encdec_csrop_forwards(op), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b1110011))))))}
+        ast::FENCE_RESERVED((fm, pred, succ, rs, rd)) if {(((fm != BitVector::<4>::new(0b0000)) && (fm != BitVector::<4>::new(0b1000))) || ((rs != zreg) || (rd != zreg)))} => {bitvector_concat::<4, 28, 32>((fm as BitVector<4>), bitvector_concat::<4, 24, 28>((pred as BitVector<4>), bitvector_concat::<4, 20, 24>((succ as BitVector<4>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0001111)))))))}
+        ast::FENCEI_RESERVED((imm, rs, rd)) if {((imm != BitVector::<12>::new(0b000000000000)) || ((rs != zreg) || (rd != zreg)))} => {bitvector_concat::<12, 20, 32>((imm as BitVector<12>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b001), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0001111)))))}
+        ast::LOAD_FP((imm, rs1, rd, word_width::HALF)) if {currentlyEnabled(core_ctx, extension::Ext_Zfhmin)} => {todo!("Unsupported: 'LOAD_FP'")}
+        ast::LOAD_FP((imm, rs1, rd, word_width::WORD)) if {currentlyEnabled(core_ctx, extension::Ext_F)} => {todo!("Unsupported: 'LOAD_FP'")}
+        ast::LOAD_FP((imm, rs1, rd, word_width::DOUBLE)) if {currentlyEnabled(core_ctx, extension::Ext_D)} => {todo!("Unsupported: 'LOAD_FP'")}
+        ast::STORE_FP((v__7, rs2, rs1, word_width::HALF)) if {currentlyEnabled(core_ctx, extension::Ext_Zfhmin)} => {todo!("Unsupported: 'STORE_FP'")}
+        ast::STORE_FP((v__8, rs2, rs1, word_width::WORD)) if {currentlyEnabled(core_ctx, extension::Ext_F)} => {todo!("Unsupported: 'STORE_FP'")}
+        ast::STORE_FP((v__9, rs2, rs1, word_width::DOUBLE)) if {currentlyEnabled(core_ctx, extension::Ext_D)} => {todo!("Unsupported: 'STORE_FP'")}
+        ast::SINVAL_VMA((rs1, rs2)) if {currentlyEnabled(core_ctx, extension::Ext_Svinval)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0001011), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::SFENCE_W_INVAL(()) if {currentlyEnabled(core_ctx, extension::Ext_Svinval)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0001100), bitvector_concat::<5, 20, 25>(BitVector::<5>::new(0b00000), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::SFENCE_INVAL_IR(()) if {currentlyEnabled(core_ctx, extension::Ext_Svinval)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0001100), bitvector_concat::<5, 20, 25>(BitVector::<5>::new(0b00001), bitvector_concat::<5, 15, 20>(BitVector::<5>::new(0b00000), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(BitVector::<5>::new(0b00000), BitVector::<7>::new(0b1110011))))))}
+        ast::SLLIUW((shamt, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zba)} => {bitvector_concat::<6, 26, 32>(BitVector::<6>::new(0b000010), bitvector_concat::<6, 20, 26>((shamt as BitVector<6>), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b001), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0011011))))))}
+        ast::ZBA_RTYPEUW((rs2, rs1, rd, bropw_zba::ADDUW)) if {currentlyEnabled(core_ctx, extension::Ext_Zba)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0000100), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b000), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::ZBA_RTYPEUW((rs2, rs1, rd, bropw_zba::SH1ADDUW)) if {currentlyEnabled(core_ctx, extension::Ext_Zba)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0010000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b010), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::ZBA_RTYPEUW((rs2, rs1, rd, bropw_zba::SH2ADDUW)) if {currentlyEnabled(core_ctx, extension::Ext_Zba)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0010000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b100), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::ZBA_RTYPEUW((rs2, rs1, rd, bropw_zba::SH3ADDUW)) if {currentlyEnabled(core_ctx, extension::Ext_Zba)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0010000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b110), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0111011))))))}
+        ast::ZBA_RTYPE((rs2, rs1, rd, brop_zba::SH1ADD)) if {currentlyEnabled(core_ctx, extension::Ext_Zba)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0010000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b010), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::ZBA_RTYPE((rs2, rs1, rd, brop_zba::SH2ADD)) if {currentlyEnabled(core_ctx, extension::Ext_Zba)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0010000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b100), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::ZBA_RTYPE((rs2, rs1, rd, brop_zba::SH3ADD)) if {currentlyEnabled(core_ctx, extension::Ext_Zba)} => {bitvector_concat::<7, 25, 32>(BitVector::<7>::new(0b0010000), bitvector_concat::<5, 20, 25>(encdec_reg_forwards(rs2), bitvector_concat::<5, 15, 20>(encdec_reg_forwards(rs1), bitvector_concat::<3, 12, 15>(BitVector::<3>::new(0b110), bitvector_concat::<5, 7, 12>(encdec_reg_forwards(rd), BitVector::<7>::new(0b0110011))))))}
+        ast::RORIW((shamt, rs1, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_Zbb) || currentlyEnabled(core_ctx, extension::Ext_Zbkb))} => {todo!("Unsupported: 'RORIW'")}
+        ast::RORI((shamt, rs1, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_Zbb) || currentlyEnabled(core_ctx, extension::Ext_Zbkb))} => {todo!("Unsupported: 'RORI'")}
+        ast::REV8((rs1, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_Zbb) || currentlyEnabled(core_ctx, extension::Ext_Zbkb))} => {todo!("Unsupported: 'REV8'")}
+        ast::ORCB((rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbb)} => {todo!("Unsupported: 'ORCB'")}
+        ast::CPOP((rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbb)} => {todo!("Unsupported: 'CPOP'")}
+        ast::CPOPW((rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbb)} => {todo!("Unsupported: 'CPOPW'")}
+        ast::CLZ((rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbb)} => {todo!("Unsupported: 'CLZ'")}
+        ast::CLZW((rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbb)} => {todo!("Unsupported: 'CLZW'")}
+        ast::CTZ((rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbb)} => {todo!("Unsupported: 'CTZ'")}
+        ast::CTZW((rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbb)} => {todo!("Unsupported: 'CTZW'")}
+        ast::CLMUL((rs2, rs1, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_Zbc) || currentlyEnabled(core_ctx, extension::Ext_Zbkc))} => {todo!("Unsupported: 'CLMUL'")}
+        ast::CLMULH((rs2, rs1, rd)) if {(currentlyEnabled(core_ctx, extension::Ext_Zbc) || currentlyEnabled(core_ctx, extension::Ext_Zbkc))} => {todo!("Unsupported: 'CLMULH'")}
+        ast::CLMULR((rs2, rs1, rd)) if {currentlyEnabled(core_ctx, extension::Ext_Zbc)} => {todo!("Unsupported: 'CLMULR'")}
+        ast::ILLEGAL(s) => {s}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 
 /// csr_id_read_callback
 /// 
@@ -7138,6 +7701,38 @@ pub const MTIMECMP_BASE_HI: physaddrbits = BitVector::<20>::new(0b00000100000000
 pub const MTIME_BASE: physaddrbits = BitVector::<20>::new(0b00001011111111111000).zero_extend::<64>();
 
 pub const MTIME_BASE_HI: physaddrbits = BitVector::<20>::new(0b00001011111111111100).zero_extend::<64>();
+
+/// handle_illegal
+/// 
+/// Generated from the Sail sources at `riscv_platform.sail` L448-456.
+pub fn handle_illegal(core_ctx: &mut Core, instbits: BitVector<32>) {
+    let info = if {plat_mtval_has_illegal_inst_bits(core_ctx, ())} {
+        Some(instbits.zero_extend::<64>())
+    } else {
+        None
+    };
+    let t: sync_exception = sync_exception {
+        trap: ExceptionType::E_Illegal_Instr(()),
+        excinfo: info,
+        ext: None
+    };
+    {
+        let var_1 = {
+            let var_2 = core_ctx.cur_privilege;
+            let var_3 = core_ctx.PC;
+            exception_handler(core_ctx, var_2, ctl_result::CTL_TRAP(t), var_3)
+        };
+        set_next_pc(core_ctx, var_1)
+    }
+}
+
+
+/// plat_mtval_has_illegal_inst_bits
+/// 
+/// Generated from the Sail sources at `riscv_platform.sail` L46.
+pub fn plat_mtval_has_illegal_inst_bits(core_ctx: &mut Core, unit_arg: ()) -> bool {
+    core_ctx.config.base.mtval_has_illegal_instruction_bits
+}
 
 /// phys_access_check
 /// 

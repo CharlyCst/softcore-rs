@@ -72,6 +72,7 @@ pub const MINIMAL: raw::Config = raw::Config {
         Zvksh: raw::ConfigZvksh { supported: false },
     },
     base: raw::ConfigBase {
+        mtval_has_illegal_instruction_bits: false,
         writable_fiom: false,
         writable_hpm_counters: BitVector::new(0),
         writable_misa: false,
@@ -152,6 +153,7 @@ pub const U74: raw::Config = raw::Config {
         Zvksh: raw::ConfigZvksh { supported: false },
     },
     base: raw::ConfigBase {
+        mtval_has_illegal_instruction_bits: true,
         writable_fiom: true,
         writable_hpm_counters: BitVector::new(0), // TODO: check on a board
         writable_misa: false,

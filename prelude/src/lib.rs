@@ -27,6 +27,13 @@ pub fn parse_hex_bits<const N: i128>(_n: i128, _hex_str: &str) -> BitVector<N> {
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
+pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {
+    match bits.parse::<u64>() {
+        Ok(n) => n < (1 << 12),
+        Err(_) => false,
+    }
+}
+
 pub fn bitvector_concat<const N: i128, const M: i128, const NM: i128>(
     e1: BitVector<N>,
     e2: BitVector<M>,
