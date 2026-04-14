@@ -31,19 +31,18 @@ pub fn parse_hex_bits<BS: BitStorage>(_n: i128, _hex_str: &str) -> BitVector<BS>
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
-pub fn bitvector_concat(e1: BitVector, e2: BitVector) -> BitVector {
-    bv(e1.len + e2.len, (e1.bits() << e2.len) | e2.bits())
+pub fn bitvector_concat<BS3: BitStorage, BS2: BitStorage, BS1: BitStorageConcat<BS2, BS3>>(e1: BitVector<BS1>, e2: BitVector<BS2>) -> BitVector<BS3> {
+    e1.concat(e2)
 }
 
-pub const fn get_slice_int<BS: BitStorage>(l: i128, n: i128, start: i128) -> BitVector<BS> {
+pub fn get_slice_int(l: i128, n: i128, start: i128) -> BitVector<BitDynamic> {
     let val = (n >> start) & (mask128(l as usize) as i128);
-    bv(l, val as u64)
+    // TODO: This cast in annoying, bv::new should take a u128 / i128…
+    BitVector::<BitDynamic>::new(l, val as u64)
 }
 
-/* TODO(Gurvan): This type signature is wrong */
-pub const fn slice<BS: BitStorage>(bits: BitVector<BS>, start: i128, len: i128) -> BitVector<BS> {
-    let mask = mask(len as usize);
-    bv(len, (bits.bits() >> start) & mask)
+pub fn slice<BS2: BitStorage, BS1: BitStorageExtend<BS2>>(bits: BitVector<BS1>, start: i128, len: i128) -> BitVector<BS2> {
+    bits.get_subrange(start + len, start)
 }
 
 pub fn get_16_random_bits<BS: BitStorage>(_unit: ()) -> BitVector<BS> {
@@ -80,32 +79,8 @@ pub fn truncate<BS: BitStorage>(v: BitVector<BS>, size: i128) -> BitVector<BS> {
     v
 }
 
-pub fn sail_sign_extend<BS: BitStorage>(input: BitVector<BS>, n: i128) -> BitVector<BS> {
-    assert!(n >= input.len(), "Cannot sign extend to smaller size");
-    assert!(n <= 64, "Maximum supported size is 64 for now");
-
-    // Special case: when extending from same size to same size, it's a no-op
-    if input.len() == n {
-        return input
-    }
-
-    // Check if the sign bit (MSB) is set
-    let sign_bit = (input.bits() >> (input.len() - 1)) & 1;
-
-    if sign_bit == 0 {
-        // Positive number - just zero extend
-        BitVector::new(n, input.bits())
-    } else {
-        // Negative number - fill upper bits with 1s
-        // Handle the case where M=64 to avoid shift overflow
-        let mask = if input.len() == 64 {
-            0u64
-        } else {
-            (1u64 << input.len()) - 1
-        };
-        let extension_bits = !mask & if n == 64 { u64::MAX } else { (1u64 << n) - 1 };
-        BitVector::new(n, input.bits() | extension_bits)
-    }
+pub fn sail_sign_extend<BS2: BitStorage, BS1: BitStorageExtend<BS2>>(input: BitVector<BS1>, n: i128) -> BitVector<BS2> {
+    input.sign_extend(n)
 }
 
 pub fn sail_ones<BS: BitStorage>(len: i128) -> BitVector<BS> {
@@ -117,11 +92,11 @@ pub fn sail_zeros<BS:BitStorage>(len: i128) -> BitVector<BS> {
 }
 
 pub fn sail_shiftright<BS: BitStorage>(bits: BitVector<BS>, shift: i128) -> BitVector<BS> {
-    bits.shr(shift)
+    bits >> shift
 }
 
 pub fn sail_shiftleft<BS: BitStorage>(bits: BitVector<BS>, shift: i128) -> BitVector<BS> {
-    bits.shl(shift)
+    bits << shift
 }
 
 pub fn max_int(v1: i128, v2: i128) -> i128 {
@@ -156,21 +131,12 @@ pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {
     }
 }
 
-pub fn subrange_bits<BS: BitStorage>(vec: BitVector<BS>, end: i128, start: i128) -> BitVector<BS> {
-    let out = end - start + 1;
-    bv(out, (vec.bits >> start) & mask(out as usize))
+pub fn subrange_bits<BS2: BitStorage, BS1: BitStorageExtend<BS2>>(vec: BitVector<BS1>, end: i128, start: i128) -> BitVector<BS2> {
+    vec.get_subrange(end, start)
 }
 
-pub fn update_subrange_bits<BS: BitStorage>(bits: BitVector<BS>, to: u64, from: u64, value: BitVector<BS>) -> BitVector<BS> {
-    assert!(to - from + 1 == value.len as u64, "size don't match");
-
-    // Generate the 111111 mask
-    let mut mask = (1 << value.len) - 1;
-    // Shit and invert it
-    mask = !(mask << from);
-
-    // Now we can update and return the updated value
-    bv(bits.len, (bits.bits & mask) | (value.bits() << from))
+pub fn update_subrange_bits<BS2: BitStorage, BS1: BitStorageExtend<BS2>>(bits: BitVector<BS2>, to: u64, from: u64, vec: BitVector<BS1>) -> BitVector<BS1> {
+    vec.set_subrange(bits, to, from)
 }
 
 pub fn bitvector_update<BS: BitStorage>(v: BitVector<BS>, pos: i128, value: bool) -> BitVector<BS> {
@@ -181,7 +147,7 @@ pub fn undefined_bitvector<BS: BitStorage>(len: i128) -> BitVector<BS> {
     BitVector::zeros(len)
 }
 
-/* TODO(Gurvan): Maybe the following should take i128 as a parameter */
+// TODO(Gurvan): Maybe the following should take i128 as a parameter
 
 pub fn undefined_array<T: Copy, const N: usize>(v: T) -> [T; N] {
     [v; N]

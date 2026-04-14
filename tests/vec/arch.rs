@@ -441,7 +441,12 @@ pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: v
     let mut r: vregtype = zeros(65536);
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:341.29-341.30");
-        todo!("E_for_dec");
+        for i in (0..=(num_elem - 1)).rev() {
+            {
+                r = (r << SEW);
+                r = (r | v[(i as usize)].zero_extend(65536))
+            }
+        };
         wV_bits(core_ctx, vrid, r)
     }
 }
