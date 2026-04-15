@@ -12,9 +12,9 @@ use crate::arch_prelude::*;
 /// The raw functions translated directly from the specification are available in the `raw` module, whereas higher-level wrappers are implemented as methods on the [Core] struct directly.
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
-    pub rsize: i128,
-    pub rcount: i128,
-    pub rv: BitVector<BitDynamic>,
+    pub rsize: atom::<N>,
+    pub rcount: atom::<N>,
+    pub rv: BitStatic::<256>,
     pub config: Config,
 }
 
@@ -55,15 +55,15 @@ pub fn __id(x: i128) -> i128 {
 /// zeros
 ///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L5.
-pub const fn zeros(n: i128) -> BitVector<BitDynamic> {
+pub const fn zeros(n: i128) -> BitDynamic {
     sail_zeros(n)
 }
 
 /// read
 ///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L13-22.
-pub fn read(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> Vec<BitVector<BitDynamic>> {
-    let mut result: Vec<BitVector<BitDynamic>> = vec![zeros(__id(elem_size)); (__id(elem_count) as usize)];
+pub fn read(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> Vec::<BitDynamic> {
+    let mut result: Vec::<BitDynamic> = vec![zeros(__id(elem_size)); (__id(elem_count) as usize)];
     {
         for i in 0..=(elem_count - 1) {
             let start_index = (i * elem_size);
@@ -81,6 +81,6 @@ pub fn execute(core_ctx: &mut Core, unit_arg: ()) {
     let elem_count = core_ctx.rcount;
     let n = elem_count;
     let m = elem_size;
-    let vs: Vec<BitVector<BitDynamic>> = read(core_ctx, elem_count, elem_size);
+    let vs: Vec::<BitDynamic> = read(core_ctx, elem_count, elem_size);
     ()
 }

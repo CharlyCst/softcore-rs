@@ -442,13 +442,10 @@ let bitvec_transform_type (ctx : context) (typ : rs_type) : rs_type =
   (* TODO: This violate the fact that vector or bits != bitvector. Change it in the future *)
   | RsTypGenericParam ("vector", t) ->
     if List.for_all (is_const_rs_typ_param ctx) t
-    then
-      RsTypGenericParam
-        ("BitVector", [ RsTypParamTyp (RsTypGenericParam ("BitStatic", t)) ])
-    else RsTypGenericParam ("BitVector", [ RsTypParamTyp (RsTypId "BitDynamic") ])
+    then RsTypGenericParam ("BitStatic", t)
+    else RsTypId "BitDynamic"
   (* TODO: once we resolve type aliasing we can remove those manual conversions *)
-  | RsTypId "regbits" ->
-    RsTypGenericParam ("BitVector", [ RsTypParamTyp (RsTypId "BitDynamic") ])
+  | RsTypId "regbits" -> RsTypId "BitDynamic"
   (* Otherwise keep as is *)
   | _ -> typ
 ;;
@@ -468,14 +465,13 @@ let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program 
 ;;
 
 (* ———————————————————— Dynamic BitVectors Arguments ——————————————————————— *)
-(* TODO(Gurvan): This is an ugly fix to a common problem: If an argument was
-   changed from an array to a vec, and we used to call it with an array
-   argument, then we need to cast it. *)
+(* TODO(Gurvan): This is the same ugly fix that we use for vec! vs array *)
 
-(* TODO(Gurvan): Fix the following for bitvec *)
 let cast_bitvec (typ : rs_type) (e : rs_exp) =
   match typ with
-  | RsTypGenericParam ("BitVector", _) ->
+  | RsTypId "BitDynamic" ->
+    RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
+  | RsTypGenericParam ("BitStatic", _) ->
     RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
   | _ -> e
 ;;
@@ -484,9 +480,15 @@ let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp =
   match e with
   | RsApp (RsId id, generics, args) ->
     (match ctx_fun id ctx with
-     | Some fn ->
-       RsApp (RsId id, generics, List.map2 cast_bitvec fn.signature.args args)
-     | None -> e)
+     | Some fn -> RsApp (RsId id, generics, List.map2 cast_bitvec fn.signature.args args)
+     | None ->
+         (* TODO(Gurvan): This is also used for type constructor, which we also
+            want to fix, so we should check if type definition are in context *)
+    Reporting.simple_warn
+      (Format.sprintf
+         "Couldn't find type of function '%s', argument might be incorrect" id);
+
+         e)
   | _ -> e
 ;;
 
@@ -503,7 +505,6 @@ let use_dynamic_bitvec_args (ctx : context) (rust_program : rs_program) : rs_pro
     ctx
     rust_program
 ;;
-
 
 (* —————————————————————————— Expression Optimizer —————————————————————————— *)
 

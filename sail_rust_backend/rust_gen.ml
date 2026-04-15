@@ -476,7 +476,7 @@ let rec string_of_rs_type (typ : rs_type) : string =
   | RsTypGeneric t -> t
   | RsTypGenericParam (id, params) ->
     Printf.sprintf
-      "%s<%s>"
+      "%s::<%s>"
       id
       (String.concat ", " (List.map string_of_rs_type_param params))
   | RsTypArray (typ, size) ->

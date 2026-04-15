@@ -33,14 +33,14 @@ use raw::{cregidx, regidx};
 use registers::GeneralRegister;
 use registers::*;
 pub use softcore_prelude as prelude;
-use softcore_prelude::{BitVector, BitStorage, bv, bvd};
+use softcore_prelude::{BitDynamic, BitStatic, BitStorage, bv, bvd};
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
 
 const DEFAULT_PMP_CFG: raw::Pmpcfg_ent = raw::Pmpcfg_ent { bits: bv(0) };
 const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent { bits: bv(0) };
 const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
-const ZEROES: BitVector<BitStatic<64>> = bv(0);
+const ZEROES: BitStatic<64> = bv(0);
 
 // ————————————————————————————— Trap Handling —————————————————————————————— //
 
@@ -464,38 +464,38 @@ pub const fn new_core(config: raw::Config) -> Core {
         pmpcfg_n: [DEFAULT_PMP_CFG; 64],
         pmpaddr_n: [ZEROES; 64],
         // TODO(Gurvan): Fix the length of the following according to config
-        vr0: bvd(config.extensions.V.vlen_exp, 0),
-        vr1: bvd(config.extensions.V.vlen_exp, 0),
-        vr2: bvd(config.extensions.V.vlen_exp, 0),
-        vr3: bvd(config.extensions.V.vlen_exp, 0),
-        vr4: bvd(config.extensions.V.vlen_exp, 0),
-        vr5: bvd(config.extensions.V.vlen_exp, 0),
-        vr6: bvd(config.extensions.V.vlen_exp, 0),
-        vr7: bvd(config.extensions.V.vlen_exp, 0),
-        vr8: bvd(config.extensions.V.vlen_exp, 0),
-        vr9: bvd(config.extensions.V.vlen_exp, 0),
-        vr10: bvd(config.extensions.V.vlen_exp, 0),
-        vr11: bvd(config.extensions.V.vlen_exp, 0),
-        vr12: bvd(config.extensions.V.vlen_exp, 0),
-        vr13: bvd(config.extensions.V.vlen_exp, 0),
-        vr14: bvd(config.extensions.V.vlen_exp, 0),
-        vr15: bvd(config.extensions.V.vlen_exp, 0),
-        vr16: bvd(config.extensions.V.vlen_exp, 0),
-        vr17: bvd(config.extensions.V.vlen_exp, 0),
-        vr18: bvd(config.extensions.V.vlen_exp, 0),
-        vr19: bvd(config.extensions.V.vlen_exp, 0),
-        vr20: bvd(config.extensions.V.vlen_exp, 0),
-        vr21: bvd(config.extensions.V.vlen_exp, 0),
-        vr22: bvd(config.extensions.V.vlen_exp, 0),
-        vr23: bvd(config.extensions.V.vlen_exp, 0),
-        vr24: bvd(config.extensions.V.vlen_exp, 0),
-        vr25: bvd(config.extensions.V.vlen_exp, 0),
-        vr26: bvd(config.extensions.V.vlen_exp, 0),
-        vr27: bvd(config.extensions.V.vlen_exp, 0),
-        vr28: bvd(config.extensions.V.vlen_exp, 0),
-        vr29: bvd(config.extensions.V.vlen_exp, 0),
-        vr30: bvd(config.extensions.V.vlen_exp, 0),
-        vr31: bvd(config.extensions.V.vlen_exp, 0),
+        vr0: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr1: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr2: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr3: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr4: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr5: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr6: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr7: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr8: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr9: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr10: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr11: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr12: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr13: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr14: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr15: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr16: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr17: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr18: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr19: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr20: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr21: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr22: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr23: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr24: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr25: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr26: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr27: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr28: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr29: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr30: bvd(config.extensions.V.vlen_exp, 0).into(),
+        vr31: bvd(config.extensions.V.vlen_exp, 0).into(),
         vcsr: raw::Vcsr { bits: bv(0) },
         mhpmevent: [DEFAULT_HPM_EVENT; 32],
         mhpmcounter: [ZEROES; 32],
@@ -671,10 +671,7 @@ mod tests {
         );
 
         // Illegal
-        assert_eq!(
-            ctx.decode_instr(0x30001072),
-            ast::ILLEGAL(bv(0x30001072))
-        );
+        assert_eq!(ctx.decode_instr(0x30001072), ast::ILLEGAL(bv(0x30001072)));
     }
 
     #[test]

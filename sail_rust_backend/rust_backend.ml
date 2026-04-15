@@ -280,7 +280,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let id = sanitize_id (string_of_id id) in
       if SSet.mem id ctx.registers
       then (
-        let _ = ctx.uses_sail_ctx <- true in
+        ctx.uses_sail_ctx <- true;
         (* set flag *)
         RsField (RsId core_ctx, id))
       else RsId id
@@ -289,7 +289,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_app (id, [ e1; e2 ]) when string_of_id id = "mult_atom" ->
       process_binop_exp ctx e1 RsBinopMult e2
     | E_app (id, exp_list) when string_of_id id = "bitvector_concat" ->
-      RsApp (RsId (sanitize_id (string_of_id id)), [], List.map (process_exp ctx) exp_list)
+      let exp_list = List.map (process_exp ctx) exp_list in
+      let exp_list = List.map (fun e -> RsStaticApp (RsTypId "BitDynamic", "from", [ e ])) exp_list in
+      RsApp (RsId (sanitize_id (string_of_id id)), [], exp_list)
     | E_app (id, exp_list)
       when let sid = string_of_id id in
            sid = "ones" || sid = "sail_ones" ->
@@ -462,9 +464,10 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     if is_literal
     then (
       (* Generate a bitvector literal *)
+      (* TODO(Gurvan): FIXME BitStatic/BitDynamic *)
       let vector_length = List.length items in
       RsStaticApp
-        ( RsTypId "BitVector"
+        ( RsTypGenericParam ("BitStatic", [ RsTypParamNum (mk_num vector_length) ])
         , "new"
         , [ mk_num vector_length
           ; RsLit
@@ -474,6 +477,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     else if is_bitvector typ
     then (
       (* Generate a bitvector from individual bits *)
+      (* TODO(Gurvan): Transform into BitStatic/BitDynamic *)
       let rec set_bits bits idx exp =
         match bits with
         | head :: tail ->

@@ -6,7 +6,7 @@
 //! PRs to contribute new configurations for popular cores are welcome.
 
 use crate::raw;
-use softcore_prelude::BitVector;
+use softcore_prelude::{BitDynamic, BitStatic};
 
 /// A configuration with all extensions disabled.
 pub const MINIMAL: raw::Config = raw::Config {
@@ -249,7 +249,7 @@ pub const VECTOR_TEST: raw::Config = raw::Config {
     base: raw::ConfigBase {
         mtval_has_illegal_instruction_bits: true,
         writable_fiom: true,
-        writable_hpm_counters: BitVector::new(32, 0), // TODO: check on a board
+        writable_hpm_counters: bv(0), // TODO: check on a board
         writable_misa: false,
     },
     memory: raw::ConfigMemory {
