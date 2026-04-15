@@ -1,4 +1,5 @@
 #![allow(incomplete_features, non_camel_case_types)]
+#![feature(const_trait_impl, const_ops, const_cmp)]
 
 use core::ops::*;
 use std::cmp::max;
@@ -13,7 +14,7 @@ pub use bitvector::*;
 // a better solution is needed.
 pub type nat = u128;
 
-pub fn sail_branch_announce<BS: BitStorage>(_value: i128, _pc: BitVector<BS>) {}
+pub fn sail_branch_announce<S: BitStorage>(_value: i128, _pc: BitVector<S>) {}
 
 pub fn lteq_int(e1: i128, e2: i128) -> bool {
     e1 <= e2
@@ -23,15 +24,22 @@ pub fn gt_int(e1: i128, e2: i128) -> bool {
     e1 > e2
 }
 
-pub fn bitvector_length<BS: BitStorage>(e: BitVector<BS>) -> i128 {
+pub const fn bitvector_length<S: [const] BitStorage>(e: BitVector<S>) -> i128 {
     e.len()
 }
 
-pub fn parse_hex_bits<BS: BitStorage>(_n: i128, _hex_str: &str) -> BitVector<BS> {
+pub fn parse_hex_bits<S: BitStorage>(_n: i128, _hex_str: &str) -> BitVector<S> {
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
-pub fn bitvector_concat<BS3: BitStorage, BS2: BitStorage, BS1: BitStorageConcat<BS2, BS3>>(e1: BitVector<BS1>, e2: BitVector<BS2>) -> BitVector<BS3> {
+pub const fn bitvector_concat<
+    S3: [const] BitStorage,
+    S2: [const] BitStorage,
+    S1: [const] BitStorageConcat<S2, S3>,
+>(
+    e1: BitVector<S1>,
+    e2: BitVector<S2>,
+) -> BitVector<S3> {
     e1.concat(e2)
 }
 
@@ -41,11 +49,15 @@ pub fn get_slice_int(l: i128, n: i128, start: i128) -> BitVector<BitDynamic> {
     BitVector::<BitDynamic>::new(l, val as u64)
 }
 
-pub fn slice<BS2: BitStorage, BS1: BitStorageExtend<BS2>>(bits: BitVector<BS1>, start: i128, len: i128) -> BitVector<BS2> {
+pub fn slice<S2: BitStorage, S1: BitStorageExtend<S2>>(
+    bits: BitVector<S1>,
+    start: i128,
+    len: i128,
+) -> BitVector<S2> {
     bits.get_subrange(start + len, start)
 }
 
-pub fn get_16_random_bits<BS: BitStorage>(_unit: ()) -> BitVector<BS> {
+pub fn get_16_random_bits<S: BitStorage>(_unit: ()) -> BitVector<S> {
     BitVector::new(16, 0)
 }
 
@@ -57,7 +69,7 @@ pub fn internal_error(_file: String, _line: i128, _s: String) -> ! {
     panic!("Softcore: internal error")
 }
 
-pub fn print_output<BS: BitStorage>(text: String, _csr: BitVector<BS>) {
+pub fn print_output<S: BitStorage>(text: String, _csr: BitVector<S>) {
     println!("{}", text)
 }
 
@@ -65,37 +77,46 @@ pub fn print_platform(text: String) {
     println!("{}", text)
 }
 
-pub fn bits_str<BS: BitStorage>(val: BitVector<BS>) -> String {
+pub fn bits_str<S: BitStorage>(val: BitVector<S>) -> String {
     format!("{:b}", val.unsigned())
 }
 
-pub fn bitvector_access<BS: BitStorage>(vec: BitVector<BS>, idx: i128) -> bool {
+pub fn bitvector_access<S: BitStorage>(vec: BitVector<S>, idx: i128) -> bool {
     vec.get_bit(idx)
 }
 
 // Todo: implement truncate for other sizes if required
-pub fn truncate<BS: BitStorage>(v: BitVector<BS>, size: i128) -> BitVector<BS> {
+pub fn truncate<S: BitStorage>(v: BitVector<S>, size: i128) -> BitVector<S> {
     assert!(size == 64);
     v
 }
 
-pub fn sail_sign_extend<BS2: BitStorage, BS1: BitStorageExtend<BS2>>(input: BitVector<BS1>, n: i128) -> BitVector<BS2> {
+pub const fn sail_sign_extend<S2: [const] BitStorage, S1: [const] BitStorageExtend<S2>>(
+    input: BitVector<S1>,
+    n: i128,
+) -> BitVector<S2> {
     input.sign_extend(n)
 }
 
-pub fn sail_ones<BS: BitStorage>(len: i128) -> BitVector<BS> {
+pub const fn sail_ones<S: [const] BitStorage>(len: i128) -> BitVector<S> {
     BitVector::ones(len)
 }
 
-pub fn sail_zeros<BS:BitStorage>(len: i128) -> BitVector<BS> {
+pub const fn sail_zeros<S: [const] BitStorage>(len: i128) -> BitVector<S> {
     BitVector::zeros(len)
 }
 
-pub fn sail_shiftright<BS: BitStorage>(bits: BitVector<BS>, shift: i128) -> BitVector<BS> {
+pub const fn sail_shiftright<S: [const] BitStorage>(
+    bits: BitVector<S>,
+    shift: i128,
+) -> BitVector<S> {
     bits >> shift
 }
 
-pub fn sail_shiftleft<BS: BitStorage>(bits: BitVector<BS>, shift: i128) -> BitVector<BS> {
+pub const fn sail_shiftleft<S: [const] BitStorage>(
+    bits: BitVector<S>,
+    shift: i128,
+) -> BitVector<S> {
     bits << shift
 }
 
@@ -111,16 +132,16 @@ pub fn cancel_reservation(_unit: ()) {
     // In the future, extend this function
 }
 
-fn hex_bits<BS: BitStorage>(len: i128, bits: &str) -> BitVector<BS> {
+fn hex_bits<S: BitStorage>(len: i128, bits: &str) -> BitVector<S> {
     let parsed = bits.parse::<u64>().expect("Could not parse hex bits");
     BitVector::new(len, parsed)
 }
 
-pub fn hex_bits_12_forwards<BS: BitStorage>(_reg: BitVector<BS>) -> ! {
+pub fn hex_bits_12_forwards<S: BitStorage>(_reg: BitVector<S>) -> ! {
     todo!("Implement this function")
 }
 
-pub fn hex_bits_12_backwards<BS: BitStorage>(bits: &str) -> BitVector<BS> {
+pub fn hex_bits_12_backwards<S: BitStorage>(bits: &str) -> BitVector<S> {
     hex_bits(12, bits)
 }
 
@@ -131,19 +152,28 @@ pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {
     }
 }
 
-pub fn subrange_bits<BS2: BitStorage, BS1: BitStorageExtend<BS2>>(vec: BitVector<BS1>, end: i128, start: i128) -> BitVector<BS2> {
+pub fn subrange_bits<S2: BitStorage, S1: BitStorageExtend<S2>>(
+    vec: BitVector<S1>,
+    end: i128,
+    start: i128,
+) -> BitVector<S2> {
     vec.get_subrange(end, start)
 }
 
-pub fn update_subrange_bits<BS2: BitStorage, BS1: BitStorageExtend<BS2>>(bits: BitVector<BS2>, to: u64, from: u64, vec: BitVector<BS1>) -> BitVector<BS1> {
+pub fn update_subrange_bits<S2: BitStorage, S1: BitStorageExtend<S2>>(
+    bits: BitVector<S2>,
+    to: u64,
+    from: u64,
+    vec: BitVector<S1>,
+) -> BitVector<S1> {
     vec.set_subrange(bits, to, from)
 }
 
-pub fn bitvector_update<BS: BitStorage>(v: BitVector<BS>, pos: i128, value: bool) -> BitVector<BS> {
+pub fn bitvector_update<S: BitStorage>(v: BitVector<S>, pos: i128, value: bool) -> BitVector<S> {
     v.set_bit(pos, value)
 }
 
-pub fn undefined_bitvector<BS: BitStorage>(len: i128) -> BitVector<BS> {
+pub fn undefined_bitvector<S: BitStorage>(len: i128) -> BitVector<S> {
     BitVector::zeros(len)
 }
 

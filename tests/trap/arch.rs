@@ -50,7 +50,7 @@ pub fn _reset_all_registers() {
 /// signed_extend
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L10.
-pub fn signed_extend(m: i128, v: BitVector) -> BitVector {
+pub fn signed_extend(m: i128, v: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     sail_sign_extend(v, m)
 }
 
@@ -79,21 +79,21 @@ pub fn bool_to_bit(x: bool) -> bool {
 /// bool_to_bits
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L28.
-pub fn bool_to_bits(x: bool) -> BitVector {
+pub fn bool_to_bits(x: bool) -> BitVector<BitDynamic> {
     BitVector::new(0).set_bit(0, bool_to_bit(x))
 }
 
 /// (operator >=_u)
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L42.
-pub fn _operator_biggerequal_u_(x: BitVector, y: BitVector) -> bool {
+pub fn _operator_biggerequal_u_(x: BitVector<BitDynamic>, y: BitVector<BitDynamic>) -> bool {
     (x.unsigned() >= y.unsigned())
 }
 
 /// (operator <_u)
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L45.
-pub fn _operator_smaller_u_(x: BitVector, y: BitVector) -> bool {
+pub fn _operator_smaller_u_(x: BitVector<BitDynamic>, y: BitVector<BitDynamic>) -> bool {
     (x.unsigned() < y.unsigned())
 }
 
@@ -101,9 +101,9 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector;
+pub type xlenbits = BitVector<BitDynamic>;
 
-pub type priv_level = BitVector;
+pub type priv_level = BitVector<BitDynamic>;
 
 /// Privilege
 ///
@@ -118,7 +118,7 @@ pub enum Privilege {
 /// privLevel_to_bits
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L59-64.
-pub fn privLevel_to_bits(p: Privilege) -> BitVector {
+pub fn privLevel_to_bits(p: Privilege) -> BitVector<BitDynamic> {
     match p {
         Privilege::User => {BitVector::new(2, 0b00)}
         Privilege::Supervisor => {BitVector::new(2, 0b01)}
@@ -149,18 +149,18 @@ pub enum exception {
     Error_internal_error(())
 }
 
-pub type regidx = BitVector;
+pub type regidx = BitVector<BitDynamic>;
 
-pub type cregidx = BitVector;
+pub type cregidx = BitVector<BitDynamic>;
 
-pub type csreg = BitVector;
+pub type csreg = BitVector<BitDynamic>;
 
 /// Medeleg
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L99-114.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Medeleg {
-    pub bits: BitVector,
+    pub bits: BitVector<BitDynamic>,
 }
 
 /// Mcause
@@ -168,7 +168,7 @@ pub struct Medeleg {
 /// Generated from the Sail sources at `tests/trap/arch.sail` L117-120.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mcause {
-    pub bits: BitVector,
+    pub bits: BitVector<BitDynamic>,
 }
 
 /// Mstatus
@@ -176,7 +176,7 @@ pub struct Mcause {
 /// Generated from the Sail sources at `tests/trap/arch.sail` L125-149.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
-    pub bits: BitVector,
+    pub bits: BitVector<BitDynamic>,
 }
 
 /// Mtvec
@@ -184,62 +184,62 @@ pub struct Mstatus {
 /// Generated from the Sail sources at `tests/trap/arch.sail` L152-155.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mtvec {
-    pub bits: BitVector,
+    pub bits: BitVector<BitDynamic>,
 }
 
 /// _get_Mcause_Cause
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mcause_Cause(v: Mcause) -> BitVector {
+pub fn _get_Mcause_Cause(v: Mcause) -> BitVector<BitDynamic> {
     v.bits.subrange::<0, 63, 63>()
 }
 
 /// _get_Mcause_IsInterrupt
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mcause_IsInterrupt(v: Mcause) -> BitVector {
+pub fn _get_Mcause_IsInterrupt(v: Mcause) -> BitVector<BitDynamic> {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// _get_Mstatus_MIE
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_MIE(v: Mstatus) -> BitVector {
+pub fn _get_Mstatus_MIE(v: Mstatus) -> BitVector<BitDynamic> {
     v.bits.subrange::<3, 4, 1>()
 }
 
 /// _get_Mstatus_SIE
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_SIE(v: Mstatus) -> BitVector {
+pub fn _get_Mstatus_SIE(v: Mstatus) -> BitVector<BitDynamic> {
     v.bits.subrange::<1, 2, 1>()
 }
 
 /// _get_Mstatus_UIE
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_UIE(v: Mstatus) -> BitVector {
+pub fn _get_Mstatus_UIE(v: Mstatus) -> BitVector<BitDynamic> {
     v.bits.subrange::<0, 1, 1>()
 }
 
 /// _get_Mtvec_Base
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mtvec_Base(v: Mtvec) -> BitVector {
+pub fn _get_Mtvec_Base(v: Mtvec) -> BitVector<BitDynamic> {
     v.bits.subrange::<2, 64, 62>()
 }
 
 /// _get_Mtvec_Mode
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mtvec_Mode(v: Mtvec) -> BitVector {
+pub fn _get_Mtvec_Mode(v: Mtvec) -> BitVector<BitDynamic> {
     v.bits.subrange::<0, 2, 2>()
 }
 
 /// rX
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L168-172.
-pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
+pub fn rX(core_ctx: &mut Core, r: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     match r {
         b__0 if {(b__0 == BitVector::new(5, 0b00000))} => {BitVector::new(4, 0b0000).zero_extend(64)}
         _ => {core_ctx.Xs[(r.unsigned() as usize)]}
@@ -250,7 +250,7 @@ pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
 /// wX
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L175-178.
-pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
+pub fn wX(core_ctx: &mut Core, r: BitVector<BitDynamic>, v: BitVector<BitDynamic>) {
     if {(r != BitVector::new(5, 0b00000))} {
         core_ctx.Xs[(r.unsigned() as usize)] = v
     } else {
@@ -261,7 +261,7 @@ pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
 /// bool_bits_forwards
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector {
+pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<BitDynamic> {
     match arg_hashtag_ {
         true => {BitVector::new(1, 0b1)}
         false => {BitVector::new(1, 0b0)}
@@ -272,7 +272,7 @@ pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector {
 /// bool_bits_backwards
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_backwards(arg_hashtag_: BitVector) -> bool {
+pub fn bool_bits_backwards(arg_hashtag_: BitVector<BitDynamic>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::new(1, 0b1))} => {true}
         _ => {false}
@@ -283,7 +283,7 @@ pub fn bool_bits_backwards(arg_hashtag_: BitVector) -> bool {
 /// bool_bits_backwards_matches
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector) -> bool {
+pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector<BitDynamic>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::new(1, 0b1))} => {true}
         b__1 if {(b__1 == BitVector::new(1, 0b0))} => {true}
@@ -315,7 +315,7 @@ pub enum ExceptionType {
     E_SAMO_Page_Fault(())
 }
 
-pub type exc_code = BitVector;
+pub type exc_code = BitVector<BitDynamic>;
 
 /// num_of_ExceptionType
 ///
@@ -345,7 +345,7 @@ pub fn num_of_ExceptionType(e: ExceptionType) -> i128 {
 /// exceptionType_to_bits
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L236-254.
-pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector {
+pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<BitDynamic> {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::new(8, 0b00000000)}
         ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::new(8, 0b00000001)}
@@ -384,7 +384,7 @@ pub enum ctl_result {
     CTL_TRAP(sync_exception)
 }
 
-pub type tv_mode = BitVector;
+pub type tv_mode = BitVector<BitDynamic>;
 
 /// TrapVectorMode
 ///
@@ -399,14 +399,14 @@ pub enum TrapVectorMode {
 /// set_next_pc
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L270-272.
-pub fn set_next_pc(core_ctx: &mut Core, pc: BitVector) {
+pub fn set_next_pc(core_ctx: &mut Core, pc: BitVector<BitDynamic>) {
     core_ctx.nextPC = pc
 }
 
 /// tval
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L274-279.
-pub fn tval(excinfo: Option<BitVector>) -> BitVector {
+pub fn tval(excinfo: Option<BitVector<BitDynamic>>) -> BitVector<BitDynamic> {
     match excinfo {
         Some(e) => {e}
         None => {BitVector::new(1, 0b0).zero_extend(64)}
@@ -417,7 +417,7 @@ pub fn tval(excinfo: Option<BitVector>) -> BitVector {
 /// trapVectorMode_of_bits
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L282-287.
-pub fn trapVectorMode_of_bits(m: BitVector) -> TrapVectorMode {
+pub fn trapVectorMode_of_bits(m: BitVector<BitDynamic>) -> TrapVectorMode {
     match m {
         b__0 if {(b__0 == BitVector::new(2, 0b00))} => {TrapVectorMode::TV_Direct}
         b__1 if {(b__1 == BitVector::new(2, 0b01))} => {TrapVectorMode::TV_Vector}
@@ -429,7 +429,7 @@ pub fn trapVectorMode_of_bits(m: BitVector) -> TrapVectorMode {
 /// tvec_addr
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L290-299.
-pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector> {
+pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector<BitDynamic>> {
     let base: xlenbits = bitvector_concat(_get_Mtvec_Base(m), BitVector::new(2, 0b00));
     match trapVectorMode_of_bits(_get_Mtvec_Mode(m)) {
         TrapVectorMode::TV_Direct => {Some(base)}
@@ -446,7 +446,7 @@ pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitVector> {
 /// prepare_trap_vector
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L302-312.
-pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitVector {
+pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> BitVector<BitDynamic> {
     let tvec: Mtvec = match p {
         Privilege::Machine => {core_ctx.mtvec}
         Privilege::Supervisor => {core_ctx.stvec}
@@ -463,7 +463,7 @@ pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> 
 /// trap_handler
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L314-365.
-pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: BitVector, pc: BitVector, info: Option<BitVector>) -> BitVector {
+pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: BitVector<BitDynamic>, pc: BitVector<BitDynamic>, info: Option<BitVector<BitDynamic>>) -> BitVector<BitDynamic> {
     match del_priv {
         Privilege::Machine => {{
             core_ctx.mcause.bits = core_ctx.mcause.bits.set_subrange::<63, 64, 1>(bool_to_bits(intr));
@@ -567,7 +567,7 @@ pub fn exception_delegatee(core_ctx: &mut Core, e: ExceptionType, p: Privilege) 
 /// exception_handler
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L382-390.
-pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_result, pc: BitVector) -> BitVector {
+pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_result, pc: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     match (cur_priv, ctl) {
         (_, ctl_result::CTL_TRAP(e)) => {{
             let del_priv = exception_delegatee(core_ctx, e.trap, cur_priv);
@@ -632,14 +632,14 @@ pub enum Retired {
 /// Generated from the Sail sources at `tests/trap/arch.sail` L404.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    ITYPE((BitVector, regidx, regidx, iop)),
-    CSR((BitVector, regidx, regidx, bool, csrop))
+    ITYPE((BitVector<BitDynamic>, regidx, regidx, iop)),
+    CSR((BitVector<BitDynamic>, regidx, regidx, bool, csrop))
 }
 
 /// encdec_csrop_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector {
+pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector<BitDynamic> {
     match arg_hashtag_ {
         csrop::CSRRW => {BitVector::new(2, 0b01)}
         csrop::CSRRS => {BitVector::new(2, 0b10)}
@@ -651,7 +651,7 @@ pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector {
 /// encdec_csrop_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_backwards(arg_hashtag_: BitVector) -> csrop {
+pub fn encdec_csrop_backwards(arg_hashtag_: BitVector<BitDynamic>) -> csrop {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::new(2, 0b01))} => {csrop::CSRRW}
         b__1 if {(b__1 == BitVector::new(2, 0b10))} => {csrop::CSRRS}
@@ -663,7 +663,7 @@ pub fn encdec_csrop_backwards(arg_hashtag_: BitVector) -> csrop {
 /// encdec_csrop_backwards_matches
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector) -> bool {
+pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector<BitDynamic>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::new(2, 0b01))} => {true}
         b__1 if {(b__1 == BitVector::new(2, 0b10))} => {true}
@@ -673,29 +673,29 @@ pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector) -> bool {
     }
 }
 
-pub type csrRW = BitVector;
+pub type csrRW = BitVector<BitDynamic>;
 
 /// csrAccess
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L436.
-pub fn csrAccess(csr: BitVector) -> BitVector {
+pub fn csrAccess(csr: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     csr.subrange::<10, 12, 2>()
 }
 
 /// csrPriv
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L437.
-pub fn csrPriv(csr: BitVector) -> BitVector {
+pub fn csrPriv(csr: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     csr.subrange::<8, 10, 2>()
 }
 
 /// encdec_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector<BitDynamic> {
     match arg_hashtag_ {
-        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {bitvector_concat((imm as BitVector), bitvector_concat((rs1 as regidx), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat((rd as regidx), BitVector::new(7, 0b0010011)))))}
-        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat((csr as BitVector), bitvector_concat((rs1 as BitVector), bitvector_concat(bool_bits_forwards(is_imm), bitvector_concat(encdec_csrop_forwards(op), bitvector_concat((rd as BitVector), BitVector::new(7, 0b1110011))))))}
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {bitvector_concat((imm as BitVector<BitDynamic>), bitvector_concat((rs1 as regidx), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat((rd as regidx), BitVector::new(7, 0b0010011)))))}
+        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat((csr as BitVector<BitDynamic>), bitvector_concat((rs1 as BitVector<BitDynamic>), bitvector_concat(bool_bits_forwards(is_imm), bitvector_concat(encdec_csrop_forwards(op), bitvector_concat((rd as BitVector<BitDynamic>), BitVector::new(7, 0b1110011))))))}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -703,22 +703,22 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
 /// encdec_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
+pub fn encdec_backwards(arg_hashtag_: BitVector<BitDynamic>) -> ast {
     let head_exp_hashtag_ = arg_hashtag_;
     match match head_exp_hashtag_ {
-        v__0 if {((v__0.subrange::<12, 15, 3>() == BitVector::new(3, 0b000)) && (v__0.subrange::<0, 7, 7>() == BitVector::new(7, 0b0010011)))} => {let imm: BitVector = v__0.subrange::<20, 32, 12>();
+        v__0 if {((v__0.subrange::<12, 15, 3>() == BitVector::new(3, 0b000)) && (v__0.subrange::<0, 7, 7>() == BitVector::new(7, 0b0010011)))} => {let imm: BitVector<BitDynamic> = v__0.subrange::<20, 32, 12>();
         let rs1: regidx = v__0.subrange::<15, 20, 5>();
         let rd: regidx = v__0.subrange::<7, 12, 5>();
-        let imm: BitVector = v__0.subrange::<20, 32, 12>();
+        let imm: BitVector<BitDynamic> = v__0.subrange::<20, 32, 12>();
         Some(ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)))}
-        v__3 if {let mapping1_hashtag__var_1: BitVector = v__3.subrange::<12, 14, 2>();
-        let mapping0_hashtag__var_2: BitVector = v__3.subrange::<14, 15, 1>();
-        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__3.subrange::<0, 7, 7>() == BitVector::new(7, 0b1110011)))} => {let csr: BitVector = v__3.subrange::<20, 32, 12>();
-        let rs1: BitVector = v__3.subrange::<15, 20, 5>();
-        let rd: BitVector = v__3.subrange::<7, 12, 5>();
-        let mapping1_hashtag_: BitVector = v__3.subrange::<12, 14, 2>();
-        let mapping0_hashtag_: BitVector = v__3.subrange::<14, 15, 1>();
-        let csr: BitVector = v__3.subrange::<20, 32, 12>();
+        v__3 if {let mapping1_hashtag__var_1: BitVector<BitDynamic> = v__3.subrange::<12, 14, 2>();
+        let mapping0_hashtag__var_2: BitVector<BitDynamic> = v__3.subrange::<14, 15, 1>();
+        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__3.subrange::<0, 7, 7>() == BitVector::new(7, 0b1110011)))} => {let csr: BitVector<BitDynamic> = v__3.subrange::<20, 32, 12>();
+        let rs1: BitVector<BitDynamic> = v__3.subrange::<15, 20, 5>();
+        let rd: BitVector<BitDynamic> = v__3.subrange::<7, 12, 5>();
+        let mapping1_hashtag_: BitVector<BitDynamic> = v__3.subrange::<12, 14, 2>();
+        let mapping0_hashtag_: BitVector<BitDynamic> = v__3.subrange::<14, 15, 1>();
+        let csr: BitVector<BitDynamic> = v__3.subrange::<20, 32, 12>();
         match (bool_bits_backwards(mapping0_hashtag_), encdec_csrop_backwards(mapping1_hashtag_)) {
             (is_imm, op) => {Some(ast::CSR((csr, rs1, rd, is_imm, op)))}
             _ => {None}
@@ -735,7 +735,7 @@ pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
 /// is_CSR_defined
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L442-447.
-pub fn is_CSR_defined(csr: BitVector, p: Privilege) -> bool {
+pub fn is_CSR_defined(csr: BitVector<BitDynamic>, p: Privilege) -> bool {
     match csr {
         b__0 if {(b__0 == BitVector::new(12, 0b001101000000))} => {(p == Privilege::Machine)}
         b__1 if {(b__1 == BitVector::new(12, 0b000101000000))} => {((p == Privilege::Machine) || (p == Privilege::Supervisor))}
@@ -747,21 +747,21 @@ pub fn is_CSR_defined(csr: BitVector, p: Privilege) -> bool {
 /// check_CSR_access
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L450-452.
-pub fn check_CSR_access(csrrw: BitVector, csrpr: BitVector, p: Privilege, isWrite: bool) -> bool {
+pub fn check_CSR_access(csrrw: BitVector<BitDynamic>, csrpr: BitVector<BitDynamic>, p: Privilege, isWrite: bool) -> bool {
     (!(((isWrite == true) && (csrrw == BitVector::new(2, 0b11)))) && _operator_biggerequal_u_(privLevel_to_bits(p), csrpr))
 }
 
 /// check_CSR
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L454-455.
-pub fn check_CSR(csr: BitVector, p: Privilege, isWrite: bool) -> bool {
+pub fn check_CSR(csr: BitVector<BitDynamic>, p: Privilege, isWrite: bool) -> bool {
     (is_CSR_defined(csr, p) && check_CSR_access(csrAccess(csr), csrPriv(csr), p, isWrite))
 }
 
 /// readCSR
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L457-465.
-pub fn readCSR(core_ctx: &mut Core, csr: BitVector) -> BitVector {
+pub fn readCSR(core_ctx: &mut Core, csr: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     let res: xlenbits = match (csr, 64) {
         (b__0, _) if {(b__0 == BitVector::new(12, 0b001101000000))} => {core_ctx.mscratch}
         (b__1, _) if {(b__1 == BitVector::new(12, 0b000101000000))} => {core_ctx.sscratch}
@@ -774,7 +774,7 @@ pub fn readCSR(core_ctx: &mut Core, csr: BitVector) -> BitVector {
 /// writeCSR
 ///
 /// Generated from the Sail sources at `tests/trap/arch.sail` L467-474.
-pub fn writeCSR(core_ctx: &mut Core, csr: BitVector, value: BitVector) {
+pub fn writeCSR(core_ctx: &mut Core, csr: BitVector<BitDynamic>, value: BitVector<BitDynamic>) {
     let res: Option<xlenbits> = match (csr, 64) {
         (b__0, _) if {(b__0 == BitVector::new(12, 0b001101000000))} => {{
             core_ctx.mscratch = value;

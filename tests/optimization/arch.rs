@@ -29,14 +29,14 @@ pub fn _reset_all_registers() {
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector;
+pub type xlenbits = BitVector<BitDynamic>;
 
 pub const xlen: i128 = 64;
 
 /// known_match_branch
 ///
 /// Generated from the Sail sources at `tests/optimization/arch.sail` L17-22.
-pub const fn known_match_branch(unit_arg: ()) -> BitVector {
+pub const fn known_match_branch(unit_arg: ()) -> BitVector<BitDynamic> {
     sail_zeros(64)
 }
 

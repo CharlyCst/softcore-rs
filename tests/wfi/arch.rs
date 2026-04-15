@@ -15,9 +15,9 @@ pub struct Core {
     pub mepc: xlenbits,
     pub sepc: xlenbits,
     pub uepc: xlenbits,
-    pub mtimecmp: BitVector,
-    pub mtime: BitVector,
-    pub mcycle: BitVector,
+    pub mtimecmp: BitVector<BitDynamic>,
+    pub mtime: BitVector<BitDynamic>,
+    pub mcycle: BitVector<BitDynamic>,
     pub mstatus: Mstatus,
     pub cur_privilege: Privilege,
     pub config: Config,
@@ -38,15 +38,15 @@ pub fn _reset_all_registers() {
 /// (operator <_u)
 ///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L9.
-pub fn _operator_smaller_u_(x: BitVector, y: BitVector) -> bool {
+pub fn _operator_smaller_u_(x: BitVector<BitDynamic>, y: BitVector<BitDynamic>) -> bool {
     (x.unsigned() < y.unsigned())
 }
 
 pub const xlen: i128 = 64;
 
-pub type xlenbits = BitVector;
+pub type xlenbits = BitVector<BitDynamic>;
 
-pub type priv_level = BitVector;
+pub type priv_level = BitVector<BitDynamic>;
 
 /// Privilege
 ///
@@ -58,24 +58,24 @@ pub enum Privilege {
     Machine
 }
 
-pub type regidx = BitVector;
+pub type regidx = BitVector<BitDynamic>;
 
-pub type cregidx = BitVector;
+pub type cregidx = BitVector<BitDynamic>;
 
-pub type csreg = BitVector;
+pub type csreg = BitVector<BitDynamic>;
 
 /// Mstatus
 ///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L39-63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
-    pub bits: BitVector,
+    pub bits: BitVector<BitDynamic>,
 }
 
 /// _get_Mstatus_TW
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_TW(v: Mstatus) -> BitVector {
+pub fn _get_Mstatus_TW(v: Mstatus) -> BitVector<BitDynamic> {
     v.bits.subrange::<21, 22, 1>()
 }
 
@@ -122,7 +122,7 @@ pub enum ast {
 /// encdec_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector<BitDynamic> {
     match arg_hashtag_ {
         ast::WFI(()) => {bitvector_concat(BitVector::new(12, 0b000100000101), bitvector_concat(BitVector::new(5, 0b00000), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011)))))}
         _ => {panic!("Unreachable code")}
@@ -132,7 +132,7 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
 /// encdec_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
+pub fn encdec_backwards(arg_hashtag_: BitVector<BitDynamic>) -> ast {
     match arg_hashtag_ {
         v__0 if {(v__0 == BitVector::new(32, 0b00010000010100000000000001110011))} => {ast::WFI(())}
         _ => {panic!("Unreachable code")}

@@ -11,6 +11,8 @@
 //!
 //! [1]: https://github.com/riscv/sail-riscv
 
+#![feature(const_trait_impl, const_ops, const_cmp)]
+
 mod arch_prelude;
 pub mod config;
 pub mod registers;
@@ -31,14 +33,14 @@ use raw::{cregidx, regidx};
 use registers::GeneralRegister;
 use registers::*;
 pub use softcore_prelude as prelude;
-use softcore_prelude::{BitVector, bv};
+use softcore_prelude::{BitVector, BitStorage, bv, bvd};
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
 
-const DEFAULT_PMP_CFG: raw::Pmpcfg_ent = raw::Pmpcfg_ent { bits: bv(8, 0) };
-const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent { bits: bv(64, 0) };
+const DEFAULT_PMP_CFG: raw::Pmpcfg_ent = raw::Pmpcfg_ent { bits: bv(0) };
+const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent { bits: bv(0) };
 const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
-const ZEROES: BitVector = bv(64, 0);
+const ZEROES: BitVector<BitStatic<64>> = bv(0);
 
 // ————————————————————————————— Trap Handling —————————————————————————————— //
 
@@ -90,12 +92,12 @@ impl Core {
             ExecutionResult::Illegal_Instruction(_) => {
                 let instr_bits = raw::encdec_forwards(self, instr);
                 raw::handle_illegal(self, instr_bits);
-                Trap::Some(self.nextPC.bits())
+                Trap::Some(self.nextPC.unsigned())
             }
             ExecutionResult::Trap((privilege, ctl, pc)) => {
                 let pc = raw::exception_handler(self, privilege, ctl, pc);
                 raw::set_next_pc(self, pc);
-                Trap::Some(self.nextPC.bits())
+                Trap::Some(self.nextPC.unsigned())
             }
             ExecutionResult::Memory_Exception(_) => todo!("handle Memory_Exception"),
             ExecutionResult::Ext_CSR_Check_Failure(_) => todo!("handle Ext_CSR_Check_Failure"),
@@ -112,17 +114,17 @@ impl Core {
     /// Get the value of a general purpose register.
     pub fn get(&mut self, reg: GeneralRegister) -> u64 {
         let reg = match reg {
-            raw::regidx::Regidx(reg) => reg.bits() as i128,
+            raw::regidx::Regidx(reg) => reg.unsigned() as i128,
         };
-        raw::rX(self, raw::regno::Regno(reg)).bits()
+        raw::rX(self, raw::regno::Regno(reg)).unsigned()
     }
 
     /// Set the value of a general purpose register.
     pub fn set(&mut self, reg: GeneralRegister, value: u64) {
         let reg = match reg {
-            raw::regidx::Regidx(reg) => reg.bits() as i128,
+            raw::regidx::Regidx(reg) => reg.unsigned() as i128,
         };
-        raw::wX(self, raw::regno::Regno(reg), bv(64, value));
+        raw::wX(self, raw::regno::Regno(reg), bv(value));
     }
 
     /// Get the value of a single vector register.
@@ -174,9 +176,9 @@ impl Core {
     /// This function returns [None] if the CSR can not be read by the current privilege level or
     /// is not implemented given the core configuration.
     pub fn get_csr(&mut self, csr: u64) -> Option<u64> {
-        let csr = bv(12, csr);
+        let csr = bv(csr);
         if raw::check_CSR(self, csr, self.cur_privilege, false) {
-            Some(raw::read_CSR(self, csr).bits())
+            Some(raw::read_CSR(self, csr).unsigned())
         } else {
             None
         }
@@ -188,9 +190,9 @@ impl Core {
     /// or is not implemented given the core configuration. Otherwise the new CSR value is
     /// returned.
     pub fn set_csr(&mut self, csr: u64, value: u64) -> Option<u64> {
-        let csr = bv(12, csr);
+        let csr = bv(csr);
         if raw::check_CSR(self, csr, self.cur_privilege, true) {
-            Some(raw::write_CSR(self, csr, bv(64, value)).bits())
+            Some(raw::write_CSR(self, csr, bv(value)).unsigned())
         } else {
             None
         }
@@ -291,8 +293,8 @@ impl Core {
         op: raw::csrop,
         is_write: bool,
     ) -> Result<(), raw::ExecutionResult> {
-        let csr = bv(12, csr);
-        let val = bv(64, val);
+        let csr = bv(csr);
+        let val = bv(val);
         let res = raw::doCSR(self, csr, val, rd, op, is_write);
         match res {
             raw::ExecutionResult::Retire_Success(()) => Ok(()),
@@ -312,17 +314,17 @@ impl Core {
 
     /// Decode an instruction
     pub fn decode_instr(&mut self, instr: u32) -> ast {
-        raw::encdec_backwards(self, bv(32, instr as u64))
+        raw::encdec_backwards(self, bv(instr as u64))
     }
 
     /// Encode and instruction
     pub fn encode_instr(&mut self, instr: ast) -> u32 {
-        raw::encdec_forwards(self, instr).bits() as u32
+        raw::encdec_forwards(self, instr).unsigned() as u32
     }
 
     /// Return true if the CSR is defined (and enabled) on the core
     pub fn is_csr_defined(&mut self, csr_id: usize) -> bool {
-        raw::is_CSR_defined(self, bv(12, csr_id as u64))
+        raw::is_CSR_defined(self, bv(csr_id as u64))
     }
 
     /// Dispatch pending interrupt
@@ -350,24 +352,24 @@ impl Core {
             false,
             raw::exceptionType_to_bits(exception),
             self.PC,
-            Some(bv(64, tval)),
+            Some(bv(tval)),
             None,
         );
     }
 
     /// Return the `pmpaddr<index>` register.
     pub fn get_pmpaddr(&self, index: usize) -> u64 {
-        self.pmpaddr_n[index].bits()
+        self.pmpaddr_n[index].unsigned() as u64
     }
 
     /// Set the `pmpaddr<index>` register to the given value.
     pub fn set_pmpaddr(&mut self, index: usize, val: u64) {
-        raw::pmpWriteAddrReg(self, index as i128, bv(64, val));
+        raw::pmpWriteAddrReg(self, index as i128, bv(val));
     }
 
     /// Set the `pmpcfg<index>` register to the given value.
     pub fn set_pmpcfg(&mut self, index: usize, val: u64) {
-        raw::pmpWriteCfgReg(self, index as i128, bv(64, val));
+        raw::pmpWriteCfgReg(self, index as i128, bv(val));
     }
 
     /// Check if an 8 byte access is allowed with the current mode and PMP configuration.
@@ -378,7 +380,7 @@ impl Core {
         addr: u64,
         access_kind: raw::AccessType<()>,
     ) -> Option<raw::ExceptionType> {
-        let addr = raw::physaddr::Physaddr(bv(raw::physaddrbits_len, addr));
+        let addr = raw::physaddr::Physaddr(bv(addr));
         let width = 8;
         raw::pmpCheck(self, addr, width, access_kind, self.cur_privilege)
     }
@@ -390,158 +392,159 @@ impl Core {
 /// [Core::reset] or update CSRs manually to ensure the core enters a valid starting state.
 pub const fn new_core(config: raw::Config) -> Core {
     Core {
-        PC: bv(raw::xlen, 0),
-        nextPC: bv(raw::xlen, 0),
-        x1: bv(raw::xlen, 0),
-        x2: bv(raw::xlen, 0),
-        x3: bv(raw::xlen, 0),
-        x4: bv(raw::xlen, 0),
-        x5: bv(raw::xlen, 0),
-        x6: bv(raw::xlen, 0),
-        x7: bv(raw::xlen, 0),
-        x8: bv(raw::xlen, 0),
-        x9: bv(raw::xlen, 0),
-        x10: bv(raw::xlen, 0),
-        x11: bv(raw::xlen, 0),
-        x12: bv(raw::xlen, 0),
-        x13: bv(raw::xlen, 0),
-        x14: bv(raw::xlen, 0),
-        x15: bv(raw::xlen, 0),
-        x16: bv(raw::xlen, 0),
-        x17: bv(raw::xlen, 0),
-        x18: bv(raw::xlen, 0),
-        x19: bv(raw::xlen, 0),
-        x20: bv(raw::xlen, 0),
-        x21: bv(raw::xlen, 0),
-        x22: bv(raw::xlen, 0),
-        x23: bv(raw::xlen, 0),
-        x24: bv(raw::xlen, 0),
-        x25: bv(raw::xlen, 0),
-        x26: bv(raw::xlen, 0),
-        x27: bv(raw::xlen, 0),
-        x28: bv(raw::xlen, 0),
-        x29: bv(raw::xlen, 0),
-        x30: bv(raw::xlen, 0),
-        x31: bv(raw::xlen, 0),
+        PC: bv(0),
+        nextPC: bv(0),
+        x1: bv(0),
+        x2: bv(0),
+        x3: bv(0),
+        x4: bv(0),
+        x5: bv(0),
+        x6: bv(0),
+        x7: bv(0),
+        x8: bv(0),
+        x9: bv(0),
+        x10: bv(0),
+        x11: bv(0),
+        x12: bv(0),
+        x13: bv(0),
+        x14: bv(0),
+        x15: bv(0),
+        x16: bv(0),
+        x17: bv(0),
+        x18: bv(0),
+        x19: bv(0),
+        x20: bv(0),
+        x21: bv(0),
+        x22: bv(0),
+        x23: bv(0),
+        x24: bv(0),
+        x25: bv(0),
+        x26: bv(0),
+        x27: bv(0),
+        x28: bv(0),
+        x29: bv(0),
+        x30: bv(0),
+        x31: bv(0),
         cur_privilege: raw::Privilege::Machine,
-        cur_inst: bv(raw::xlen, 0),
-        misa: raw::Misa { bits: bv(64, 0) },
-        mstatus: raw::Mstatus { bits: bv(64, 0) },
-        menvcfg: raw::MEnvcfg { bits: bv(64, 0) },
-        senvcfg: raw::SEnvcfg { bits: bv(64, 0) },
-        mie: raw::Minterrupts { bits: bv(64, 0) },
-        mip: raw::Minterrupts { bits: bv(64, 0) },
-        medeleg: raw::Medeleg { bits: bv(64, 0) },
-        mideleg: raw::Minterrupts { bits: bv(64, 0) },
-        mtvec: raw::Mtvec { bits: bv(64, 0) },
-        mcause: raw::Mcause { bits: bv(64, 0) },
-        mepc: bv(raw::xlen, 0),
-        mtval: bv(raw::xlen, 0),
-        mscratch: bv(raw::xlen, 0),
-        scounteren: raw::Counteren { bits: bv(32, 0) },
-        mcounteren: raw::Counteren { bits: bv(32, 0) },
-        mcountinhibit: raw::Counterin { bits: bv(32, 0) },
-        mcycle: bv(64, 0),
-        mtime: bv(64, 0),
-        minstret: bv(64, 0),
+        cur_inst: bv(0),
+        misa: raw::Misa { bits: bv(0) },
+        mstatus: raw::Mstatus { bits: bv(0) },
+        menvcfg: raw::MEnvcfg { bits: bv(0) },
+        senvcfg: raw::SEnvcfg { bits: bv(0) },
+        mie: raw::Minterrupts { bits: bv(0) },
+        mip: raw::Minterrupts { bits: bv(0) },
+        medeleg: raw::Medeleg { bits: bv(0) },
+        mideleg: raw::Minterrupts { bits: bv(0) },
+        mtvec: raw::Mtvec { bits: bv(0) },
+        mcause: raw::Mcause { bits: bv(0) },
+        mepc: bv(0),
+        mtval: bv(0),
+        mscratch: bv(0),
+        scounteren: raw::Counteren { bits: bv(0) },
+        mcounteren: raw::Counteren { bits: bv(0) },
+        mcountinhibit: raw::Counterin { bits: bv(0) },
+        mcycle: bv(0),
+        mtime: bv(0),
+        minstret: bv(0),
         minstret_increment: false,
-        mvendorid: bv(32, 0),
-        mimpid: bv(raw::xlen, 0),
-        marchid: bv(raw::xlen, 0),
-        mhartid: bv(raw::xlen, 0),
-        mconfigptr: bv(raw::xlen, 0),
-        stvec: raw::Mtvec { bits: bv(64, 0) },
-        sscratch: bv(raw::xlen, 0),
-        sepc: bv(raw::xlen, 0),
-        scause: raw::Mcause { bits: bv(64, 0) },
-        stval: bv(raw::xlen, 0),
-        tselect: bv(raw::xlen, 0),
-        vstart: bv(16, 0),
-        vl: bv(raw::xlen, 0),
-        vtype: raw::Vtype { bits: bv(64, 0) },
+        mvendorid: bv(0),
+        mimpid: bv(0),
+        marchid: bv(0),
+        mhartid: bv(0),
+        mconfigptr: bv(0),
+        stvec: raw::Mtvec { bits: bv(0) },
+        sscratch: bv(0),
+        sepc: bv(0),
+        scause: raw::Mcause { bits: bv(0) },
+        stval: bv(0),
+        tselect: bv(0),
+        vstart: bv(0),
+        vl: bv(0),
+        vtype: raw::Vtype { bits: bv(0) },
         pmpcfg_n: [DEFAULT_PMP_CFG; 64],
         pmpaddr_n: [ZEROES; 64],
-        vr0: bv(raw::vlenmax, 0),
-        vr1: bv(raw::vlenmax, 0),
-        vr2: bv(raw::vlenmax, 0),
-        vr3: bv(raw::vlenmax, 0),
-        vr4: bv(raw::vlenmax, 0),
-        vr5: bv(raw::vlenmax, 0),
-        vr6: bv(raw::vlenmax, 0),
-        vr7: bv(raw::vlenmax, 0),
-        vr8: bv(raw::vlenmax, 0),
-        vr9: bv(raw::vlenmax, 0),
-        vr10: bv(raw::vlenmax, 0),
-        vr11: bv(raw::vlenmax, 0),
-        vr12: bv(raw::vlenmax, 0),
-        vr13: bv(raw::vlenmax, 0),
-        vr14: bv(raw::vlenmax, 0),
-        vr15: bv(raw::vlenmax, 0),
-        vr16: bv(raw::vlenmax, 0),
-        vr17: bv(raw::vlenmax, 0),
-        vr18: bv(raw::vlenmax, 0),
-        vr19: bv(raw::vlenmax, 0),
-        vr20: bv(raw::vlenmax, 0),
-        vr21: bv(raw::vlenmax, 0),
-        vr22: bv(raw::vlenmax, 0),
-        vr23: bv(raw::vlenmax, 0),
-        vr24: bv(raw::vlenmax, 0),
-        vr25: bv(raw::vlenmax, 0),
-        vr26: bv(raw::vlenmax, 0),
-        vr27: bv(raw::vlenmax, 0),
-        vr28: bv(raw::vlenmax, 0),
-        vr29: bv(raw::vlenmax, 0),
-        vr30: bv(raw::vlenmax, 0),
-        vr31: bv(raw::vlenmax, 0),
-        vcsr: raw::Vcsr { bits: bv(3, 0) },
+        // TODO(Gurvan): Fix the length of the following according to config
+        vr0: bvd(config.extensions.V.vlen_exp, 0),
+        vr1: bvd(config.extensions.V.vlen_exp, 0),
+        vr2: bvd(config.extensions.V.vlen_exp, 0),
+        vr3: bvd(config.extensions.V.vlen_exp, 0),
+        vr4: bvd(config.extensions.V.vlen_exp, 0),
+        vr5: bvd(config.extensions.V.vlen_exp, 0),
+        vr6: bvd(config.extensions.V.vlen_exp, 0),
+        vr7: bvd(config.extensions.V.vlen_exp, 0),
+        vr8: bvd(config.extensions.V.vlen_exp, 0),
+        vr9: bvd(config.extensions.V.vlen_exp, 0),
+        vr10: bvd(config.extensions.V.vlen_exp, 0),
+        vr11: bvd(config.extensions.V.vlen_exp, 0),
+        vr12: bvd(config.extensions.V.vlen_exp, 0),
+        vr13: bvd(config.extensions.V.vlen_exp, 0),
+        vr14: bvd(config.extensions.V.vlen_exp, 0),
+        vr15: bvd(config.extensions.V.vlen_exp, 0),
+        vr16: bvd(config.extensions.V.vlen_exp, 0),
+        vr17: bvd(config.extensions.V.vlen_exp, 0),
+        vr18: bvd(config.extensions.V.vlen_exp, 0),
+        vr19: bvd(config.extensions.V.vlen_exp, 0),
+        vr20: bvd(config.extensions.V.vlen_exp, 0),
+        vr21: bvd(config.extensions.V.vlen_exp, 0),
+        vr22: bvd(config.extensions.V.vlen_exp, 0),
+        vr23: bvd(config.extensions.V.vlen_exp, 0),
+        vr24: bvd(config.extensions.V.vlen_exp, 0),
+        vr25: bvd(config.extensions.V.vlen_exp, 0),
+        vr26: bvd(config.extensions.V.vlen_exp, 0),
+        vr27: bvd(config.extensions.V.vlen_exp, 0),
+        vr28: bvd(config.extensions.V.vlen_exp, 0),
+        vr29: bvd(config.extensions.V.vlen_exp, 0),
+        vr30: bvd(config.extensions.V.vlen_exp, 0),
+        vr31: bvd(config.extensions.V.vlen_exp, 0),
+        vcsr: raw::Vcsr { bits: bv(0) },
         mhpmevent: [DEFAULT_HPM_EVENT; 32],
         mhpmcounter: [ZEROES; 32],
-        float_result: bv(64, 0),
-        float_fflags: bv(64, 0),
-        f0: bv(raw::flen, 0),
-        f1: bv(raw::flen, 0),
-        f2: bv(raw::flen, 0),
-        f3: bv(raw::flen, 0),
-        f4: bv(raw::flen, 0),
-        f5: bv(raw::flen, 0),
-        f6: bv(raw::flen, 0),
-        f7: bv(raw::flen, 0),
-        f8: bv(raw::flen, 0),
-        f9: bv(raw::flen, 0),
-        f10: bv(raw::flen, 0),
-        f11: bv(raw::flen, 0),
-        f12: bv(raw::flen, 0),
-        f13: bv(raw::flen, 0),
-        f14: bv(raw::flen, 0),
-        f15: bv(raw::flen, 0),
-        f16: bv(raw::flen, 0),
-        f17: bv(raw::flen, 0),
-        f18: bv(raw::flen, 0),
-        f19: bv(raw::flen, 0),
-        f20: bv(raw::flen, 0),
-        f21: bv(raw::flen, 0),
-        f22: bv(raw::flen, 0),
-        f23: bv(raw::flen, 0),
-        f24: bv(raw::flen, 0),
-        f25: bv(raw::flen, 0),
-        f26: bv(raw::flen, 0),
-        f27: bv(raw::flen, 0),
-        f28: bv(raw::flen, 0),
-        f29: bv(raw::flen, 0),
-        f30: bv(raw::flen, 0),
-        f31: bv(raw::flen, 0),
-        fcsr: raw::Fcsr { bits: bv(32, 0) },
-        mcyclecfg: raw::CountSmcntrpmf { bits: bv(64, 0) },
-        minstretcfg: raw::CountSmcntrpmf { bits: bv(64, 0) },
-        mtimecmp: bv(64, 0),
-        stimecmp: bv(64, 0),
-        htif_tohost: bv(64, 0),
+        float_result: bv(0),
+        float_fflags: bv(0),
+        f0: bv(0),
+        f1: bv(0),
+        f2: bv(0),
+        f3: bv(0),
+        f4: bv(0),
+        f5: bv(0),
+        f6: bv(0),
+        f7: bv(0),
+        f8: bv(0),
+        f9: bv(0),
+        f10: bv(0),
+        f11: bv(0),
+        f12: bv(0),
+        f13: bv(0),
+        f14: bv(0),
+        f15: bv(0),
+        f16: bv(0),
+        f17: bv(0),
+        f18: bv(0),
+        f19: bv(0),
+        f20: bv(0),
+        f21: bv(0),
+        f22: bv(0),
+        f23: bv(0),
+        f24: bv(0),
+        f25: bv(0),
+        f26: bv(0),
+        f27: bv(0),
+        f28: bv(0),
+        f29: bv(0),
+        f30: bv(0),
+        f31: bv(0),
+        fcsr: raw::Fcsr { bits: bv(0) },
+        mcyclecfg: raw::CountSmcntrpmf { bits: bv(0) },
+        minstretcfg: raw::CountSmcntrpmf { bits: bv(0) },
+        mtimecmp: bv(0),
+        stimecmp: bv(0),
+        htif_tohost: bv(0),
         htif_done: false,
-        htif_exit_code: bv(64, 0),
+        htif_exit_code: bv(0),
         htif_cmd_write: false,
-        htif_payload_writes: bv(4, 0),
+        htif_payload_writes: bv(0),
         tlb: [DEFAULT_TLB_ENTRY; raw::num_tlb_entries as usize],
-        satp: bv(raw::xlen, 0),
+        satp: bv(0),
         hart_state: raw::HartState::HART_ACTIVE(()),
         config,
     }
@@ -552,13 +555,13 @@ pub const fn new_core(config: raw::Config) -> Core {
 impl regidx {
     /// Creates a new regidx from a register index
     pub fn new(reg: u8) -> regidx {
-        regidx::Regidx(bv(5, reg as u64))
+        regidx::Regidx(bv(reg as u64))
     }
 
     /// Return the register index as bits.
     pub fn bits(self) -> u8 {
         let regidx::Regidx(bits) = self;
-        bits.bits() as u8
+        bits.unsigned() as u8
     }
 }
 
@@ -568,7 +571,7 @@ impl cregidx {
     /// Warning: this is not the same as the uncompressed register index.
     pub fn bits(self) -> u8 {
         let cregidx::Cregidx(bits) = self;
-        bits.bits() as u8
+        bits.unsigned() as u8
     }
 
     /// Convert a compressed register index into an uncompressed register index.
@@ -617,14 +620,14 @@ mod tests {
     #[test]
     fn decoder() {
         let mut ctx = new_core(config::U74);
-        let uimm0 = bv(5, 0);
+        let uimm0 = bv(0);
 
         // Load/Store
 
         assert_eq!(
             ctx.decode_instr(0xff87b703),
             ast::LOAD((
-                bv(12, 0xFFF - 7), // immediate is -8
+                bv(0xFFF - 7), // immediate is -8
                 X15,
                 X14,
                 false,
@@ -639,38 +642,38 @@ mod tests {
         // csrrw x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30001073),
-            ast::CSRReg((bv(12, 0x300), X0, X0, csrop::CSRRW))
+            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRW))
         );
         // csrrs x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30002073),
-            ast::CSRReg((bv(12, 0x300), X0, X0, csrop::CSRRS))
+            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRS))
         );
         // csrrc x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30003073),
-            ast::CSRReg((bv(12, 0x300), X0, X0, csrop::CSRRC))
+            ast::CSRReg((bv(0x300), X0, X0, csrop::CSRRC))
         );
         // csrrwi x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30005073),
-            ast::CSRImm((bv(12, 0x300), uimm0, X0, csrop::CSRRW))
+            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRW))
         );
         // csrrsi x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30006073),
-            ast::CSRImm((bv(12, 0x300), uimm0, X0, csrop::CSRRS))
+            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRS))
         );
         // csrrci x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30007073),
-            ast::CSRImm((bv(12, 0x300), uimm0, X0, csrop::CSRRC))
+            ast::CSRImm((bv(0x300), uimm0, X0, csrop::CSRRC))
         );
 
         // Illegal
         assert_eq!(
             ctx.decode_instr(0x30001072),
-            ast::ILLEGAL(bv(32, 0x30001072))
+            ast::ILLEGAL(bv(0x30001072))
         );
     }
 
@@ -804,8 +807,8 @@ mod tests {
 
         // Set initial state
         core.set_mode(Privilege::User);
-        core.PC = bv(raw::xlen, 0x1000);
-        let initial_pc = core.PC.bits();
+        core.PC = bv(0x1000);
+        let initial_pc = core.PC.unsigned();
 
         assert_eq!(core.mode(), Privilege::User, "Initial mode should be User");
 
@@ -822,14 +825,14 @@ mod tests {
 
         // Check that mepc was set to the PC at the time of the exception
         assert_eq!(
-            core.mepc.bits(),
+            core.mepc.unsigned(),
             initial_pc,
             "mepc should contain the PC when exception occurred"
         );
 
         // Check that mtval contains the fault address
         assert_eq!(
-            core.mtval.bits(),
+            core.mtval.unsigned(),
             fault_addr,
             "mtval should contain the fault address"
         );
@@ -1065,12 +1068,12 @@ mod tests {
 
         // Test basic ADDI: addi a1, x0, 0x42
         assert_eq!(core.get(A1), 0, "A1 should start at 0");
-        let result = core.execute(ast::ITYPE((bv(12, 0x42), X0, A1, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((bv(0x42), X0, A1, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(core.get(A1), 0x42, "A1 should contain immediate value");
 
         // Test ADDI with register source: addi a1, a1, 0x20
-        let result = core.execute(ast::ITYPE((bv(12, 0x20), A1, A1, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((bv(0x20), A1, A1, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(
             core.get(A1),
@@ -1080,7 +1083,7 @@ mod tests {
 
         // Test ADDI with negative immediate (sign extension)
         core.set(T0, 100);
-        let result = core.execute(ast::ITYPE((bv(12, (-10i64) as u64), T0, T1, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((bv((-10i64) as u64), T0, T1, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(
             core.get(T1),
@@ -1089,13 +1092,13 @@ mod tests {
         );
 
         // Test ADDI with X0 as destination (should be ignored)
-        let result = core.execute(ast::ITYPE((bv(12, 0xFF), T0, X0, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((bv(0xFF), T0, X0, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(core.get(X0), 0, "X0 should remain hardwired to 0");
 
         // Test overflow behavior
         core.set(T2, u64::MAX);
-        let result = core.execute(ast::ITYPE((bv(12, 1), T2, T3, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((bv(1), T2, T3, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(core.get(T3), 0, "Addition should wrap around on overflow");
     }
@@ -1105,15 +1108,15 @@ mod tests {
         let mut core = new_core(config::U74);
 
         // Set up initial PC and register state
-        core.PC = bv(raw::xlen, 0x1000);
-        core.nextPC = bv(raw::xlen, 0x1004);
+        core.PC = bv(0x1000);
+        core.nextPC = bv(0x1004);
         core.set(T0, 0x3000); // Target address base
 
-        let initial_pc = core.PC.bits();
+        let initial_pc = core.PC.unsigned();
 
         // Test JALR: jalr ra, t0, 8
         // This should jump to (t0 + 8) & ~1 and store PC+4 in ra
-        let result = core.execute(ast::JALR((bv(12, 8), T0, RA)));
+        let result = core.execute(ast::JALR((bv(8), T0, RA)));
 
         assert!(matches!(result, Trap::None));
 
@@ -1127,7 +1130,7 @@ mod tests {
         // Check that nextPC was updated to target address (t0 + offset) with LSB cleared
         let expected_target = (0x3000 + 8) & !1; // JALR clears the LSB
         assert_eq!(
-            core.nextPC.bits(),
+            core.nextPC.unsigned(),
             expected_target,
             "nextPC should be updated to target address"
         );

@@ -31,9 +31,9 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector;
+pub type xlenbits = BitVector<BitDynamic>;
 
-pub type priv_level = BitVector;
+pub type priv_level = BitVector<BitDynamic>;
 
 /// Privilege
 ///
@@ -45,16 +45,16 @@ pub enum Privilege {
     Machine
 }
 
-pub type regidx = BitVector;
+pub type regidx = BitVector<BitDynamic>;
 
-pub type cregidx = BitVector;
+pub type cregidx = BitVector<BitDynamic>;
 
-pub type csreg = BitVector;
+pub type csreg = BitVector<BitDynamic>;
 
 /// bool_bits_forwards
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector {
+pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector<BitDynamic> {
     match arg_hashtag_ {
         true => {BitVector::new(1, 0b1)}
         false => {BitVector::new(1, 0b0)}
@@ -65,7 +65,7 @@ pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitVector {
 /// bool_bits_backwards
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_backwards(arg_hashtag_: BitVector) -> bool {
+pub fn bool_bits_backwards(arg_hashtag_: BitVector<BitDynamic>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::new(1, 0b1))} => {true}
         _ => {false}
@@ -76,7 +76,7 @@ pub fn bool_bits_backwards(arg_hashtag_: BitVector) -> bool {
 /// bool_bits_backwards_matches
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector) -> bool {
+pub fn bool_bits_backwards_matches(arg_hashtag_: BitVector<BitDynamic>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::new(1, 0b1))} => {true}
         b__1 if {(b__1 == BitVector::new(1, 0b0))} => {true}
@@ -122,19 +122,19 @@ pub enum Retired {
 /// Generated from the Sail sources at `tests/decoder/arch.sail` L62.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    CSR((BitVector, regidx, regidx, bool, csrop)),
+    CSR((BitVector<BitDynamic>, regidx, regidx, bool, csrop)),
     MRET(()),
     SRET(()),
     WFI(()),
-    SFENCE_VMA((BitVector, BitVector)),
-    HFENCE_VVMA((BitVector, BitVector)),
-    HFENCE_GVMA((BitVector, BitVector))
+    SFENCE_VMA((BitVector<BitDynamic>, BitVector<BitDynamic>)),
+    HFENCE_VVMA((BitVector<BitDynamic>, BitVector<BitDynamic>)),
+    HFENCE_GVMA((BitVector<BitDynamic>, BitVector<BitDynamic>))
 }
 
 /// encdec_csrop_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector {
+pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector<BitDynamic> {
     match arg_hashtag_ {
         csrop::CSRRW => {BitVector::new(2, 0b01)}
         csrop::CSRRS => {BitVector::new(2, 0b10)}
@@ -146,7 +146,7 @@ pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitVector {
 /// encdec_csrop_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_backwards(arg_hashtag_: BitVector) -> csrop {
+pub fn encdec_csrop_backwards(arg_hashtag_: BitVector<BitDynamic>) -> csrop {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::new(2, 0b01))} => {csrop::CSRRW}
         b__1 if {(b__1 == BitVector::new(2, 0b10))} => {csrop::CSRRS}
@@ -158,7 +158,7 @@ pub fn encdec_csrop_backwards(arg_hashtag_: BitVector) -> csrop {
 /// encdec_csrop_backwards_matches
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector) -> bool {
+pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector<BitDynamic>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitVector::new(2, 0b01))} => {true}
         b__1 if {(b__1 == BitVector::new(2, 0b10))} => {true}
@@ -168,20 +168,20 @@ pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitVector) -> bool {
     }
 }
 
-pub type csrRW = BitVector;
+pub type csrRW = BitVector<BitDynamic>;
 
 /// encdec_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector<BitDynamic> {
     match arg_hashtag_ {
-        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat((csr as BitVector), bitvector_concat((rs1 as BitVector), bitvector_concat(bool_bits_forwards(is_imm), bitvector_concat(encdec_csrop_forwards(op), bitvector_concat((rd as BitVector), BitVector::new(7, 0b1110011))))))}
+        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat((csr as BitVector<BitDynamic>), bitvector_concat((rs1 as BitVector<BitDynamic>), bitvector_concat(bool_bits_forwards(is_imm), bitvector_concat(encdec_csrop_forwards(op), bitvector_concat((rd as BitVector<BitDynamic>), BitVector::new(7, 0b1110011))))))}
         ast::MRET(()) => {bitvector_concat(BitVector::new(7, 0b0011000), bitvector_concat(BitVector::new(5, 0b00010), bitvector_concat(BitVector::new(5, 0b00000), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
         ast::SRET(()) => {bitvector_concat(BitVector::new(7, 0b0001000), bitvector_concat(BitVector::new(5, 0b00010), bitvector_concat(BitVector::new(5, 0b00000), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
         ast::WFI(()) => {bitvector_concat(BitVector::new(12, 0b000100000101), bitvector_concat(BitVector::new(5, 0b00000), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011)))))}
-        ast::SFENCE_VMA((rs1, rs2)) => {bitvector_concat(BitVector::new(7, 0b0001001), bitvector_concat((rs2 as BitVector), bitvector_concat((rs1 as BitVector), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
-        ast::HFENCE_VVMA((rs1, rs2)) => {bitvector_concat(BitVector::new(7, 0b0010001), bitvector_concat((rs2 as BitVector), bitvector_concat((rs1 as BitVector), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
-        ast::HFENCE_GVMA((rs1, rs2)) => {bitvector_concat(BitVector::new(7, 0b0110001), bitvector_concat((rs2 as BitVector), bitvector_concat((rs1 as BitVector), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
+        ast::SFENCE_VMA((rs1, rs2)) => {bitvector_concat(BitVector::new(7, 0b0001001), bitvector_concat((rs2 as BitVector<BitDynamic>), bitvector_concat((rs1 as BitVector<BitDynamic>), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
+        ast::HFENCE_VVMA((rs1, rs2)) => {bitvector_concat(BitVector::new(7, 0b0010001), bitvector_concat((rs2 as BitVector<BitDynamic>), bitvector_concat((rs1 as BitVector<BitDynamic>), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
+        ast::HFENCE_GVMA((rs1, rs2)) => {bitvector_concat(BitVector::new(7, 0b0110001), bitvector_concat((rs2 as BitVector<BitDynamic>), bitvector_concat((rs1 as BitVector<BitDynamic>), bitvector_concat(BitVector::new(3, 0b000), bitvector_concat(BitVector::new(5, 0b00000), BitVector::new(7, 0b1110011))))))}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -189,17 +189,17 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitVector {
 /// encdec_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
+pub fn encdec_backwards(arg_hashtag_: BitVector<BitDynamic>) -> ast {
     let head_exp_hashtag_ = arg_hashtag_;
     match match head_exp_hashtag_ {
-        v__35 if {let mapping1_hashtag__var_1: BitVector = v__35.subrange::<12, 14, 2>();
-        let mapping0_hashtag__var_2: BitVector = v__35.subrange::<14, 15, 1>();
-        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__35.subrange::<0, 7, 7>() == BitVector::new(7, 0b1110011)))} => {let csr: BitVector = v__35.subrange::<20, 32, 12>();
-        let rs1: BitVector = v__35.subrange::<15, 20, 5>();
-        let rd: BitVector = v__35.subrange::<7, 12, 5>();
-        let mapping1_hashtag_: BitVector = v__35.subrange::<12, 14, 2>();
-        let mapping0_hashtag_: BitVector = v__35.subrange::<14, 15, 1>();
-        let csr: BitVector = v__35.subrange::<20, 32, 12>();
+        v__35 if {let mapping1_hashtag__var_1: BitVector<BitDynamic> = v__35.subrange::<12, 14, 2>();
+        let mapping0_hashtag__var_2: BitVector<BitDynamic> = v__35.subrange::<14, 15, 1>();
+        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__35.subrange::<0, 7, 7>() == BitVector::new(7, 0b1110011)))} => {let csr: BitVector<BitDynamic> = v__35.subrange::<20, 32, 12>();
+        let rs1: BitVector<BitDynamic> = v__35.subrange::<15, 20, 5>();
+        let rd: BitVector<BitDynamic> = v__35.subrange::<7, 12, 5>();
+        let mapping1_hashtag_: BitVector<BitDynamic> = v__35.subrange::<12, 14, 2>();
+        let mapping0_hashtag_: BitVector<BitDynamic> = v__35.subrange::<14, 15, 1>();
+        let csr: BitVector<BitDynamic> = v__35.subrange::<20, 32, 12>();
         match (bool_bits_backwards(mapping0_hashtag_), encdec_csrop_backwards(mapping1_hashtag_)) {
             (is_imm, op) => {Some(ast::CSR((csr, rs1, rd, is_imm, op)))}
             _ => {None}
@@ -213,14 +213,14 @@ pub fn encdec_backwards(arg_hashtag_: BitVector) -> ast {
             v__0 if {(v__0 == BitVector::new(32, 0b00110000001000000000000001110011))} => {ast::MRET(())}
             v__7 if {(v__7 == BitVector::new(32, 0b00010000001000000000000001110011))} => {ast::SRET(())}
             v__14 if {(v__14 == BitVector::new(32, 0b00010000010100000000000001110011))} => {ast::WFI(())}
-            v__20 if {((v__20.subrange::<25, 32, 7>() == BitVector::new(7, 0b0001001)) && (v__20.subrange::<0, 15, 15>() == BitVector::new(15, 0b000000001110011)))} => {let rs2: BitVector = v__20.subrange::<20, 25, 5>();
-            let rs1: BitVector = v__20.subrange::<15, 20, 5>();
+            v__20 if {((v__20.subrange::<25, 32, 7>() == BitVector::new(7, 0b0001001)) && (v__20.subrange::<0, 15, 15>() == BitVector::new(15, 0b000000001110011)))} => {let rs2: BitVector<BitDynamic> = v__20.subrange::<20, 25, 5>();
+            let rs1: BitVector<BitDynamic> = v__20.subrange::<15, 20, 5>();
             ast::SFENCE_VMA((rs1, rs2))}
-            v__25 if {((v__25.subrange::<25, 32, 7>() == BitVector::new(7, 0b0010001)) && (v__25.subrange::<0, 15, 15>() == BitVector::new(15, 0b000000001110011)))} => {let rs2: BitVector = v__25.subrange::<20, 25, 5>();
-            let rs1: BitVector = v__25.subrange::<15, 20, 5>();
+            v__25 if {((v__25.subrange::<25, 32, 7>() == BitVector::new(7, 0b0010001)) && (v__25.subrange::<0, 15, 15>() == BitVector::new(15, 0b000000001110011)))} => {let rs2: BitVector<BitDynamic> = v__25.subrange::<20, 25, 5>();
+            let rs1: BitVector<BitDynamic> = v__25.subrange::<15, 20, 5>();
             ast::HFENCE_VVMA((rs1, rs2))}
-            v__30 if {((v__30.subrange::<25, 32, 7>() == BitVector::new(7, 0b0110001)) && (v__30.subrange::<0, 15, 15>() == BitVector::new(15, 0b000000001110011)))} => {let rs2: BitVector = v__30.subrange::<20, 25, 5>();
-            let rs1: BitVector = v__30.subrange::<15, 20, 5>();
+            v__30 if {((v__30.subrange::<25, 32, 7>() == BitVector::new(7, 0b0110001)) && (v__30.subrange::<0, 15, 15>() == BitVector::new(15, 0b000000001110011)))} => {let rs2: BitVector<BitDynamic> = v__30.subrange::<20, 25, 5>();
+            let rs1: BitVector<BitDynamic> = v__30.subrange::<15, 20, 5>();
             ast::HFENCE_GVMA((rs1, rs2))}
             _ => {panic!("Unreachable code")}
         }}

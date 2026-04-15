@@ -14,7 +14,7 @@ use crate::arch_prelude::*;
 pub struct Core {
     pub rsize: i128,
     pub rcount: i128,
-    pub rv: BitVector,
+    pub rv: BitVector<BitDynamic>,
     pub config: Config,
 }
 
@@ -55,15 +55,15 @@ pub fn __id(x: i128) -> i128 {
 /// zeros
 ///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L5.
-pub const fn zeros(n: i128) -> BitVector {
+pub const fn zeros(n: i128) -> BitVector<BitDynamic> {
     sail_zeros(n)
 }
 
 /// read
 ///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L13-22.
-pub fn read(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> Vec<BitVector> {
-    let mut result: Vec<BitVector> = vec![zeros(__id(elem_size)); (__id(elem_count) as usize)];
+pub fn read(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> Vec<BitVector<BitDynamic>> {
+    let mut result: Vec<BitVector<BitDynamic>> = vec![zeros(__id(elem_size)); (__id(elem_count) as usize)];
     {
         for i in 0..=(elem_count - 1) {
             let start_index = (i * elem_size);
@@ -81,6 +81,6 @@ pub fn execute(core_ctx: &mut Core, unit_arg: ()) {
     let elem_count = core_ctx.rcount;
     let n = elem_count;
     let m = elem_size;
-    let vs: Vec<BitVector> = read(core_ctx, elem_count, elem_size);
+    let vs: Vec<BitVector<BitDynamic>> = read(core_ctx, elem_count, elem_size);
     ()
 }

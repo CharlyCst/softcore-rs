@@ -33,14 +33,14 @@ pub fn _reset_all_registers() {
 /// EXTZ
 ///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L7.
-pub fn EXTZ(m: i128, v: BitVector) -> BitVector {
+pub fn EXTZ(m: i128, v: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     v.zero_extend(m)
 }
 
 /// EXTS
 ///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L10.
-pub fn EXTS(m: i128, v: BitVector) -> BitVector {
+pub fn EXTS(m: i128, v: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     sail_sign_extend(v, m)
 }
 
@@ -48,14 +48,14 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector;
+pub type xlenbits = BitVector<BitDynamic>;
 
-pub type regbits = BitVector;
+pub type regbits = BitVector<BitDynamic>;
 
 /// rX
 ///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L31-35.
-pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
+pub fn rX(core_ctx: &mut Core, r: BitVector<BitDynamic>) -> BitVector<BitDynamic> {
     match r {
         b__0 if {(b__0 == BitVector::new(5, 0b00000))} => {EXTZ(64, BitVector::new(4, 0b0000))}
         _ => {core_ctx.Xs[(r.unsigned() as usize)]}
@@ -66,7 +66,7 @@ pub fn rX(core_ctx: &mut Core, r: BitVector) -> BitVector {
 /// wX
 ///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L38-41.
-pub fn wX(core_ctx: &mut Core, r: BitVector, v: BitVector) {
+pub fn wX(core_ctx: &mut Core, r: BitVector<BitDynamic>, v: BitVector<BitDynamic>) {
     if {(r != BitVector::new(5, 0b00000))} {
         core_ctx.Xs[(r.unsigned() as usize)] = v
     } else {
@@ -92,8 +92,8 @@ pub enum iop {
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    ITYPE((BitVector, BitVector, BitVector, iop)),
-    LOAD((BitVector, BitVector, BitVector))
+    ITYPE((BitVector<BitDynamic>, BitVector<BitDynamic>, BitVector<BitDynamic>, iop)),
+    LOAD((BitVector<BitDynamic>, BitVector<BitDynamic>, BitVector<BitDynamic>))
 }
 
 /// execute

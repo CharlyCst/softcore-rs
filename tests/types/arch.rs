@@ -29,7 +29,7 @@ pub fn _reset_all_registers() {
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitVector;
+pub type xlenbits = BitVector<BitDynamic>;
 
 pub const xlen: i128 = 64;
 
@@ -113,21 +113,21 @@ pub enum ast {
 /// zeros
 ///
 /// Generated from the Sail sources at `tests/types/arch.sail` L66.
-pub const fn zeros(n: i128) -> BitVector {
+pub const fn zeros(n: i128) -> BitVector<BitDynamic> {
     sail_zeros(n)
 }
 
 /// hex_bits_backwards
 ///
 /// Generated from the Sail sources at `tests/types/arch.sail` L77.
-pub fn hex_bits_backwards(m: i128, str: &'static str) -> BitVector {
+pub fn hex_bits_backwards(m: i128, str: &'static str) -> BitVector<BitDynamic> {
     parse_hex_bits(m, str)
 }
 
 /// validDoubleRegs
 ///
 /// Generated from the Sail sources at `tests/types/arch.sail` L80-85.
-pub fn validDoubleRegs(n: i128, regs: Vec<BitVector>) -> bool {
+pub fn validDoubleRegs(n: i128, regs: Vec<BitVector<BitDynamic>>) -> bool {
     for i in 0..=(n - 1) {
         if {(bitvector_access(regs[(i as usize)], 0) == true)} {
             return false;
@@ -141,7 +141,7 @@ pub fn validDoubleRegs(n: i128, regs: Vec<BitVector>) -> bool {
 /// X_read
 ///
 /// Generated from the Sail sources at `tests/types/arch.sail` L91-93.
-pub fn X_read(n: i128, width: i128) -> BitVector {
+pub fn X_read(n: i128, width: i128) -> BitVector<BitDynamic> {
     zeros(width)
 }
 
@@ -160,7 +160,7 @@ pub enum Access_kind<ARCH_AK> {
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, ARCH_AK> {
     pub access_kind: Access_kind<ARCH_AK>,
-    pub va: Option<BitVector>,
+    pub va: Option<BitVector<BitDynamic>>,
     pub pa: PA,
     pub size: i128,
     pub tag: bool,
@@ -196,7 +196,7 @@ pub enum exception {
 /// Generated from the Sail sources at `tests/types/arch.sail` L124-128.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct {
-    pub field1: BitVector,
+    pub field1: BitVector<BitDynamic>,
     pub field2: i128,
     pub field3: &'static str,
 }
@@ -206,13 +206,13 @@ pub struct My_struct {
 /// Generated from the Sail sources at `tests/types/arch.sail` L130-132.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct My_struct_generic<const N: i128> {
-    pub foo: BitVector,
+    pub foo: BitVector<BitDynamic>,
 }
 
 /// exceptionType_to_bits
 ///
 /// Generated from the Sail sources at `tests/types/arch.sail` L135-142.
-pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector {
+pub fn exceptionType_to_bits(e: ExceptionType) -> BitVector<BitDynamic> {
     match e {
         ExceptionType::E_Fetch_Addr_Align(()) => {BitVector::new(8, 0b00000000)}
         ExceptionType::E_Fetch_Access_Fault(()) => {BitVector::new(8, 0b00000001)}
@@ -232,7 +232,7 @@ pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
     let e = handle_union(());
     let f = hex_bits_backwards(8, "00");
     let g = pmpMatchAddr(physaddr::Physaddr(BitVector::new(64, 0b0000000000000000000000000000000011011110101011011011111011101111)));
-    let h: BitVector = X_read(10, 64);
+    let h: BitVector<BitDynamic> = X_read(10, 64);
     if {(f != BitVector::new(8, 0b00000000))} {
         assert!(false, "failed to parse hex)")
     } else {

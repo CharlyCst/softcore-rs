@@ -278,6 +278,69 @@ let rust_transform_func (ct : func_transform) (ctx : context) (RsProg objs) : rs
   RsProg (List.map (transform_obj_func ct ctx) objs)
 ;;
 
+(* ——————————————————————————————— Utils ——————————————————————————————————— *)
+
+(* TODO(Gurvan): This might break with scoping issues, but Sail generally forbid
+   shadowing *)
+let update_context_constants (ctx : context) (RsProg objs : rs_program) : context =
+  let update_constants (defs : defs) (obj : rs_obj) : defs =
+    match obj with
+    | RsConst const -> { defs with constants = SSet.add const.name defs.constants }
+    | RsFn f when f.const -> { defs with constants = SSet.add f.name defs.constants }
+    | _ -> defs
+  in
+  { ctx with defs = List.fold_left update_constants ctx.defs objs }
+;;
+
+let update_context_fn_type (ctx : context) (RsProg objs : rs_program) : context =
+  let update_fn_type (defs : defs) (obj : rs_obj) : defs =
+    match obj with
+    | RsFn f -> { defs with funmap = SMap.add f.name f defs.funmap }
+    | _ -> defs
+  in
+  { ctx with defs = List.fold_left update_fn_type ctx.defs objs }
+;;
+
+let is_const_rs_typ_id (ctx : context) (x : string) : bool =
+  match x with
+  (* TODO(Gurvan): We should probably have a cleaner way to figure out built-ins *)
+  | "usize" | "i128" | "i64" -> true
+  | _ ->
+    (* TODO(Gurvan): Actually, in some case it could still be a a const
+         we need to check the context. We don't want to check parameters however *)
+    false
+;;
+
+let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
+  match e with
+  | RsLit _ | RsConstBlock _ -> true
+  | RsAs (e, typ) -> is_const_rs_exp ctx e && is_const_rs_typ ctx typ
+  | RsId x -> SSet.mem x ctx.defs.constants
+  | RsVec _ | RsVecSize _ -> false
+  | e ->
+    Reporting.simple_warn
+      (Format.sprintf
+         "Couldn't figure out if an expression is constant, considering it is not");
+    false
+
+and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
+  match typ with
+  | RsTypId x -> is_const_rs_typ_id ctx x
+  | RsTypTuple params -> List.for_all (is_const_rs_typ ctx) params
+  | RsTypGeneric x -> assert false (* TODO *)
+  | RsTypGenericParam (x, params) -> assert false (* TODO *)
+  | RsTypTodo _ -> assert false (* TODO *)
+  | RsTypArray (typ1, typ2) ->
+    is_const_rs_typ_param ctx typ1 && is_const_rs_typ_param ctx typ2
+  | RsTypOption param -> is_const_rs_typ_param ctx param
+  | RsTypUnit -> true
+
+and is_const_rs_typ_param (ctx : context) (param : rs_type_param) : bool =
+  match param with
+  | RsTypParamTyp t -> is_const_rs_typ ctx t
+  | RsTypParamNum e -> is_const_rs_exp ctx e
+;;
+
 (* ——————————————————————————— BitVec transformation ———————————————————————————— *)
 
 let is_bitvec_lit (pexp : rs_pexp) : bool =
@@ -341,16 +404,12 @@ let bitvec_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp =
           [ Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size ]
       ; args = []
       }
-  | RsAssign
-      (RsLexpIndexRange (lexp, RsLit (RsLitNum r_end), RsLit (RsLitNum r_start)), exp) ->
-    let r_end = Big_int.add r_end one in
-    let r_size = Big_int.sub r_end r_start in
+  | RsAssign (RsLexpIndexRange (lexp, r_end, r_start), exp) ->
     let method_app =
       { exp = lexp_to_exp lexp
       ; name = "set_subrange"
-      ; generics =
-          [ Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size ]
-      ; args = [ exp ]
+      ; generics = []
+      ; args = [ exp; r_end; r_start ]
       }
     in
     RsAssign (lexp, RsMethodApp method_app)
@@ -376,27 +435,75 @@ let bitvec_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp =
   | _ -> exp
 ;;
 
-let bitvec_transform_type (_ctx : context) (typ : rs_type) : rs_type =
+let bitvec_transform_type (ctx : context) (typ : rs_type) : rs_type =
   match typ with
-  | RsTypGenericParam ("bitvector", _t) -> RsTypId "BitVector"
-  | RsTypGenericParam ("bits", _t) -> RsTypId "BitVector"
+  | RsTypGenericParam ("bitvector", t)
+  | RsTypGenericParam ("bits", t)
   (* TODO: This violate the fact that vector or bits != bitvector. Change it in the future *)
-  | RsTypGenericParam ("vector", _t) -> RsTypId "BitVector"
+  | RsTypGenericParam ("vector", t) ->
+    if List.for_all (is_const_rs_typ_param ctx) t
+    then
+      RsTypGenericParam
+        ("BitVector", [ RsTypParamTyp (RsTypGenericParam ("BitStatic", t)) ])
+    else RsTypGenericParam ("BitVector", [ RsTypParamTyp (RsTypId "BitDynamic") ])
   (* TODO: once we resolve type aliasing we can remove those manual conversions *)
-  | RsTypId "regbits" -> RsTypId "BitVector"
+  | RsTypId "regbits" ->
+    RsTypGenericParam ("BitVector", [ RsTypParamTyp (RsTypId "BitDynamic") ])
   (* Otherwise keep as is *)
   | _ -> typ
 ;;
 
-let bitvec_transform =
-  { exp = bitvec_transform_exp
-  ; lexp = id_lexp
-  ; pexp = id_pexp
-  ; typ = bitvec_transform_type
-  ; pat = id_pat
-  ; obj = id_obj
-  }
+let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program =
+  let ctx = update_context_constants ctx rust_program in
+  rust_transform_expr
+    { exp = bitvec_transform_exp
+    ; lexp = id_lexp
+    ; pexp = id_pexp
+    ; typ = bitvec_transform_type
+    ; pat = id_pat
+    ; obj = id_obj
+    }
+    ctx
+    rust_program
 ;;
+
+(* ———————————————————— Dynamic BitVectors Arguments ——————————————————————— *)
+(* TODO(Gurvan): This is an ugly fix to a common problem: If an argument was
+   changed from an array to a vec, and we used to call it with an array
+   argument, then we need to cast it. *)
+
+(* TODO(Gurvan): Fix the following for bitvec *)
+let cast_bitvec (typ : rs_type) (e : rs_exp) =
+  match typ with
+  | RsTypGenericParam ("BitVector", _) ->
+    RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
+  | _ -> e
+;;
+
+let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp =
+  match e with
+  | RsApp (RsId id, generics, args) ->
+    (match ctx_fun id ctx with
+     | Some fn ->
+       RsApp (RsId id, generics, List.map2 cast_bitvec fn.signature.args args)
+     | None -> e)
+  | _ -> e
+;;
+
+let use_dynamic_bitvec_args (ctx : context) (rust_program : rs_program) : rs_program =
+  let ctx = update_context_fn_type ctx rust_program in
+  rust_transform_expr
+    { exp = use_dynamic_bitvec_exp
+    ; lexp = id_lexp
+    ; pexp = id_pexp
+    ; typ = id_typ
+    ; pat = id_pat
+    ; obj = id_obj
+    }
+    ctx
+    rust_program
+;;
+
 
 (* —————————————————————————— Expression Optimizer —————————————————————————— *)
 
@@ -1661,70 +1768,7 @@ let remove_unsupported_match : expr_type_transform =
   }
 ;;
 
-(* ——————————————————————————— Update context ——————————————————————————————— *)
-
-(* TODO(Gurvan): This might break with scoping issues, but Sail generally forbid
-   shadowing *)
-let update_context_constants (ctx : context) (RsProg objs : rs_program) : context =
-  let update_constants (defs : defs) (obj : rs_obj) : defs =
-    match obj with
-    | RsConst const -> { defs with constants = SSet.add const.name defs.constants }
-    | RsFn f when f.const -> { defs with constants = SSet.add f.name defs.constants }
-    | _ -> defs
-  in
-  { ctx with defs = List.fold_left update_constants ctx.defs objs }
-;;
-
-let update_context_fn_type (ctx : context) (RsProg objs : rs_program) : context =
-  let update_fn_type (defs : defs) (obj : rs_obj) : defs =
-    match obj with
-    | RsFn f -> { defs with funmap = SMap.add f.name f defs.funmap }
-    | _ -> defs
-  in
-  { ctx with defs = List.fold_left update_fn_type ctx.defs objs }
-;;
-
 (* ———————————————————————————— Dynamic Vectors ————————————————————————————— *)
-
-let is_const_rs_typ_id (ctx : context) (x : string) : bool =
-  match x with
-  (* TODO(Gurvan): We should probably have a cleaner way to figure out built-ins *)
-  | "usize" | "i128" | "i64" -> true
-  | _ ->
-    (* TODO(Gurvan): Actually, in some case it could still be a a const
-         we need to check the context. We don't want to check parameters however *)
-    false
-;;
-
-let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
-  match e with
-  | RsLit _ | RsConstBlock _ -> true
-  | RsAs (e, typ) -> is_const_rs_exp ctx e && is_const_rs_typ ctx typ
-  | RsId x -> SSet.mem x ctx.defs.constants
-  | RsVec _ | RsVecSize _ -> false
-  | e ->
-    Reporting.simple_warn
-      (Format.sprintf
-         "Couldn't figure out if an expression is constant, considering it is not");
-    false
-
-and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
-  match typ with
-  | RsTypId x -> is_const_rs_typ_id ctx x
-  | RsTypTuple params -> List.for_all (is_const_rs_typ ctx) params
-  | RsTypGeneric x -> assert false (* TODO *)
-  | RsTypGenericParam (x, params) -> assert false (* TODO *)
-  | RsTypTodo _ -> assert false (* TODO *)
-  | RsTypArray (typ1, typ2) ->
-    is_const_rs_typ_param ctx typ1 && is_const_rs_typ_param ctx typ2
-  | RsTypOption param -> is_const_rs_typ_param ctx param
-  | RsTypUnit -> true
-
-and is_const_rs_typ_param (ctx : context) (param : rs_type_param) : bool =
-  match param with
-  | RsTypParamTyp t -> is_const_rs_typ ctx t
-  | RsTypParamNum e -> is_const_rs_exp ctx e
-;;
 
 let use_dynamic_vector_typ (ctx : context) (typ : rs_type) : rs_type =
   match typ with
@@ -1876,7 +1920,6 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> rust_transform_expr nested_block_remover ctx
     |> rust_transform_expr native_func_transform ctx
     |> fix_point optimizer ctx 10
-    |> rust_transform_expr bitvec_transform ctx
     |> rust_transform_func enum_arg_namespace ctx
     |> rust_transform_func fix_scattered_func ctx
     (* |> rust_transform_func fix_generic_type ctx *)
@@ -1895,6 +1938,8 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> fix_point optimizer ctx 5
     (* Optimizer: Dead code elimination *)
     |> rust_transform_expr dead_code_remover ctx
+    |> use_dynamic_bitvec ctx
+    |> use_dynamic_bitvec_args ctx
     |> use_dynamic_vectors ctx
     |> use_dynamic_vectors_args ctx
     |> rust_transform_func remove_unused_generics ctx
