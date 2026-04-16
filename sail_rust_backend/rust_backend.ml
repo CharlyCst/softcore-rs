@@ -290,7 +290,10 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       process_binop_exp ctx e1 RsBinopMult e2
     | E_app (id, exp_list) when string_of_id id = "bitvector_concat" ->
       let exp_list = List.map (process_exp ctx) exp_list in
-      let exp_list = List.map (fun e -> RsStaticApp (RsTypId "BitDynamic", "from", [ e ])) exp_list in
+      let exp_list =
+        List.map (fun e -> RsStaticApp (RsTypId "BitDynamic", "from", [ e ])) exp_list
+      in
+      (* TODO: Call .into() onto this result *)
       RsApp (RsId (sanitize_id (string_of_id id)), [], exp_list)
     | E_app (id, exp_list)
       when let sid = string_of_id id in

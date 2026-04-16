@@ -467,28 +467,38 @@ let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program 
 (* ———————————————————— Dynamic BitVectors Arguments ——————————————————————— *)
 (* TODO(Gurvan): This is the same ugly fix that we use for vec! vs array *)
 
-let cast_bitvec (typ : rs_type) (e : rs_exp) =
+let is_bitvec_type (ctx : context) (typ : rs_type) =
   match typ with
-  | RsTypId "BitDynamic" ->
-    RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
-  | RsTypGenericParam ("BitStatic", _) ->
-    RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
-  | _ -> e
+  | RsTypId "BitDynamic" | RsTypGenericParam ("BitStatic", _) -> true
+  | RsTypId x -> false
+    (* TODO: Try to find type definition in typ, see if it might be an alias to
+       a BitVector *)
+  | _ -> false
+;;
+
+let cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) =
+  if is_bitvec_type ctx typ
+  then RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
+  else e
 ;;
 
 let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp =
   match e with
+  | RsLet ((RsPatType (t, _) as p), e1, e2) when is_bitvec_type ctx t ->
+    RsLet (p, RsMethodApp { exp = e1; name = "into"; generics = []; args = [] }, e2)
   | RsApp (RsId id, generics, args) ->
     (match ctx_fun id ctx with
-     | Some fn -> RsApp (RsId id, generics, List.map2 cast_bitvec fn.signature.args args)
+     | Some fn -> RsApp (RsId id, generics, List.map2 (cast_bitvec ctx) fn.signature.args args)
      | None ->
-         (* TODO(Gurvan): This is also used for type constructor, which we also
-            want to fix, so we should check if type definition are in context *)
-    Reporting.simple_warn
-      (Format.sprintf
-         "Couldn't find type of function '%s', argument might be incorrect" id);
+         match ctx_fun_type id ctx with
+         | Some fn -> RsApp (RsId id, generics, List.map2 (cast_bitvec ctx) fn.args args)
+         | None ->
+       Reporting.simple_warn
+         (Format.sprintf
+            "Couldn't find type of function '%s', argument might be incorrect"
+            id);
 
-         e)
+       e)
   | _ -> e
 ;;
 

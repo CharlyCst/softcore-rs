@@ -21,6 +21,7 @@ pub const trait BitStorage:
     fn bitxor(self, rhs: Self) -> Self;
     fn not(self) -> Self;
     fn add(self, rhs: u64) -> Self;
+    fn wrapped_add(self, rhs: Self) -> Self;
 
     fn shl(self, rhs: u128) -> Self;
     fn shr(self, rhs: u128) -> Self;
@@ -146,9 +147,14 @@ impl const BitStorage for BitDynamic {
         self
     }
 
+    fn wrapped_add(mut self, rhs: Self) -> Self {
+        todo!()
+    }
+
     fn shl(self, rhs: u128) -> Self {
         todo!()
     }
+
     fn shr(self, rhs: u128) -> Self {
         todo!()
     }
@@ -313,6 +319,10 @@ impl<const LEN: i128> const BitStorage for BitStatic<LEN> {
         Self {
             bits: (self.bits as u64).wrapping_add(rhs),
         }
+    }
+
+    fn wrapped_add(mut self, rhs: Self) -> Self {
+        todo!()
     }
 
     fn shl(self, rhs: u128) -> Self {
