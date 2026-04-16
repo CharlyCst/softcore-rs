@@ -11,6 +11,7 @@ type rs_type =
   | RsTypGenericParam of string * rs_type_param list
   | RsTypArray of rs_type_param * rs_type_param
   | RsTypOption of rs_type_param
+  | RsTypUnknown
   | RsTypTodo of string
 
 and rs_type_param =
@@ -73,7 +74,7 @@ and rs_method_app =
   ; args : rs_exp list
   }
 
-and rs_exp =
+and rs_exp_aux =
   | RsLet of rs_pat * rs_exp * rs_exp
   | RsLetMut of rs_lexp * rs_exp * rs_exp
   | RsApp of rs_exp * string list * rs_exp list (* the strings are the generics *)
@@ -106,6 +107,11 @@ and rs_exp =
   | RsStructAssign of rs_exp * string * rs_exp
   | RsReturn of rs_exp
   | RsTodo of string
+
+and rs_exp =
+  { e_typ : rs_type
+  ; e_exp : rs_exp_aux
+  }
 
 and rs_lexp =
   | RsLexpId of string
@@ -219,7 +225,18 @@ let mk_fn_typ_gen (args : rs_type list) (ret : rs_type) (generics : rs_generic l
   { generics; args; ret; linked_gen_args = [] }
 ;;
 
-let mk_method_app (exp : rs_exp) (name : string) (args : rs_exp list) : rs_exp =
+let mk_as (exp : rs_exp) (typ : rs_type) : rs_exp =
+  { e_typ = typ; e_exp = RsAs (exp, typ) }
+;;
+
+let mk_todo (id : string) : rs_exp = { e_typ = RsTypUnknown; e_exp = RsTodo id }
+let mk_exp_id (id : string) : rs_exp = { e_typ = RsTypUnknown; e_exp = RsId id }
+
+let mk_lit_str (str : string) : rs_exp =
+  { e_typ = RsTypUnknown; e_exp = RsLit (RsLitStr str) }
+;;
+
+let mk_method_app (exp : rs_exp) (name : string) (args : rs_exp list) : rs_exp_aux =
   RsMethodApp { exp; name; generics = []; args }
 ;;
 
@@ -227,8 +244,13 @@ let mk_struct (name : string) (fields : (string * rs_type) list) : rs_obj =
   RsStruct { name; generics = []; fields; derive = default_move_derive; doc = [] }
 ;;
 
-let mk_num (n : int) : rs_exp = RsLit (RsLitNum (Big_int.of_int n))
-let mk_big_num (n : Big_int.num) : rs_exp = RsLit (RsLitNum n)
+let mk_num (n : int) : rs_exp =
+  { e_typ = RsTypUnknown; e_exp = RsLit (RsLitNum (Big_int.of_int n)) }
+;;
+
+let mk_big_num (n : Big_int.num) : rs_exp =
+  { e_typ = RsTypUnknown; e_exp = RsLit (RsLitNum n) }
+;;
 
 (** Removes the generic parameters from a type
 
@@ -265,6 +287,7 @@ let rec generics_of_typ (typ : rs_type) : SSet.t =
   | RsTypArray (param1, param2) ->
     SSet.union (generics_param param1) (generics_param param2)
   | RsTypOption typ_param -> generics_param typ_param
+  | RsTypUnknown -> SSet.empty (* TODO(Gurvan): Maybe we should fail here *)
   | RsTypTodo _ -> SSet.empty
 
 and generics_param (typ_param : rs_type_param) : SSet.t =
@@ -276,7 +299,7 @@ and generics_of_exp (exp : rs_exp) : SSet.t =
   let generics_of_exps (exps : rs_exp list) =
     List.fold_left (fun acc exp -> SSet.union acc (generics_of_exp exp)) SSet.empty exps
   in
-  match exp with
+  match exp.e_exp with
   | RsLet (pat, exp, next) ->
     generics_of_pat pat
     |> SSet.union (generics_of_exp exp)
@@ -419,11 +442,14 @@ let rec ids_of_pat (pat : rs_pat) : SSet.t =
 ;;
 
 let rec lexp_to_exp (lexp : rs_lexp) : rs_exp =
-  match lexp with
-  | RsLexpId id -> RsId id
-  | RsLexpField (exp, field) -> RsField (exp, field)
-  | RsLexpIndex (lexp, exp) -> RsIndex (lexp_to_exp lexp, exp)
-  | _ -> RsId "LexpToExpTodo"
+  let e_exp =
+    match lexp with
+    | RsLexpId id -> RsId id
+    | RsLexpField (exp, field) -> RsField (exp, field)
+    | RsLexpIndex (lexp, exp) -> RsIndex (lexp_to_exp lexp, exp)
+    | _ -> RsId "LexpToExpTodo"
+  in
+  { e_typ = RsTypUnknown; e_exp }
 ;;
 
 (* ————————————————————————————— Rust to String ————————————————————————————— *)
@@ -482,6 +508,7 @@ let rec string_of_rs_type (typ : rs_type) : string =
   | RsTypArray (typ, size) ->
     Printf.sprintf "[%s; %s]" (string_of_rs_type_param typ) (string_of_rs_type_param size)
   | RsTypOption param -> Printf.sprintf "Option<%s>" (string_of_rs_type_param param)
+  | RsTypUnknown -> assert false (* TODO(Gurvan) *)
   | RsTypTodo e -> e
 
 and string_of_rs_type_param (typ : rs_type_param) : string =
@@ -548,9 +575,9 @@ and string_of_rs_unop (unop : rs_unop) : string =
 and indent (n : int) : string = String.make (n * 4) ' '
 
 and string_of_rs_exp (n : int) (exp : rs_exp) : string =
-  match exp with
+  match exp.e_exp with
   (* The block indentation if not nedded after a  let, remove it to pretify*)
-  | RsLet (pat, exp, RsBlock exps) ->
+  | RsLet (pat, exp, { e_typ = _; e_exp = RsBlock exps }) ->
     Printf.sprintf
       "let %s = %s;\n%s%s"
       (string_of_rs_pat pat)
@@ -624,7 +651,7 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
       (indent (n + 1))
       (string_of_rs_exp (n + 1) then_exp)
       (indent n)
-      (match else_exp with
+      (match else_exp.e_exp with
        | RsIf (_, _, _) -> string_of_rs_exp n else_exp
        | _ ->
          (Printf.sprintf
@@ -774,7 +801,7 @@ let string_of_rs_fn (fn : rs_fn) : string =
       (indent 1)
   in
   let stmts =
-    match fn.body with
+    match fn.body.e_exp with
     | RsBlock exps ->
       String.concat
         (Printf.sprintf ";\n%s" (indent 1))
