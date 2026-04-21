@@ -48,16 +48,16 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitStatic::<xlen>;
+pub type xlenbits = BitDynamic;
 
-pub type regbits = BitStatic::<5>;
+pub type regbits = BitDynamic;
 
 /// rX
 ///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L31-35.
-pub fn rX(core_ctx: &mut Core, r: BitStatic::<5>) -> BitStatic::<64> {
+pub fn rX(core_ctx: &mut Core, r: BitDynamic) -> BitDynamic {
     match r {
-        b__0 if {(b__0 == BitStatic::<5>::new(5, 0b00000))} => {EXTZ(64, BitStatic::<4>::new(4, 0b0000).into())}
+        b__0 if {(b__0 == BitDynamic::new(5, 0b00000))} => {EXTZ(64, BitDynamic::new(4, 0b0000))}
         _ => {core_ctx.Xs[(r.unsigned() as usize)]}
         _ => {panic!("Unreachable code")}
     }
@@ -66,8 +66,8 @@ pub fn rX(core_ctx: &mut Core, r: BitStatic::<5>) -> BitStatic::<64> {
 /// wX
 ///
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L38-41.
-pub fn wX(core_ctx: &mut Core, r: BitStatic::<5>, v: BitStatic::<64>) {
-    if {(r != BitStatic::<5>::new(5, 0b00000))} {
+pub fn wX(core_ctx: &mut Core, r: BitDynamic, v: BitDynamic) {
+    if {(r != BitDynamic::new(5, 0b00000))} {
         core_ctx.Xs[(r.unsigned() as usize)] = v
     } else {
         ()
@@ -92,8 +92,8 @@ pub enum iop {
 /// Generated from the Sail sources at `tests/basic_alt/arch.sail` L63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    ITYPE((BitStatic::<12>, BitDynamic, BitDynamic, iop)),
-    LOAD((BitStatic::<12>, BitDynamic, BitDynamic))
+    ITYPE((BitDynamic, BitDynamic, BitDynamic, iop)),
+    LOAD((BitDynamic, BitDynamic, BitDynamic))
 }
 
 /// execute
@@ -102,20 +102,20 @@ pub enum ast {
 pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) {
     match merge_hashtag_var {
         ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {{
-            let rs1_val = rX(core_ctx, rs1.into());
-            let imm_ext: xlenbits = EXTS(64, imm.into());
-            let result = rs1_val.wrapped_add(imm_ext);
+            let rs1_val: BitDynamic = rX(core_ctx, rs1);
+            let imm_ext: xlenbits = EXTS(64, imm);
+            let result: BitDynamic = rs1_val.wrapped_add(imm_ext);
             let test: bool = match true {
                 true => {true}
                 _ => {false}
                 _ => {panic!("Unreachable code")}
             };
-            wX(core_ctx, rd.into(), EXTZ(64, BitStatic::<1>::new(1, 0b0).into()).into());
+            wX(core_ctx, rd, EXTZ(64, BitDynamic::new(1, 0b0)));
             if {(result != result)} {
-                let z: xlenbits = EXTZ(64, BitStatic::<1>::new(1, 0b0).into());
-                wX(core_ctx, rd.into(), z.into())
+                let z: xlenbits = EXTZ(64, BitDynamic::new(1, 0b0));
+                wX(core_ctx, rd, z)
             } else {
-                wX(core_ctx, rd.into(), result.into())
+                wX(core_ctx, rd, result)
             }
         }}
         ast::LOAD((imm, rs1, rd)) => {todo!("Unsupported: 'LOAD'")}

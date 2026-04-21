@@ -1,7 +1,5 @@
 #![allow(incomplete_features, non_camel_case_types)]
-#![feature(const_trait_impl, const_ops, const_cmp)]
 
-use core::ops::*;
 use std::cmp::max;
 use std::cmp::min;
 
@@ -12,9 +10,9 @@ pub use bitvector::*;
 // mess up with things such as the SMT solver during symbolic execution.
 // After manual inspection, u128 are big enough for all the RISC-V use cases, so we keep that until
 // a better solution is needed.
-pub type nat = u128;
+pub type nat = i128;
 
-pub fn sail_branch_announce<S: BitStorage>(_value: i128, _pc: S) {}
+pub fn sail_branch_announce(_value: i128, _pc: BitDynamic) {}
 
 pub fn lteq_int(e1: i128, e2: i128) -> bool {
     e1 <= e2
@@ -24,22 +22,15 @@ pub fn gt_int(e1: i128, e2: i128) -> bool {
     e1 > e2
 }
 
-pub const fn bitvector_length<S: [const] BitStorage>(e: S) -> i128 {
+pub const fn bitvector_length(e: BitDynamic) -> i128 {
     e.len()
 }
 
-pub fn parse_hex_bits<S: BitStorage>(_n: i128, _hex_str: &str) -> S {
+pub fn parse_hex_bits(_n: i128, _hex_str: &str) -> BitDynamic {
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
-pub const fn bitvector_concat<
-    S3: [const] BitStorage,
-    S2: [const] BitStorage,
-    S1: [const] BitStorageConcat<S2, S3>,
->(
-    e1: S1,
-    e2: S2,
-) -> S3 {
+pub const fn bitvector_concat(e1: BitDynamic, e2: BitDynamic) -> BitDynamic {
     e1.concat(e2)
 }
 
@@ -49,12 +40,12 @@ pub fn get_slice_int(l: i128, n: i128, start: i128) -> BitDynamic {
     BitDynamic::new(l, val as u64)
 }
 
-pub fn slice<S2: BitStorage, S1: BitStorageExtend<S2>>(bits: S1, start: i128, len: i128) -> S2 {
+pub fn slice(bits: BitDynamic, start: i128, len: i128) -> BitDynamic {
     bits.get_subrange(start + len, start)
 }
 
-pub fn get_16_random_bits<S: BitStorage>(_unit: ()) -> S {
-    S::new(16, 0)
+pub fn get_16_random_bits(_unit: ()) -> BitDynamic {
+    BitDynamic::new(16, 0)
 }
 
 pub fn not_implemented<T>(_any: T) -> ! {
@@ -65,7 +56,7 @@ pub fn internal_error(_file: String, _line: i128, _s: String) -> ! {
     panic!("Softcore: internal error")
 }
 
-pub fn print_output<S: BitStorage>(text: String, _csr: S) {
+pub fn print_output(text: String, _csr: BitDynamic) {
     println!("{}", text)
 }
 
@@ -73,40 +64,37 @@ pub fn print_platform(text: String) {
     println!("{}", text)
 }
 
-pub fn bits_str<S: BitStorage>(val: S) -> String {
+pub fn bits_str(val: BitDynamic) -> String {
     format!("{:b}", val.unsigned())
 }
 
-pub fn bitvector_access<S: BitStorage>(vec: S, idx: i128) -> bool {
+pub fn bitvector_access(vec: BitDynamic, idx: i128) -> bool {
     vec.get_bit(idx)
 }
 
 // Todo: implement truncate for other sizes if required
-pub fn truncate<S: BitStorage>(v: S, size: i128) -> S {
+pub fn truncate(v: BitDynamic, size: i128) -> BitDynamic {
     assert!(size == 64);
     v
 }
 
-pub const fn sail_sign_extend<S2: [const] BitStorage, S1: [const] BitStorageExtend<S2>>(
-    input: S1,
-    n: i128,
-) -> S2 {
-    input.sign_extend(n)
+pub const fn sail_sign_extend(input: BitDynamic, n: i128) -> BitDynamic {
+    input.sign_extend_dyn(n)
 }
 
-pub const fn sail_ones<S: [const] BitStorage>(len: i128) -> S {
-    S::ones(len)
+pub const fn sail_ones(len: i128) -> BitDynamic {
+    BitDynamic::ones(len)
 }
 
-pub const fn sail_zeros<S: [const] BitStorage>(len: i128) -> S {
-    S::zeros(len)
+pub const fn sail_zeros(len: i128) -> BitDynamic {
+    BitDynamic::zeros(len)
 }
 
-pub const fn sail_shiftright<S: [const] BitStorage>(bits: S, shift: i128) -> S {
+pub const fn sail_shiftright(bits: BitDynamic, shift: i128) -> BitDynamic {
     bits.shr(shift as u128)
 }
 
-pub const fn sail_shiftleft<S: [const] BitStorage>(bits: S, shift: i128) -> S {
+pub const fn sail_shiftleft(bits: BitDynamic, shift: i128) -> BitDynamic {
     bits.shl(shift as u128)
 }
 
@@ -122,16 +110,16 @@ pub fn cancel_reservation(_unit: ()) {
     // In the future, extend this function
 }
 
-fn hex_bits<S: BitStorage>(len: i128, bits: &str) -> S {
+fn hex_bits(len: i128, bits: &str) -> BitDynamic {
     let parsed = bits.parse::<u64>().expect("Could not parse hex bits");
-    S::new(len, parsed)
+    BitDynamic::new(len, parsed)
 }
 
-pub fn hex_bits_12_forwards<S: BitStorage>(_reg: S) -> ! {
+pub fn hex_bits_12_forwards(_reg: BitDynamic) -> ! {
     todo!("Implement this function")
 }
 
-pub fn hex_bits_12_backwards<S: BitStorage>(bits: &str) -> S {
+pub fn hex_bits_12_backwards(bits: &str) -> BitDynamic {
     hex_bits(12, bits)
 }
 
@@ -142,29 +130,20 @@ pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {
     }
 }
 
-pub fn subrange_bits<S2: BitStorage, S1: BitStorageExtend<S2>>(
-    vec: S1,
-    end: i128,
-    start: i128,
-) -> S2 {
+pub fn subrange_bits(vec: BitDynamic, end: i128, start: i128) -> BitDynamic {
     vec.get_subrange(end, start)
 }
 
-pub fn update_subrange_bits<S2: BitStorage, S1: BitStorageExtend<S2>>(
-    bits: S2,
-    to: u64,
-    from: u64,
-    vec: S1,
-) -> S1 {
+pub fn update_subrange_bits(bits: BitDynamic, to: u64, from: u64, vec: BitDynamic) -> BitDynamic {
     vec.set_subrange(bits, to, from)
 }
 
-pub fn bitvector_update<S: BitStorage>(v: S, pos: i128, value: bool) -> S {
+pub fn bitvector_update(v: BitDynamic, pos: i128, value: bool) -> BitDynamic {
     v.set_bit(pos, value)
 }
 
-pub fn undefined_bitvector<S: BitStorage>(len: i128) -> S {
-    S::zeros(len)
+pub fn undefined_bitvector(len: i128) -> BitDynamic {
+    BitDynamic::zeros(len)
 }
 
 // TODO(Gurvan): Maybe the following should take i128 as a parameter
@@ -173,20 +152,15 @@ pub fn undefined_array<T: Copy, const N: usize>(v: T) -> [T; N] {
     [v; N]
 }
 
-pub fn undefined_vector<T: Copy>(n: usize, v: T) -> Vec<T> {
-    vec![v; n]
+pub fn undefined_vector<T: Copy>(n: i128, v: T) -> Vec<T> {
+    vec![v; n as usize]
+}
+
+pub fn vector_length<T>(v: &[T]) -> i128 {
+    v.len() as i128
 }
 
 // ———————————————————————————————— Helpers ————————————————————————————————— //
-
-const fn mask(nb_ones: usize) -> u64 {
-    assert!(nb_ones <= 64, "Unsupported mask size");
-    if nb_ones == 64 {
-        u64::MAX
-    } else {
-        (1 << nb_ones) - 1
-    }
-}
 
 const fn mask128(nb_ones: usize) -> u128 {
     assert!(nb_ones <= 128, "Unsupported mask size");

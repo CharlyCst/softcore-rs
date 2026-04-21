@@ -39,9 +39,9 @@ pub const xlen: i128 = 64;
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitStatic::<xlen>;
+pub type xlenbits = BitDynamic;
 
-pub type priv_level = BitStatic::<2>;
+pub type priv_level = BitDynamic;
 
 /// Privilege
 ///
@@ -63,11 +63,11 @@ pub const fn haveUsrMode(unit_arg: ()) -> bool {
 /// privLevel_to_bits
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L46-51.
-pub fn privLevel_to_bits(p: Privilege) -> BitStatic::<2> {
+pub fn privLevel_to_bits(p: Privilege) -> BitDynamic {
     match p {
-        Privilege::User => {BitStatic::<2>::new(2, 0b00)}
-        Privilege::Supervisor => {BitStatic::<2>::new(2, 0b01)}
-        Privilege::Machine => {BitStatic::<2>::new(2, 0b11)}
+        Privilege::User => {BitDynamic::new(2, 0b00)}
+        Privilege::Supervisor => {BitDynamic::new(2, 0b01)}
+        Privilege::Machine => {BitDynamic::new(2, 0b11)}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -75,11 +75,11 @@ pub fn privLevel_to_bits(p: Privilege) -> BitStatic::<2> {
 /// privLevel_of_bits
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L54-60.
-pub fn privLevel_of_bits(p: BitStatic::<2>) -> Privilege {
+pub fn privLevel_of_bits(p: BitDynamic) -> Privilege {
     match p {
-        b__0 if {(b__0 == BitStatic::<2>::new(2, 0b00))} => {Privilege::User}
-        b__1 if {(b__1 == BitStatic::<2>::new(2, 0b01))} => {Privilege::Supervisor}
-        b__2 if {(b__2 == BitStatic::<2>::new(2, 0b11))} => {Privilege::Machine}
+        b__0 if {(b__0 == BitDynamic::new(2, 0b00))} => {Privilege::User}
+        b__1 if {(b__1 == BitDynamic::new(2, 0b01))} => {Privilege::Supervisor}
+        b__2 if {(b__2 == BitDynamic::new(2, 0b11))} => {Privilege::Machine}
         _ => {not_implemented("Invalid privilege level")}
         _ => {panic!("Unreachable code")}
     }
@@ -88,44 +88,44 @@ pub fn privLevel_of_bits(p: BitStatic::<2>) -> Privilege {
 /// pc_alignment_mask
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L62-63.
-pub fn pc_alignment_mask(unit_arg: ()) -> BitStatic::<64> {
-    !(BitStatic::<2>::new(2, 0b10).zero_extend(64))
+pub fn pc_alignment_mask(unit_arg: ()) -> BitDynamic {
+    !(BitDynamic::new(2, 0b10).zero_extend_dyn(64))
 }
 
-pub type regidx = BitStatic::<5>;
+pub type regidx = BitDynamic;
 
-pub type cregidx = BitStatic::<3>;
+pub type cregidx = BitDynamic;
 
-pub type csreg = BitStatic::<12>;
+pub type csreg = BitDynamic;
 
 /// Mstatus
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L81-105.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
-    pub bits: BitStatic::<64>,
+    pub bits: BitDynamic,
 }
 
 /// _get_Mstatus_MPIE
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_MPIE(v: Mstatus) -> BitStatic::<1> {
+pub fn _get_Mstatus_MPIE(v: Mstatus) -> BitDynamic {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _get_Mstatus_MPP
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_MPP(v: Mstatus) -> BitStatic::<2> {
+pub fn _get_Mstatus_MPP(v: Mstatus) -> BitDynamic {
     v.bits.subrange::<11, 13, 2>()
 }
 
 /// rX
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L116-120.
-pub fn rX(core_ctx: &mut Core, r: BitStatic::<5>) -> BitStatic::<64> {
+pub fn rX(core_ctx: &mut Core, r: BitDynamic) -> BitDynamic {
     match r {
-        b__0 if {(b__0 == BitStatic::<5>::new(5, 0b00000))} => {BitStatic::<4>::new(4, 0b0000).zero_extend(64)}
+        b__0 if {(b__0 == BitDynamic::new(5, 0b00000))} => {BitDynamic::new(4, 0b0000).zero_extend_dyn(64)}
         _ => {core_ctx.Xs[(r.unsigned() as usize)]}
         _ => {panic!("Unreachable code")}
     }
@@ -134,8 +134,8 @@ pub fn rX(core_ctx: &mut Core, r: BitStatic::<5>) -> BitStatic::<64> {
 /// wX
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L123-126.
-pub fn wX(core_ctx: &mut Core, r: BitStatic::<5>, v: BitStatic::<64>) {
-    if {(r != BitStatic::<5>::new(5, 0b00000))} {
+pub fn wX(core_ctx: &mut Core, r: BitDynamic, v: BitDynamic) {
+    if {(r != BitDynamic::new(5, 0b00000))} {
         core_ctx.Xs[(r.unsigned() as usize)] = v
     } else {
         ()
@@ -145,7 +145,7 @@ pub fn wX(core_ctx: &mut Core, r: BitStatic::<5>, v: BitStatic::<64>) {
 /// set_next_pc
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L142-144.
-pub fn set_next_pc(core_ctx: &mut Core, pc: BitStatic::<64>) {
+pub fn set_next_pc(core_ctx: &mut Core, pc: BitDynamic) {
     core_ctx.nextPC = pc
 }
 
@@ -159,7 +159,7 @@ pub fn handle_illegal(unit_arg: ()) {
 /// get_xret_target
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L152-157.
-pub fn get_xret_target(core_ctx: &mut Core, p: Privilege) -> BitStatic::<64> {
+pub fn get_xret_target(core_ctx: &mut Core, p: Privilege) -> BitDynamic {
     match p {
         Privilege::Machine => {core_ctx.mepc}
         Privilege::Supervisor => {core_ctx.sepc}
@@ -171,30 +171,30 @@ pub fn get_xret_target(core_ctx: &mut Core, p: Privilege) -> BitStatic::<64> {
 /// prepare_xret_target
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L171-172.
-pub fn prepare_xret_target(core_ctx: &mut Core, p: Privilege) -> BitStatic::<64> {
+pub fn prepare_xret_target(core_ctx: &mut Core, p: Privilege) -> BitDynamic {
     get_xret_target(core_ctx, p)
 }
 
 /// exception_handler
 ///
 /// Generated from the Sail sources at `tests/mret/arch.sail` L174-184.
-pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitStatic::<64>) -> BitStatic::<64> {
-    let prev_priv = core_ctx.cur_privilege;
+pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, pc: BitDynamic) -> BitDynamic {
+    let prev_priv: Privilege = core_ctx.cur_privilege;
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange({
-        let var_1 = core_ctx.mstatus;
+        let var_1: Mstatus = core_ctx.mstatus;
         _get_Mstatus_MPIE(var_1)
     }, 3, 3);
-    core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(1, 0b1), 7, 7);
+    core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange(BitDynamic::new(1, 0b1), 7, 7);
     core_ctx.cur_privilege = {
-        let var_2 = {
-            let var_3 = core_ctx.mstatus;
+        let var_2: BitDynamic = {
+            let var_3: Mstatus = core_ctx.mstatus;
             _get_Mstatus_MPP(var_3)
         };
-        privLevel_of_bits(var_2.into())
+        privLevel_of_bits(var_2)
     };
     core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange(privLevel_to_bits(Privilege::User), 12, 11);
     if {(core_ctx.cur_privilege != Privilege::Machine)} {
-        core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(1, 0b0), 17, 17)
+        core_ctx.mstatus.bits = core_ctx.mstatus.bits.set_subrange(BitDynamic::new(1, 0b0), 17, 17)
     } else {
         ()
     };
@@ -221,9 +221,9 @@ pub enum ast {
 /// encdec_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_forwards(arg_hashtag_: ast) -> BitStatic::<32> {
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitDynamic {
     match arg_hashtag_ {
-        ast::MRET(()) => {bitvector_concat(BitDynamic::from(BitStatic::<7>::new(7, 0b0011000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitStatic::<5>::new(5, 0b00010)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitStatic::<5>::new(5, 0b00000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitStatic::<3>::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitStatic::<5>::new(5, 0b00000)), BitDynamic::from(BitStatic::<7>::new(7, 0b1110011)))))))))))}
+        ast::MRET(()) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0011000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00010)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -231,9 +231,9 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitStatic::<32> {
 /// encdec_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_backwards(arg_hashtag_: BitStatic::<32>) -> ast {
+pub fn encdec_backwards(arg_hashtag_: BitDynamic) -> ast {
     match arg_hashtag_ {
-        v__0 if {(v__0 == BitStatic::<32>::new(32, 0b00110000001000000000000001110011))} => {ast::MRET(())}
+        v__0 if {(v__0 == BitDynamic::new(32, 0b00110000001000000000000001110011))} => {ast::MRET(())}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -264,12 +264,12 @@ pub fn execute(core_ctx: &mut Core, ast::MRET(()): ast) -> Retired {
         Retired::RETIRE_FAIL
     } else {
         {
-            let var_1 = {
-                let var_2 = core_ctx.cur_privilege;
-                let var_3 = core_ctx.PC;
-                exception_handler(core_ctx, var_2, var_3.into())
+            let var_1: BitDynamic = {
+                let var_2: Privilege = core_ctx.cur_privilege;
+                let var_3: BitDynamic = core_ctx.PC;
+                exception_handler(core_ctx, var_2, var_3)
             };
-            set_next_pc(core_ctx, var_1.into())
+            set_next_pc(core_ctx, var_1)
         };
         Retired::RETIRE_SUCCESS
     }

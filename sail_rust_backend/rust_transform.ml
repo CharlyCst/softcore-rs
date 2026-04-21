@@ -81,9 +81,9 @@ and transform_exp_aux (ct : expr_type_transform) (ctx : context) (exp : rs_exp)
   match exp with
   | RsLet (pat, exp, next) ->
     RsLet (transform_pat ct ctx pat, transform_exp ct ctx exp, transform_exp ct ctx next)
-  | RsLetMut (lexp, exp, next) ->
+  | RsLetMut (pat, exp, next) ->
     RsLetMut
-      (transform_lexp ct ctx lexp, transform_exp ct ctx exp, transform_exp ct ctx next)
+      (transform_pat ct ctx pat, transform_exp ct ctx exp, transform_exp ct ctx next)
   | RsApp (app, generics, args) -> transform_app ct ctx app generics args
   | RsStaticApp (app, method_name, args) ->
     RsStaticApp
@@ -144,9 +144,12 @@ and transform_exp_aux (ct : expr_type_transform) (ctx : context) (exp : rs_exp)
     RsStructAssign (transform_exp ct ctx e1, name, transform_exp ct ctx e2)
   | RsReturn exp -> RsReturn (transform_exp ct ctx exp)
   | RsTodo str -> RsTodo str
+  | RsBorrow exp -> RsBorrow (transform_exp ct ctx exp)
 
 and transform_exp (ct : expr_type_transform) (ctx : context) (exp : rs_exp) : rs_exp =
-  { e_typ = transform_type ct ctx exp.e_typ; e_exp = transform_exp_aux ct ctx exp }
+  { e_annot = transform_type_annot ct ctx exp.e_annot
+  ; e_exp = transform_exp_aux ct ctx exp
+  }
 
 and transform_app
       (ct : expr_type_transform)
@@ -159,6 +162,8 @@ and transform_app
   let args = List.map (transform_exp ct ctx) args in
   match fn.e_exp, args with
   (* Built-in elementary operations *)
+  (* TODO(Gurvan): This does not make much sense to be here, it should be in its
+     own pass instead of being done again each time *)
   | RsId "plain_vector_access", [ vector; item ] -> RsIndex (vector, mk_as item usize_typ)
   | RsId "neq_int", [ left; right ] -> RsBinop (left, RsBinopNeq, right)
   | RsId "neq_bits", [ left; right ] -> RsBinop (left, RsBinopNeq, right)
@@ -216,8 +221,15 @@ and transform_type (ct : expr_type_transform) (ctx : context) (typ : rs_type) : 
     RsTypGenericParam (typ, List.map (transform_type_param ct ctx) params)
   | RsTypArray (typ, size) ->
     RsTypArray (transform_type_param ct ctx typ, transform_type_param ct ctx size)
-  | RsTypUnknown -> RsTypUnknown
   | RsTypOption param -> RsTypOption (transform_type_param ct ctx param)
+  | RsTypBorrow t -> RsTypBorrow (transform_type ct ctx t)
+
+and transform_type_annot (ct : expr_type_transform) (ctx : context) (typ : rs_type option)
+  : rs_type option
+  =
+  match typ with
+  | Some t -> Some (transform_type ct ctx t)
+  | None -> None
 ;;
 
 (* ———————————————————————— Expression and Type transformer ————————————————————————— *)
@@ -345,8 +357,8 @@ and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
   | RsTypArray (typ1, typ2) ->
     is_const_rs_typ_param ctx typ1 && is_const_rs_typ_param ctx typ2
   | RsTypOption param -> is_const_rs_typ_param ctx param
-  | RsTypUnknown -> assert false (* TODO *)
   | RsTypUnit -> true
+  | RsTypBorrow t -> is_const_rs_typ ctx t
 
 and is_const_rs_typ_param (ctx : context) (param : rs_type_param) : bool =
   match param with
@@ -365,16 +377,16 @@ let is_bitvec_lit (pexp : rs_pexp) : bool =
 
 let bitvec_transform_match_tuple (exp : rs_exp list) (patterns : rs_pat list) : rs_exp =
   assert (List.length exp = List.length patterns);
-  { e_typ = RsTypUnknown
+  { e_annot = None
   ; e_exp =
       RsTuple
         (List.map2
            (fun e p ->
               match p with
               | RsPatLit (RsLitHex _) ->
-                { e_typ = RsTypUnknown; e_exp = mk_method_app e "bits" [] }
+                { e_annot = None; e_exp = mk_method_app e "bits" [] }
               | RsPatLit (RsLitBin _) ->
-                { e_typ = RsTypUnknown; e_exp = mk_method_app e "bits" [] }
+                { e_annot = None; e_exp = mk_method_app e "bits" [] }
               | _ -> e)
            exp
            patterns)
@@ -392,36 +404,35 @@ let parse_first_tuple_entry (values : rs_pexp list) : rs_pat list =
     failwith "Code should be unreachable"
 ;;
 
-let bitvec_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp_aux =
-  let one = Big_int.of_int 1 in
+let bitvec_transform_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
   | RsApp
-      ( { e_typ = _; e_exp = RsId "subrange_bits" }
+      ( { e_annot = _; e_exp = RsId "subrange_bits" }
       , _generics
-      , [ { e_typ = tvec; e_exp = RsField (bitvec, "bits") }
-        ; { e_typ = _; e_exp = RsLit (RsLitNum r_end) }
-        ; { e_typ = _; e_exp = RsLit (RsLitNum r_start) }
+      , [ { e_annot = tvec; e_exp = RsField (bitvec, "bits") }
+        ; { e_annot = _; e_exp = RsLit (RsLitNum r_end) }
+        ; { e_annot = _; e_exp = RsLit (RsLitNum r_start) }
         ] ) ->
     let r_end = Big_int.add r_end (Big_int.of_int 1) in
     let r_size = Big_int.sub r_end r_start in
     RsMethodApp
-      { exp = { e_typ = tvec; e_exp = RsField (bitvec, "bits") }
+      { exp = { e_annot = tvec; e_exp = RsField (bitvec, "bits") }
       ; name = "subrange"
       ; generics =
           [ Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size ]
       ; args = []
       }
   | RsApp
-      ( { e_typ = _; e_exp = RsId "subrange_bits" }
+      ( { e_annot = _; e_exp = RsId "subrange_bits" }
       , _generics
-      , [ { e_typ = _; e_exp = RsId id }
-        ; { e_typ = _; e_exp = RsLit (RsLitNum r_end) }
-        ; { e_typ = _; e_exp = RsLit (RsLitNum r_start) }
+      , [ { e_annot = _; e_exp = RsId id }
+        ; { e_annot = _; e_exp = RsLit (RsLitNum r_end) }
+        ; { e_annot = _; e_exp = RsLit (RsLitNum r_start) }
         ] ) ->
     let r_end = Big_int.add r_end (Big_int.of_int 1) in
     let r_size = Big_int.sub r_end r_start in
     RsMethodApp
-      { exp = { e_typ = RsTypUnknown; e_exp = RsId id }
+      { exp = { e_annot = None; e_exp = RsId id }
       ; name = "subrange"
       ; generics =
           [ Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size ]
@@ -436,20 +447,22 @@ let bitvec_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp_aux =
       }
     in
     RsAssign (lexp, { exp with e_exp = RsMethodApp method_app })
-  | RsApp ({ e_typ = _; e_exp = RsId "zero_extend" }, _generics, [ size; e ]) ->
-    RsMethodApp { exp = e; name = "zero_extend"; generics = []; args = [ size ] }
-  | RsApp ({ e_typ = _; e_exp = RsId "sail_zero_extend" }, _generics, [ e; size ]) ->
-    RsMethodApp { exp = e; name = "zero_extend"; generics = []; args = [ size ] }
+  | RsApp ({ e_annot = _; e_exp = RsId "zero_extend" }, _generics, [ size; e ])
+  | RsApp ({ e_annot = _; e_exp = RsId "sail_zero_extend" }, _generics, [ e; size ]) ->
+    (* if is_const_rs_exp ctx size then
+      RsMethodApp { exp = e; name = "zero_extend"; generics = [ const_exp_to_generic ctx size ]; args = [ ] }
+    else *)
+    RsMethodApp { exp = e; name = "zero_extend_dyn"; generics = []; args = [ size ] }
   | RsMatch (exp, pat :: pats) when is_bitvec_lit pat ->
     let method_app = { exp; name = "bits"; generics = []; args = [] } in
-    RsMatch ({ e_typ = RsTypUnknown; e_exp = RsMethodApp method_app }, pat :: pats)
-  | RsMatch ({ e_typ = _; e_exp = RsTuple exp_tuple }, patterns) ->
+    RsMatch ({ e_annot = None; e_exp = RsMethodApp method_app }, pat :: pats)
+  | RsMatch ({ e_annot = _; e_exp = RsTuple exp_tuple }, patterns) ->
     RsMatch
       (bitvec_transform_match_tuple exp_tuple (parse_first_tuple_entry patterns), patterns)
   | RsAssign (RsLexpBitVectorAccess (lexp, exp_idx), exp) ->
     RsAssign
       ( lexp
-      , { e_typ = RsTypUnknown
+      , { e_annot = None
         ; e_exp =
             RsMethodApp
               { exp = lexp_to_exp lexp
@@ -467,9 +480,11 @@ let bitvec_transform_type (ctx : context) (typ : rs_type) : rs_type =
   | RsTypGenericParam ("bits", t)
   (* TODO: This violate the fact that vector or bits != bitvector. Change it in the future *)
   | RsTypGenericParam ("vector", t) ->
-    if List.for_all (is_const_rs_typ_param ctx) t
+    (* TODO(Gurvan): Uncomment to try back BitStatic *)
+    (* if List.for_all (is_const_rs_typ_param ctx) t
     then RsTypGenericParam ("BitStatic", t)
-    else RsTypId "BitDynamic"
+    else *)
+    RsTypId "BitDynamic"
   (* TODO: once we resolve type aliasing we can remove those manual conversions *)
   | RsTypId "regbits" -> RsTypId "BitDynamic"
   (* Otherwise keep as is *)
@@ -503,35 +518,24 @@ let is_bitvec_type (ctx : context) (typ : rs_type) =
 let cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
   if is_bitvec_type ctx typ
   then
-    { e_typ = RsTypUnknown
+    { e_annot = Some typ
     ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
     }
   else e
 ;;
 
-let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
+let use_dynamic_bitvec_exp_in_app (ctx : context) (e : rs_exp) : rs_exp_aux =
   match e.e_exp with
-  | RsLet ((RsPatType (t, _) as p), e1, e2) when is_bitvec_type ctx t ->
-    RsLet
-      ( p
-      , { e_typ = RsTypUnknown
-        ; e_exp = RsMethodApp { exp = e1; name = "into"; generics = []; args = [] }
-        }
-      , e2 )
-  | RsApp ({ e_typ = _; e_exp = RsId id }, generics, args) ->
+  | RsLet ((RsPatType (t, _) as p), e1, e2) -> RsLet (p, cast_bitvec ctx t e1, e2)
+  | RsLet (p, ({ e_annot = Some t1; e_exp = _ } as e1), e2) ->
+    RsLet (p, cast_bitvec ctx t1 e1, e2)
+  | RsApp (({ e_annot = _; e_exp = RsId id } as e_id), generics, args) ->
     (match ctx_fun id ctx with
      | Some fn ->
-       RsApp
-         ( { e_typ = RsTypUnknown; e_exp = RsId id }
-         , generics
-         , List.map2 (cast_bitvec ctx) fn.signature.args args )
+       RsApp (e_id, generics, List.map2 (cast_bitvec ctx) fn.signature.args args)
      | None ->
        (match ctx_fun_type id ctx with
-        | Some fn ->
-          RsApp
-            ( { e_typ = RsTypUnknown; e_exp = RsId id }
-            , generics
-            , List.map2 (cast_bitvec ctx) fn.args args )
+        | Some fn -> RsApp (e_id, generics, List.map2 (cast_bitvec ctx) fn.args args)
         | None ->
           Reporting.simple_warn
             (Format.sprintf
@@ -540,6 +544,17 @@ let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
           e.e_exp))
   | _ -> e.e_exp
 ;;
+
+let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
+  let e_exp = use_dynamic_bitvec_exp_in_app ctx e in
+  e_exp
+;;
+
+(* match e.e_annot with
+  | Some t when is_bitvec_type ctx t ->
+      RsMethodApp { exp={ e_annot=None; e_exp }; name="into"; generics=[]; args=[] }
+  | _ -> e_exp
+*)
 
 let use_dynamic_bitvec_args (ctx : context) (rust_program : rs_program) : rs_program =
   let ctx = update_context_fn_type ctx rust_program in
@@ -559,12 +574,12 @@ let rec find_match_branch_opt (n : Big_int.num) (branches : rs_pexp list) =
      | RsPexp (RsPatLit (RsLitNum m), exp) when Big_int.equal n m -> Some exp
      | RsPexpWhen
          ( RsPatId id
-         , { e_typ = _
+         , { e_annot = _
            ; e_exp =
                RsBinop
-                 ( { e_typ = _; e_exp = RsId id' }
+                 ( { e_annot = _; e_exp = RsId id' }
                  , RsBinopEq
-                 , { e_typ = _; e_exp = RsLit (RsLitNum m) } )
+                 , { e_annot = _; e_exp = RsLit (RsLitNum m) } )
            }
          , exp )
        when id = id' && Big_int.equal n m -> Some exp
@@ -578,63 +593,67 @@ let rec find_match_branch_opt (n : Big_int.num) (branches : rs_pexp list) =
 let simplify_rs_exp_aux (ctx : context) (rs_exp : rs_exp) : rs_exp_aux =
   match rs_exp.e_exp with
   | RsBinop
-      ( { e_typ = _; e_exp = RsLit (RsLitNum a) }
+      ( { e_annot = _; e_exp = RsLit (RsLitNum a) }
       , RsBinopAdd
-      , { e_typ = _; e_exp = RsLit (RsLitNum b) } ) -> RsLit (RsLitNum (Big_int.add a b))
+      , { e_annot = _; e_exp = RsLit (RsLitNum b) } ) ->
+    RsLit (RsLitNum (Big_int.add a b))
   | RsBinop
-      ( { e_typ = _; e_exp = RsLit (RsLitNum a) }
+      ( { e_annot = _; e_exp = RsLit (RsLitNum a) }
       , RsBinopSub
-      , { e_typ = _; e_exp = RsLit (RsLitNum b) } ) -> RsLit (RsLitNum (Big_int.sub a b))
+      , { e_annot = _; e_exp = RsLit (RsLitNum b) } ) ->
+    RsLit (RsLitNum (Big_int.sub a b))
   | RsBinop
-      ( { e_typ = _; e_exp = RsLit (RsLitNum a) }
+      ( { e_annot = _; e_exp = RsLit (RsLitNum a) }
       , RsBinopMult
-      , { e_typ = _; e_exp = RsLit (RsLitNum b) } ) -> RsLit (RsLitNum (Big_int.mul a b))
+      , { e_annot = _; e_exp = RsLit (RsLitNum b) } ) ->
+    RsLit (RsLitNum (Big_int.mul a b))
   | RsBinop
-      ( { e_typ = _; e_exp = RsLit (RsLitNum a) }
+      ( { e_annot = _; e_exp = RsLit (RsLitNum a) }
       , RsBinopEq
-      , { e_typ = _; e_exp = RsLit (RsLitNum b) } ) ->
+      , { e_annot = _; e_exp = RsLit (RsLitNum b) } ) ->
     if Big_int.equal a b then RsLit RsLitTrue else RsLit RsLitFalse
   | RsBinop
-      ( { e_typ = _; e_exp = RsLit (RsLitNum a) }
+      ( { e_annot = _; e_exp = RsLit (RsLitNum a) }
       , RsBinopGe
-      , { e_typ = _; e_exp = RsLit (RsLitNum b) } ) ->
+      , { e_annot = _; e_exp = RsLit (RsLitNum b) } ) ->
     if Big_int.greater_equal a b then RsLit RsLitTrue else RsLit RsLitFalse
   (* NOTE: here we assume there is no side effects in the condition
            checks. is it is expected that some expression should be performed
            for their side effects, then this will introduce logic bugs. We
            could imagine tracking function purity in the future to work around
            that limitation. *)
-  | RsBinop ({ e_typ = _; e_exp = RsLit RsLitTrue }, RsBinopLAnd, exp)
-  | RsBinop (exp, RsBinopLAnd, { e_typ = _; e_exp = RsLit RsLitTrue }) -> exp.e_exp
+  | RsBinop ({ e_annot = _; e_exp = RsLit RsLitTrue }, RsBinopLAnd, exp)
+  | RsBinop (exp, RsBinopLAnd, { e_annot = _; e_exp = RsLit RsLitTrue }) -> exp.e_exp
   (* NOTE: here we assume there is no side effects in the condition
            checks. is it is expected that some expression should be performed
            for their side effects, then this will introduce logic bugs. We
            could imagine tracking function purity in the future to work around
            that limitation. *)
-  | RsBinop ({ e_typ = _; e_exp = RsLit RsLitFalse }, RsBinopLAnd, _exp)
-  | RsBinop (_exp, RsBinopLAnd, { e_typ = _; e_exp = RsLit RsLitFalse }) ->
+  | RsBinop ({ e_annot = _; e_exp = RsLit RsLitFalse }, RsBinopLAnd, _exp)
+  | RsBinop (_exp, RsBinopLAnd, { e_annot = _; e_exp = RsLit RsLitFalse }) ->
     RsLit RsLitFalse
   (* NOTE: here we assume there is no side effects in the condition
            checks. is it is expected that some expression should be performed
            for their side effects, then this will introduce logic bugs. We
            could imagine tracking function purity in the future to work around
            that limitation. *)
-  | RsBinop ({ e_typ = _; e_exp = RsLit RsLitTrue }, RsBinopLOr, _exp)
-  | RsBinop (_exp, RsBinopLOr, { e_typ = _; e_exp = RsLit RsLitTrue }) -> RsLit RsLitTrue
-  | RsBinop ({ e_typ = _; e_exp = RsLit RsLitFalse }, RsBinopLOr, exp)
-  | RsBinop (exp, RsBinopLOr, { e_typ = _; e_exp = RsLit RsLitFalse }) -> exp.e_exp
-  | RsIf ({ e_typ = _; e_exp = RsLit RsLitTrue }, if_branch, _else_branch) ->
+  | RsBinop ({ e_annot = _; e_exp = RsLit RsLitTrue }, RsBinopLOr, _exp)
+  | RsBinop (_exp, RsBinopLOr, { e_annot = _; e_exp = RsLit RsLitTrue }) ->
+    RsLit RsLitTrue
+  | RsBinop ({ e_annot = _; e_exp = RsLit RsLitFalse }, RsBinopLOr, exp)
+  | RsBinop (exp, RsBinopLOr, { e_annot = _; e_exp = RsLit RsLitFalse }) -> exp.e_exp
+  | RsIf ({ e_annot = _; e_exp = RsLit RsLitTrue }, if_branch, _else_branch) ->
     if_branch.e_exp
-  | RsIf ({ e_typ = _; e_exp = RsLit RsLitFalse }, _if_branch, else_branch) ->
+  | RsIf ({ e_annot = _; e_exp = RsLit RsLitFalse }, _if_branch, else_branch) ->
     else_branch.e_exp
-  | RsMatch ({ e_typ = _; e_exp = RsLit (RsLitNum n) }, branches) ->
+  | RsMatch ({ e_annot = _; e_exp = RsLit (RsLitNum n) }, branches) ->
     (match find_match_branch_opt n branches with
      | Some exp -> exp.e_exp
      | None -> rs_exp.e_exp)
   | RsMatch (exp, branches) ->
     let can_be_taken (branch : rs_pexp) =
       match branch with
-      | RsPexpWhen (_, { e_typ = _; e_exp = RsLit RsLitFalse }, _) -> false
+      | RsPexpWhen (_, { e_annot = _; e_exp = RsLit RsLitFalse }, _) -> false
       | _ -> true
     in
     let branches = List.filter can_be_taken branches in
@@ -643,18 +662,18 @@ let simplify_rs_exp_aux (ctx : context) (rs_exp : rs_exp) : rs_exp_aux =
      | [ RsPexp (RsPatWildcard, exp) ] -> exp.e_exp
      | _ -> RsMatch (exp, branches))
   | RsApp
-      ( { e_typ = _; e_exp = RsPathSeparator (_int_typ, RsTypId "pow") }
+      ( { e_annot = _; e_exp = RsPathSeparator (_int_typ, RsTypId "pow") }
       , []
-      , [ { e_typ = _; e_exp = RsLit (RsLitNum n) }
-        ; { e_typ = _; e_exp = RsAs ({ e_typ = _; e_exp = RsLit (RsLitNum m) }, _) }
+      , [ { e_annot = _; e_exp = RsLit (RsLitNum n) }
+        ; { e_annot = _; e_exp = RsAs ({ e_annot = _; e_exp = RsLit (RsLitNum m) }, _) }
         ] )
   | RsStaticApp
       ( _int_typ
       , "pow"
-      , [ { e_typ = _; e_exp = RsLit (RsLitNum n) }
-        ; { e_typ = _; e_exp = RsAs ({ e_typ = _; e_exp = RsLit (RsLitNum m) }, _) }
+      , [ { e_annot = _; e_exp = RsLit (RsLitNum n) }
+        ; { e_annot = _; e_exp = RsAs ({ e_annot = _; e_exp = RsLit (RsLitNum m) }, _) }
         ] ) -> (mk_big_num (Big_int.pow_int n (Big_int.to_int m))).e_exp
-  | RsApp ({ e_typ = _; e_exp = RsId id }, _, _) when SMap.mem id ctx.defs.inline_fun ->
+  | RsApp ({ e_annot = _; e_exp = RsId id }, _, _) when SMap.mem id ctx.defs.inline_fun ->
     (SMap.find id ctx.defs.inline_fun).e_exp
   | RsBlock exps ->
     let is_not_unit exp =
@@ -671,8 +690,8 @@ let simplify_rs_exp_aux (ctx : context) (rs_exp : rs_exp) : rs_exp_aux =
            binding expires.
            Note that this assumes that the binding expression has no side
            effects. *)
-  | RsLet (_, _, { e_typ = _; e_exp = RsLit RsLitFalse }) -> RsLit RsLitFalse
-  | RsLet (_, _, { e_typ = _; e_exp = RsLit RsLitTrue }) -> RsLit RsLitTrue
+  | RsLet (_, _, { e_annot = _; e_exp = RsLit RsLitFalse }) -> RsLit RsLitFalse
+  | RsLet (_, _, { e_annot = _; e_exp = RsLit RsLitTrue }) -> RsLit RsLitTrue
   | _ -> rs_exp.e_exp
 ;;
 
@@ -706,7 +725,7 @@ let rec propagate_in_exp_aux (ctx : bindings) (exp : rs_exp) : rs_exp_aux =
     (match SMap.find_opt id ctx with
      | Some exp' -> exp'.e_exp (* The constant propagation happens here *)
      | None -> RsId id)
-  | RsLet (RsPatId id, ({ e_typ = _; e_exp = RsLit _ } as lit), next) ->
+  | RsLet (RsPatId id, ({ e_annot = _; e_exp = RsLit _ } as lit), next) ->
     (* This binding is a Rust literal, we can remove it and inline the literal in the next expression *)
     let ctx' = SMap.add id lit ctx in
     (* We remove nested blocks here *)
@@ -722,8 +741,12 @@ let rec propagate_in_exp_aux (ctx : bindings) (exp : rs_exp) : rs_exp_aux =
     let ctx' = invalidate_bindings ctx (SSet.to_list new_ids) in
     (* We keep the old bindings in the let expression, but we use the new bindings in the body of the let expression *)
     RsLet (pat, propagate pat_exp, propagate_in_exp ctx' next)
-  | RsLetMut (lexp, exp, next) ->
-    RsLetMut (propagate_in_lexp ctx lexp, propagate exp, propagate next)
+  | RsLetMut (pat, pat_exp, next) ->
+    (* We need to invalidate all bindings that are being re-defined *)
+    let new_ids = ids_of_pat pat in
+    let ctx' = invalidate_bindings ctx (SSet.to_list new_ids) in
+    (* We keep the old bindings in the let expression, but we use the new bindings in the body of the let expression *)
+    RsLetMut (pat, propagate pat_exp, propagate_in_exp ctx' next)
   | RsApp (fn, generics, args) -> RsApp (propagate fn, generics, propagate_list args)
   | RsMethodApp app ->
     RsMethodApp { app with exp = propagate app.exp; args = propagate_list app.args }
@@ -757,9 +780,10 @@ let rec propagate_in_exp_aux (ctx : bindings) (exp : rs_exp) : rs_exp_aux =
     RsStructAssign (propagate st, field, propagate value)
   | RsReturn exp -> RsReturn (propagate exp)
   | RsTodo s -> RsTodo s
+  | RsBorrow exp -> RsBorrow (propagate exp)
 
 and propagate_in_exp (ctx : bindings) (exp : rs_exp) : rs_exp =
-  { e_typ = exp.e_typ; e_exp = propagate_in_exp_aux ctx exp }
+  { e_annot = exp.e_annot; e_exp = propagate_in_exp_aux ctx exp }
 
 and propagate_in_pexp (ctx : bindings) (pexp : rs_pexp) : rs_pexp =
   match (pexp : rs_pexp) with
@@ -807,15 +831,18 @@ let constant_propagation (program : rs_program) : rs_program =
     we already have blocks. This transformation removes the nested blocks. **)
 let nested_block_remover_exp (_ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
-  | RsIf (c, { e_typ = t1; e_exp = RsBlock e1 }, { e_typ = t2; e_exp = RsBlock e2 }) ->
+  | RsIf (c, { e_annot = t1; e_exp = RsBlock e1 }, { e_annot = t2; e_exp = RsBlock e2 })
+    ->
     RsIf
-      (c, { e_typ = t1; e_exp = RsInstrList e1 }, { e_typ = t2; e_exp = RsInstrList e2 })
-  | RsIf (c, { e_typ = t1; e_exp = RsBlock e1 }, e2) ->
-    RsIf (c, { e_typ = t1; e_exp = RsInstrList e1 }, e2)
-  | RsIf (c, e1, { e_typ = t2; e_exp = RsBlock e2 }) ->
-    RsIf (c, e1, { e_typ = t2; e_exp = RsInstrList e2 })
-  | RsFor (var, start, until, { e_typ = t; e_exp = RsBlock b }) ->
-    RsFor (var, start, until, { e_typ = t; e_exp = RsInstrList b })
+      ( c
+      , { e_annot = t1; e_exp = RsInstrList e1 }
+      , { e_annot = t2; e_exp = RsInstrList e2 } )
+  | RsIf (c, { e_annot = t1; e_exp = RsBlock e1 }, e2) ->
+    RsIf (c, { e_annot = t1; e_exp = RsInstrList e1 }, e2)
+  | RsIf (c, e1, { e_annot = t2; e_exp = RsBlock e2 }) ->
+    RsIf (c, e1, { e_annot = t2; e_exp = RsInstrList e2 })
+  | RsFor (var, start, until, { e_annot = t; e_exp = RsBlock b }) ->
+    RsFor (var, start, until, { e_annot = t; e_exp = RsInstrList b })
   | e -> e
 ;;
 
@@ -839,55 +866,59 @@ let unsupported_fun : SSet.t =
 (* TODO: This list is probably incomplete and we might want to add extra fields in the future *)
 let native_func_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
-  | RsApp ({ e_typ = _; e_exp = RsId "add_atom" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "add_atom" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopAdd, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "sub_atom" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sub_atom" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopSub, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "negate_atom" }, _gens, [ e1 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "negate_atom" }, _gens, [ e1 ]) ->
     RsUnop (RsUnopNeg, e1)
-  | RsApp ({ e_typ = _; e_exp = RsId "ediv_int" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "ediv_int" }, _gens, _) ->
     RsId "BUILTIN_atom_ediv_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "emod_int" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "emod_int" }, _gens, [ e1; e2 ]) ->
     RsBinop (mk_as e1 usize_typ, RsBinopMod, mk_as e2 usize_typ)
-  | RsApp ({ e_typ = _; e_exp = RsId "abs_int_atom" }, _gens, [ e ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "abs_int_atom" }, _gens, [ e ]) ->
     RsStaticApp (int_typ, "abs", [ e ])
-  | RsApp ({ e_typ = _; e_exp = RsId "not_bool" }, _gens, [ e ]) -> RsUnop (RsUnopNot, e)
-  | RsApp ({ e_typ = _; e_exp = RsId "not_vec" }, _gens, [ v ]) -> RsUnop (RsUnopNot, v)
-  | RsApp ({ e_typ = _; e_exp = RsId "eq_bit" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "not_bool" }, _gens, [ e ]) -> RsUnop (RsUnopNot, e)
+  | RsApp ({ e_annot = _; e_exp = RsId "not_vec" }, _gens, [ v ]) -> RsUnop (RsUnopNot, v)
+  | RsApp ({ e_annot = _; e_exp = RsId "eq_bit" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopEq, e2) (* TODO Is it correct to compare like that? *)
-  | RsApp ({ e_typ = _; e_exp = RsId "eq_bool" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "eq_bool" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopEq, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "eq_string" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "eq_string" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopEq, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "eq_int" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "eq_int" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopEq, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "not" }, _gens, [ b ]) -> RsUnop (RsUnopNot, b)
-  | RsApp ({ e_typ = _; e_exp = RsId "lt" }, _gens, _) -> RsId "BUILTIN_lt_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "lteq" }, _gens, _) -> RsId "BUILTIN_lteq_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "lteq_int" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "not" }, _gens, [ b ]) -> RsUnop (RsUnopNot, b)
+  | RsApp ({ e_annot = _; e_exp = RsId "lt" }, _gens, _) -> RsId "BUILTIN_lt_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "lteq" }, _gens, _) -> RsId "BUILTIN_lteq_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "lteq_int" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopLe, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "gt" }, _gens, _) -> RsId "BUILTIN_gt_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "gteq" }, _gens, _) -> RsId "BUILTIN_gteq_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_length" }, gens, [ vec ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "gt" }, _gens, _) -> RsId "BUILTIN_gt_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "gteq" }, _gens, _) -> RsId "BUILTIN_gteq_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_length" }, gens, [ vec ]) ->
     RsMethodApp { exp = vec; name = "len"; generics = gens; args = [] }
-  | RsApp ({ e_typ = _; e_exp = RsId "add_int" }, _gens, _) -> RsId "BUILTIN_add_int_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "sub_int" }, _gens, _) -> RsId "BUILTIN_sub_int_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "mult_int" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "add_int" }, _gens, _) ->
+    RsId "BUILTIN_add_int_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "sub_int" }, _gens, _) ->
+    RsId "BUILTIN_sub_int_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "mult_int" }, _gens, _) ->
     RsId "BUILTIN_mult_int_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "neg_int" }, _gens, _) -> RsId "BUILTIN_neg_int_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "abs_int" }, _gens, _) -> RsId "BUILTIN_abs_int_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "neg_int" }, _gens, _) ->
+    RsId "BUILTIN_neg_int_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "abs_int" }, _gens, _) ->
+    RsId "BUILTIN_abs_int_TODO"
   (* | RsApp (RsId "max_int", _gens, _) -> RsId "BUILTIN_max_int_TODO" *)
   (*| RsApp (RsId "min_int", _gens, _) -> RsId "BUILTIN_min_int_TODO" *)
-  | RsApp ({ e_typ = _; e_exp = RsId "tdiv_int" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "tdiv_int" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopDiv, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "tmod_int" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "tmod_int" }, _gens, _) ->
     RsId "BUILTIN_tmod_int_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "pow2" }, [], [ n ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "pow2" }, [], [ n ]) ->
     RsApp
-      ( { e_typ = RsTypUnknown; e_exp = RsPathSeparator (int_typ, RsTypId "pow") }
+      ( { e_annot = None; e_exp = RsPathSeparator (int_typ, RsTypId "pow") }
       , []
       , [ mk_num 2; mk_as n (RsTypId "u32") ] )
-  | RsApp ({ e_typ = _; e_exp = RsId "quot_positive_round_zero" }, [], [ a; b ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "quot_positive_round_zero" }, [], [ a; b ]) ->
     RsBinop (a, RsBinopDiv, b)
   (* | RsApp (RsId "zeros", _gens, _) -> RsId "BUILTIN_zeros_TODO" *)
   (*| RsApp (RsId "ones", _gens, e) -> RsApp (RsId "ones", e) Handled by the integrated library *)
@@ -895,127 +926,132 @@ let native_func_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp_aux =
   (*| RsApp (RsId "zero_extend", _gens, e) -> RsApp (RsId "zero_extend", e)
     | RsApp (RsId "sign_extend", _gens, e) -> RsApp (RsId "sign_extend", e)
     | RsApp (RsId "sail_ones", _gens, e) -> RsApp (RsId "sail_ones", e) *)
-  | RsApp ({ e_typ = _; e_exp = RsId "sail_signed" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sail_signed" }, _gens, _) ->
     RsId "BUILTIN_sail_signed_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "sail_unsigned" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sail_unsigned" }, _gens, _) ->
     RsId "BUILTIN_sail_unsigned_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "slice" }, _gens, args) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "slice" }, _gens, args) ->
     RsApp (mk_exp_id "slice", [], args)
-  | RsApp ({ e_typ = _; e_exp = RsId "slice_inc" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "slice_inc" }, _gens, _) ->
     RsId "BUILTIN_slice_inc_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "add_bits" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "add_bits" }, _gens, _) ->
     RsId "BUILTIN_add_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "add_bits_int" }, _gens, [ b1; b2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "add_bits_int" }, _gens, [ b1; b2 ]) ->
     RsBinop (b1, RsBinopAdd, b2)
-  | RsApp ({ e_typ = _; e_exp = RsId "sub_bits" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sub_bits" }, _gens, _) ->
     RsId "BUILTIN_sub_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "sub_bits_int" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sub_bits_int" }, _gens, _) ->
     RsId "BUILTIN_sub_bits_int_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "append" }, _gens, _) -> RsId "BUILTIN_append_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "eq_bits" }, _gens, _) -> RsId "BUILTIN_eq_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "neq_bits" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "append" }, _gens, _) -> RsId "BUILTIN_append_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "eq_bits" }, _gens, _) ->
+    RsId "BUILTIN_eq_bits_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "neq_bits" }, _gens, _) ->
     RsId "BUILTIN_neq_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "not_bits" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "not_bits" }, _gens, _) ->
     RsId "BUILTIN_not_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "sail_truncate" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sail_truncate" }, _gens, _) ->
     RsId "BUILTIN_sail_truncate_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "sail_truncateLSB" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sail_truncateLSB" }, _gens, _) ->
     RsId "BUILTIN_sail_truncateLSB_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "shiftl" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "shiftl" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopShiftLeft, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "shiftr" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "shiftr" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopShiftRight, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "arith_shiftr" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "arith_shiftr" }, _gens, _) ->
     RsId "BUILTIN_arith_shiftr_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "and_bits" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "and_bits" }, _gens, _) ->
     RsId "BUILTIN_and_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "or_bits" }, _gens, _) -> RsId "BUILTIN_or_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "xor_bits" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "or_bits" }, _gens, _) ->
+    RsId "BUILTIN_or_bits_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "xor_bits" }, _gens, _) ->
     RsId "BUILTIN_xor_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_init" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_init" }, _gens, _) ->
     RsId "BUILTIN_vector_init_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_access" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_access" }, _gens, _) ->
     RsId "BUILTIN_vector_access_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_access_inc" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_access_inc" }, _gens, _) ->
     RsId "BUILTIN_vector_access_inc_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_subrange" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_subrange" }, _gens, _) ->
     RsId "BUILTIN_vector_subrange_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_subrange_inc" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_subrange_inc" }, _gens, _) ->
     RsId "BUILTIN_vector_subrange_inc_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_update" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_update" }, _gens, _) ->
     RsId "BUILTIN_vector_update_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_update_inc" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_update_inc" }, _gens, _) ->
     RsId "BUILTIN_vector_update_inc_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_update_subrange" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_update_subrange" }, _gens, _) ->
     RsId "BUILTIN_vector_update_subrange_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "vector_update_subrange_inc" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "vector_update_subrange_inc" }, _gens, _) ->
     RsId "BUILTIN_vector_update_subrange_inc_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "length" }, _gens, _) -> RsId "BUILTIN_length_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "replicate_bits" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "length" }, _gens, _) -> RsId "BUILTIN_length_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "replicate_bits" }, _gens, _) ->
     RsId "BUILTIN_replicate_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "count_leading_zeros" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "count_leading_zeros" }, _gens, _) ->
     RsId "BUILTIN_count_leading_zeros_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "eq_real" }, _gens, _) -> RsId "BUILTIN_eq_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "neg_real" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "eq_real" }, _gens, _) ->
+    RsId "BUILTIN_eq_real_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "neg_real" }, _gens, _) ->
     RsId "BUILTIN_neg_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "add_real" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "add_real" }, _gens, _) ->
     RsId "BUILTIN_add_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "sub_real" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sub_real" }, _gens, _) ->
     RsId "BUILTIN_sub_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "mult_real" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "mult_real" }, _gens, _) ->
     RsId "BUILTIN_mult_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "div_real" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "div_real" }, _gens, _) ->
     RsId "BUILTIN_div_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "lt_real" }, _gens, _) -> RsId "BUILTIN_lt_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "gt_real" }, _gens, _) -> RsId "BUILTIN_gt_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "lteq_real" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "lt_real" }, _gens, _) ->
+    RsId "BUILTIN_lt_real_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "gt_real" }, _gens, _) ->
+    RsId "BUILTIN_gt_real_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "lteq_real" }, _gens, _) ->
     RsId "BUILTIN_lteq_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "gteq_real" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "gteq_real" }, _gens, _) ->
     RsId "BUILTIN_gteq_real_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "concat_str" }, gens, [ s1; s2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "concat_str" }, gens, [ s1; s2 ]) ->
     RsApp
-      ( { e_typ = RsTypUnknown; e_exp = RsId "format!" }
+      ( { e_annot = None; e_exp = RsId "format!" }
       , gens
-      , [ { e_typ = RsTypUnknown; e_exp = RsId "\"{}{}\"" }; s1; s2 ] )
+      , [ { e_annot = None; e_exp = RsId "\"{}{}\"" }; s1; s2 ] )
     (* There is a bug with hoisting here *)
-  | RsApp ({ e_typ = _; e_exp = RsId "print_bits" }, gens, e) ->
-    RsApp ({ e_typ = RsTypUnknown; e_exp = RsId "print_output" }, gens, e)
-  | RsApp ({ e_typ = _; e_exp = RsId "string_of_bits" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "print_bits" }, gens, e) ->
+    RsApp ({ e_annot = None; e_exp = RsId "print_output" }, gens, e)
+  | RsApp ({ e_annot = _; e_exp = RsId "string_of_bits" }, _gens, _) ->
     RsId "BUILTIN_string_of_bits_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "dec_str" }, gens, e) ->
-    RsApp ({ e_typ = RsTypUnknown; e_exp = RsId "dec_str" }, gens, e)
+  | RsApp ({ e_annot = _; e_exp = RsId "dec_str" }, gens, e) ->
+    RsApp ({ e_annot = None; e_exp = RsId "dec_str" }, gens, e)
     (* Handled by an external lib *)
-  | RsApp ({ e_typ = _; e_exp = RsId "hex_str" }, gens, e) ->
-    RsApp ({ e_typ = RsTypUnknown; e_exp = RsId "hex_str" }, gens, e)
+  | RsApp ({ e_annot = _; e_exp = RsId "hex_str" }, gens, e) ->
+    RsApp ({ e_annot = None; e_exp = RsId "hex_str" }, gens, e)
     (* Handled by an external lib *)
-  | RsApp ({ e_typ = _; e_exp = RsId "hex_str_upper" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "hex_str_upper" }, _gens, _) ->
     RsId "BUILTIN_hex_str_upper_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "sail_assert" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sail_assert" }, _gens, _) ->
     RsId "BUILTIN_sail_assert_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "reg_deref" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "reg_deref" }, _gens, _) ->
     RsId "BUILTIN_reg_deref_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "sail_cons" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "sail_cons" }, _gens, _) ->
     RsId "BUILTIN_sail_cons_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "eq_anything" }, _gens, _) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "eq_anything" }, _gens, _) ->
     RsId "BUILTIN_eq_anything_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "id" }, _gens, _) -> RsId "BUILTIN_id_TODO"
-  | RsApp ({ e_typ = _; e_exp = RsId "gteq_int" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "id" }, _gens, _) -> RsId "BUILTIN_id_TODO"
+  | RsApp ({ e_annot = _; e_exp = RsId "gteq_int" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopGe, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "lt_int" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "lt_int" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopLt, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "gt_int" }, _gens, [ e1; e2 ]) ->
+  | RsApp ({ e_annot = _; e_exp = RsId "gt_int" }, _gens, [ e1; e2 ]) ->
     RsBinop (e1, RsBinopGt, e2)
-  | RsApp ({ e_typ = _; e_exp = RsId "internal_error" }, _gens, [ file; line; message ])
+  | RsApp ({ e_annot = _; e_exp = RsId "internal_error" }, _gens, [ file; line; message ])
     ->
     RsApp
-      ( { e_typ = RsTypUnknown; e_exp = RsId "panic!" }
+      ( { e_annot = None; e_exp = RsId "panic!" }
       , []
-      , [ { e_typ = RsTypUnknown; e_exp = RsLit (RsLitStr "{}, l {}: {}") }
+      , [ { e_annot = None; e_exp = RsLit (RsLitStr "{}, l {}: {}") }
         ; file
         ; line
         ; message
         ] )
-  | RsApp ({ e_typ = _; e_exp = RsId id }, _gens, _) when SSet.mem id unsupported_fun ->
+  | RsApp ({ e_annot = _; e_exp = RsId id }, _gens, _) when SSet.mem id unsupported_fun ->
     RsLit RsLitUnit
   | e -> e
 ;;
@@ -1053,14 +1089,15 @@ let rec rename_in_exp_aux (rn : string * string) (exp : rs_exp) : rs_exp_aux =
     else
       (* The ID is not shadowed, so we need to continue the renaming *)
       RsLet (pat, rename_in_exp exp, rename_in_exp next)
-  | RsLetMut (lexp, exp, next) ->
-    (match lexp with
-     | RsLexpId lexp_id when lexp_id = id ->
-       (*  The ID is being shadowed, stop renaming at that point*)
-       RsLetMut (lexp, rename_in_exp exp, next)
-     | _ ->
-       (* The ID is not shadowed, so we need to continue renaming *)
-       RsLetMut (rename_in_lexp rn lexp, rename_in_exp exp, rename_in_exp next))
+  | RsLetMut (pat, exp, next) ->
+    let new_ids = ids_of_pat pat in
+    if SSet.mem id new_ids
+    then
+      (* The ID is being shadowed, stop renaming at that point *)
+      RsLetMut (pat, rename_in_exp exp, next)
+    else
+      (* The ID is not shadowed, so we need to continue the renaming *)
+      RsLetMut (pat, rename_in_exp exp, rename_in_exp next)
   | RsApp (fn, generics, args) -> RsApp (rename_in_exp fn, generics, rename_in_exps args)
   | RsMethodApp app ->
     RsMethodApp { app with exp = rename_in_exp app.exp; args = rename_in_exps app.args }
@@ -1094,6 +1131,7 @@ let rec rename_in_exp_aux (rn : string * string) (exp : rs_exp) : rs_exp_aux =
     RsStructAssign (rename_in_exp st, field, rename_in_exp value)
   | RsReturn exp -> RsReturn (rename_in_exp exp)
   | RsTodo s -> RsTodo s
+  | RsBorrow exp -> RsBorrow (rename_in_exp exp)
 
 and rename_in_exp (rn : string * string) (exp : rs_exp) : rs_exp =
   { exp with e_exp = rename_in_exp_aux rn exp }
@@ -1131,7 +1169,7 @@ and rename_in_lexp (rn : string * string) (lexp : rs_lexp) : rs_lexp =
 let rec should_hoist_exp (is_nested : bool) (exp : rs_exp) : bool =
   let core_ctx = RsId core_ctx in
   let contain_core_ctx args =
-    List.exists (fun { e_typ = _; e_exp = e } -> e = core_ctx) args
+    List.exists (fun { e_annot = _; e_exp = e } -> e = core_ctx) args
   in
   match exp.e_exp with
   | RsApp (_exp, _generics, args) -> contain_core_ctx args || should_hoist_args args
@@ -1157,7 +1195,7 @@ let rec hoist (exp : rs_exp list) : rs_exp list * rs_exp list =
   | e :: arr when should_hoist_exp false e ->
     let ident = !variable_generator () in
     let l1, l2 = hoist arr in
-    ( { e_typ = RsTypUnknown; e_exp = RsLet (RsPatId ident, e, mk_todo "hoist") } :: l1
+    ( { e_annot = None; e_exp = RsLet (RsPatId ident, e, mk_todo "hoist") } :: l1
     , mk_exp_id ident :: l2 )
   | e :: arr ->
     let l1, l2 = hoist arr in
@@ -1167,8 +1205,8 @@ let rec hoist (exp : rs_exp list) : rs_exp list * rs_exp list =
 
 let rec generate_hoisted_block (exp : rs_exp list) app : rs_exp =
   match exp with
-  | { e_typ = t; e_exp = RsLet (pat, exp2, _) } :: arr ->
-    { e_typ = t; e_exp = RsLet (pat, exp2, generate_hoisted_block arr app) }
+  | { e_annot = t; e_exp = RsLet (pat, exp2, _) } :: arr ->
+    { e_annot = t; e_exp = RsLet (pat, exp2, generate_hoisted_block arr app) }
   | [] -> app
   | _ -> failwith "Unreachable code"
 ;;
@@ -1259,7 +1297,7 @@ let pexp_hoister (_ctx : context) (pexp : rs_pexp) : rs_pexp =
     let rec build_cond exp defs =
       match defs with
       | (pat, binding) :: tail ->
-        { e_typ = exp.e_typ; e_exp = RsLet (pat, binding, build_cond exp tail) }
+        { e_annot = exp.e_annot; e_exp = RsLet (pat, binding, build_cond exp tail) }
       | [] -> exp
     in
     let cond = build_cond cond defs in
@@ -1270,20 +1308,20 @@ let pexp_hoister (_ctx : context) (pexp : rs_pexp) : rs_pexp =
 let expr_hoister (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
   (* We dont need to hoist external functions & some macro might not work with hoisting (for example: format!)*)
-  | RsApp (({ e_typ = _; e_exp = RsId name } as id), generics, args)
+  | RsApp (({ e_annot = _; e_exp = RsId name } as id), generics, args)
     when should_hoist_args args && not (SSet.mem name ctx.arch.external_func) ->
     let ret = hoist args in
     RsBlock
       [ generate_hoisted_block
           (fst ret)
-          { e_typ = exp.e_typ; e_exp = RsApp (id, generics, snd ret) }
+          { e_annot = exp.e_annot; e_exp = RsApp (id, generics, snd ret) }
       ]
   | RsMethodApp { exp; name; generics; args } when should_hoist_args args ->
     let ret = hoist args in
     RsBlock
       [ generate_hoisted_block
           (fst ret)
-          { e_typ = exp.e_typ
+          { e_annot = exp.e_annot
           ; e_exp = RsMethodApp { exp; name; generics; args = snd ret }
           }
       ]
@@ -1292,7 +1330,7 @@ let expr_hoister (ctx : context) (exp : rs_exp) : rs_exp_aux =
     let rec build_cond (exp : rs_exp) defs : rs_exp =
       match defs with
       | (pat, binding) :: tail ->
-        { e_typ = RsTypUnknown; e_exp = RsLet (pat, binding, build_cond exp tail) }
+        { e_annot = None; e_exp = RsLet (pat, binding, build_cond exp tail) }
       | [] -> exp
     in
     let cond = build_cond cond defs in
@@ -1325,7 +1363,7 @@ let expr_type_hoister : expr_type_transform =
 
 let exp_virt_ctx_usage (ctx : context) (exp : rs_exp) : rs_exp_aux =
   (match exp.e_exp with
-   | RsApp ({ e_typ = _; e_exp = RsId fn }, _, _) ->
+   | RsApp ({ e_annot = _; e_exp = RsId fn }, _, _) ->
      (match ctx_fun fn ctx with
       | Some fn when fn.use_sail_ctx -> ctx.uses_sail_ctx <- true
       | _ -> ())
@@ -1424,14 +1462,12 @@ let fix_scattered_func (_ctx : context) (func : rs_fn) : rs_fn =
   let missing_args =
     func.args
     |> List.filter_map get_if_missing_arg
-    |> List.map (fun x -> { e_typ = RsTypUnknown; e_exp = RsId x })
+    |> List.map (fun x -> { e_annot = None; e_exp = RsId x })
   in
   match func.body.e_exp with
   | RsMatch (m_exp, branches) when List.length missing_args > 0 ->
-    let new_m_exp =
-      { e_typ = RsTypUnknown; e_exp = RsTuple ([ m_exp ] @ missing_args) }
-    in
-    { func with body = { e_typ = RsTypUnknown; e_exp = RsMatch (new_m_exp, branches) } }
+    let new_m_exp = { e_annot = None; e_exp = RsTuple ([ m_exp ] @ missing_args) } in
+    { func with body = { e_annot = None; e_exp = RsMatch (new_m_exp, branches) } }
   | _ -> func
 ;;
 
@@ -1520,14 +1556,14 @@ let rec enum_prefix_inserter (key : string) (lst : (string * string) list) : str
 let enum_binder_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
   | RsId id -> RsId (enum_prefix_inserter id ctx.enum_entries)
-  | RsApp ({ e_typ = t; e_exp = RsId id }, generics, args) ->
+  | RsApp ({ e_annot = t; e_exp = RsId id }, generics, args) ->
     RsApp
-      ( { e_typ = t; e_exp = RsId (enum_prefix_inserter id ctx.enum_entries) }
+      ( { e_annot = t; e_exp = RsId (enum_prefix_inserter id ctx.enum_entries) }
       , generics
       , args )
-  | RsMethodApp { exp = { e_typ = t; e_exp = RsId id }; name; generics; args } ->
+  | RsMethodApp { exp = { e_annot = t; e_exp = RsId id }; name; generics; args } ->
     RsMethodApp
-      { exp = { e_typ = t; e_exp = RsId (enum_prefix_inserter id ctx.enum_entries) }
+      { exp = { e_annot = t; e_exp = RsId (enum_prefix_inserter id ctx.enum_entries) }
       ; name
       ; generics
       ; args
@@ -1565,7 +1601,7 @@ let const_prelude_func : SSet.t = SSet.of_list [ "sail_ones"; "sail_zeros" ]
 let should_be_const (body : rs_exp) : bool =
   match body.e_exp with
   | RsLit _ -> true
-  | RsApp ({ e_typ = _; e_exp = RsId id }, _, _) when SSet.mem id const_prelude_func ->
+  | RsApp ({ e_annot = _; e_exp = RsId id }, _, _) when SSet.mem id const_prelude_func ->
     true
   | _ -> false
 ;;
@@ -1600,8 +1636,8 @@ let operator_rewriter = { func = operator_rewriter_func }
 
 let expr_operator_rewriter (_ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
-  | RsApp ({ e_typ = t; e_exp = RsId id }, generics, args) ->
-    RsApp ({ e_typ = t; e_exp = RsId (remove_illegal_operator_char id) }, generics, args)
+  | RsApp ({ e_annot = t; e_exp = RsId id }, generics, args) ->
+    RsApp ({ e_annot = t; e_exp = RsId (remove_illegal_operator_char id) }, generics, args)
   | e -> e
 ;;
 
@@ -1611,23 +1647,16 @@ let expr_type_operator_rewriter : expr_type_transform =
 
 (* —————————————————————————— Remove 'atom' types ——————————————————————————— *)
 
-let remove_atom_from_signature (func_sig : rs_fn_type) : rs_fn_type =
-  let rewrite_atom (typ : rs_type) : rs_type =
-    match typ with
-    | RsTypGenericParam ("atom_bool", _) -> bool_typ
-    | RsTypGenericParam ("atom", _) -> int_typ
-    | _ -> typ
-  in
-  let args = List.map rewrite_atom func_sig.args in
-  let ret = rewrite_atom func_sig.ret in
-  { func_sig with args; ret }
+let remove_atom (_ctx : context) (typ : rs_type) : rs_type =
+  match typ with
+  | RsTypGenericParam ("atom_bool", _) -> bool_typ
+  | RsTypGenericParam ("atom", _) -> int_typ
+  | _ -> typ
 ;;
 
-let atom_rewriter_func (_ctx : context) (func : rs_fn) : rs_fn =
-  { func with signature = remove_atom_from_signature func.signature }
+let atom_rewriter : expr_type_transform =
+  { id_expr_type_transform with typ = remove_atom }
 ;;
-
-let atom_rewriter = { func = atom_rewriter_func }
 
 (* ———————————————————————— type bits = bitvector filter  ————————————————————————— *)
 
@@ -1705,7 +1734,7 @@ let transform_basic_types_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   | RsId "priv" -> RsId "_priv_"
   | RsId "super" -> RsId "_super_"
   (* Conversion for `nat` type *)
-  | RsApp (({ e_typ = _; e_exp = RsId id } as e_id), generics, args) ->
+  | RsApp (({ e_annot = _; e_exp = RsId id } as e_id), generics, args) ->
     let patch_arg (exp, typ) =
       match typ with
       (* Conversion between integer types is not automatic, therefore we need to insert some casts *)
@@ -1729,8 +1758,6 @@ let transform_basic_types_lexp (_ctx : context) (lexp : rs_lexp) : rs_lexp =
   | _ -> lexp
 ;;
 
-let transform_basic_types_pexp (_ctx : context) (pexp : rs_pexp) : rs_pexp = pexp
-
 let transform_basic_types_type (_ctx : context) (typ : rs_type) : rs_type =
   match typ with
   | RsTypId "string" -> RsTypId "&\'static str"
@@ -1753,7 +1780,6 @@ let transform_basic_types : expr_type_transform =
   { id_expr_type_transform with
     exp_aux = transform_basic_types_exp
   ; lexp = transform_basic_types_lexp
-  ; pexp = transform_basic_types_pexp
   ; typ = transform_basic_types_type
   ; pat = transform_basic_types_pat
   }
@@ -1769,7 +1795,7 @@ let add_wildcard_match_expr (_ctx : context) (exp : rs_exp) : rs_exp_aux =
       , pexps
         @ [ RsPexp
               ( RsPatWildcard
-              , { e_typ = RsTypUnknown
+              , { e_annot = None
                 ; e_exp = RsApp (mk_exp_id "panic!", [], [ mk_lit_str "Unreachable code" ])
                 } )
           ] )
@@ -1794,7 +1820,7 @@ let is_enum (value : string) : bool =
 
 let sail_context_arg_inserter_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
-  | RsApp (({ e_typ = _; e_exp = RsId app_id } as e_id), generics, args)
+  | RsApp (({ e_annot = _; e_exp = RsId app_id } as e_id), generics, args)
     when (not (SSet.mem app_id ctx.arch.external_func)) && not (is_enum app_id) ->
     (match ctx_fun app_id ctx with
      | Some fn when not fn.use_sail_ctx -> exp.e_exp
@@ -1826,23 +1852,24 @@ let filter_different_litterals (lit : Big_int.num) (pexp : rs_pexp) : bool =
 let dead_code_remover_exp (_ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
   | RsMatch
-      ( ({ e_typ = _; e_exp = RsTuple [ _; { e_typ = _; e_exp = RsLit (RsLitNum n) } ] }
-         as e1)
+      ( ({ e_annot = _
+         ; e_exp = RsTuple [ _; { e_annot = _; e_exp = RsLit (RsLitNum n) } ]
+         } as e1)
       , pexps ) -> RsMatch (e1, List.filter (filter_different_litterals n) pexps)
   | RsIf
-      ( ({ e_typ = t
+      ( ({ e_annot = t
          ; e_exp =
              RsBinop
-               ( ({ e_typ = _; e_exp = RsLit (RsLitNum n1) } as lit1)
+               ( ({ e_annot = _; e_exp = RsLit (RsLitNum n1) } as lit1)
                , RsBinopEq
-               , { e_typ = _; e_exp = RsLit (RsLitNum n2) } )
+               , { e_annot = _; e_exp = RsLit (RsLitNum n2) } )
          } as lit2)
       , _then_exp
       , else_exp )
     when n1 <> n2 ->
     RsIf
-      ( { e_typ = t; e_exp = RsBinop (lit1, RsBinopEq, lit2) }
-      , { e_typ = RsTypUnknown
+      ( { e_annot = t; e_exp = RsBinop (lit1, RsBinopEq, lit2) }
+      , { e_annot = None
         ; e_exp = RsApp (mk_exp_id "panic!", [], [ mk_lit_str "unreachable code" ])
         }
       , else_exp )
@@ -1873,13 +1900,13 @@ let is_supported_obj (ctx : context) (obj : rs_obj) : bool =
 
 let remove_unsupported_func_calls (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
-  | RsApp ({ e_typ = _; e_exp = RsId app_id }, _generics, _args)
+  | RsApp ({ e_annot = _; e_exp = RsId app_id }, _generics, _args)
     when SSet.mem app_id ctx.arch.unsupported_func ->
     let err_message = Printf.sprintf "Unsupported function: '%s'" app_id in
     RsApp
-      ( { e_typ = RsTypUnknown; e_exp = RsId "panic!" }
+      ( { e_annot = None; e_exp = RsId "panic!" }
       , []
-      , [ { e_typ = RsTypUnknown; e_exp = RsLit (RsLitStr err_message) } ] )
+      , [ { e_annot = None; e_exp = RsLit (RsLitStr err_message) } ] )
   | e -> e
 ;;
 
@@ -1917,19 +1944,20 @@ let use_dynamic_vector_typ (ctx : context) (typ : rs_type) : rs_type =
 ;;
 
 let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
+  (* TODO(Gurvan): Here we are checking if expression are const or what but it
+     does not matter: we should instead be looking at e.e_annot but sometimes it
+     is not set unfortunately *)
   match e.e_exp with
   | RsArray _es ->
     Reporting.simple_warn
       (Printf.sprintf "Using RsArray might not work with dynamic vector");
-    (* TODO(Gurvan): Figure out if the safest bet is to use vec! or to not use
-            vec!. Seems like not using it works for the base rv64 model but
-            breaks some tests (tests/types/arch.rs). Very annoying that we don't
-            have the type information which can allow us to do these kinds of
-            things…*)
     e.e_exp
   | RsArraySize (e', size) ->
     if is_const_rs_exp ctx size then e.e_exp else RsVecSize (e', mk_as size usize_typ)
-  | RsApp ({ e_typ = _; e_exp = RsId "undefined_vector" }, _generics, [ size; value ]) ->
+  | RsMethodApp { exp= { e_annot= annot; e_exp=_} as e; name="len"; generics=[]; args=[] } ->
+      RsApp (mk_exp_id "vector_length", [], [ mk_borrow e ])
+  | RsApp ({ e_annot = _; e_exp = RsId "undefined_vector" }, _generics, [ size; value ])
+    ->
     if is_const_rs_exp ctx size
     then RsArraySize (value, mk_as size usize_typ)
     else e.e_exp
@@ -1955,7 +1983,7 @@ let use_dynamic_vectors (ctx : context) (rust_program : rs_program) : rs_program
 let cast_if_array_to_vec (typ : rs_type) (e : rs_exp) : rs_exp =
   match typ, e.e_exp with
   | RsTypGenericParam ("Vec", _), (RsArray _ | RsArraySize _) ->
-    { e_typ = RsTypUnknown
+    { e_annot = None
     ; e_exp = RsMethodApp { exp = e; name = "to_vec"; generics = []; args = [] }
     }
   | _ -> e
@@ -1963,7 +1991,7 @@ let cast_if_array_to_vec (typ : rs_type) (e : rs_exp) : rs_exp =
 
 let use_dynamic_vector_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
-  | RsApp (({ e_typ = _; e_exp = RsId id } as id_exp), generics, args) ->
+  | RsApp (({ e_annot = _; e_exp = RsId id } as id_exp), generics, args) ->
     (match ctx_fun id ctx with
      | Some fn ->
        RsApp (id_exp, generics, List.map2 cast_if_array_to_vec fn.signature.args args)
@@ -2003,7 +2031,7 @@ let optimizer (ctx : context) (rust_program : rs_program) : rs_program =
   let get_num_constants (RsProg obj : rs_program) : (string * Big_int.num) list =
     let rec constants obj =
       match obj with
-      | RsConst { value = { e_typ = _; e_exp = RsLit (RsLitNum n) }; name; typ = _ }
+      | RsConst { value = { e_annot = _; e_exp = RsLit (RsLitNum n) }; name; typ = _ }
         :: tail -> (name, n) :: constants tail
       (* TODO: Should this also take const functions into account? Should const
          function be a different thing ? *)
@@ -2017,8 +2045,8 @@ let optimizer (ctx : context) (rust_program : rs_program) : rs_program =
       match obj with
       | RsFn fn :: tail ->
         (match fn.body.e_exp with
-         | RsLit lit | RsBlock [ { e_typ = _; e_exp = RsLit lit } ] ->
-           (fn.name, { e_typ = fn.body.e_typ; e_exp = RsLit lit }) :: funs tail
+         | RsLit lit | RsBlock [ { e_annot = _; e_exp = RsLit lit } ] ->
+           (fn.name, { e_annot = fn.body.e_annot; e_exp = RsLit lit }) :: funs tail
          | _ -> funs tail)
       | _ :: tail -> funs tail
       | [] -> []
@@ -2066,14 +2094,14 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> rust_transform_expr sail_context_arg_inserter ctx
     |> rust_transform_expr expr_type_hoister ctx
     |> rust_transform_expr expr_type_operator_rewriter ctx
-    |> rust_transform_func atom_rewriter ctx
+    |> rust_transform_expr atom_rewriter ctx
     |> rust_transform_func const_fn_rewriter ctx
     |> rust_transform_func operator_rewriter ctx
     |> fix_point optimizer ctx 5
     (* Optimizer: Dead code elimination *)
     |> rust_transform_expr dead_code_remover ctx
     |> use_dynamic_bitvec ctx
-    |> use_dynamic_bitvec_args ctx
+    (* |> use_dynamic_bitvec_args ctx *)
     |> use_dynamic_vectors ctx
     |> use_dynamic_vectors_args ctx
     |> rust_transform_func remove_unused_generics ctx

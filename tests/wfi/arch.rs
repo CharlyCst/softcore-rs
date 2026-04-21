@@ -15,9 +15,9 @@ pub struct Core {
     pub mepc: xlenbits,
     pub sepc: xlenbits,
     pub uepc: xlenbits,
-    pub mtimecmp: BitStatic::<64>,
-    pub mtime: BitStatic::<64>,
-    pub mcycle: BitStatic::<64>,
+    pub mtimecmp: BitDynamic,
+    pub mtime: BitDynamic,
+    pub mcycle: BitDynamic,
     pub mstatus: Mstatus,
     pub cur_privilege: Privilege,
     pub config: Config,
@@ -44,9 +44,9 @@ pub fn _operator_smaller_u_(x: BitDynamic, y: BitDynamic) -> bool {
 
 pub const xlen: i128 = 64;
 
-pub type xlenbits = BitStatic::<xlen>;
+pub type xlenbits = BitDynamic;
 
-pub type priv_level = BitStatic::<2>;
+pub type priv_level = BitDynamic;
 
 /// Privilege
 ///
@@ -58,24 +58,24 @@ pub enum Privilege {
     Machine
 }
 
-pub type regidx = BitStatic::<5>;
+pub type regidx = BitDynamic;
 
-pub type cregidx = BitStatic::<3>;
+pub type cregidx = BitDynamic;
 
-pub type csreg = BitStatic::<12>;
+pub type csreg = BitDynamic;
 
 /// Mstatus
 ///
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L39-63.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct Mstatus {
-    pub bits: BitStatic::<64>,
+    pub bits: BitDynamic,
 }
 
 /// _get_Mstatus_TW
 ///
 /// Generated from the Sail sources.
-pub fn _get_Mstatus_TW(v: Mstatus) -> BitStatic::<1> {
+pub fn _get_Mstatus_TW(v: Mstatus) -> BitDynamic {
     v.bits.subrange::<21, 22, 1>()
 }
 
@@ -91,9 +91,9 @@ pub fn handle_illegal(unit_arg: ()) {
 /// Generated from the Sail sources at `tests/wfi/arch.sail` L76-84.
 pub fn platform_wfi(core_ctx: &mut Core, unit_arg: ()) {
     if {{
-        let var_1 = core_ctx.mtime;
-        let var_2 = core_ctx.mtimecmp;
-        _operator_smaller_u_(var_1.into(), var_2.into())
+        let var_1: BitDynamic = core_ctx.mtime;
+        let var_2: BitDynamic = core_ctx.mtimecmp;
+        _operator_smaller_u_(var_1, var_2)
     }} {
         core_ctx.mtime = core_ctx.mtimecmp;
         core_ctx.mcycle = core_ctx.mtimecmp
@@ -122,9 +122,9 @@ pub enum ast {
 /// encdec_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_forwards(arg_hashtag_: ast) -> BitStatic::<32> {
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitDynamic {
     match arg_hashtag_ {
-        ast::WFI(()) => {bitvector_concat(BitDynamic::from(BitStatic::<12>::new(12, 0b000100000101)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitStatic::<5>::new(5, 0b00000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitStatic::<3>::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitStatic::<5>::new(5, 0b00000)), BitDynamic::from(BitStatic::<7>::new(7, 0b1110011)))))))))}
+        ast::WFI(()) => {bitvector_concat(BitDynamic::from(BitDynamic::new(12, 0b000100000101)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -132,9 +132,9 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitStatic::<32> {
 /// encdec_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_backwards(arg_hashtag_: BitStatic::<32>) -> ast {
+pub fn encdec_backwards(arg_hashtag_: BitDynamic) -> ast {
     match arg_hashtag_ {
-        v__0 if {(v__0 == BitStatic::<32>::new(32, 0b00010000010100000000000001110011))} => {ast::WFI(())}
+        v__0 if {(v__0 == BitDynamic::new(32, 0b00010000010100000000000001110011))} => {ast::WFI(())}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -149,9 +149,9 @@ pub fn execute(core_ctx: &mut Core, ast::WFI(()): ast) -> Retired {
             Retired::RETIRE_SUCCESS
         }}
         Privilege::Supervisor => {if {({
-            let var_1 = core_ctx.mstatus;
+            let var_1: Mstatus = core_ctx.mstatus;
             _get_Mstatus_TW(var_1)
-        } == BitStatic::<1>::new(1, 0b1))} {
+        } == BitDynamic::new(1, 0b1))} {
             ();
             Retired::RETIRE_FAIL
         } else {

@@ -13,7 +13,7 @@ use crate::arch_prelude::*;
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
     pub vtype: Vtype,
-    pub vstart: BitStatic::<16>,
+    pub vstart: BitDynamic,
     pub vl: xlenbits,
     pub vr0: vregtype,
     pub vr1: vregtype,
@@ -107,7 +107,7 @@ pub const xlen_bytes: i128 = i128::pow(2, ((3 as u32) as u32));
 
 pub const xlen: i128 = (xlen_bytes * 8);
 
-pub type xlenbits = BitStatic::<xlen>;
+pub type xlenbits = BitDynamic;
 
 /// Vtype
 ///
@@ -120,35 +120,35 @@ pub struct Vtype {
 /// _get_Vtype_vill
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vill(v: Vtype) -> BitStatic::<1> {
+pub fn _get_Vtype_vill(v: Vtype) -> BitDynamic {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// _get_Vtype_vlmul
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vlmul(v: Vtype) -> BitStatic::<3> {
+pub fn _get_Vtype_vlmul(v: Vtype) -> BitDynamic {
     v.bits.subrange::<0, 3, 3>()
 }
 
 /// _get_Vtype_vma
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vma(v: Vtype) -> BitStatic::<1> {
+pub fn _get_Vtype_vma(v: Vtype) -> BitDynamic {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _get_Vtype_vsew
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vsew(v: Vtype) -> BitStatic::<3> {
+pub fn _get_Vtype_vsew(v: Vtype) -> BitDynamic {
     v.bits.subrange::<3, 6, 3>()
 }
 
 /// _get_Vtype_vta
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vta(v: Vtype) -> BitStatic::<1> {
+pub fn _get_Vtype_vta(v: Vtype) -> BitDynamic {
     v.bits.subrange::<6, 7, 1>()
 }
 
@@ -156,14 +156,14 @@ pub fn _get_Vtype_vta(v: Vtype) -> BitStatic::<1> {
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L107-116.
 pub fn get_sew_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
-    let SEW_pow: atom::<N> = match {
-        let var_1 = core_ctx.vtype;
+    let SEW_pow: i128 = match {
+        let var_1: Vtype = core_ctx.vtype;
         _get_Vtype_vsew(var_1)
     } {
-        b__0 if {(b__0 == BitStatic::<3>::new(3, 0b000))} => {3}
-        b__1 if {(b__1 == BitStatic::<3>::new(3, 0b001))} => {4}
-        b__2 if {(b__2 == BitStatic::<3>::new(3, 0b010))} => {5}
-        b__3 if {(b__3 == BitStatic::<3>::new(3, 0b011))} => {6}
+        b__0 if {(b__0 == BitDynamic::new(3, 0b000))} => {3}
+        b__1 if {(b__1 == BitDynamic::new(3, 0b001))} => {4}
+        b__2 if {(b__2 == BitDynamic::new(3, 0b010))} => {5}
+        b__3 if {(b__3 == BitDynamic::new(3, 0b011))} => {6}
         _ => {{
             assert!(false, "invalid vsew field in vtype");
             panic!("exit")
@@ -195,16 +195,16 @@ pub fn get_sew(core_ctx: &mut Core, unit_arg: ()) -> i128 {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L132-143.
 pub fn get_lmul_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
     match {
-        let var_1 = core_ctx.vtype;
+        let var_1: Vtype = core_ctx.vtype;
         _get_Vtype_vlmul(var_1)
     } {
-        b__0 if {(b__0 == BitStatic::<3>::new(3, 0b101))} => {-3}
-        b__1 if {(b__1 == BitStatic::<3>::new(3, 0b110))} => {-2}
-        b__2 if {(b__2 == BitStatic::<3>::new(3, 0b111))} => {-1}
-        b__3 if {(b__3 == BitStatic::<3>::new(3, 0b000))} => {0}
-        b__4 if {(b__4 == BitStatic::<3>::new(3, 0b001))} => {1}
-        b__5 if {(b__5 == BitStatic::<3>::new(3, 0b010))} => {2}
-        b__6 if {(b__6 == BitStatic::<3>::new(3, 0b011))} => {3}
+        b__0 if {(b__0 == BitDynamic::new(3, 0b101))} => {-3}
+        b__1 if {(b__1 == BitDynamic::new(3, 0b110))} => {-2}
+        b__2 if {(b__2 == BitDynamic::new(3, 0b111))} => {-1}
+        b__3 if {(b__3 == BitDynamic::new(3, 0b000))} => {0}
+        b__4 if {(b__4 == BitDynamic::new(3, 0b001))} => {1}
+        b__5 if {(b__5 == BitDynamic::new(3, 0b010))} => {2}
+        b__6 if {(b__6 == BitDynamic::new(3, 0b011))} => {3}
         _ => {{
             assert!(false, "invalid vlmul field in vtype");
             panic!("exit")
@@ -225,9 +225,9 @@ pub enum agtype {
 /// decode_agtype
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L152-157.
-pub fn decode_agtype(ag: BitStatic::<1>) -> agtype {
+pub fn decode_agtype(ag: BitDynamic) -> agtype {
     match ag {
-        b__0 if {(b__0 == BitStatic::<1>::new(1, 0b0))} => {agtype::UNDISTURBED}
+        b__0 if {(b__0 == BitDynamic::new(1, 0b0))} => {agtype::UNDISTURBED}
         _ => {agtype::AGNOSTIC}
         _ => {panic!("Unreachable code")}
     }
@@ -237,22 +237,22 @@ pub fn decode_agtype(ag: BitStatic::<1>) -> agtype {
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L160.
 pub fn get_vtype_vma(core_ctx: &mut Core, unit_arg: ()) -> agtype {
-    let var_1 = {
-        let var_2 = core_ctx.vtype;
+    let var_1: BitDynamic = {
+        let var_2: Vtype = core_ctx.vtype;
         _get_Vtype_vma(var_2)
     };
-    decode_agtype(var_1.into())
+    decode_agtype(var_1)
 }
 
 /// get_vtype_vta
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L163.
 pub fn get_vtype_vta(core_ctx: &mut Core, unit_arg: ()) -> agtype {
-    let var_1 = {
-        let var_2 = core_ctx.vtype;
+    let var_1: BitDynamic = {
+        let var_2: Vtype = core_ctx.vtype;
         _get_Vtype_vta(var_2)
     };
-    decode_agtype(var_1.into())
+    decode_agtype(var_1)
 }
 
 /// get_vlen_pow
@@ -266,7 +266,7 @@ pub const vlenmax: i128 = 65536;
 
 pub const VLEN: i128 = 512;
 
-pub type vreglenbits = BitStatic::<vlenmax>;
+pub type vreglenbits = BitDynamic;
 
 pub type vregtype = vreglenbits;
 
@@ -287,7 +287,7 @@ pub enum vvfunct6 {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L188.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregidx {
-    Vregidx(BitStatic::<5>)
+    Vregidx(BitDynamic)
 }
 
 /// vregno
@@ -308,23 +308,23 @@ pub fn vregidx_to_vregno(vregidx::Vregidx(b): vregidx) -> vregno {
 /// vregidx_offset
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L192.
-pub fn vregidx_offset(vregidx::Vregidx(r): vregidx, o: BitStatic::<5>) -> vregidx {
+pub fn vregidx_offset(vregidx::Vregidx(r): vregidx, o: BitDynamic) -> vregidx {
     vregidx::Vregidx(r.wrapped_add(o))
 }
 
 /// vregidx_bits
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L193.
-pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitStatic::<5> {
+pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitDynamic {
     b
 }
 
-pub const zvreg: vregidx = vregidx::Vregidx(BitStatic::<5>::new(5, 0b00000));
+pub const zvreg: vregidx = vregidx::Vregidx(BitDynamic::new(5, 0b00000));
 
 /// rV
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L231-266.
-pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitStatic::<65536> {
+pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitDynamic {
     match r {
         l__31 if {(l__31 == 0)} => {core_ctx.vr0}
         l__32 if {(l__32 == 1)} => {core_ctx.vr1}
@@ -365,7 +365,7 @@ pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitStatic::<65536> 
 /// wV
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L268-311.
-pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitStatic::<65536>) {
+pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitDynamic) {
     match r {
         l__0 if {(l__0 == 0)} => {core_ctx.vr0 = v}
         l__1 if {(l__1 == 1)} => {core_ctx.vr1 = v}
@@ -407,15 +407,15 @@ pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitStatic::<65536>)
 /// rV_bits
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L313.
-pub fn rV_bits(core_ctx: &mut Core, i: vregidx) -> BitStatic::<65536> {
+pub fn rV_bits(core_ctx: &mut Core, i: vregidx) -> BitDynamic {
     rV(core_ctx, vregidx_to_vregno(i))
 }
 
 /// wV_bits
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L315-317.
-pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitStatic::<65536>) {
-    wV(core_ctx, vregidx_to_vregno(i), data.into())
+pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitDynamic) {
+    wV(core_ctx, vregidx_to_vregno(i), data)
 }
 
 /// read_single_vreg
@@ -427,7 +427,7 @@ pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vr
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:327.29-327.30");
         for i in 0..=(num_elem - 1) {
-            let start_index = (i * SEW);
+            let start_index: i128 = (i * SEW);
             result[(i as usize)] = slice(bv, start_index, SEW)
         };
         result
@@ -444,10 +444,10 @@ pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: v
         for i in (0..=(num_elem - 1)).rev() {
             {
                 r = (r << SEW);
-                r = (r | v[(i as usize)].zero_extend(65536))
+                r = (r | v[(i as usize)].zero_extend_dyn(65536))
             }
         };
-        wV_bits(core_ctx, vrid, r.into())
+        wV_bits(core_ctx, vrid, r)
     }
 }
 
@@ -455,10 +455,10 @@ pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: v
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L352-386.
 pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> Vec::<BitDynamic> {
-    let vrid_val = vregidx_bits(vrid).unsigned();
+    let vrid_val: i128 = vregidx_bits(vrid).unsigned();
     let mut result: Vec::<BitDynamic> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)];
     {
-        let LMUL_pow_reg = if {(LMUL_pow < 0)} {
+        let LMUL_pow_reg: i128 = if {(LMUL_pow < 0)} {
             0
         } else {
             LMUL_pow
@@ -469,14 +469,14 @@ pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128,
             assert!(false, "invalid register group: vrid is not a multiple of EMUL")
         } else {
             if {(LMUL_pow < 0)} {
-                result = read_single_vreg(core_ctx, result.len(), SEW, vrid)
+                result = read_single_vreg(core_ctx, vector_length(&result), SEW, vrid)
             } else {
                 let num_elem_single: i128 = quot_round_zero(512, SEW);
                 assert!((__id(num_elem_single) >= 0), "tests/vec/arch.sail:369.34-369.35");
                 for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
                     let r_start_i: i128 = (i_lmul * __id(num_elem_single));
                     let r_end_i: i128 = ((r_start_i + __id(num_elem_single)) - 1);
-                    let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul).into());
+                    let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
                     let single_result: Vec::<BitDynamic> = read_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul);
                     for r_i in r_start_i..=r_end_i {
                         let s_i: i128 = (r_i - r_start_i);
@@ -495,7 +495,7 @@ pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128,
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L390-408.
 pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx, vec: Vec::<BitDynamic>) {
-    let LMUL_pow_reg = if {(LMUL_pow < 0)} {
+    let LMUL_pow_reg: i128 = if {(LMUL_pow < 0)} {
         0
     } else {
         LMUL_pow
@@ -505,7 +505,7 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
     for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
         let mut single_vec: Vec::<BitDynamic> = vec![zeros(__id(SEW)); (__id(num_elem_single) as usize)];
         {
-            let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul).into());
+            let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
             let r_start_i: i128 = (i_lmul * __id(num_elem_single));
             let r_end_i: i128 = ((r_start_i + __id(num_elem_single)) - 1);
             for r_i in r_start_i..=r_end_i {
@@ -523,12 +523,12 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L412-419.
 pub fn get_num_elem(LMUL_pow: i128, SEW: i128) -> i128 {
-    let LMUL_pow_reg = if {(LMUL_pow < 0)} {
+    let LMUL_pow_reg: i128 = if {(LMUL_pow < 0)} {
         0
     } else {
         LMUL_pow
     };
-    let num_elem = quot_round_zero((i128::pow(2, (LMUL_pow_reg as u32)) * 512), SEW);
+    let num_elem: i128 = quot_round_zero((i128::pow(2, (LMUL_pow_reg as u32)) * 512), SEW);
     assert!((num_elem > 0), "tests/vec/arch.sail:417.21-417.22");
     num_elem
 }
@@ -536,12 +536,12 @@ pub fn get_num_elem(LMUL_pow: i128, SEW: i128) -> i128 {
 /// read_vmask
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L423-437.
-pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitStatic::<1>, vrid: vregidx) -> BitDynamic {
+pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitDynamic, vrid: vregidx) -> BitDynamic {
     assert!((num_elem <= 65536), "tests/vec/arch.sail:424.36-424.37");
     let vreg_val: vregtype = rV_bits(core_ctx, vrid);
     let mut result: BitDynamic = ones(__id(num_elem));
     {
-        if {(vm == BitStatic::<1>::new(1, 0b1))} {
+        if {(vm == BitDynamic::new(1, 0b1))} {
             return result;
         } else {
             ()
@@ -567,7 +567,7 @@ pub enum ExecutionResult {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L463.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    VVTYPE((vvfunct6, BitStatic::<1>, vregidx, vregidx, vregidx))
+    VVTYPE((vvfunct6, BitDynamic, vregidx, vregidx, vregidx))
 }
 
 /// valid_vtype
@@ -575,31 +575,31 @@ pub enum ast {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L475-477.
 pub fn valid_vtype(core_ctx: &mut Core, unit_arg: ()) -> bool {
     ({
-        let var_1 = core_ctx.vtype;
+        let var_1: Vtype = core_ctx.vtype;
         _get_Vtype_vill(var_1)
-    } == BitStatic::<1>::new(1, 0b0))
+    } == BitDynamic::new(1, 0b0))
 }
 
 /// valid_rd_mask
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L486-488.
-pub fn valid_rd_mask(rd: vregidx, vm: BitStatic::<1>) -> bool {
-    ((vm != BitStatic::<1>::new(1, 0b0)) || (rd != zvreg))
+pub fn valid_rd_mask(rd: vregidx, vm: BitDynamic) -> bool {
+    ((vm != BitDynamic::new(1, 0b0)) || (rd != zvreg))
 }
 
 /// illegal_normal
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L492-494.
-pub fn illegal_normal(core_ctx: &mut Core, vd: vregidx, vm: BitStatic::<1>) -> bool {
-    (!(valid_vtype(core_ctx, ())) || !(valid_rd_mask(vd, vm.into())))
+pub fn illegal_normal(core_ctx: &mut Core, vd: vregidx, vm: BitDynamic) -> bool {
+    (!(valid_vtype(core_ctx, ())) || !(valid_rd_mask(vd, vm)))
 }
 
 /// get_start_element
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L498-511.
 pub fn get_start_element(core_ctx: &mut Core, unit_arg: ()) -> result::<nat, ()> {
-    let start_element = core_ctx.vstart.unsigned();
-    let SEW_pow = get_sew_pow(core_ctx, ());
+    let start_element: i128 = core_ctx.vstart.unsigned();
+    let SEW_pow: i128 = get_sew_pow(core_ctx, ());
     if {(start_element > (i128::pow(2, ((12 - SEW_pow) as u32)) - 1))} {
         result::Err(())
     } else {
@@ -623,14 +623,14 @@ pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_p
         result::Err(()) => {return result::Err(());}
         _ => {panic!("Unreachable code")}
     };
-    let end_element = get_end_element(core_ctx, ());
+    let end_element: i128 = get_end_element(core_ctx, ());
     let tail_ag: agtype = get_vtype_vta(core_ctx, ());
     let mask_ag: agtype = get_vtype_vma(core_ctx, ());
     let mut mask: BitDynamic = undefined_bitvector(bitvector_length(vm_val));
     {
         let mut result: Vec::<BitDynamic> = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
         {
-            let real_num_elem = if {(LMUL_pow >= 0)} {
+            let real_num_elem: i128 = if {(LMUL_pow >= 0)} {
                 num_elem
             } else {
                 (num_elem / i128::pow(2, ((0 - LMUL_pow) as u32)))
@@ -673,35 +673,35 @@ pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_p
 /// set_vstart
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L578-584.
-pub fn set_vstart(core_ctx: &mut Core, value: BitStatic::<16>) {
-    core_ctx.vstart = value.subrange::<0, 9, 9>().zero_extend(16)
+pub fn set_vstart(core_ctx: &mut Core, value: BitDynamic) {
+    core_ctx.vstart = value.subrange::<0, 9, 9>().zero_extend_dyn(16)
 }
 
 /// execute
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L590-628.
 pub fn execute(core_ctx: &mut Core, funct6: ast) -> ExecutionResult {
-    let SEW_pow = get_sew_pow(core_ctx, ());
-    let SEW = get_sew(core_ctx, ());
-    let LMUL_pow = get_lmul_pow(core_ctx, ());
-    let num_elem = get_num_elem(LMUL_pow, SEW);
-    if {illegal_normal(core_ctx, vd, vm.into())} {
+    let SEW_pow: i128 = get_sew_pow(core_ctx, ());
+    let SEW: i128 = get_sew(core_ctx, ());
+    let LMUL_pow: i128 = get_lmul_pow(core_ctx, ());
+    let num_elem: i128 = get_num_elem(LMUL_pow, SEW);
+    if {illegal_normal(core_ctx, vd, vm)} {
         return ExecutionResult::Illegal_Instruction(());
     } else {
         ()
     };
-    let n = num_elem;
-    let m = SEW;
-    let vm_val: BitDynamic = read_vmask(core_ctx, num_elem, vm.into(), zvreg);
+    let n: i128 = num_elem;
+    let m: i128 = SEW;
+    let vm_val: BitDynamic = read_vmask(core_ctx, num_elem, vm, zvreg);
     let vs1_val: Vec::<BitDynamic> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
     let vs2_val: Vec::<BitDynamic> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
     let vd_val: Vec::<BitDynamic> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
-    let (initial_result, mask): (Vec::<BitDynamic>, BitDynamic) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val.into()) {
+    let (initial_result, mask): (Vec::<BitDynamic>, BitDynamic) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
         result::Ok(v) => {v}
         result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
         _ => {panic!("Unreachable code")}
     };
-    let mut result = initial_result;
+    let mut result: Vec::<BitDynamic> = initial_result;
     {
         for i in 0..=(num_elem - 1) {
             if {(bitvector_access(mask, i) == true)} {
@@ -718,7 +718,7 @@ pub fn execute(core_ctx: &mut Core, funct6: ast) -> ExecutionResult {
             }
         };
         write_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd, result);
-        set_vstart(core_ctx, zeros(16).into());
+        set_vstart(core_ctx, zeros(16));
         ExecutionResult::Retire_Success(())
     }
 }

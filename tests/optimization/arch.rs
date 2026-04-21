@@ -29,14 +29,14 @@ pub fn _reset_all_registers() {
 
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitStatic::<xlen>;
+pub type xlenbits = BitDynamic;
 
 pub const xlen: i128 = 64;
 
 /// known_match_branch
 ///
 /// Generated from the Sail sources at `tests/optimization/arch.sail` L17-22.
-pub const fn known_match_branch(unit_arg: ()) -> BitStatic::<64> {
+pub const fn known_match_branch(unit_arg: ()) -> BitDynamic {
     sail_zeros(64)
 }
 
@@ -52,6 +52,6 @@ pub enum ast {
 ///
 /// Generated from the Sail sources at `tests/optimization/arch.sail` L30-32.
 pub fn execute(ast::TEST(()): ast) {
-    let a = known_match_branch(());
+    let a: BitDynamic = known_match_branch(());
     ()
 }

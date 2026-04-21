@@ -11,8 +11,8 @@ type rs_type =
   | RsTypGenericParam of string * rs_type_param list
   | RsTypArray of rs_type_param * rs_type_param
   | RsTypOption of rs_type_param
-  | RsTypUnknown
   | RsTypTodo of string
+  | RsTypBorrow of rs_type
 
 and rs_type_param =
   | RsTypParamTyp of rs_type
@@ -76,7 +76,7 @@ and rs_method_app =
 
 and rs_exp_aux =
   | RsLet of rs_pat * rs_exp * rs_exp
-  | RsLetMut of rs_lexp * rs_exp * rs_exp
+  | RsLetMut of rs_pat * rs_exp * rs_exp
   | RsApp of rs_exp * string list * rs_exp list (* the strings are the generics *)
   | RsMethodApp of rs_method_app
   | RsStaticApp of rs_type * string * rs_exp list
@@ -99,6 +99,7 @@ and rs_exp_aux =
   | RsUnop of rs_unop * rs_exp
   | RsAs of rs_exp * rs_type
   | RsSome of rs_exp
+  | RsBorrow of rs_exp
   | RsNone
   | RsPathSeparator of rs_type * rs_type
   | RsFor of rs_type * rs_exp * rs_exp * rs_exp
@@ -109,7 +110,7 @@ and rs_exp_aux =
   | RsTodo of string
 
 and rs_exp =
-  { e_typ : rs_type
+  { e_annot : rs_type option
   ; e_exp : rs_exp_aux
   }
 
@@ -195,8 +196,7 @@ let default_copy_derive = [ "Eq"; "PartialEq"; "Clone"; "Copy"; "Debug" ]
 let default_move_derive = [ "Eq"; "PartialEq"; "Clone"; "Debug" ]
 
 let nat_typ =
-  RsTypId
-    "u128" (* TODO(Gurvan): Should maybe be just nat since we define it in prelude *)
+  RsTypId "nat"
 ;;
 
 let int_typ = RsTypId "i128" (* TODO(Gurvan): Maybe should be defined in prelude *)
@@ -226,15 +226,17 @@ let mk_fn_typ_gen (args : rs_type list) (ret : rs_type) (generics : rs_generic l
 ;;
 
 let mk_as (exp : rs_exp) (typ : rs_type) : rs_exp =
-  { e_typ = typ; e_exp = RsAs (exp, typ) }
+  { e_annot = Some typ; e_exp = RsAs (exp, typ) }
 ;;
 
-let mk_todo (id : string) : rs_exp = { e_typ = RsTypUnknown; e_exp = RsTodo id }
-let mk_exp_id (id : string) : rs_exp = { e_typ = RsTypUnknown; e_exp = RsId id }
-
-let mk_lit_str (str : string) : rs_exp =
-  { e_typ = RsTypUnknown; e_exp = RsLit (RsLitStr str) }
+let mk_borrow (exp : rs_exp) : rs_exp =
+  { e_annot = Option.bind exp.e_annot (fun t -> Some (RsTypBorrow t));
+  e_exp = RsBorrow exp }
 ;;
+
+let mk_todo (id : string) : rs_exp = { e_annot = None; e_exp = RsTodo id }
+let mk_exp_id (id : string) : rs_exp = { e_annot = None; e_exp = RsId id }
+let mk_lit_str (str : string) : rs_exp = { e_annot = None; e_exp = RsLit (RsLitStr str) }
 
 let mk_method_app (exp : rs_exp) (name : string) (args : rs_exp list) : rs_exp_aux =
   RsMethodApp { exp; name; generics = []; args }
@@ -245,12 +247,10 @@ let mk_struct (name : string) (fields : (string * rs_type) list) : rs_obj =
 ;;
 
 let mk_num (n : int) : rs_exp =
-  { e_typ = RsTypUnknown; e_exp = RsLit (RsLitNum (Big_int.of_int n)) }
+  { e_annot = None; e_exp = RsLit (RsLitNum (Big_int.of_int n)) }
 ;;
 
-let mk_big_num (n : Big_int.num) : rs_exp =
-  { e_typ = RsTypUnknown; e_exp = RsLit (RsLitNum n) }
-;;
+let mk_big_num (n : Big_int.num) : rs_exp = { e_annot = None; e_exp = RsLit (RsLitNum n) }
 
 (** Removes the generic parameters from a type
 
@@ -287,8 +287,8 @@ let rec generics_of_typ (typ : rs_type) : SSet.t =
   | RsTypArray (param1, param2) ->
     SSet.union (generics_param param1) (generics_param param2)
   | RsTypOption typ_param -> generics_param typ_param
-  | RsTypUnknown -> SSet.empty (* TODO(Gurvan): Maybe we should fail here *)
   | RsTypTodo _ -> SSet.empty
+  | RsTypBorrow t -> generics_of_typ t
 
 and generics_param (typ_param : rs_type_param) : SSet.t =
   match typ_param with
@@ -304,8 +304,8 @@ and generics_of_exp (exp : rs_exp) : SSet.t =
     generics_of_pat pat
     |> SSet.union (generics_of_exp exp)
     |> SSet.union (generics_of_exp next)
-  | RsLetMut (lexp, exp, next) ->
-    generics_of_lexp lexp
+  | RsLetMut (pat, exp, next) ->
+    generics_of_pat pat
     |> SSet.union (generics_of_exp exp)
     |> SSet.union (generics_of_exp next)
   | RsApp (app, gens, args) ->
@@ -360,6 +360,7 @@ and generics_of_exp (exp : rs_exp) : SSet.t =
     SSet.union (generics_of_exp struc) (generics_of_exp exp)
   | RsReturn exp -> generics_of_exp exp
   | RsTodo _ -> SSet.empty
+  | RsBorrow e -> generics_of_exp e
 
 and generics_of_lexp (lexp : rs_lexp) : SSet.t =
   match lexp with
@@ -449,7 +450,7 @@ let rec lexp_to_exp (lexp : rs_lexp) : rs_exp =
     | RsLexpIndex (lexp, exp) -> RsIndex (lexp_to_exp lexp, exp)
     | _ -> RsId "LexpToExpTodo"
   in
-  { e_typ = RsTypUnknown; e_exp }
+  { e_annot = None; e_exp }
 ;;
 
 (* ————————————————————————————— Rust to String ————————————————————————————— *)
@@ -508,8 +509,8 @@ let rec string_of_rs_type (typ : rs_type) : string =
   | RsTypArray (typ, size) ->
     Printf.sprintf "[%s; %s]" (string_of_rs_type_param typ) (string_of_rs_type_param size)
   | RsTypOption param -> Printf.sprintf "Option<%s>" (string_of_rs_type_param param)
-  | RsTypUnknown -> assert false (* TODO(Gurvan) *)
   | RsTypTodo e -> e
+  | RsTypBorrow t -> Printf.sprintf "&%s" (string_of_rs_type t)
 
 and string_of_rs_type_param (typ : rs_type_param) : string =
   match typ with
@@ -576,11 +577,12 @@ and indent (n : int) : string = String.make (n * 4) ' '
 
 and string_of_rs_exp (n : int) (exp : rs_exp) : string =
   match exp.e_exp with
-  (* The block indentation if not nedded after a  let, remove it to pretify*)
-  | RsLet (pat, exp, { e_typ = _; e_exp = RsBlock exps }) ->
+  (* The block indentation if not needed after a let, remove it to pretify *)
+  | RsLet (pat, exp, { e_annot = _; e_exp = RsBlock exps }) ->
+    (* TODO: If we have a type annotation for the let print it *)
     Printf.sprintf
       "let %s = %s;\n%s%s"
-      (string_of_rs_pat pat)
+      (string_of_rs_pat_annot pat exp.e_annot)
       (string_of_rs_exp n exp)
       (indent n)
       (String.concat
@@ -589,14 +591,14 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
   | RsLet (pat, exp, next) ->
     Printf.sprintf
       "let %s = %s;\n%s%s"
-      (string_of_rs_pat pat)
+      (string_of_rs_pat_annot pat exp.e_annot)
       (string_of_rs_exp n exp)
       (indent n)
       (string_of_rs_exp n next)
-  | RsLetMut (lexp, exp, next) ->
+  | RsLetMut (pat, exp, next) ->
     Printf.sprintf
       "let mut %s = %s;\n%s%s"
-      (string_of_rs_lexp n lexp)
+      (string_of_rs_pat_annot pat exp.e_annot)
       (string_of_rs_exp n exp)
       (indent n)
       (string_of_rs_exp n next)
@@ -733,6 +735,17 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
       (string_of_rs_exp n exp)
   | RsReturn exp -> Printf.sprintf "return %s;" (string_of_rs_exp n exp)
   | RsTodo text -> Printf.sprintf "todo!(\"%s\")" text
+  | RsBorrow e -> Printf.sprintf "&%s" (string_of_rs_exp n e)
+
+and string_of_rs_annot (annot : rs_type option) : string =
+  match annot with
+  | Some t -> Printf.sprintf ": %s" (string_of_rs_type t)
+  | None -> ""
+
+and string_of_rs_pat_annot (pat : rs_pat) (annot : rs_type option) : string =
+  match pat with
+  | RsPatType (t, p) -> Printf.sprintf "%s: %s" (string_of_rs_pat p) (string_of_rs_type t)
+  | _ -> Printf.sprintf "%s%s" (string_of_rs_pat pat) (string_of_rs_annot annot)
 
 and string_of_rs_lexp (n : int) (lexp : rs_lexp) : string =
   match lexp with

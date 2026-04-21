@@ -1,7 +1,11 @@
 use core::ops::*;
 
 // BitStorage (Common ground between different BitVector implementation) ---------------------------
+// TODO(Gurvan): This require using const trait and is kind-of bad for type inference.
+// We instead would want to just have the struct impl these functions with the correct name and we
+// do the rest ourself in our generated code.
 
+/*
 pub const trait BitStorage:
     Eq + PartialEq + Clone + Copy + std::fmt::Debug + Default + PartialOrd
 {
@@ -39,6 +43,17 @@ pub const trait BitStorageExtend<T: BitStorage>: BitStorage {
 
     fn subrange<const START: i128, const END: i128, const LEN: i128>(self) -> T;
 }
+*/
+
+// Utils -------------------------------------------------------------------------------------------
+
+const fn assert_eq_range<const START: i128, const END: i128, const LEN: i128>() {
+    assert!(END - START == LEN);
+}
+
+const fn assert_leq<const X: i128, const Y: i128>() {
+    assert!(X <= Y);
+}
 
 // BitDynamic (BitVector with dynamically known size) ----------------------------------------------
 
@@ -49,55 +64,66 @@ pub struct BitDynamic {
     pub bits: [u64; BITDYNAMIC_SIZE],
 }
 
-impl const BitStorage for BitDynamic {
-    fn len(self) -> i128 {
+impl BitDynamic {
+    pub const fn len(self) -> i128 {
         self.len
     }
 
-    fn signed(self) -> i128 {
-        todo!()
+    pub const fn signed(self) -> i128 {
+        assert!(self.len <= 128);
+        let val = self.unsigned();
+        let sign_bit_mask = 1i128 << (self.len - 1);
+        if (val & sign_bit_mask) == 0 {
+            val
+        } else {
+            // Sign extend: fill bits from self.len up to 128 with 1s
+            let fill_mask = !((1i128 << self.len) - 1);
+            val | fill_mask
+        }
     }
 
-    fn unsigned(self) -> i128 {
+    pub const fn unsigned(self) -> i128 {
         assert!(self.len <= 128);
         ((self.bits[0] as u128) | ((self.bits[1] as u128) << 64)) as i128
     }
 
-    fn new(len: i128, val: u64) -> Self {
+    pub const fn new(len: i128, val: u64) -> Self {
         let mut bits = [0; BITDYNAMIC_SIZE];
         bits[0] = val;
         Self { len, bits }
     }
 
-    fn zeros(len: i128) -> Self {
+    pub const fn zeros(len: i128) -> Self {
         Self::new(len, 0)
     }
 
-    fn ones(len: i128) -> Self {
+    pub const fn ones(len: i128) -> Self {
         Self {
             len: len,
             bits: Self::bit_mask(len),
         }
     }
 
-    fn set_bit(mut self, idx: i128, value: bool) -> Self {
-        if idx >= 0 && idx < self.len {
-            let limb = (idx / 64) as usize;
-            let bit = (idx % 64) as u32;
-            if value {
-                self.bits[limb] |= 1 << bit;
-            } else {
-                self.bits[limb] &= !(1 << bit);
-            }
+    pub const fn set_bit(mut self, idx: i128, value: bool) -> Self {
+        assert!(0 <= idx && idx < self.len);
+        let limb = (idx / 64) as usize;
+        let bit = (idx % 64) as u32;
+        if value {
+            self.bits[limb] |= 1 << bit;
+        } else {
+            self.bits[limb] &= !(1 << bit);
         }
         self
     }
 
-    fn get_bit(self, idx: i128) -> bool {
-        todo!()
+    pub const fn get_bit(self, idx: i128) -> bool {
+        assert!(0 <= idx && idx < self.len);
+        let limb = (idx / 64) as usize;
+        let bit = (idx % 64) as u32;
+        (self.bits[limb] & (1 << bit)) != 0
     }
 
-    fn bitand(mut self, rhs: Self) -> Self {
+    pub const fn bitand(mut self, rhs: Self) -> Self {
         let mut i: usize = 0;
         while i < BITDYNAMIC_SIZE {
             self.bits[i] = self.bits[i] & rhs.bits[i];
@@ -106,7 +132,7 @@ impl const BitStorage for BitDynamic {
         self
     }
 
-    fn bitor(mut self, rhs: Self) -> Self {
+    pub const fn bitor(mut self, rhs: Self) -> Self {
         let mut i: usize = 0;
         while i < BITDYNAMIC_SIZE {
             self.bits[i] = self.bits[i] | rhs.bits[i];
@@ -115,7 +141,7 @@ impl const BitStorage for BitDynamic {
         self
     }
 
-    fn bitxor(mut self, rhs: Self) -> Self {
+    pub const fn bitxor(mut self, rhs: Self) -> Self {
         let mut i: usize = 0;
         while i < BITDYNAMIC_SIZE {
             self.bits[i] = self.bits[i] ^ rhs.bits[i];
@@ -124,7 +150,7 @@ impl const BitStorage for BitDynamic {
         self
     }
 
-    fn not(mut self) -> Self {
+    pub const fn not(mut self) -> Self {
         let bitmask = Self::bit_mask(self.len);
         let mut i: usize = 0;
         while i < BITDYNAMIC_SIZE {
@@ -134,75 +160,130 @@ impl const BitStorage for BitDynamic {
         self
     }
 
-    fn add(mut self, rhs: u64) -> Self {
-        let mut remainder = rhs as i128;
+    pub const fn add(self, rhs: u64) -> Self {
+        self.wrapped_add(Self::new(self.len(), rhs))
+    }
+
+    pub const fn wrapped_add(mut self, rhs: Self) -> Self {
+        assert!(self.len == rhs.len);
+        let mut carry: u128 = 0;
         let mask = Self::bit_mask(self.len);
         let mut i: usize = 0;
         while i < BITDYNAMIC_SIZE {
-            remainder = (self.bits[i] as i128) + remainder;
-            self.bits[i] = ((remainder & (u64::MAX as i128)) as u64) & mask[i];
-            remainder = remainder >> 64;
+            let sum = (self.bits[i] as u128) + (rhs.bits[i] as u128) + carry;
+            self.bits[i] = (sum as u64) & mask[i];
+            carry = sum >> 64;
             i += 1;
         }
         self
     }
 
-    fn wrapped_add(mut self, rhs: Self) -> Self {
+    pub const fn shl(self, _rhs: u128) -> Self {
         todo!()
     }
 
-    fn shl(self, rhs: u128) -> Self {
-        todo!()
+    pub const fn shr(self, rhs: u128) -> Self {
+        let mut res = Self::zeros(self.len);
+        let shift_limbs = (rhs / 64) as usize;
+        let shift_bits = (rhs % 64) as u32;
+        let mask = Self::bit_mask(self.len);
+
+        let mut i = 0;
+        while i + shift_limbs < BITDYNAMIC_SIZE {
+            let src_idx = i + shift_limbs;
+            res.bits[i] = self.bits[src_idx] >> shift_bits;
+            if shift_bits > 0 && src_idx + 1 < BITDYNAMIC_SIZE {
+                res.bits[i] |= self.bits[src_idx + 1] << (64 - shift_bits);
+            }
+            res.bits[i] &= mask[i];
+            i += 1;
+        }
+        res
     }
 
-    fn shr(self, rhs: u128) -> Self {
-        todo!()
-    }
-}
-
-impl PartialOrd for BitDynamic {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.bits.partial_cmp(&other.bits)
-    }
-}
-
-impl<const LEN: i128> From<BitStatic<LEN>> for BitDynamic {
-    fn from(bv: BitStatic<LEN>) -> Self {
-        let mut bits = [0u64; BITDYNAMIC_SIZE];
-        bits[0] = bv.bits;
-        Self { len: LEN, bits }
-    }
-}
-
-impl const BitStorageConcat<BitDynamic, BitDynamic> for BitDynamic {
-    fn concat(self, other: BitDynamic) -> BitDynamic {
-        todo!()
-    }
-}
-
-impl const BitStorageExtend<BitDynamic> for BitDynamic {
-    fn get_subrange(self, end: i128, start: i128) -> BitDynamic {
-        todo!()
+    pub const fn concat(self, other: BitDynamic) -> BitDynamic {
+        let new_len = self.len + other.len;
+        let res = other.zero_extend_dyn(new_len);
+        let shifted_self = self.zero_extend_dyn(new_len).shl(other.len as u128);
+        res.bitor(shifted_self)
     }
 
-    fn sign_extend(self, n: i128) -> BitDynamic {
-        todo!()
+    pub const fn get_subrange(self, end: i128, start: i128) -> BitDynamic {
+        assert!(0 <= start && start <= end && end <= self.len);
+        let len = end - start;
+        let shifted = self.shr(start as u128);
+        let mask = Self::bit_mask(len);
+        let mut res = BitDynamic::zeros(len);
+        let mut i = 0;
+        while i < BITDYNAMIC_SIZE {
+            res.bits[i] = shifted.bits[i] & mask[i];
+            i += 1;
+        }
+        res
     }
 
-    fn zero_extend(self, n: i128) -> BitDynamic {
-        todo!()
+    pub const fn sign_extend<const RESULT_LEN: i128>(self) -> BitStatic<RESULT_LEN> {
+        assert!(self.len <= RESULT_LEN);
+        let val = self.signed();
+        BitStatic { bits: val as u64 }
     }
 
-    fn set_subrange(self, bits: BitDynamic, to: u64, from: u64) -> Self {
-        todo!()
+    pub const fn sign_extend_dyn(self, len: i128) -> BitDynamic {
+        assert!(self.len <= len);
+        if self.len == 0 {
+            return BitDynamic::zeros(len);
+        }
+        let is_negative = self.get_bit(self.len - 1);
+        let mut res = self.zero_extend_dyn(len);
+        if is_negative {
+            let full_mask = Self::bit_mask(len);
+            let existing_mask = Self::bit_mask(self.len);
+            let mut i = 0;
+            while i < BITDYNAMIC_SIZE {
+                let extension_bits = full_mask[i] & !existing_mask[i];
+                res.bits[i] |= extension_bits;
+                i += 1;
+            }
+        }
+        res
     }
 
-    fn subrange<const START: i128, const END: i128, const LEN: i128>(self) -> BitDynamic {
-        todo!()
+    pub const fn zero_extend<const RESULT_LEN: i128>(self) -> BitStatic<RESULT_LEN> {
+        assert!(self.len <= RESULT_LEN);
+        BitStatic { bits: self.bits[0] }
     }
-}
 
-impl BitDynamic {
+    pub const fn zero_extend_dyn(self, len: i128) -> BitDynamic {
+        assert!(self.len <= len);
+        let mut res = self;
+        res.len = len; // Bits outside original len are already 0
+        res
+    }
+
+    // TODO: Move to i128
+    pub const fn set_subrange(mut self, bits: BitDynamic, to: u64, from: u64) -> Self {
+        let to = to as i128;
+        let from = from as i128;
+        assert!(0 <= from && from <= to && to <= self.len);
+        let len = to - from;
+        assert!(bits.len == len);
+        let range_mask = BitDynamic { len: self.len, bits: Self::bit_mask(len) }.shl(from as u128);
+
+        let mut i = 0;
+        while i < BITDYNAMIC_SIZE {
+            self.bits[i] &= !range_mask.bits[i];
+            i += 1;
+        }
+
+        let shifted_bits = bits.zero_extend_dyn(self.len).shl(from as u128);
+        self.bitor(shifted_bits)
+    }
+
+    pub const fn subrange<const START: i128, const END: i128, const LEN: i128>(self) -> BitDynamic {
+        assert_eq_range::<START, END, LEN>();
+        self.get_subrange(END, START)
+    }
+
     pub const fn bit_mask(len: i128) -> [u64; BITDYNAMIC_SIZE] {
         let mut mask = [0u64; BITDYNAMIC_SIZE];
         let mut i = 0;
@@ -221,6 +302,20 @@ impl BitDynamic {
     }
 }
 
+impl PartialOrd for BitDynamic {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.bits.partial_cmp(&other.bits)
+    }
+}
+
+impl<const LEN: i128> From<BitStatic<LEN>> for BitDynamic {
+    fn from(bv: BitStatic<LEN>) -> Self {
+        let mut bits = [0u64; BITDYNAMIC_SIZE];
+        bits[0] = bv.bits;
+        Self { len: LEN, bits }
+    }
+}
+
 pub const fn bvd(len: i128, val: u64) -> BitDynamic {
     BitDynamic::new(len, val)
 }
@@ -233,12 +328,12 @@ pub struct BitStatic<const LEN: i128> {
     pub bits: u64,
 }
 
-impl<const LEN: i128> const BitStorage for BitStatic<LEN> {
-    fn len(self) -> i128 {
+impl<const LEN: i128> BitStatic<LEN> {
+    pub const fn len(self) -> i128 {
         LEN
     }
 
-    fn signed(self) -> i128 {
+    pub const fn signed(self) -> i128 {
         let value = self.bits as u128;
         let sign_bit_mask = 1 << (LEN - 1);
         if value & sign_bit_mask == 0 {
@@ -251,12 +346,11 @@ impl<const LEN: i128> const BitStorage for BitStatic<LEN> {
         }
     }
 
-    fn unsigned(self) -> i128 {
+    pub const fn unsigned(self) -> i128 {
         self.bits as i128
     }
 
-    fn new(len: i128, val: u64) -> Self {
-        assert!(len == LEN);
+    pub const fn new(val: u64) -> Self {
         let _ = Self::ASSERT_LEN_VALID;
         if LEN < 64 {
             Self {
@@ -267,15 +361,15 @@ impl<const LEN: i128> const BitStorage for BitStatic<LEN> {
         }
     }
 
-    fn zeros(len: i128) -> Self {
-        Self::new(len, 0)
+    pub const fn zeros() -> Self {
+        Self::new(0)
     }
 
-    fn ones(len: i128) -> Self {
-        Self::new(len, Self::BIT_MASK)
+    pub const fn ones() -> Self {
+        Self::new(Self::BIT_MASK)
     }
 
-    fn set_bit(self, idx: i128, value: bool) -> Self {
+    pub const fn set_bit(self, idx: i128, value: bool) -> Self {
         assert!(idx < LEN, "Out of bounds array check");
         let bits = if value {
             self.bits | 1u64 << idx
@@ -285,108 +379,88 @@ impl<const LEN: i128> const BitStorage for BitStatic<LEN> {
         Self { bits }
     }
 
-    fn get_bit(self, idx: i128) -> bool {
+    pub const fn get_bit(self, idx: i128) -> bool {
         assert!(idx < LEN);
         self.bits & (1 << idx) > 0
     }
 
-    fn bitand(self, rhs: Self) -> Self {
+    pub const fn bitand(self, rhs: Self) -> Self {
         Self {
             bits: self.bits & rhs.bits,
         }
     }
 
-    fn bitor(self, rhs: Self) -> Self {
+    pub const fn bitor(self, rhs: Self) -> Self {
         Self {
             bits: self.bits | rhs.bits,
         }
     }
 
-    fn bitxor(self, rhs: Self) -> Self {
+    pub const fn bitxor(self, rhs: Self) -> Self {
         Self {
             bits: self.bits ^ rhs.bits,
         }
     }
 
-    fn not(self) -> Self {
+    pub const fn not(self) -> Self {
         Self {
             bits: !self.bits & Self::BIT_MASK,
         }
     }
 
-    fn add(self, rhs: u64) -> Self {
-        // Result guaranteed to be Self
+    pub const fn add(self, rhs: u64) -> Self {
+        self.wrapped_add(Self { bits: rhs })
+    }
+
+    pub const fn wrapped_add(self, rhs: Self) -> Self {
         Self {
-            bits: (self.bits as u64).wrapping_add(rhs),
+            bits: (self.bits as u64).wrapping_add(rhs.bits),
         }
     }
 
-    fn wrapped_add(mut self, rhs: Self) -> Self {
-        todo!()
-    }
-
-    fn shl(self, rhs: u128) -> Self {
+    pub const fn shl(self, rhs: u128) -> Self {
         Self {
             bits: self.bits << rhs,
         }
     }
 
-    fn shr(self, rhs: u128) -> Self {
+    pub const fn shr(self, rhs: u128) -> Self {
         Self {
             bits: self.bits >> rhs,
         }
     }
-}
 
-const fn assert_eq_sum<const X: i128, const Y: i128, const SUM: i128>() {
-    assert!(X + Y == SUM);
-}
+    pub const ASSERT_LEN_VALID: () = assert!(LEN <= 64, "Length of BitStatic must be less than 64");
 
-impl<const LEN1: i128, const LEN2: i128, const LEN3: i128>
-    BitStorageConcat<BitStatic<LEN2>, BitStatic<LEN3>> for BitStatic<LEN1>
-{
-    fn concat(self, other: BitStatic<LEN2>) -> BitStatic<LEN3> {
-        assert_eq_sum::<LEN1, LEN2, LEN3>();
-        BitStatic::<LEN3>::new(LEN3, (self.bits << LEN2) | other.bits)
+    pub const BIT_MASK: u64 = if LEN == 64 { u64::MAX } else { (1 << LEN) - 1 };
+
+    pub const fn to_dynamic(self) -> BitDynamic {
+        BitDynamic::new(LEN, self.bits)
     }
-}
 
-impl<const LEN1: i128, const LEN2: i128> BitStorageExtend<BitStatic<LEN2>> for BitStatic<LEN1> {
-    fn get_subrange(self, end: i128, start: i128) -> BitStatic<LEN2> {
-        assert!(end - start == LEN2);
+    pub const fn sign_extend<const RESULT_LEN: i128>(self) -> BitStatic<RESULT_LEN> {
+        assert_leq::<LEN, RESULT_LEN>();
         todo!()
     }
 
-    fn set_subrange(self, bits: BitStatic<LEN2>, to: u64, from: u64) -> Self {
+    pub const fn sign_extend_dyn(self, _len: i128) -> BitDynamic {
         todo!()
     }
 
-    fn sign_extend(self, n: i128) -> BitStatic<LEN2> {
-        assert!(n == LEN2);
-        assert!(LEN2 >= LEN1, "Cannot sign extend to smaller size");
-
-        if LEN1 == LEN2 {
-            return BitStatic::new(LEN2, self.bits);
-        }
-
-        let sign_bit = (self.bits >> (LEN1 - 1)) & 1;
-
-        if sign_bit == 0 {
-            BitStatic::new(LEN2, self.bits)
-        } else {
-            let mask = if LEN1 == 64 { 0u64 } else { (1u64 << LEN1) - 1 };
-            let extension_bits = !mask & if n == 64 { u64::MAX } else { (1u64 << n) - 1 };
-            BitStatic::new(LEN2, self.bits | extension_bits)
-        }
+    pub const fn zero_extend<const RESULT_LEN: i128>(self) -> BitStatic<RESULT_LEN> {
+        assert_leq::<LEN, RESULT_LEN>();
+        BitStatic::<RESULT_LEN>::new(self.bits)
     }
 
-    fn zero_extend(self, n: i128) -> BitStatic<LEN2> {
-        assert!(LEN1 <= LEN2);
-        assert!(n == LEN2);
-        BitStatic::<LEN2> { bits: self.bits }
+    pub const fn zero_extend_dyn(self, len: i128) -> BitDynamic {
+        assert!(LEN < len);
+        BitDynamic::new(len, self.bits)
     }
 
-    fn subrange<const START: i128, const END: i128, const LEN: i128>(self) -> BitStatic<LEN2> {
+    pub const fn subrange<const START: i128, const END: i128, const RESULT_LEN: i128>(
+        self,
+    ) -> BitDynamic {
+        assert_eq_range::<START, END, RESULT_LEN>();
         todo!()
     }
 }
@@ -404,18 +478,8 @@ impl<const LEN: i128> From<BitDynamic> for BitStatic<LEN> {
     }
 }
 
-impl<const LEN: i128> BitStatic<LEN> {
-    pub const ASSERT_LEN_VALID: () = assert!(LEN <= 64, "Length of BitStatic must be less than 64");
-
-    pub const BIT_MASK: u64 = if LEN == 64 { u64::MAX } else { (1 << LEN) - 1 };
-
-    pub const fn to_dynamic(self) -> BitDynamic {
-        BitDynamic::new(LEN, self.bits)
-    }
-}
-
 pub const fn bv<const LEN: i128>(val: u64) -> BitStatic<LEN> {
-    BitStatic::new(LEN, val)
+    BitStatic::new(val)
 }
 
 // Implement core::ops for BitStatic and BitDynamic ------------------------------------------------
@@ -425,50 +489,74 @@ macro_rules! impl_ops_for_storage {
         impl $($header)* BitAnd for $target {
             type Output = Self;
             fn bitand(self, rhs: Self) -> Self {
-                <$target as BitStorage>::bitand(self, rhs)
+                <$target>::bitand(self, rhs)
             }
         }
         impl $($header)* BitOr for $target {
             type Output = Self;
             fn bitor(self, rhs: Self) -> Self {
-                <$target as BitStorage>::bitor(self, rhs)
+                <$target>::bitor(self, rhs)
             }
         }
         impl $($header)* BitXor for $target {
             type Output = Self;
             fn bitxor(self, rhs: Self) -> Self {
-                <$target as BitStorage>::bitxor(self, rhs)
+                <$target>::bitxor(self, rhs)
             }
         }
         impl $($header)* Not for $target {
             type Output = Self;
             fn not(self) -> Self {
-                <$target as BitStorage>::not(self)
+                <$target>::not(self)
             }
         }
         impl $($header)* Add<u64> for $target {
             type Output = Self;
             fn add(self, rhs: u64) -> Self {
-                <$target as BitStorage>::add(self, rhs)
+                <$target>::add(self, rhs)
             }
         }
         impl $($header)* Shl<u128> for $target {
             type Output = Self;
             fn shl(self, rhs: u128) -> Self {
-                <$target as BitStorage>::shl(self, rhs)
+                <$target>::shl(self, rhs)
+            }
+        }
+        impl $($header)* Shl<i128> for $target {
+            type Output = Self;
+            fn shl(self, rhs: i128) -> Self {
+                <$target>::shl(self, rhs as u128)
+            }
+        }
+        impl $($header)* Shl<i32> for $target {
+            type Output = Self;
+            fn shl(self, rhs: i32) -> Self {
+                <$target>::shl(self, rhs as u128)
             }
         }
         impl $($header)* Shr<u128> for $target {
             type Output = Self;
             fn shr(self, rhs: u128) -> Self {
-                <$target as BitStorage>::shr(self, rhs)
+                <$target>::shr(self, rhs)
+            }
+        }
+        impl $($header)* Shr<i128> for $target {
+            type Output = Self;
+            fn shr(self, rhs: i128) -> Self {
+                <$target>::shr(self, rhs as u128)
+            }
+        }
+        impl $($header)* Shr<i32> for $target {
+            type Output = Self;
+            fn shr(self, rhs: i32) -> Self {
+                <$target>::shr(self, rhs as u128)
             }
         }
     };
 }
 
-impl_ops_for_storage!(BitDynamic, const);
-impl_ops_for_storage!(BitStatic<LEN>, <const LEN: i128> const);
+impl_ops_for_storage!(BitDynamic,);
+impl_ops_for_storage!(BitStatic<LEN>, <const LEN: i128>);
 
 // Tests -------------------------------------------------------------------------------------------
 

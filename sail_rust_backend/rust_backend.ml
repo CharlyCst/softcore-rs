@@ -84,14 +84,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       print_endline x
   ;;
 
-  (** Return true if the type is a bitvector **)
-  let is_bitvector (typ : rs_type) : bool =
-    (* TODO(Gurvan) *)
-    match typ with
-    (* | Typ_aux (Typ_app (id, _args), _) when string_of_id id = "bitvector" -> true *)
-    | _ -> false
-  ;;
-
   (** Note: This function is already available as part of Sail, but there was
         a bug in the implementation.
         Once the bugfix is merged and a new version is release, we should
@@ -273,7 +265,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         (Printf.sprintf "Binop not yet implemented: %s" (string_of_rs_binop binop));
       RsTodo (Printf.sprintf "Binop%s" (string_of_rs_binop binop))
 
-  and process_exp_aux (ctx : context) (exp : 'annot exp_aux) (e_typ : rs_type)
+  and process_exp_aux (ctx : context) (exp : 'annot exp_aux) (e_annot : rs_type)
     : rs_exp_aux
     =
     match exp with
@@ -295,9 +287,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let exp_list =
         List.map
           (fun e ->
-             { e_typ = RsTypUnknown
-             ; e_exp = RsStaticApp (RsTypId "BitDynamic", "from", [ e ])
-             })
+             { e_annot = None; e_exp = RsStaticApp (RsTypId "BitDynamic", "from", [ e ]) })
           exp_list
       in
       (* TODO(Gurvan): Call .into() onto this result *)
@@ -311,7 +301,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         , List.map (process_exp ctx) exp_list )
     | E_app (id, [ size; item ]) when string_of_id id = "vector_init" ->
       (* If possible, try to get the size using the const parameter of the type *)
-      (match e_typ with
+      (match e_annot with
        | RsTypArray (_, RsTypParamNum size') -> RsArraySize (process_exp ctx item, size')
        | _ -> RsArraySize (process_exp ctx item, process_exp ctx size))
     | E_app (id, exp_list) ->
@@ -340,7 +330,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
            , process_exp ctx exp_start
            , process_exp ctx exp4 ))
     | E_for (_, _, _, _, _, _) -> RsTodo "E_for"
-    | E_vector exp_list -> process_vector ctx exp_list e_typ
+    | E_vector exp_list -> process_vector ctx exp_list e_annot
     | E_vector_access (exp1, exp2) -> RsIndex (process_exp ctx exp1, process_exp ctx exp2)
     | E_vector_subrange (_exp1, _exp2, _exp3) -> RsTodo "E_vector_subrange"
     | E_vector_update (_exp1, _exp2, _exp3) -> RsTodo "E_vector_update"
@@ -349,12 +339,12 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_list _exp_list -> RsTodo "E_list"
     | E_cons (_exp1, _exp2) -> RsTodo "E_cons"
     | E_struct (_, fexp_list) ->
-      RsStruct (strip_generic_parameters e_typ, process_fexp_entries ctx fexp_list)
+      RsStruct (strip_generic_parameters e_annot, process_fexp_entries ctx fexp_list)
     | E_struct_update (_exp, fexp_list) ->
       (match fexp_list with
        (* The struct update is expected to return the new struct with the field updated *)
        | [ FE_aux (FE_fexp (field, fexp), _) ] ->
-         RsStruct (e_typ, [ string_of_id field, process_exp ctx fexp ])
+         RsStruct (e_annot, [ string_of_id field, process_exp ctx fexp ])
        | _ ->
          assert false
          (* TODO(Gurvan): Reporting.unreachable (fst aux)
@@ -365,7 +355,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_let (LB_aux (LB_val (let_var, let_exp), _), exp) ->
       RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
     | E_var (lexp, value, next) ->
-      RsLetMut (process_lexp ctx lexp, process_exp ctx value, process_exp ctx next)
+      RsLetMut (process_lexp_as_pat ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
     | E_sizeof _nexp -> RsTodo "E_sizeof"
     | E_return exp -> RsReturn (process_exp ctx exp)
@@ -399,9 +389,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
          let rec construct_fields (expr : rs_exp_aux) (fields : string list) : rs_exp_aux =
            match fields with
            | head :: tail ->
-             construct_fields
-               (RsField ({ e_typ = RsTypUnknown; e_exp = expr }, head))
-               tail
+             construct_fields (RsField ({ e_annot = None; e_exp = expr }, head)) tail
            | [] -> expr
          in
          ctx.uses_sail_ctx <- true;
@@ -409,8 +397,23 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
          construct_fields (RsField (mk_exp_id core_ctx, "config")) cfgs)
 
   and process_exp (ctx : context) (E_aux (exp, aux)) : rs_exp =
-    let e_typ = typ_to_rust (typ_of_annot aux) in
-    { e_typ; e_exp = process_exp_aux ctx exp e_typ }
+    let e_annot = typ_to_rust (typ_of_annot aux) in
+    { e_annot = Some e_annot; e_exp = process_exp_aux ctx exp e_annot }
+
+  and process_lexp_as_pat (ctx : context) (LE_aux (lexp, _annot)) : rs_pat =
+    match lexp with
+    | LE_id id -> RsPatId (sanitize_id (string_of_id id))
+    | LE_vector (lexp, idx) -> assert false (* Invalid *)
+    | LE_vector_range (lexp, range_start, range_end) -> assert false (* Invalid *)
+    | LE_field (lexp, id) -> assert false (* Invalid *)
+    | LE_app _ -> RsPatTodo "TodoLexpApp"
+    | LE_deref _ -> RsPatTodo "TodoLexpDeref"
+    | LE_vector_concat _ -> RsPatTodo "TodoLexpVectorConcat"
+    | LE_tuple _ -> RsPatTodo "TodoLexpTuple"
+    | LE_typ (typ, id) ->
+      let id = sanitize_id (string_of_id id) in
+      let typ = typ_to_rust typ in
+      RsPatType (typ, RsPatId id)
 
   and process_lexp (ctx : context) (LE_aux (lexp, _annot)) : rs_lexp =
     match lexp with
@@ -455,7 +458,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | Pat_when (pat, exp1, exp2) ->
       RsPexpWhen (process_pat pat, process_exp ctx exp1, process_exp ctx exp2)
 
-  and process_vector (ctx : context) (items : 'a exp list) (e_typ : rs_type) : rs_exp_aux =
+  and process_vector (ctx : context) (items : 'a exp list) (e_annot : rs_type)
+    : rs_exp_aux
+    =
     (* TODO(Gurvan): What is the purpose of taking acc as a parameter here? *)
     let is_only_bits acc exp =
       match exp with
@@ -479,13 +484,14 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     if is_literal
     then (
       (* Generate a bitvector literal *)
-      (* TODO(Gurvan): FIXME BitStatic/BitDynamic *)
       let vector_length = List.length items in
       RsStaticApp
-        ( RsTypGenericParam ("BitStatic", [ RsTypParamNum (mk_num vector_length) ])
+        (*  ( RsTypGenericParam ("BitStatic", [ RsTypParamNum (mk_num
+            vector_length) ]) *)
+        ( RsTypId "BitDynamic"
         , "new"
         , [ mk_num vector_length
-          ; { e_typ = RsTypUnknown
+          ; { e_annot = None
             ; e_exp =
                 RsLit
                   (RsLitBin
@@ -494,24 +500,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
                         (String.concat "" (List.map string_of_bit items))))
             }
           ] ))
-    else if is_bitvector e_typ
-    then (
-      (* Generate a bitvector from individual bits *)
-      (* TODO(Gurvan): Transform into BitStatic/BitDynamic *)
-      let rec set_bits bits idx (exp : rs_exp_aux) : rs_exp_aux =
-        match bits with
-        | head :: tail ->
-          let new_exp =
-            mk_method_app
-              { e_typ = RsTypUnknown; e_exp = exp }
-              "set_bit"
-              [ mk_num idx; process_exp ctx head ]
-          in
-          set_bits tail (idx + 1) new_exp
-        | [] -> exp
-      in
-      let new_vec = RsStaticApp (RsTypId "BitVector", "new", [ mk_num 0 ]) in
-      set_bits items 0 new_vec)
     else
       (* Generate other kinds of vectors *)
       RsArray (List.map (process_exp ctx) items)
@@ -545,7 +533,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | RsPatType (_typ, pat) -> string_of_rs_pat pat
     | RsPatWildcard -> "_"
     | _ ->
-      Reporting.simple_warn "`extaract_pat_name`: pattern not implemented";
+      Reporting.simple_warn "`extract_pat_name`: pattern not implemented";
       "TodoPat"
 
   (** Return the size occupied by a numeral type in bits. **)
@@ -987,9 +975,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         match exp with
         | Some _exp ->
           let app =
-            { e_typ = RsTypUnknown; e_exp = RsApp (mk_exp_id ("_reset_" ^ name), [], []) }
+            { e_annot = None; e_exp = RsApp (mk_exp_id ("_reset_" ^ name), [], []) }
           in
-          Some { e_typ = RsTypUnknown; e_exp = RsAssign (RsLexpField (core, name), app) }
+          Some { e_annot = None; e_exp = RsAssign (RsLexpField (core, name), app) }
         | None -> None
       in
       let body = List.filter_map initialize_reg registers in
@@ -997,7 +985,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         { name = "_reset_all_registers"
         ; signature = fn_typ
         ; args = []
-        ; body = { e_typ = RsTypUnknown; e_exp = RsBlock body }
+        ; body = { e_annot = None; e_exp = RsBlock body }
         ; const = false
         ; doc =
             [ "Initialize all registers."
@@ -1017,39 +1005,35 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
 
   and nconstraint_to_rs_exp (NC_aux (n, _)) : rs_exp =
     match n with
-    | NC_true -> { e_typ = RsTypUnknown; e_exp = RsLit RsLitTrue }
-    | NC_false -> { e_typ = RsTypUnknown; e_exp = RsLit RsLitFalse }
-    | _ -> { e_typ = RsTypUnknown; e_exp = RsTodo "TodoNConstraint" }
+    | NC_true -> { e_annot = None; e_exp = RsLit RsLitTrue }
+    | NC_false -> { e_annot = None; e_exp = RsLit RsLitFalse }
+    | _ -> { e_annot = None; e_exp = RsTodo "TodoNConstraint" }
 
   and nexp_to_rs_exp (nexp : nexp) : rs_exp =
     let (Nexp_aux (nexp, _)) = nexp_simp nexp in
     match nexp with
     | Nexp_constant n -> mk_big_num n
     | Nexp_times (n, m) ->
-      { e_typ = RsTypUnknown
+      { e_annot = None
       ; e_exp = RsBinop (nexp_to_rs_exp n, RsBinopMult, nexp_to_rs_exp m)
       }
     | Nexp_sum (n, m) ->
-      { e_typ = RsTypUnknown
-      ; e_exp = RsBinop (nexp_to_rs_exp n, RsBinopAdd, nexp_to_rs_exp m)
-      }
+      { e_annot = None; e_exp = RsBinop (nexp_to_rs_exp n, RsBinopAdd, nexp_to_rs_exp m) }
     | Nexp_minus (n, m) ->
-      { e_typ = RsTypUnknown
-      ; e_exp = RsBinop (nexp_to_rs_exp n, RsBinopSub, nexp_to_rs_exp m)
-      }
+      { e_annot = None; e_exp = RsBinop (nexp_to_rs_exp n, RsBinopSub, nexp_to_rs_exp m) }
     | Nexp_exp n ->
       (* exponential, it seems it is always 2 ^ n *)
       let n_exp =
         match nexp_to_rs_exp n with
-        | { e_typ = _; e_exp = RsLit _ } as e_lit ->
+        | { e_annot = _; e_exp = RsLit _ } as e_lit ->
           e_lit (* Types is inferred automatically for literals *)
         | n_exp -> mk_as n_exp (RsTypId "u32")
         (* For all other types we do the conversion manually *)
       in
-      { e_typ = RsTypUnknown
+      { e_annot = None
       ; e_exp = RsStaticApp (int_typ, "pow", [ mk_num 2; mk_as n_exp (RsTypId "u32") ])
       }
-    | Nexp_neg n -> { e_typ = RsTypUnknown; e_exp = RsUnop (RsUnopNeg, nexp_to_rs_exp n) }
+    | Nexp_neg n -> { e_annot = None; e_exp = RsUnop (RsUnopNeg, nexp_to_rs_exp n) }
     | Nexp_id id -> mk_exp_id (string_of_id id)
     | Nexp_var kid -> mk_exp_id (sanitize_generic_id (string_of_kid kid)) (* variable *)
     | Nexp_app (_fn, _args) -> mk_todo "TodoAppExpr" (* app *)
@@ -1099,7 +1083,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       RsTypParamTyp (RsTypId (capitalize_after_removal (string_of_kid var)))
     | Nexp_times (_, _) | Nexp_sum (_, _) | Nexp_minus (_, _) | Nexp_exp _ | Nexp_neg _ ->
       RsTypParamNum
-        { e_typ = RsTypUnknown; e_exp = RsBlock [ nexp_to_rs_exp (Nexp_aux (nexp, l)) ] }
+        { e_annot = None; e_exp = RsBlock [ nexp_to_rs_exp (Nexp_aux (nexp, l)) ] }
     | _ -> RsTypParamTyp (RsTypId "TodoNexpOther")
   ;;
 
