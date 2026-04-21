@@ -872,7 +872,7 @@ mod tests {
 
         // Check that mtval contains the fault address
         assert_eq!(
-            core.mtval.unsigned(),
+            core.mtval.unsigned() as u64,
             fault_addr,
             "mtval should contain the fault address"
         );
@@ -1167,7 +1167,7 @@ mod tests {
 
         // Check that return address was stored (old PC + 4)
         assert_eq!(
-            core.get(RA),
+            core.get(RA) as i128,
             initial_pc + 4,
             "Return address should be old PC + 4"
         );

@@ -50,6 +50,9 @@ pub const trait BitStorageExtend<T: BitStorage>: BitStorage {
 const fn assert_eq_range<const START: i128, const END: i128, const LEN: i128>() {
     assert!(END - START == LEN);
 }
+const fn assert_eq_sum<const X: i128, const Y: i128, const Z: i128>() {
+    assert!(X + Y == Z);
+}
 
 const fn assert_leq<const X: i128, const Y: i128>() {
     assert!(X <= Y);
@@ -178,8 +181,30 @@ impl BitDynamic {
         self
     }
 
-    pub const fn shl(self, _rhs: u128) -> Self {
-        todo!()
+    pub const fn shl(self, rhs: u128) -> Self {
+        let mut res = Self::zeros(self.len);
+        let shift_limbs = (rhs / 64) as usize;
+        let shift_bits = (rhs % 64) as u32;
+        let mask = Self::bit_mask(self.len);
+
+        // TODO: We could assert the following as this might be undefined behavior? Check sail spec
+        if shift_limbs >= BITDYNAMIC_SIZE {
+            return res;
+        }
+
+        let mut i = BITDYNAMIC_SIZE - 1;
+        while i >= shift_limbs {
+            let src_idx = i - shift_limbs;
+            let mut val = self.bits[src_idx] << shift_bits;
+            if shift_bits > 0 && src_idx > 0 {
+                val |= self.bits[src_idx - 1] >> (64 - shift_bits);
+            }
+            res.bits[i] = val & mask[i];
+
+            if i == 0 { break; }
+            i -= 1;
+        }
+        res
     }
 
     pub const fn shr(self, rhs: u128) -> Self {
@@ -264,7 +289,7 @@ impl BitDynamic {
     pub const fn set_subrange(mut self, bits: BitDynamic, to: u64, from: u64) -> Self {
         let to = to as i128;
         let from = from as i128;
-        assert!(0 <= from && from <= to && to <= self.len);
+        assert!(0 <= from && from <= to && to < self.len);
         let len = to - from;
         assert!(bits.len == len);
         let range_mask = BitDynamic { len: self.len, bits: Self::bit_mask(len) }.shl(from as u128);
@@ -463,6 +488,11 @@ impl<const LEN: i128> BitStatic<LEN> {
         assert_eq_range::<START, END, RESULT_LEN>();
         todo!()
     }
+
+    pub const fn concat<const LEN2: i128, const LEN3: i128>(self, _other: BitStatic<LEN2>) -> BitStatic<LEN3> {
+        assert_eq_sum::<LEN, LEN2, LEN3>();
+        todo!()
+    }
 }
 
 impl<const LEN: i128> PartialOrd for BitStatic<LEN> {
@@ -562,9 +592,7 @@ impl_ops_for_storage!(BitStatic<LEN>, <const LEN: i128>);
 
 #[cfg(test)]
 mod tests_bitstatic {
-    use super::BitStorage;
     use super::*;
-    use core::ops::*;
 
     #[test]
     fn bitvec_masks() {
@@ -577,10 +605,10 @@ mod tests_bitstatic {
 
     #[test]
     fn bitvec_not() {
-        assert_eq!((!BitStatic::<1>::new(1, 0b1)).unsigned(), 0b0);
-        assert_eq!((!BitStatic::<1>::new(1, 0b0)).unsigned(), 0b1);
-        assert_eq!((!BitStatic::<2>::new(2, 0b01)).unsigned(), 0b10);
-        assert_eq!((!BitStatic::<2>::new(2, 0b11)).unsigned(), 0b00);
+        assert_eq!((!BitStatic::<1>::new(0b1)).unsigned(), 0b0);
+        assert_eq!((!BitStatic::<1>::new(0b0)).unsigned(), 0b1);
+        assert_eq!((!BitStatic::<2>::new(0b01)).unsigned(), 0b10);
+        assert_eq!((!BitStatic::<2>::new(0b11)).unsigned(), 0b00);
     }
 
     // #[test]
@@ -680,7 +708,7 @@ mod tests_bitstatic {
 
     #[test]
     fn bitwise_operators() {
-        let v = BitStatic::<32>::new(32, 0b1);
+        let v = BitStatic::<32>::new(0b1);
 
         assert_eq!(v, v | v);
         assert_eq!(v, v & v);
@@ -695,11 +723,11 @@ mod tests_bitstatic {
     #[test]
     fn test_zero_extend() {
         const SIZE: i128 = 8;
-        let v = BitStatic::<SIZE>::new(SIZE, 0b1010);
+        let v = BitStatic::<SIZE>::new(0b1010);
 
-        let vs1: BitStatic<16> = v.zero_extend(16);
-        let vs2: BitStatic<63> = v.zero_extend(63);
-        let vs3: BitStatic<64> = v.zero_extend(64);
+        let vs1: BitStatic<16> = v.zero_extend();
+        let vs2: BitStatic<63> = v.zero_extend();
+        let vs3: BitStatic<64> = v.zero_extend();
 
         assert_eq!(vs1.unsigned(), v.unsigned());
         assert_eq!(vs2.unsigned(), v.unsigned());
@@ -711,7 +739,7 @@ mod tests_bitstatic {
         const SIZE: i128 = 20;
 
         for i in 0..(1 << (SIZE as usize)) {
-            let v = BitStatic::<SIZE>::new(SIZE, i);
+            let v = BitStatic::<SIZE>::new(i);
             let res: BitStatic<{ SIZE + SIZE }> = v.concat(v);
             assert_eq!(res.bits, i + (i << (SIZE as usize)));
         }
@@ -722,7 +750,7 @@ mod tests_bitstatic {
         const SIZE: i128 = 10;
 
         for i in 0..(1 << (SIZE as usize)) {
-            let v = BitStatic::<SIZE>::new(SIZE, i);
+            let v = BitStatic::<SIZE>::new(i);
             for idx in 0..(SIZE as usize) {
                 assert_eq!((i & (1 << idx)) > 0, v.get_bit(idx as i128))
             }
@@ -733,7 +761,7 @@ mod tests_bitstatic {
     fn test_set_bit() {
         const SIZE: i128 = 60;
 
-        let mut v = BitStatic::<SIZE>::new(SIZE, 0);
+        let mut v = BitStatic::<SIZE>::new(0);
         let mut val: u64 = 0;
         for idx in 0..(SIZE as usize) {
             val |= 1u64 << idx;
@@ -752,89 +780,89 @@ mod tests_bitstatic {
     #[test]
     fn test_signed_interpretation() {
         // Test 1-bit signed values
-        assert_eq!(BitStatic::<1>::new(1, 0b0).signed(), 0);
-        assert_eq!(BitStatic::<1>::new(1, 0b1).signed(), -1);
+        assert_eq!(BitStatic::<1>::new(0b0).signed(), 0);
+        assert_eq!(BitStatic::<1>::new(0b1).signed(), -1);
 
         // Test 2-bit signed values
-        assert_eq!(BitStatic::<2>::new(2, 0b00).signed(), 0);
-        assert_eq!(BitStatic::<2>::new(2, 0b01).signed(), 1);
-        assert_eq!(BitStatic::<2>::new(2, 0b10).signed(), -2);
-        assert_eq!(BitStatic::<2>::new(2, 0b11).signed(), -1);
+        assert_eq!(BitStatic::<2>::new(0b00).signed(), 0);
+        assert_eq!(BitStatic::<2>::new(0b01).signed(), 1);
+        assert_eq!(BitStatic::<2>::new(0b10).signed(), -2);
+        assert_eq!(BitStatic::<2>::new(0b11).signed(), -1);
 
         // Test 3-bit signed values
-        assert_eq!(BitStatic::<3>::new(3, 0b000).signed(), 0);
-        assert_eq!(BitStatic::<3>::new(3, 0b001).signed(), 1);
-        assert_eq!(BitStatic::<3>::new(3, 0b010).signed(), 2);
-        assert_eq!(BitStatic::<3>::new(3, 0b011).signed(), 3);
-        assert_eq!(BitStatic::<3>::new(3, 0b100).signed(), -4);
-        assert_eq!(BitStatic::<3>::new(3, 0b101).signed(), -3);
-        assert_eq!(BitStatic::<3>::new(3, 0b110).signed(), -2);
-        assert_eq!(BitStatic::<3>::new(3, 0b111).signed(), -1);
+        assert_eq!(BitStatic::<3>::new(0b000).signed(), 0);
+        assert_eq!(BitStatic::<3>::new(0b001).signed(), 1);
+        assert_eq!(BitStatic::<3>::new(0b010).signed(), 2);
+        assert_eq!(BitStatic::<3>::new(0b011).signed(), 3);
+        assert_eq!(BitStatic::<3>::new(0b100).signed(), -4);
+        assert_eq!(BitStatic::<3>::new(0b101).signed(), -3);
+        assert_eq!(BitStatic::<3>::new(0b110).signed(), -2);
+        assert_eq!(BitStatic::<3>::new(0b111).signed(), -1);
 
         // Test 4-bit signed values
-        assert_eq!(BitStatic::<4>::new(4, 0b0000).signed(), 0);
-        assert_eq!(BitStatic::<4>::new(4, 0b0001).signed(), 1);
-        assert_eq!(BitStatic::<4>::new(4, 0b0111).signed(), 7);
-        assert_eq!(BitStatic::<4>::new(4, 0b1000).signed(), -8);
-        assert_eq!(BitStatic::<4>::new(4, 0b1001).signed(), -7);
-        assert_eq!(BitStatic::<4>::new(4, 0b1111).signed(), -1);
+        assert_eq!(BitStatic::<4>::new(0b0000).signed(), 0);
+        assert_eq!(BitStatic::<4>::new(0b0001).signed(), 1);
+        assert_eq!(BitStatic::<4>::new(0b0111).signed(), 7);
+        assert_eq!(BitStatic::<4>::new(0b1000).signed(), -8);
+        assert_eq!(BitStatic::<4>::new(0b1001).signed(), -7);
+        assert_eq!(BitStatic::<4>::new(0b1111).signed(), -1);
 
         // Test 8-bit signed values
-        assert_eq!(BitStatic::<8>::new(8, 0x00).signed(), 0);
-        assert_eq!(BitStatic::<8>::new(8, 0x01).signed(), 1);
-        assert_eq!(BitStatic::<8>::new(8, 0x7F).signed(), 127);
-        assert_eq!(BitStatic::<8>::new(8, 0x80).signed(), -128);
-        assert_eq!(BitStatic::<8>::new(8, 0xFF).signed(), -1);
+        assert_eq!(BitStatic::<8>::new(0x00).signed(), 0);
+        assert_eq!(BitStatic::<8>::new(0x01).signed(), 1);
+        assert_eq!(BitStatic::<8>::new(0x7F).signed(), 127);
+        assert_eq!(BitStatic::<8>::new(0x80).signed(), -128);
+        assert_eq!(BitStatic::<8>::new(0xFF).signed(), -1);
 
         // Test 16-bit signed values
-        assert_eq!(BitStatic::<16>::new(16, 0x0000).signed(), 0);
-        assert_eq!(BitStatic::<16>::new(16, 0x0001).signed(), 1);
-        assert_eq!(BitStatic::<16>::new(16, 0x7FFF).signed(), 32767);
-        assert_eq!(BitStatic::<16>::new(16, 0x8000).signed(), -32768);
-        assert_eq!(BitStatic::<16>::new(16, 0xFFFF).signed(), -1);
+        assert_eq!(BitStatic::<16>::new(0x0000).signed(), 0);
+        assert_eq!(BitStatic::<16>::new(0x0001).signed(), 1);
+        assert_eq!(BitStatic::<16>::new(0x7FFF).signed(), 32767);
+        assert_eq!(BitStatic::<16>::new(0x8000).signed(), -32768);
+        assert_eq!(BitStatic::<16>::new(0xFFFF).signed(), -1);
 
         // Test 32-bit signed values
-        assert_eq!(BitStatic::<32>::new(32, 0x00000000).signed(), 0);
-        assert_eq!(BitStatic::<32>::new(32, 0x00000001).signed(), 1);
-        assert_eq!(BitStatic::<32>::new(32, 0x7FFFFFFF).signed(), 2147483647);
-        assert_eq!(BitStatic::<32>::new(32, 0x80000000).signed(), -2147483648);
-        assert_eq!(BitStatic::<32>::new(32, 0xFFFFFFFF).signed(), -1);
+        assert_eq!(BitStatic::<32>::new(0x00000000).signed(), 0);
+        assert_eq!(BitStatic::<32>::new(0x00000001).signed(), 1);
+        assert_eq!(BitStatic::<32>::new(0x7FFFFFFF).signed(), 2147483647);
+        assert_eq!(BitStatic::<32>::new(0x80000000).signed(), -2147483648);
+        assert_eq!(BitStatic::<32>::new(0xFFFFFFFF).signed(), -1);
 
         // Test 64-bit signed values
-        assert_eq!(BitStatic::<32>::new(64, 0x0000000000000000).signed(), 0);
-        assert_eq!(BitStatic::<32>::new(64, 0x0000000000000001).signed(), 1);
+        assert_eq!(BitStatic::<64>::new(0x0000000000000000).signed(), 0);
+        assert_eq!(BitStatic::<64>::new(0x0000000000000001).signed(), 1);
         assert_eq!(
-            BitStatic::<32>::new(64, 0x7FFFFFFFFFFFFFFF).signed(),
+            BitStatic::<64>::new(0x7FFFFFFFFFFFFFFF).signed(),
             9223372036854775807
         );
         assert_eq!(
-            BitStatic::<32>::new(64, 0x8000000000000000).signed(),
+            BitStatic::<64>::new(0x8000000000000000).signed(),
             -9223372036854775808
         );
-        assert_eq!(BitStatic::<32>::new(64, 0xFFFFFFFFFFFFFFFF).signed(), -1);
+        assert_eq!(BitStatic::<64>::new(0xFFFFFFFFFFFFFFFF).signed(), -1);
     }
 
     #[test]
     fn test_signed_vs_unsigned() {
         // Test that unsigned and signed give different results for negative values
-        let v = BitStatic::<8>::new(8, 0xFF);
+        let v = BitStatic::<8>::new(0xFF);
         assert_eq!(v.unsigned(), 255);
         assert_eq!(v.signed(), -1);
 
-        let v = BitStatic::<8>::new(8, 0x80);
+        let v = BitStatic::<8>::new(0x80);
         assert_eq!(v.unsigned(), 128);
         assert_eq!(v.signed(), -128);
 
-        let v = BitStatic::<16>::new(16, 0x8000);
+        let v = BitStatic::<16>::new(0x8000);
         assert_eq!(v.unsigned(), 32768);
         assert_eq!(v.signed(), -32768);
 
         // Test that unsigned and signed give same results for positive values
-        let v = BitStatic::<8>::new(8, 0x7F);
+        let v = BitStatic::<8>::new(0x7F);
         assert_eq!(v.unsigned(), 127);
         assert_eq!(v.signed(), 127);
 
-        let v = BitStatic::<8>::new(8, 0x00);
+        let v = BitStatic::<8>::new(0x00);
         assert_eq!(v.unsigned(), 0);
         assert_eq!(v.signed(), 0);
     }
@@ -842,92 +870,90 @@ mod tests_bitstatic {
     #[test]
     fn test_sign_extend() {
         // Test sign extending positive values from 4 to 8 bits
-        let input = BitStatic::<4>::new(4, 0b0111); // 7 in 4 bits
-        let result: BitStatic<8> = input.sign_extend(8);
+        let input = BitStatic::<4>::new(0b0111); // 7 in 4 bits
+        let result: BitStatic<8> = input.sign_extend();
         assert_eq!(result.unsigned(), 0b00000111); // Should remain 7 in 8 bits
 
         // Test sign extending negative values from 4 to 8 bits
-        let input = BitStatic::<4>::new(4, 0b1000); // -8 in 4 bits (two's complement)
-        let result: BitStatic<8> = input.sign_extend(8);
+        let input = BitStatic::<4>::new(0b1000); // -8 in 4 bits (two's complement)
+        let result: BitStatic<8> = input.sign_extend();
         assert_eq!(result.unsigned(), 0b11111000); // Should become -8 in 8 bits
 
-        let input = BitStatic::<4>::new(4, 0b1111); // -1 in 4 bits
-        let result: BitStatic<8> = input.sign_extend(8);
+        let input = BitStatic::<4>::new(0b1111); // -1 in 4 bits
+        let result: BitStatic<8> = input.sign_extend();
         assert_eq!(result.unsigned(), 0b11111111); // Should become -1 in 8 bits
 
         // Test sign extending from 8 to 16 bits
-        let input = BitStatic::<8>::new(8, 0x7F); // 127 in 8 bits (positive)
-        let result: BitStatic<16> = input.sign_extend(16);
+        let input = BitStatic::<8>::new(0x7F); // 127 in 8 bits (positive)
+        let result: BitStatic<16> = input.sign_extend();
         assert_eq!(result.unsigned(), 0x007F); // Should remain 127 in 16 bits
 
-        let input = BitStatic::<8>::new(8, 0x80); // -128 in 8 bits (negative)
-        let result: BitStatic<16> = input.sign_extend(16);
+        let input = BitStatic::<8>::new(0x80); // -128 in 8 bits (negative)
+        let result: BitStatic<16> = input.sign_extend();
         assert_eq!(result.unsigned(), 0xFF80); // Should become -128 in 16 bits
 
-        let input = BitStatic::<8>::new(8, 0xFF); // -1 in 8 bits
-        let result: BitStatic<16> = input.sign_extend(16);
+        let input = BitStatic::<8>::new(0xFF); // -1 in 8 bits
+        let result: BitStatic<16> = input.sign_extend();
         assert_eq!(result.unsigned(), 0xFFFF); // Should become -1 in 16 bits
 
         // Test sign extending from 16 to 32 bits
-        let input = BitStatic::<16>::new(16, 0x7FFF); // 32767 in 16 bits (positive)
-        let result: BitStatic<32> = input.sign_extend(32);
+        let input = BitStatic::<16>::new(0x7FFF); // 32767 in 16 bits (positive)
+        let result: BitStatic<32> = input.sign_extend();
         assert_eq!(result.unsigned(), 0x00007FFF); // Should remain 32767 in 32 bits
 
-        let input = BitStatic::<16>::new(16, 0x8000); // -32768 in 16 bits (negative)
-        let result: BitStatic<64> = input.sign_extend(32);
+        let input = BitStatic::<16>::new(0x8000); // -32768 in 16 bits (negative)
+        let result: BitStatic<64> = input.sign_extend();
         assert_eq!(result.unsigned(), 0xFFFF8000); // Should become -32768 in 32 bits
 
         // Test sign extending from 32 to 64 bits
-        let input = BitStatic::<32>::new(32, 0x7FFFFFFF); // Positive value
-        let result: BitStatic<64> = input.sign_extend(64);
+        let input = BitStatic::<32>::new(0x7FFFFFFF); // Positive value
+        let result: BitStatic<64> = input.sign_extend();
         assert_eq!(result.unsigned(), 0x000000007FFFFFFF);
 
-        let input = BitStatic::<32>::new(32, 0x80000000); // Negative value
-        let result: BitStatic<64> = input.sign_extend(64);
+        let input = BitStatic::<32>::new(0x80000000); // Negative value
+        let result: BitStatic<64> = input.sign_extend();
         assert_eq!(result.unsigned(), 0xFFFFFFFF80000000);
 
         // Test edge cases - extending by 1 bit
-        let input = BitStatic::<1>::new(1, 0b0); // 0 in 1 bit
-        let result: BitStatic<2> = input.sign_extend(2);
+        let input = BitStatic::<1>::new(0b0); // 0 in 1 bit
+        let result: BitStatic<2> = input.sign_extend();
         assert_eq!(result.unsigned(), 0b00); // Should remain 0
 
-        let input = BitStatic::<1>::new(1, 0b1); // -1 in 1 bit
-        let result: BitStatic<2> = input.sign_extend(2);
+        let input = BitStatic::<1>::new(0b1); // -1 in 1 bit
+        let result: BitStatic<2> = input.sign_extend();
         assert_eq!(result.unsigned(), 0b11); // Should become -1 in 2 bits
 
         // Test extending smaller values
-        let input = BitStatic::<3>::new(3, 0b101); // -3 in 3 bits
-        let result: BitStatic<3> = input.sign_extend(8);
+        let input = BitStatic::<3>::new(0b101); // -3 in 3 bits
+        let result: BitStatic<3> = input.sign_extend();
         assert_eq!(result.unsigned(), 0b11111101); // Should become -3 in 8 bits
 
-        let input = BitStatic::<3>::new(3, 0b011); // 3 in 3 bits
-        let result: BitStatic<8> = input.sign_extend(8);
+        let input = BitStatic::<3>::new(0b011); // 3 in 3 bits
+        let result: BitStatic<8> = input.sign_extend();
         assert_eq!(result.unsigned(), 0b00000011); // Should remain 3 in 8 bits
 
         // Test extending from 64 to 64 bits (no-op, but widely used)
-        let input = BitStatic::<64>::new(64, 0x7FFFFFFFFFFFFFFF); // Maximum positive 64-bit value
-        let result: BitStatic<64> = input.sign_extend(64);
+        let input = BitStatic::<64>::new(0x7FFFFFFFFFFFFFFF); // Maximum positive 64-bit value
+        let result: BitStatic<64> = input.sign_extend();
         assert_eq!(result.unsigned(), 0x7FFFFFFFFFFFFFFF); // Should remain unchanged
 
-        let input = BitStatic::<64>::new(64, 0x8000000000000000); // Minimum negative 64-bit value
-        let result: BitStatic<64> = input.sign_extend(64);
+        let input = BitStatic::<64>::new(0x8000000000000000); // Minimum negative 64-bit value
+        let result: BitStatic<64> = input.sign_extend();
         assert_eq!(result.unsigned(), 0x8000000000000000); // Should remain unchanged
 
-        let input = BitStatic::<64>::new(64, 0xFFFFFFFFFFFFFFFF); // -1 in 64 bits
-        let result: BitStatic<64> = input.sign_extend(64);
+        let input = BitStatic::<64>::new(0xFFFFFFFFFFFFFFFF); // -1 in 64 bits
+        let result: BitStatic<64> = input.sign_extend();
         assert_eq!(result.unsigned(), 0xFFFFFFFFFFFFFFFF); // Should remain unchanged
 
-        let input = BitStatic::<64>::new(64, 0x0000000000000000); // 0 in 64 bits
-        let result: BitStatic<64> = input.sign_extend(64);
+        let input = BitStatic::<64>::new(0x0000000000000000); // 0 in 64 bits
+        let result: BitStatic<64> = input.sign_extend();
         assert_eq!(result.unsigned(), 0x0000000000000000); // Should remain unchanged
     }
 }
 
 #[cfg(test)]
 mod tests_bitdynamic {
-    use super::BitStorage;
     use super::*;
-    use core::ops::*;
 
     #[test]
     fn bitvec_masks() {
@@ -947,100 +973,61 @@ mod tests_bitdynamic {
         assert_eq!((!BitDynamic::new(2, 0b11)).unsigned(), 0b00);
     }
 
-    // #[test]
-    // fn subrange_bitvector() {
-    //     let v = BitDynamic::new(32, 0b10110111);
+    #[test]
+    fn subrange_bitvector() {
+        // TODO: More tests
+        let v = BitDynamic::new(32, 0b10110111);
 
-    //     assert_eq!(v.subrange::<0, 1, 1>().bits(), 0b1);
-    //     assert_eq!(v.subrange::<0, 2, 2>().bits(), 0b11);
-    //     assert_eq!(v.subrange::<0, 3, 3>().bits(), 0b111);
-    //     assert_eq!(v.subrange::<0, 4, 4>().bits(), 0b0111);
-    //     assert_eq!(v.subrange::<0, 5, 5>().bits(), 0b10111);
+        assert_eq!(v.subrange::<0, 1, 1>().unsigned(), 0b1);
+        assert_eq!(v.subrange::<0, 2, 2>().unsigned(), 0b11);
+        assert_eq!(v.subrange::<0, 3, 3>().unsigned(), 0b111);
+        assert_eq!(v.subrange::<0, 4, 4>().unsigned(), 0b0111);
+        assert_eq!(v.subrange::<0, 5, 5>().unsigned(), 0b10111);
 
-    //     assert_eq!(v.subrange::<2, 3, 1>().bits(), 0b1);
-    //     assert_eq!(v.subrange::<2, 4, 2>().bits(), 0b01);
-    //     assert_eq!(v.subrange::<2, 5, 3>().bits(), 0b101);
-    //     assert_eq!(v.subrange::<2, 6, 4>().bits(), 0b1101);
-    //     assert_eq!(v.subrange::<2, 7, 5>().bits(), 0b01101);
+        assert_eq!(v.subrange::<2, 3, 1>().unsigned(), 0b1);
+        assert_eq!(v.subrange::<2, 4, 2>().unsigned(), 0b01);
+        assert_eq!(v.subrange::<2, 5, 3>().unsigned(), 0b101);
+        assert_eq!(v.subrange::<2, 6, 4>().unsigned(), 0b1101);
+        assert_eq!(v.subrange::<2, 7, 5>().unsigned(), 0b01101);
 
-    //     assert_eq!(bv(32, 0xffffffff).subrange::<7, 23, 16>().bits(), 0xffff);
-    //     assert_eq!(v.subrange::<2, 7, 5>().bits(), 0b01101);
+        assert_eq!(bvd(32, 0xffffffff).subrange::<7, 23, 16>().unsigned(), 0xffff);
+        assert_eq!(v.subrange::<2, 7, 5>().unsigned(), 0b01101);
 
-    //     let v = bv(32, 0b10110111);
-    //     assert_eq!(v.set_subrange::<0, 1, 1>(BitDynamic::new(1, 0b0)).bits(), 0b10110110);
-    //     assert_eq!(v.set_subrange::<0, 1, 1>(BitDynamic::new(1, 0b1)).bits(), 0b10110111);
-    //     assert_eq!(v.set_subrange::<0, 2, 2>(BitDynamic::new(2, 0b00)).bits(), 0b10110100);
-    //     assert_eq!(v.set_subrange::<2, 5, 3>(BitDynamic::new(3, 0b010)).bits(), 0b10101011);
+        let v = bvd(32, 0b10110111);
+        assert_eq!(v.set_subrange(BitDynamic::new(1, 0b0), 1, 0).unsigned(), 0b10110110);
+        assert_eq!(v.set_subrange(BitDynamic::new(1, 0b1), 1, 0).unsigned(), 0b10110111);
+        assert_eq!(v.set_subrange(BitDynamic::new(2, 0b00), 2, 0).unsigned(), 0b10110100);
+        assert_eq!(v.set_subrange(BitDynamic::new(3, 0b010), 5, 2).unsigned(), 0b10101011);
 
-    //     assert_eq!(
-    //         bv(64, 0x0000000000000000).subrange::<60, 64, 4>().bits(),
-    //         0x0
-    //     );
-    //     assert_eq!(
-    //         bv(64, 0xa000000000000000).subrange::<60, 64, 4>().bits(),
-    //         0xa
-    //     );
-    //     assert_eq!(
-    //         bv(64, 0xb000000000000000).subrange::<60, 64, 4>().bits(),
-    //         0xb
-    //     );
-    //     assert_eq!(
-    //         bv(64, 0xc000000000000000).subrange::<60, 64, 4>().bits(),
-    //         0xc
-    //     );
-    //     assert_eq!(
-    //         bv(64, 0xd000000000000000).subrange::<60, 64, 4>().bits(),
-    //         0xd
-    //     );
-    //     assert_eq!(
-    //         bv(64, 0xe000000000000000).subrange::<60, 64, 4>().bits(),
-    //         0xe
-    //     );
-    //     assert_eq!(
-    //         bv(64, 0xf000000000000000).subrange::<60, 64, 4>().bits(),
-    //         0xf
-    //     );
-    // }
-
-    // #[test]
-    // fn test_update_subrange_bits() {
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b11111100), 1, 0, BitStatic::<2>::new(2, 0b11)).bits,
-    //         0b11111111
-    //     );
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b00000000), 0, 0, BitStatic::<1>::new(1, 0b1)).bits,
-    //         0b00000001
-    //     );
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b00000000), 1, 1, BitStatic::<1>::new(1, 0b1)).bits,
-    //         0b00000010
-    //     );
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b00000000), 2, 2, BitStatic::<1>::new(1, 0b1)).bits,
-    //         0b00000100
-    //     );
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b00000000), 3, 3, BitStatic::<1>::new(1, 0b1)).bits,
-    //         0b00001000
-    //     );
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b00000000), 4, 4, BitStatic::<1>::new(1, 0b1)).bits,
-    //         0b00010000
-    //     );
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b00000000), 5, 5, BitStatic::<1>::new(1, 0b1)).bits,
-    //         0b00100000
-    //     );
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b00000000), 6, 6, BitStatic::<1>::new(1, 0b1)).bits,
-    //         0b01000000
-    //     );
-    //     assert_eq!(
-    //         update_subrange_bits(BitDynamic::new(8, 0b00000000), 7, 7, BitStatic::<1>::new(1, 0b1)).bits,
-    //         0b10000000
-    //     );
-    // }
+        assert_eq!(
+            bvd(64, 0x0000000000000000).subrange::<60, 64, 4>().unsigned(),
+            0x0
+        );
+        assert_eq!(
+            bvd(64, 0xa000000000000000).subrange::<60, 64, 4>().unsigned(),
+            0xa
+        );
+        assert_eq!(
+            bvd(64, 0xb000000000000000).subrange::<60, 64, 4>().unsigned(),
+            0xb
+        );
+        assert_eq!(
+            bvd(64, 0xc000000000000000).subrange::<60, 64, 4>().unsigned(),
+            0xc
+        );
+        assert_eq!(
+            bvd(64, 0xd000000000000000).subrange::<60, 64, 4>().unsigned(),
+            0xd
+        );
+        assert_eq!(
+            bvd(64, 0xe000000000000000).subrange::<60, 64, 4>().unsigned(),
+            0xe
+        );
+        assert_eq!(
+            bvd(64, 0xf000000000000000).subrange::<60, 64, 4>().unsigned(),
+            0xf
+        );
+    }
 
     #[test]
     fn bitwise_operators() {
@@ -1059,11 +1046,25 @@ mod tests_bitdynamic {
     #[test]
     fn test_zero_extend() {
         const SIZE: i128 = 8;
-        let v = BitStatic::<SIZE>::new(SIZE, 0b1010);
+        let v = BitStatic::<SIZE>::new(0b1010);
 
-        let vs1: BitStatic<16> = v.zero_extend(16);
-        let vs2: BitStatic<63> = v.zero_extend(63);
-        let vs3: BitStatic<64> = v.zero_extend(64);
+        let vs1: BitStatic<16> = v.zero_extend();
+        let vs2: BitStatic<63> = v.zero_extend();
+        let vs3: BitStatic<64> = v.zero_extend();
+
+        assert_eq!(vs1.unsigned(), v.unsigned());
+        assert_eq!(vs2.unsigned(), v.unsigned());
+        assert_eq!(vs3.unsigned(), v.unsigned());
+    }
+
+    #[test]
+    fn test_zero_extend_dyn() {
+        const SIZE: i128 = 8;
+        let v = BitStatic::<SIZE>::new(0b1010);
+
+        let vs1: BitDynamic = v.zero_extend_dyn(16);
+        let vs2: BitDynamic = v.zero_extend_dyn(63);
+        let vs3: BitDynamic = v.zero_extend_dyn(64);
 
         assert_eq!(vs1.unsigned(), v.unsigned());
         assert_eq!(vs2.unsigned(), v.unsigned());
@@ -1075,9 +1076,9 @@ mod tests_bitdynamic {
         const SIZE: i128 = 20;
 
         for i in 0..(1 << (SIZE as usize)) {
-            let v = BitStatic::<SIZE>::new(SIZE, i);
-            let res: BitStatic<{ SIZE + SIZE }> = v.concat(v);
-            assert_eq!(res.bits, i + (i << (SIZE as usize)));
+            let v = BitDynamic::new(SIZE, i);
+            let res: BitDynamic = v.concat(v);
+            assert_eq!(res.unsigned(), (i + (i << (SIZE as usize))) as i128);
         }
     }
 
@@ -1086,7 +1087,7 @@ mod tests_bitdynamic {
         const SIZE: i128 = 10;
 
         for i in 0..(1 << (SIZE as usize)) {
-            let v = BitStatic::<SIZE>::new(SIZE, i);
+            let v = BitStatic::<SIZE>::new(i);
             for idx in 0..(SIZE as usize) {
                 assert_eq!((i & (1 << idx)) > 0, v.get_bit(idx as i128))
             }
@@ -1097,7 +1098,7 @@ mod tests_bitdynamic {
     fn test_set_bit() {
         const SIZE: i128 = 60;
 
-        let mut v = BitStatic::<SIZE>::new(SIZE, 0);
+        let mut v = BitStatic::<SIZE>::new(0);
         let mut val: u64 = 0;
         for idx in 0..(SIZE as usize) {
             val |= 1u64 << idx;
@@ -1204,85 +1205,85 @@ mod tests_bitdynamic {
     }
 
     #[test]
-    fn test_sign_extend() {
+    fn test_sign_extend_dyn() {
         // Test sign extending positive values from 4 to 8 bits
         let input = BitDynamic::new(4, 0b0111); // 7 in 4 bits
-        let result: BitDynamic = input.sign_extend(8);
+        let result: BitDynamic = input.sign_extend_dyn(8);
         assert_eq!(result.unsigned(), 0b00000111); // Should remain 7 in 8 bits
 
         // Test sign extending negative values from 4 to 8 bits
         let input = BitDynamic::new(4, 0b1000); // -8 in 4 bits (two's complement)
-        let result: BitDynamic = input.sign_extend(8);
+        let result: BitDynamic = input.sign_extend_dyn(8);
         assert_eq!(result.unsigned(), 0b11111000); // Should become -8 in 8 bits
 
         let input = BitDynamic::new(4, 0b1111); // -1 in 4 bits
-        let result: BitDynamic = input.sign_extend(8);
+        let result: BitDynamic = input.sign_extend_dyn(8);
         assert_eq!(result.unsigned(), 0b11111111); // Should become -1 in 8 bits
 
         // Test sign extending from 8 to 16 bits
         let input = BitDynamic::new(8, 0x7F); // 127 in 8 bits (positive)
-        let result: BitDynamic = input.sign_extend(16);
+        let result: BitDynamic = input.sign_extend_dyn(16);
         assert_eq!(result.unsigned(), 0x007F); // Should remain 127 in 16 bits
 
         let input = BitDynamic::new(8, 0x80); // -128 in 8 bits (negative)
-        let result: BitDynamic = input.sign_extend(16);
+        let result: BitDynamic = input.sign_extend_dyn(16);
         assert_eq!(result.unsigned(), 0xFF80); // Should become -128 in 16 bits
 
         let input = BitDynamic::new(8, 0xFF); // -1 in 8 bits
-        let result: BitDynamic = input.sign_extend(16);
+        let result: BitDynamic = input.sign_extend_dyn(16);
         assert_eq!(result.unsigned(), 0xFFFF); // Should become -1 in 16 bits
 
         // Test sign extending from 16 to 32 bits
         let input = BitDynamic::new(16, 0x7FFF); // 32767 in 16 bits (positive)
-        let result: BitDynamic = input.sign_extend(32);
+        let result: BitDynamic = input.sign_extend_dyn(32);
         assert_eq!(result.unsigned(), 0x00007FFF); // Should remain 32767 in 32 bits
 
         let input = BitDynamic::new(16, 0x8000); // -32768 in 16 bits (negative)
-        let result: BitDynamic = input.sign_extend(32);
+        let result: BitDynamic = input.sign_extend_dyn(32);
         assert_eq!(result.unsigned(), 0xFFFF8000); // Should become -32768 in 32 bits
 
         // Test sign extending from 32 to 64 bits
         let input = BitDynamic::new(32, 0x7FFFFFFF); // Positive value
-        let result: BitDynamic = input.sign_extend(64);
+        let result: BitDynamic = input.sign_extend_dyn(64);
         assert_eq!(result.unsigned(), 0x000000007FFFFFFF);
 
         let input = BitDynamic::new(32, 0x80000000); // Negative value
-        let result: BitDynamic = input.sign_extend(64);
+        let result: BitDynamic = input.sign_extend_dyn(64);
         assert_eq!(result.unsigned(), 0xFFFFFFFF80000000);
 
         // Test edge cases - extending by 1 bit
         let input = BitDynamic::new(1, 0b0); // 0 in 1 bit
-        let result: BitDynamic = input.sign_extend(2);
+        let result: BitDynamic = input.sign_extend_dyn(2);
         assert_eq!(result.unsigned(), 0b00); // Should remain 0
 
         let input = BitDynamic::new(1, 0b1); // -1 in 1 bit
-        let result: BitDynamic = input.sign_extend(2);
+        let result: BitDynamic = input.sign_extend_dyn(2);
         assert_eq!(result.unsigned(), 0b11); // Should become -1 in 2 bits
 
         // Test extending smaller values
         let input = BitDynamic::new(3, 0b101); // -3 in 3 bits
-        let result: BitDynamic = input.sign_extend(8);
+        let result: BitDynamic = input.sign_extend_dyn(8);
         assert_eq!(result.unsigned(), 0b11111101); // Should become -3 in 8 bits
 
         let input = BitDynamic::new(3, 0b011); // 3 in 3 bits
-        let result: BitDynamic = input.sign_extend(8);
+        let result: BitDynamic = input.sign_extend_dyn(8);
         assert_eq!(result.unsigned(), 0b00000011); // Should remain 3 in 8 bits
 
         // Test extending from 64 to 64 bits (no-op, but widely used)
         let input = BitDynamic::new(64, 0x7FFFFFFFFFFFFFFF); // Maximum positive 64-bit value
-        let result: BitDynamic = input.sign_extend(64);
+        let result: BitDynamic = input.sign_extend_dyn(64);
         assert_eq!(result.unsigned(), 0x7FFFFFFFFFFFFFFF); // Should remain unchanged
 
         let input = BitDynamic::new(64, 0x8000000000000000); // Minimum negative 64-bit value
-        let result: BitDynamic = input.sign_extend(64);
+        let result: BitDynamic = input.sign_extend_dyn(64);
         assert_eq!(result.unsigned(), 0x8000000000000000); // Should remain unchanged
 
         let input = BitDynamic::new(64, 0xFFFFFFFFFFFFFFFF); // -1 in 64 bits
-        let result: BitDynamic = input.sign_extend(64);
+        let result: BitDynamic = input.sign_extend_dyn(64);
         assert_eq!(result.unsigned(), 0xFFFFFFFFFFFFFFFF); // Should remain unchanged
 
         let input = BitDynamic::new(64, 0x0000000000000000); // 0 in 64 bits
-        let result: BitDynamic = input.sign_extend(64);
+        let result: BitDynamic = input.sign_extend_dyn(64);
         assert_eq!(result.unsigned(), 0x0000000000000000); // Should remain unchanged
     }
 }
