@@ -47,6 +47,7 @@ impl BitDynamic {
     }
 
     pub const fn new(len: i128, val: u64) -> Self {
+        assert!(len < (BITDYNAMIC_SIZE * 64) as i128);
         let mut bits = [0; BITDYNAMIC_SIZE];
         bits[0] = val;
         Self { len, bits }
