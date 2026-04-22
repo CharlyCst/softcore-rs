@@ -64,6 +64,7 @@ const BITDYNAMIC_SIZE: usize = 8;
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
 pub struct BitDynamic {
     pub len: i128,
+    // Little-Endian
     pub bits: [u64; BITDYNAMIC_SIZE],
 }
 
@@ -324,6 +325,21 @@ impl BitDynamic {
             i += 1;
         }
         mask
+    }
+
+    pub fn to_raw_le(self) -> Vec<u8> {
+        assert!(self.len % 8 == 0, "Length must be byte-aligned");
+        let num_bytes = (self.len / 8) as usize;
+        let mut raw_bytes = Vec::with_capacity(num_bytes);
+
+        raw_bytes.extend(
+            self.bits
+                .iter()
+                .flat_map(|limb| limb.to_le_bytes())
+                .take(num_bytes),
+        );
+
+        raw_bytes
     }
 }
 
@@ -1278,4 +1294,6 @@ mod tests_bitdynamic {
         let result: BitDynamic = input.sign_extend_dyn(64);
         assert_eq!(result.unsigned(), 0x0000000000000000); // Should remain unchanged
     }
+
+    // TODO(Gurvan): Tests for to_le_bytes
 }
