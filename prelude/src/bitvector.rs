@@ -1,50 +1,5 @@
 use core::ops::*;
 
-// BitStorage (Common ground between different BitVector implementation) ---------------------------
-// TODO(Gurvan): This require using const trait and is kind-of bad for type inference.
-// We instead would want to just have the struct impl these functions with the correct name and we
-// do the rest ourself in our generated code.
-
-/*
-pub const trait BitStorage:
-    Eq + PartialEq + Clone + Copy + std::fmt::Debug + Default + PartialOrd
-{
-    fn len(self) -> i128;
-    fn unsigned(self) -> i128;
-    fn signed(self) -> i128;
-    fn new(len: i128, val: u64) -> Self;
-
-    fn zeros(len: i128) -> Self;
-    fn ones(len: i128) -> Self;
-
-    fn set_bit(self, idx: i128, value: bool) -> Self;
-    fn get_bit(self, idx: i128) -> bool;
-
-    fn bitand(self, rhs: Self) -> Self;
-    fn bitor(self, rhs: Self) -> Self;
-    fn bitxor(self, rhs: Self) -> Self;
-    fn not(self) -> Self;
-    fn add(self, rhs: u64) -> Self;
-    fn wrapped_add(self, rhs: Self) -> Self;
-
-    fn shl(self, rhs: u128) -> Self;
-    fn shr(self, rhs: u128) -> Self;
-}
-
-pub const trait BitStorageConcat<T1: BitStorage, T2: BitStorage>: BitStorage {
-    fn concat(self, other: T1) -> T2;
-}
-
-pub const trait BitStorageExtend<T: BitStorage>: BitStorage {
-    fn set_subrange(self, bits: T, to: u64, from: u64) -> Self;
-    fn get_subrange(self, end: i128, start: i128) -> T;
-    fn sign_extend(self, n: i128) -> T;
-    fn zero_extend(self, n: i128) -> T;
-
-    fn subrange<const START: i128, const END: i128, const LEN: i128>(self) -> T;
-}
-*/
-
 // Utils -------------------------------------------------------------------------------------------
 
 const fn assert_eq_range<const START: i128, const END: i128, const LEN: i128>() {
@@ -202,7 +157,9 @@ impl BitDynamic {
             }
             res.bits[i] = val & mask[i];
 
-            if i == 0 { break; }
+            if i == 0 {
+                break;
+            }
             i -= 1;
         }
         res
@@ -293,7 +250,11 @@ impl BitDynamic {
         assert!(0 <= from && from <= to && to < self.len);
         let len = to - from + 1;
         assert!(bits.len == len);
-        let range_mask = BitDynamic { len: self.len, bits: Self::bit_mask(len) }.shl(from as u128);
+        let range_mask = BitDynamic {
+            len: self.len,
+            bits: Self::bit_mask(len),
+        }
+        .shl(from as u128);
 
         let mut i = 0;
         while i < BITDYNAMIC_SIZE {
@@ -393,7 +354,9 @@ impl<const LEN: i128> BitStatic<LEN> {
 
     pub const fn new(val: u64) -> Self {
         let _ = Self::ASSERT_LEN_VALID;
-        Self { bits: val & Self::BIT_MASK }
+        Self {
+            bits: val & Self::BIT_MASK,
+        }
     }
 
     pub const fn zeros() -> Self {
@@ -462,8 +425,10 @@ impl<const LEN: i128> BitStatic<LEN> {
         }
     }
 
-    pub const ASSERT_LEN_VALID: () =
-        assert!(0 <= LEN && LEN <= 64, "Length of BitStatic must be less than 64");
+    pub const ASSERT_LEN_VALID: () = assert!(
+        0 <= LEN && LEN <= 64,
+        "Length of BitStatic must be less than 64"
+    );
 
     pub const BIT_MASK: u64 = if LEN == 64 { u64::MAX } else { (1 << LEN) - 1 };
 
@@ -497,9 +462,14 @@ impl<const LEN: i128> BitStatic<LEN> {
         BitStatic::new(self.shr(START as u128).bits)
     }
 
-    pub const fn concat<const LEN2: i128, const LEN3: i128>(self, other: BitStatic<LEN2>) -> BitStatic<LEN3> {
+    pub const fn concat<const LEN2: i128, const LEN3: i128>(
+        self,
+        other: BitStatic<LEN2>,
+    ) -> BitStatic<LEN3> {
         assert_eq_sum::<LEN, LEN2, LEN3>();
-        self.zero_extend::<LEN3>().shl(LEN2 as u128).bitor(other.zero_extend())
+        self.zero_extend::<LEN3>()
+            .shl(LEN2 as u128)
+            .bitor(other.zero_extend())
     }
 }
 
@@ -998,41 +968,70 @@ mod tests_bitdynamic {
         assert_eq!(v.subrange::<2, 6, 4>().unsigned(), 0b1101);
         assert_eq!(v.subrange::<2, 7, 5>().unsigned(), 0b01101);
 
-        assert_eq!(bvd(32, 0xffffffff).subrange::<7, 23, 16>().unsigned(), 0xffff);
+        assert_eq!(
+            bvd(32, 0xffffffff).subrange::<7, 23, 16>().unsigned(),
+            0xffff
+        );
         assert_eq!(v.subrange::<2, 7, 5>().unsigned(), 0b01101);
 
         let v = bvd(32, 0b10110111);
-        assert_eq!(v.set_subrange(BitDynamic::new(1, 0b0), 0, 0).unsigned(), 0b10110110);
-        assert_eq!(v.set_subrange(BitDynamic::new(1, 0b1), 0, 0).unsigned(), 0b10110111);
-        assert_eq!(v.set_subrange(BitDynamic::new(2, 0b00), 1, 0).unsigned(), 0b10110100);
-        assert_eq!(v.set_subrange(BitDynamic::new(3, 0b010), 4, 2).unsigned(), 0b10101011);
+        assert_eq!(
+            v.set_subrange(BitDynamic::new(1, 0b0), 0, 0).unsigned(),
+            0b10110110
+        );
+        assert_eq!(
+            v.set_subrange(BitDynamic::new(1, 0b1), 0, 0).unsigned(),
+            0b10110111
+        );
+        assert_eq!(
+            v.set_subrange(BitDynamic::new(2, 0b00), 1, 0).unsigned(),
+            0b10110100
+        );
+        assert_eq!(
+            v.set_subrange(BitDynamic::new(3, 0b010), 4, 2).unsigned(),
+            0b10101011
+        );
 
         assert_eq!(
-            bvd(64, 0x0000000000000000).subrange::<60, 64, 4>().unsigned(),
+            bvd(64, 0x0000000000000000)
+                .subrange::<60, 64, 4>()
+                .unsigned(),
             0x0
         );
         assert_eq!(
-            bvd(64, 0xa000000000000000).subrange::<60, 64, 4>().unsigned(),
+            bvd(64, 0xa000000000000000)
+                .subrange::<60, 64, 4>()
+                .unsigned(),
             0xa
         );
         assert_eq!(
-            bvd(64, 0xb000000000000000).subrange::<60, 64, 4>().unsigned(),
+            bvd(64, 0xb000000000000000)
+                .subrange::<60, 64, 4>()
+                .unsigned(),
             0xb
         );
         assert_eq!(
-            bvd(64, 0xc000000000000000).subrange::<60, 64, 4>().unsigned(),
+            bvd(64, 0xc000000000000000)
+                .subrange::<60, 64, 4>()
+                .unsigned(),
             0xc
         );
         assert_eq!(
-            bvd(64, 0xd000000000000000).subrange::<60, 64, 4>().unsigned(),
+            bvd(64, 0xd000000000000000)
+                .subrange::<60, 64, 4>()
+                .unsigned(),
             0xd
         );
         assert_eq!(
-            bvd(64, 0xe000000000000000).subrange::<60, 64, 4>().unsigned(),
+            bvd(64, 0xe000000000000000)
+                .subrange::<60, 64, 4>()
+                .unsigned(),
             0xe
         );
         assert_eq!(
-            bvd(64, 0xf000000000000000).subrange::<60, 64, 4>().unsigned(),
+            bvd(64, 0xf000000000000000)
+                .subrange::<60, 64, 4>()
+                .unsigned(),
             0xf
         );
     }

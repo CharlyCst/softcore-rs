@@ -1952,8 +1952,12 @@ let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
     e.e_exp
   | RsArraySize (e', size) ->
     if is_const_rs_exp ctx size then e.e_exp else RsVecSize (e', mk_as size usize_typ)
-  | RsMethodApp { exp= { e_annot= annot; e_exp=_} as e; name="len"; generics=[]; args=[] } ->
-      RsApp (mk_exp_id "vector_length", [], [ mk_borrow e ])
+  | RsMethodApp
+      { exp = { e_annot = annot; e_exp = _ } as e
+      ; name = "len"
+      ; generics = []
+      ; args = []
+      } -> RsApp (mk_exp_id "vector_length", [], [ mk_borrow e ])
   | RsApp ({ e_annot = _; e_exp = RsId "undefined_vector" }, _generics, [ size; value ])
     ->
     if is_const_rs_exp ctx size

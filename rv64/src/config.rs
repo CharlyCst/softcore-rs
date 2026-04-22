@@ -6,7 +6,7 @@
 //! PRs to contribute new configurations for popular cores are welcome.
 
 use crate::raw;
-use softcore_prelude::{BitDynamic};
+use softcore_prelude::BitDynamic;
 
 /// A configuration with all extensions disabled.
 pub const MINIMAL: raw::Config = raw::Config {

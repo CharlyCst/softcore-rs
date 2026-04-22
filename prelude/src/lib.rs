@@ -36,7 +36,7 @@ pub const fn bitvector_concat(e1: BitDynamic, e2: BitDynamic) -> BitDynamic {
 
 pub fn get_slice_int(l: i128, n: i128, start: i128) -> BitDynamic {
     let val = (n >> start) & (mask128(l as usize) as i128);
-    // TODO(Gurvan): This cast in annoying as it can fail, S::new should take a u128 / i128…
+    // TODO(Gurvan): This cast is annoying as it can fail, S::new should take a u128 / i128…
     BitDynamic::new(l, val as u64)
 }
 
@@ -134,7 +134,12 @@ pub const fn subrange_bits(vec: BitDynamic, end: i128, start: i128) -> BitDynami
     vec.get_subrange(end, start)
 }
 
-pub const fn update_subrange_bits(vec: BitDynamic, to: u64, from: u64, bits: BitDynamic) -> BitDynamic {
+pub const fn update_subrange_bits(
+    vec: BitDynamic,
+    to: u64,
+    from: u64,
+    bits: BitDynamic,
+) -> BitDynamic {
     vec.set_subrange(bits, to, from)
 }
 

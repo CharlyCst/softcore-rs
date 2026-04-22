@@ -194,11 +194,7 @@ type rs_program = RsProg of rs_obj list
 let core_ctx = "core_ctx"
 let default_copy_derive = [ "Eq"; "PartialEq"; "Clone"; "Copy"; "Debug" ]
 let default_move_derive = [ "Eq"; "PartialEq"; "Clone"; "Debug" ]
-
-let nat_typ =
-  RsTypId "nat"
-;;
-
+let nat_typ = RsTypId "nat"
 let int_typ = RsTypId "i128" (* TODO(Gurvan): Maybe should be defined in prelude *)
 let bool_typ = RsTypId "bool"
 let usize_typ = RsTypId "usize"
@@ -230,8 +226,9 @@ let mk_as (exp : rs_exp) (typ : rs_type) : rs_exp =
 ;;
 
 let mk_borrow (exp : rs_exp) : rs_exp =
-  { e_annot = Option.bind exp.e_annot (fun t -> Some (RsTypBorrow t));
-  e_exp = RsBorrow exp }
+  { e_annot = Option.bind exp.e_annot (fun t -> Some (RsTypBorrow t))
+  ; e_exp = RsBorrow exp
+  }
 ;;
 
 let mk_todo (id : string) : rs_exp = { e_annot = None; e_exp = RsTodo id }
