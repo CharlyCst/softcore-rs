@@ -290,7 +290,7 @@ impl BitDynamic {
         let to = to as i128;
         let from = from as i128;
         assert!(0 <= from && from <= to && to < self.len);
-        let len = to - from;
+        let len = to - from + 1;
         assert!(bits.len == len);
         let range_mask = BitDynamic { len: self.len, bits: Self::bit_mask(len) }.shl(from as u128);
 
@@ -377,13 +377,7 @@ impl<const LEN: i128> BitStatic<LEN> {
 
     pub const fn new(val: u64) -> Self {
         let _ = Self::ASSERT_LEN_VALID;
-        if LEN < 64 {
-            Self {
-                bits: val & ((1 << LEN) - 1),
-            }
-        } else {
-            Self { bits: val }
-        }
+        Self { bits: val & Self::BIT_MASK }
     }
 
     pub const fn zeros() -> Self {
@@ -394,14 +388,14 @@ impl<const LEN: i128> BitStatic<LEN> {
         Self::new(Self::BIT_MASK)
     }
 
-    pub const fn set_bit(self, idx: i128, value: bool) -> Self {
+    pub const fn set_bit(mut self, idx: i128, value: bool) -> Self {
         assert!(idx < LEN, "Out of bounds array check");
-        let bits = if value {
-            self.bits | 1u64 << idx
+        if value {
+            self.bits |= 1u64 << idx
         } else {
-            self.bits & !(1u64 << idx)
-        };
-        Self { bits }
+            self.bits &= !(1u64 << idx)
+        }
+        self
     }
 
     pub const fn get_bit(self, idx: i128) -> bool {
@@ -409,22 +403,19 @@ impl<const LEN: i128> BitStatic<LEN> {
         self.bits & (1 << idx) > 0
     }
 
-    pub const fn bitand(self, rhs: Self) -> Self {
-        Self {
-            bits: self.bits & rhs.bits,
-        }
+    pub const fn bitand(mut self, rhs: Self) -> Self {
+        self.bits &= rhs.bits;
+        self
     }
 
-    pub const fn bitor(self, rhs: Self) -> Self {
-        Self {
-            bits: self.bits | rhs.bits,
-        }
+    pub const fn bitor(mut self, rhs: Self) -> Self {
+        self.bits |= rhs.bits;
+        self
     }
 
-    pub const fn bitxor(self, rhs: Self) -> Self {
-        Self {
-            bits: self.bits ^ rhs.bits,
-        }
+    pub const fn bitxor(mut self, rhs: Self) -> Self {
+        self.bits ^= rhs.bits;
+        self
     }
 
     pub const fn not(self) -> Self {
@@ -455,7 +446,8 @@ impl<const LEN: i128> BitStatic<LEN> {
         }
     }
 
-    pub const ASSERT_LEN_VALID: () = assert!(LEN <= 64, "Length of BitStatic must be less than 64");
+    pub const ASSERT_LEN_VALID: () =
+        assert!(0 <= LEN && LEN <= 64, "Length of BitStatic must be less than 64");
 
     pub const BIT_MASK: u64 = if LEN == 64 { u64::MAX } else { (1 << LEN) - 1 };
 
@@ -465,7 +457,7 @@ impl<const LEN: i128> BitStatic<LEN> {
 
     pub const fn sign_extend<const RESULT_LEN: i128>(self) -> BitStatic<RESULT_LEN> {
         assert_leq::<LEN, RESULT_LEN>();
-        todo!()
+        BitStatic::new(self.signed() as u64)
     }
 
     pub const fn sign_extend_dyn(self, _len: i128) -> BitDynamic {
@@ -484,14 +476,14 @@ impl<const LEN: i128> BitStatic<LEN> {
 
     pub const fn subrange<const START: i128, const END: i128, const RESULT_LEN: i128>(
         self,
-    ) -> BitDynamic {
+    ) -> BitStatic<RESULT_LEN> {
         assert_eq_range::<START, END, RESULT_LEN>();
-        todo!()
+        BitStatic::new(self.shr(START as u128).bits)
     }
 
-    pub const fn concat<const LEN2: i128, const LEN3: i128>(self, _other: BitStatic<LEN2>) -> BitStatic<LEN3> {
+    pub const fn concat<const LEN2: i128, const LEN3: i128>(self, other: BitStatic<LEN2>) -> BitStatic<LEN3> {
         assert_eq_sum::<LEN, LEN2, LEN3>();
-        todo!()
+        self.zero_extend::<LEN3>().shl(LEN2 as u128).bitor(other.zero_extend())
     }
 }
 
@@ -902,7 +894,7 @@ mod tests_bitstatic {
         assert_eq!(result.unsigned(), 0x00007FFF); // Should remain 32767 in 32 bits
 
         let input = BitStatic::<16>::new(0x8000); // -32768 in 16 bits (negative)
-        let result: BitStatic<64> = input.sign_extend();
+        let result: BitStatic<32> = input.sign_extend();
         assert_eq!(result.unsigned(), 0xFFFF8000); // Should become -32768 in 32 bits
 
         // Test sign extending from 32 to 64 bits
@@ -925,7 +917,7 @@ mod tests_bitstatic {
 
         // Test extending smaller values
         let input = BitStatic::<3>::new(0b101); // -3 in 3 bits
-        let result: BitStatic<3> = input.sign_extend();
+        let result: BitStatic<8> = input.sign_extend();
         assert_eq!(result.unsigned(), 0b11111101); // Should become -3 in 8 bits
 
         let input = BitStatic::<3>::new(0b011); // 3 in 3 bits
@@ -975,7 +967,7 @@ mod tests_bitdynamic {
 
     #[test]
     fn subrange_bitvector() {
-        // TODO: More tests
+        // TODO(Gurvan): More tests
         let v = BitDynamic::new(32, 0b10110111);
 
         assert_eq!(v.subrange::<0, 1, 1>().unsigned(), 0b1);
@@ -994,10 +986,10 @@ mod tests_bitdynamic {
         assert_eq!(v.subrange::<2, 7, 5>().unsigned(), 0b01101);
 
         let v = bvd(32, 0b10110111);
-        assert_eq!(v.set_subrange(BitDynamic::new(1, 0b0), 1, 0).unsigned(), 0b10110110);
-        assert_eq!(v.set_subrange(BitDynamic::new(1, 0b1), 1, 0).unsigned(), 0b10110111);
-        assert_eq!(v.set_subrange(BitDynamic::new(2, 0b00), 2, 0).unsigned(), 0b10110100);
-        assert_eq!(v.set_subrange(BitDynamic::new(3, 0b010), 5, 2).unsigned(), 0b10101011);
+        assert_eq!(v.set_subrange(BitDynamic::new(1, 0b0), 0, 0).unsigned(), 0b10110110);
+        assert_eq!(v.set_subrange(BitDynamic::new(1, 0b1), 0, 0).unsigned(), 0b10110111);
+        assert_eq!(v.set_subrange(BitDynamic::new(2, 0b00), 1, 0).unsigned(), 0b10110100);
+        assert_eq!(v.set_subrange(BitDynamic::new(3, 0b010), 4, 2).unsigned(), 0b10101011);
 
         assert_eq!(
             bvd(64, 0x0000000000000000).subrange::<60, 64, 4>().unsigned(),

@@ -14,11 +14,11 @@ pub type nat = i128;
 
 pub fn sail_branch_announce(_value: i128, _pc: BitDynamic) {}
 
-pub fn lteq_int(e1: i128, e2: i128) -> bool {
+pub const fn lteq_int(e1: i128, e2: i128) -> bool {
     e1 <= e2
 }
 
-pub fn gt_int(e1: i128, e2: i128) -> bool {
+pub const fn gt_int(e1: i128, e2: i128) -> bool {
     e1 > e2
 }
 
@@ -130,25 +130,25 @@ pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {
     }
 }
 
-pub fn subrange_bits(vec: BitDynamic, end: i128, start: i128) -> BitDynamic {
+pub const fn subrange_bits(vec: BitDynamic, end: i128, start: i128) -> BitDynamic {
     vec.get_subrange(end, start)
 }
 
-pub fn update_subrange_bits(bits: BitDynamic, to: u64, from: u64, vec: BitDynamic) -> BitDynamic {
+pub const fn update_subrange_bits(vec: BitDynamic, to: u64, from: u64, bits: BitDynamic) -> BitDynamic {
     vec.set_subrange(bits, to, from)
 }
 
-pub fn bitvector_update(v: BitDynamic, pos: i128, value: bool) -> BitDynamic {
+pub const fn bitvector_update(v: BitDynamic, pos: i128, value: bool) -> BitDynamic {
     v.set_bit(pos, value)
 }
 
-pub fn undefined_bitvector(len: i128) -> BitDynamic {
+pub const fn undefined_bitvector(len: i128) -> BitDynamic {
     BitDynamic::zeros(len)
 }
 
 // TODO(Gurvan): Maybe the following should take i128 as a parameter
 
-pub fn undefined_array<T: Copy, const N: usize>(v: T) -> [T; N] {
+pub const fn undefined_array<T: Copy, const N: usize>(v: T) -> [T; N] {
     [v; N]
 }
 
@@ -156,7 +156,7 @@ pub fn undefined_vector<T: Copy>(n: i128, v: T) -> Vec<T> {
     vec![v; n as usize]
 }
 
-pub fn vector_length<T>(v: &[T]) -> i128 {
+pub const fn vector_length<T>(v: &[T]) -> i128 {
     v.len() as i128
 }
 

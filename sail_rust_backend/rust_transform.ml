@@ -341,11 +341,7 @@ let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
   | RsAs (e, typ) -> is_const_rs_exp ctx e && is_const_rs_typ ctx typ
   | RsId x -> SSet.mem x ctx.defs.constants
   | RsVec _ | RsVecSize _ -> false
-  | e ->
-    Reporting.simple_warn
-      (Format.sprintf
-         "Couldn't figure out if an expression is constant, considering it is not");
-    false
+  | e -> false
 
 and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
   match typ with
@@ -1944,9 +1940,11 @@ let use_dynamic_vector_typ (ctx : context) (typ : rs_type) : rs_type =
 ;;
 
 let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
-  (* TODO(Gurvan): Here we are checking if expression are const or what but it
-     does not matter: we should instead be looking at e.e_annot but sometimes it
-     is not set unfortunately *)
+  (* TODO(Gurvan):
+     We are here trying to guess the type from the form of the
+     expression, but we should instead try to look at e.e_annot.
+     Unfortunately it is sometime not set.
+  *)
   match e.e_exp with
   | RsArray _es ->
     Reporting.simple_warn
