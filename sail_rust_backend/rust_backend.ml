@@ -258,7 +258,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       (match size1, size2 with
        (* 64 bits overflow, switch to 128 bits *)
        | Some n, Some m when Int64.mul n m >= 64L ->
-         RsBinop (mk_as exp1 int_typ, RsBinopMult, mk_as exp2 int_typ)
+         RsBinop (mk_as exp1 rs_type_int, RsBinopMult, mk_as exp2 rs_type_int)
        | _ -> RsBinop (exp1, RsBinopMult, exp2))
     | _ ->
       Reporting.simple_warn
@@ -357,7 +357,14 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_var (lexp, value, next) ->
       RsLetMut (process_lexp_as_pat ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
-    | E_sizeof _nexp -> RsTodo "E_sizeof"
+    | E_sizeof (Nexp_aux (nexp, _)) ->
+        (* Numeric expressions are just regular expressions at runtime *)
+        begin match nexp with
+        | Nexp_id x -> RsApp (mk_exp_id (string_of_id x), [], [])
+        | Nexp_var x -> RsTodo "E_sizeof_var"
+        | Nexp_constant n -> RsTodo "E_sizeof_constant"
+        | _ -> RsTodo "E_sizeof"
+        end
     | E_return exp -> RsReturn (process_exp ctx exp)
     | E_exit _exp ->
       RsApp (mk_exp_id "panic!", [], [ mk_lit_str "exit" ])
@@ -437,7 +444,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
          (match typ with
           | Typ_aux (Typ_app (Id_aux (Id "bitvector", _), _), _) ->
             RsLexpBitVectorAccess (process_lexp ctx lexp, process_exp ctx idx)
-          | _ -> RsLexpIndex (process_lexp ctx lexp, mk_as (process_exp ctx idx) usize_typ)))
+          | _ -> RsLexpIndex (process_lexp ctx lexp, mk_as (process_exp ctx idx) rs_type_usize)))
     | LE_vector_range (lexp, range_start, range_end) ->
       RsLexpIndexRange
         (process_lexp ctx lexp, process_exp ctx range_start, process_exp ctx range_end)
@@ -798,6 +805,37 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       RsProg [] (* Special semantics in rust *)
     | TD_variant (id, typq, members, _) ->
       RsProg [ RsEnum (variant_to_rust id typq members l) ]
+    | TD_abstract (id, K_aux (K_int, _), tdc) ->
+        (* TODO(Gurvan): Fix the following ugly code. Not that almost the same
+           code exists in E_config *)
+        let rec fields_chain (acc: rs_exp) (fs: string list) =
+          match fs with
+          | hd :: tl -> fields_chain {e_annot=None; e_exp=RsField (acc, hd) } tl
+          | [] -> acc
+        in
+        let td_as_fields (acc: rs_exp) (tdc: opt_abstract_config) =
+          match tdc with
+          | TDC_key xs -> fields_chain acc xs
+          | TDC_none -> assert false (* TODO(Gurvan): probably better error *)
+        in
+        (* TODO(Gurvan): But interesting part: We already have that code in E_config *)
+        let acc = {e_annot=None; e_exp=RsField (mk_exp_id
+        core_ctx, "config")} in
+        let body = td_as_fields acc tdc in
+        RsProg [
+          RsFn
+            { name= string_of_id id; (* TODO(Gurvan): This might create a
+            conflict since type id and value id are disjoint in sail, thus
+            allowing id to also be bound to a value *)
+            signature= {generics=[]; args=[]; ret=rs_type_int; linked_gen_args=[]};
+              args=[];
+              body;
+              const = false; (* TODO(Gurvan): Could this be true? Maybe *)
+              doc=[];
+              use_sail_ctx=true
+            }
+
+        ]
     | TD_abstract _ ->
       Reporting.unreachable l __POS__ "Abstract type not supported in Rust backend"
     | TD_record (id, typq, fields, _) -> RsProg [ record_to_rust id typq fields l ]
@@ -818,7 +856,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         | Some n -> mk_big_num n
         | None -> nexp_to_rs_exp nexp
       in
-      let const = { name = string_of_id id; value; typ = int_typ } in
+      let const = { name = string_of_id id; value; typ = rs_type_int } in
       RsProg [ RsConst const ]
     | TD_abbrev _ -> RsProg [] (* Ignore all other abbreviations *)
     | _ -> RsProg []
@@ -830,7 +868,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     let rexp = Rust_transform.simplify_rs_exp ctx rexp in
     match pat with
     | RsPatId id ->
-      let const = { name = id; value = rexp; typ = int_typ } in
+      let const = { name = id; value = rexp; typ = rs_type_int } in
       RsProg [ RsConst const ]
     | RsPatType (typ, RsPatId id) ->
       let const = { name = id; value = rexp; typ } in
@@ -1031,7 +1069,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         (* For all other types we do the conversion manually *)
       in
       { e_annot = None
-      ; e_exp = RsStaticApp (int_typ, "pow", [ mk_num 2; mk_as n_exp (RsTypId "u32") ])
+      ; e_exp = RsStaticApp (rs_type_int, "pow", [ mk_num 2; mk_as n_exp (RsTypId "u32") ])
       }
     | Nexp_neg n -> { e_annot = None; e_exp = RsUnop (RsUnopNeg, nexp_to_rs_exp n) }
     | Nexp_id id -> mk_exp_id (string_of_id id)
@@ -1058,7 +1096,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let size, typ = get_first_two_elements (List.map extract_type_arg params) in
       let size =
         match size with
-        | RsTypParamNum n -> RsTypParamNum (mk_as n usize_typ)
+        | RsTypParamNum n -> RsTypParamNum (mk_as n rs_type_usize)
         | _ -> size
       in
       RsTypArray (typ, size)

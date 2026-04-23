@@ -164,7 +164,7 @@ and transform_app
   (* Built-in elementary operations *)
   (* TODO(Gurvan): This does not make much sense to be here, it should be in its
      own pass instead of being done again each time *)
-  | RsId "plain_vector_access", [ vector; item ] -> RsIndex (vector, mk_as item usize_typ)
+  | RsId "plain_vector_access", [ vector; item ] -> RsIndex (vector, mk_as item rs_type_usize)
   | RsId "neq_int", [ left; right ] -> RsBinop (left, RsBinopNeq, right)
   | RsId "neq_bits", [ left; right ] -> RsBinop (left, RsBinopNeq, right)
   | RsId "eq_int", [ left; right ] -> RsBinop (left, RsBinopEq, right)
@@ -658,13 +658,13 @@ let simplify_rs_exp_aux (ctx : context) (rs_exp : rs_exp) : rs_exp_aux =
      | [ RsPexp (RsPatWildcard, exp) ] -> exp.e_exp
      | _ -> RsMatch (exp, branches))
   | RsApp
-      ( { e_annot = _; e_exp = RsPathSeparator (_int_typ, RsTypId "pow") }
+      ( { e_annot = _; e_exp = RsPathSeparator (_rs_type_int, RsTypId "pow") }
       , []
       , [ { e_annot = _; e_exp = RsLit (RsLitNum n) }
         ; { e_annot = _; e_exp = RsAs ({ e_annot = _; e_exp = RsLit (RsLitNum m) }, _) }
         ] )
   | RsStaticApp
-      ( _int_typ
+      ( _rs_type_int
       , "pow"
       , [ { e_annot = _; e_exp = RsLit (RsLitNum n) }
         ; { e_annot = _; e_exp = RsAs ({ e_annot = _; e_exp = RsLit (RsLitNum m) }, _) }
@@ -871,9 +871,9 @@ let native_func_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp_aux =
   | RsApp ({ e_annot = _; e_exp = RsId "ediv_int" }, _gens, _) ->
     RsId "BUILTIN_atom_ediv_TODO"
   | RsApp ({ e_annot = _; e_exp = RsId "emod_int" }, _gens, [ e1; e2 ]) ->
-    RsBinop (mk_as e1 usize_typ, RsBinopMod, mk_as e2 usize_typ)
+    RsBinop (mk_as e1 rs_type_usize, RsBinopMod, mk_as e2 rs_type_usize)
   | RsApp ({ e_annot = _; e_exp = RsId "abs_int_atom" }, _gens, [ e ]) ->
-    RsStaticApp (int_typ, "abs", [ e ])
+    RsStaticApp (rs_type_int, "abs", [ e ])
   | RsApp ({ e_annot = _; e_exp = RsId "not_bool" }, _gens, [ e ]) -> RsUnop (RsUnopNot, e)
   | RsApp ({ e_annot = _; e_exp = RsId "not_vec" }, _gens, [ v ]) -> RsUnop (RsUnopNot, v)
   | RsApp ({ e_annot = _; e_exp = RsId "eq_bit" }, _gens, [ e1; e2 ]) ->
@@ -911,7 +911,7 @@ let native_func_transform_exp (_ctx : context) (exp : rs_exp) : rs_exp_aux =
     RsId "BUILTIN_tmod_int_TODO"
   | RsApp ({ e_annot = _; e_exp = RsId "pow2" }, [], [ n ]) ->
     RsApp
-      ( { e_annot = None; e_exp = RsPathSeparator (int_typ, RsTypId "pow") }
+      ( { e_annot = None; e_exp = RsPathSeparator (rs_type_int, RsTypId "pow") }
       , []
       , [ mk_num 2; mk_as n (RsTypId "u32") ] )
   | RsApp ({ e_annot = _; e_exp = RsId "quot_positive_round_zero" }, [], [ a; b ]) ->
@@ -1645,8 +1645,8 @@ let expr_type_operator_rewriter : expr_type_transform =
 
 let remove_atom (_ctx : context) (typ : rs_type) : rs_type =
   match typ with
-  | RsTypGenericParam ("atom_bool", _) -> bool_typ
-  | RsTypGenericParam ("atom", _) -> int_typ
+  | RsTypGenericParam ("atom_bool", _) -> rs_type_bool
+  | RsTypGenericParam ("atom", _) -> rs_type_int
   | _ -> typ
 ;;
 
@@ -1734,7 +1734,7 @@ let transform_basic_types_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
     let patch_arg (exp, typ) =
       match typ with
       (* Conversion between integer types is not automatic, therefore we need to insert some casts *)
-      | RsTypId "nat" -> mk_as exp nat_typ
+      | RsTypId "nat" -> mk_as exp rs_type_nat
       | _ -> exp
     in
     let args =
@@ -1756,12 +1756,12 @@ let transform_basic_types_lexp (_ctx : context) (lexp : rs_lexp) : rs_lexp =
 
 let transform_basic_types_type (_ctx : context) (typ : rs_type) : rs_type =
   match typ with
-  | RsTypId "string" -> RsTypId "&\'static str"
-  | RsTypId "int" -> int_typ
-  | RsTypId "bit" -> bool_typ
+  | RsTypId "string" -> RsTypBorrow (RsTypId "'static str") (* TODO(Gurvan): Lifetime should be part of type RsTypBorrow *)
+  | RsTypId "int" -> rs_type_int
+  | RsTypId "bit" -> rs_type_bool
   (* TODO: Is this transformation legal? Should we add an assertion at some place in the code? *)
-  | RsTypGenericParam ("range", _) -> int_typ
-  | RsTypGenericParam ("implicit", _) -> int_typ
+  | RsTypGenericParam ("range", _) -> rs_type_int
+  | RsTypGenericParam ("implicit", _) -> rs_type_int
   | _ -> typ
 ;;
 
@@ -1951,7 +1951,7 @@ let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
       (Printf.sprintf "Using RsArray might not work with dynamic vector");
     e.e_exp
   | RsArraySize (e', size) ->
-    if is_const_rs_exp ctx size then e.e_exp else RsVecSize (e', mk_as size usize_typ)
+    if is_const_rs_exp ctx size then e.e_exp else RsVecSize (e', mk_as size rs_type_usize)
   | RsMethodApp
       { exp = { e_annot = annot; e_exp = _ } as e
       ; name = "len"
@@ -1961,7 +1961,7 @@ let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
   | RsApp ({ e_annot = _; e_exp = RsId "undefined_vector" }, _generics, [ size; value ])
     ->
     if is_const_rs_exp ctx size
-    then RsArraySize (value, mk_as size usize_typ)
+    then RsArraySize (value, mk_as size rs_type_usize)
     else e.e_exp
   | _ -> e.e_exp
 ;;

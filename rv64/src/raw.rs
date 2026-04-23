@@ -927,18 +927,22 @@ pub fn get_elen_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
     core_ctx.config.extensions.V.elen_exp
 }
 
+pub fn vlen_exp(core_ctx: &mut Core) -> i128 {
+    core_ctx.config.extensions.V.vlen_exp
+}
+
 /// get_vlen_pow
 ///
-/// Generated from the Sail sources at `riscv_vlen.sail` L16.
+/// Generated from the Sail sources at `riscv_vlen.sail` L19.
 pub fn get_vlen_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
-    core_ctx.config.extensions.V.vlen_exp
+    vlen_exp(core_ctx)
 }
 
 pub const vlenmax: i128 = 65536;
 
 /// get_vlen
 ///
-/// Generated from the Sail sources at `riscv_vlen.sail` L20.
+/// Generated from the Sail sources at `riscv_vlen.sail` L23.
 pub fn get_vlen(core_ctx: &mut Core, unit_arg: ()) -> i128 {
     i128::pow(2, (get_vlen_pow(core_ctx, ()) as u32))
 }
@@ -4042,7 +4046,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitDynamic {
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
 pub fn csr_id_read_callback(csr: BitDynamic, value: BitDynamic) {
     let name: &'static str = csr_name_map_forwards(csr);
-    
+
 }
 
 pub type regtype = xlenbits;
@@ -8185,10 +8189,10 @@ pub fn tval(excinfo: Option<BitDynamic>) -> BitDynamic {
 pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
-            
+
         }}
         Privilege::Supervisor => {{
-            
+
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 217, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
@@ -9399,7 +9403,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitDynamic, rs1_val: BitDynamic, rd: regi
                 _ => {panic!("Unreachable code")}
             };
             let final_val: BitDynamic = write_CSR(core_ctx, csr, new_val);
-            
+
         } else {
             csr_id_read_callback(csr, csr_val)
         };

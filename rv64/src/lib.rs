@@ -496,6 +496,8 @@ pub const fn new_core(config: raw::Config) -> Core {
         },
         pmpcfg_n: [DEFAULT_PMP_CFG; 64],
         pmpaddr_n: [ZEROES; 64],
+        // TODO: In the following, we actually want these BitDynamic to be of a size which depends
+        // on Config
         vr0: BitDynamic::new(raw::vlenmax, 0),
         vr1: BitDynamic::new(raw::vlenmax, 0),
         vr2: BitDynamic::new(raw::vlenmax, 0),
