@@ -27,6 +27,2162 @@ index 1849d68..0cfabbb 100644
                  add_custom_command(
                      DEPENDS ${sail_srcs}
                      OUTPUT ${c_model} ${branch_info_file}
+diff --git a/model/riscv_insts_vext_arith.sail b/model/riscv_insts_vext_arith.sail
+index 18874d1..18c659c 100644
+--- a/model/riscv_insts_vext_arith.sail
++++ b/model/riscv_insts_vext_arith.sail
+@@ -1479,211 +1479,211 @@ mapping clause assembly = MVVMATYPE(funct6, vm, vs2, vs1, vd)
+   <-> mvvmatype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+ 
+ /* *************************** OPMVV (VVTYPE Widening) *************************** */
+-union clause ast = WVVTYPE : (wvvfunct6, bits(1), vregidx, vregidx, vregidx)
+-mapping encdec_wvvfunct6 : wvvfunct6 <-> bits(6) = {
+-  WVV_VADD       <-> 0b110001,
+-  WVV_VSUB       <-> 0b110011,
+-  WVV_VADDU      <-> 0b110000,
+-  WVV_VSUBU      <-> 0b110010,
+-  WVV_VWMUL      <-> 0b111011,
+-  WVV_VWMULU     <-> 0b111000,
+-  WVV_VWMULSU    <-> 0b111010
+-}
+-
+-mapping clause encdec = WVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> encdec_wvvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b010 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(WVVTYPE(funct6, vm, vs2, vs1, vd)) = {
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen)) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        WVV_VADD    => to_bits(SEW_widen, signed(vs2_val[i]) + signed(vs1_val[i])),
+-        WVV_VSUB    => to_bits(SEW_widen, signed(vs2_val[i]) - signed(vs1_val[i])),
+-        WVV_VADDU   => to_bits(SEW_widen, unsigned(vs2_val[i]) + unsigned(vs1_val[i])),
+-        WVV_VSUBU   => to_bits(SEW_widen, unsigned(vs2_val[i]) - unsigned(vs1_val[i])),
+-        WVV_VWMUL   => to_bits(SEW_widen, signed(vs2_val[i]) * signed(vs1_val[i])),
+-        WVV_VWMULU  => to_bits(SEW_widen, unsigned(vs2_val[i]) * unsigned(vs1_val[i])),
+-        WVV_VWMULSU => to_bits(SEW_widen, signed(vs2_val[i]) * unsigned(vs1_val[i]))
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping wvvtype_mnemonic : wvvfunct6 <-> string = {
+-  WVV_VADD       <-> "vwadd.vv",
+-  WVV_VSUB       <-> "vwsub.vv",
+-  WVV_VADDU      <-> "vwaddu.vv",
+-  WVV_VSUBU      <-> "vwsubu.vv",
+-  WVV_VWMUL      <-> "vwmul.vv",
+-  WVV_VWMULU     <-> "vwmulu.vv",
+-  WVV_VWMULSU    <-> "vwmulsu.vv"
+-}
+-
+-mapping clause assembly = WVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> wvvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
+-
+-/* *************************** OPMVV (WVTYPE Widening) *************************** */
+-union clause ast = WVTYPE : (wvfunct6, bits(1), vregidx, vregidx, vregidx)
+-
+-mapping encdec_wvfunct6 : wvfunct6 <-> bits(6) = {
+-  WV_VADD       <-> 0b110101,
+-  WV_VSUB       <-> 0b110111,
+-  WV_VADDU      <-> 0b110100,
+-  WV_VSUBU      <-> 0b110110
+-}
+-
+-mapping clause encdec = WVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> encdec_wvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b010 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(WVTYPE(funct6, vm, vs2, vs1, vd)) = {
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
+-  let vs2_val : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        WV_VADD  => to_bits(SEW_widen, signed(vs2_val[i]) + signed(vs1_val[i])),
+-        WV_VSUB  => to_bits(SEW_widen, signed(vs2_val[i]) - signed(vs1_val[i])),
+-        WV_VADDU => to_bits(SEW_widen, unsigned(vs2_val[i]) + unsigned(vs1_val[i])),
+-        WV_VSUBU => to_bits(SEW_widen, unsigned(vs2_val[i]) - unsigned(vs1_val[i]))
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping wvtype_mnemonic : wvfunct6 <-> string = {
+-  WV_VADD       <-> "vwadd.wv",
+-  WV_VSUB       <-> "vwsub.wv",
+-  WV_VADDU      <-> "vwaddu.wv",
+-  WV_VSUBU      <-> "vwsubu.wv"
+-}
+-
+-mapping clause assembly = WVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> wvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
+-
+-/* ******************** OPMVV (VVtype Widening Multiply-Add) ********************* */
+-/* Multiply-Add instructions switch the order of source operands in assembly (vs1/rs1 before vs2) */
+-union clause ast = WMVVTYPE : (wmvvfunct6, bits(1), vregidx, vregidx, vregidx)
+-
+-mapping encdec_wmvvfunct6 : wmvvfunct6 <-> bits(6) = {
+-  WMVV_VWMACCU   <-> 0b111100,
+-  WMVV_VWMACC     <-> 0b111101,
+-  WMVV_VWMACCSU  <-> 0b111111
+-}
+-
+-mapping clause encdec =  WMVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> encdec_wmvvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b010 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(WMVVTYPE(funct6, vm, vs2, vs1, vd)) = {
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen)) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        WMVV_VWMACC   => to_bits(SEW_widen, signed(vs1_val[i]) * signed(vs2_val[i])) + vd_val[i],
+-        WMVV_VWMACCU  => to_bits(SEW_widen, unsigned(vs1_val[i]) * unsigned(vs2_val[i])) + vd_val[i],
+-        WMVV_VWMACCSU => to_bits(SEW_widen, signed(vs1_val[i]) * unsigned(vs2_val[i]))+ vd_val[i]
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping wmvvtype_mnemonic : wmvvfunct6 <-> string = {
+-  WMVV_VWMACCU     <-> "vwmaccu.vv",
+-  WMVV_VWMACC      <-> "vwmacc.vv",
+-  WMVV_VWMACCSU    <-> "vwmaccsu.vv"
+-}
+-
+-mapping clause assembly = WMVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> wmvvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+-
++// union clause ast = WVVTYPE : (wvvfunct6, bits(1), vregidx, vregidx, vregidx)
++// mapping encdec_wvvfunct6 : wvvfunct6 <-> bits(6) = {
++//   WVV_VADD       <-> 0b110001,
++//   WVV_VSUB       <-> 0b110011,
++//   WVV_VADDU      <-> 0b110000,
++//   WVV_VSUBU      <-> 0b110010,
++//   WVV_VWMUL      <-> 0b111011,
++//   WVV_VWMULU     <-> 0b111000,
++//   WVV_VWMULSU    <-> 0b111010
++// }
++//
++// mapping clause encdec = WVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> encdec_wvvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b010 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(WVVTYPE(funct6, vm, vs2, vs1, vd)) = {
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen)) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         WVV_VADD    => to_bits(SEW_widen, signed(vs2_val[i]) + signed(vs1_val[i])),
++//         WVV_VSUB    => to_bits(SEW_widen, signed(vs2_val[i]) - signed(vs1_val[i])),
++//         WVV_VADDU   => to_bits(SEW_widen, unsigned(vs2_val[i]) + unsigned(vs1_val[i])),
++//         WVV_VSUBU   => to_bits(SEW_widen, unsigned(vs2_val[i]) - unsigned(vs1_val[i])),
++//         WVV_VWMUL   => to_bits(SEW_widen, signed(vs2_val[i]) * signed(vs1_val[i])),
++//         WVV_VWMULU  => to_bits(SEW_widen, unsigned(vs2_val[i]) * unsigned(vs1_val[i])),
++//         WVV_VWMULSU => to_bits(SEW_widen, signed(vs2_val[i]) * unsigned(vs1_val[i]))
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping wvvtype_mnemonic : wvvfunct6 <-> string = {
++//   WVV_VADD       <-> "vwadd.vv",
++//   WVV_VSUB       <-> "vwsub.vv",
++//   WVV_VADDU      <-> "vwaddu.vv",
++//   WVV_VSUBU      <-> "vwsubu.vv",
++//   WVV_VWMUL      <-> "vwmul.vv",
++//   WVV_VWMULU     <-> "vwmulu.vv",
++//   WVV_VWMULSU    <-> "vwmulsu.vv"
++// }
++//
++// mapping clause assembly = WVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> wvvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
++//
++// /* *************************** OPMVV (WVTYPE Widening) *************************** */
++// union clause ast = WVTYPE : (wvfunct6, bits(1), vregidx, vregidx, vregidx)
++//
++// mapping encdec_wvfunct6 : wvfunct6 <-> bits(6) = {
++//   WV_VADD       <-> 0b110101,
++//   WV_VSUB       <-> 0b110111,
++//   WV_VADDU      <-> 0b110100,
++//   WV_VSUBU      <-> 0b110110
++// }
++//
++// mapping clause encdec = WVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> encdec_wvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b010 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(WVTYPE(funct6, vm, vs2, vs1, vd)) = {
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
++//   let vs2_val : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         WV_VADD  => to_bits(SEW_widen, signed(vs2_val[i]) + signed(vs1_val[i])),
++//         WV_VSUB  => to_bits(SEW_widen, signed(vs2_val[i]) - signed(vs1_val[i])),
++//         WV_VADDU => to_bits(SEW_widen, unsigned(vs2_val[i]) + unsigned(vs1_val[i])),
++//         WV_VSUBU => to_bits(SEW_widen, unsigned(vs2_val[i]) - unsigned(vs1_val[i]))
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping wvtype_mnemonic : wvfunct6 <-> string = {
++//   WV_VADD       <-> "vwadd.wv",
++//   WV_VSUB       <-> "vwsub.wv",
++//   WV_VADDU      <-> "vwaddu.wv",
++//   WV_VSUBU      <-> "vwsubu.wv"
++// }
++//
++// mapping clause assembly = WVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> wvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
++//
++// /* ******************** OPMVV (VVtype Widening Multiply-Add) ********************* */
++// /* Multiply-Add instructions switch the order of source operands in assembly (vs1/rs1 before vs2) */
++// union clause ast = WMVVTYPE : (wmvvfunct6, bits(1), vregidx, vregidx, vregidx)
++//
++// mapping encdec_wmvvfunct6 : wmvvfunct6 <-> bits(6) = {
++//   WMVV_VWMACCU   <-> 0b111100,
++//   WMVV_VWMACC     <-> 0b111101,
++//   WMVV_VWMACCSU  <-> 0b111111
++// }
++//
++// mapping clause encdec =  WMVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> encdec_wmvvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b010 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(WMVVTYPE(funct6, vm, vs2, vs1, vd)) = {
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen)) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         WMVV_VWMACC   => to_bits(SEW_widen, signed(vs1_val[i]) * signed(vs2_val[i])) + vd_val[i],
++//         WMVV_VWMACCU  => to_bits(SEW_widen, unsigned(vs1_val[i]) * unsigned(vs2_val[i])) + vd_val[i],
++//         WMVV_VWMACCSU => to_bits(SEW_widen, signed(vs1_val[i]) * unsigned(vs2_val[i]))+ vd_val[i]
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping wmvvtype_mnemonic : wmvvfunct6 <-> string = {
++//   WMVV_VWMACCU     <-> "vwmaccu.vv",
++//   WMVV_VWMACC      <-> "vwmacc.vv",
++//   WMVV_VWMACCSU    <-> "vwmaccsu.vv"
++// }
++//
++// mapping clause assembly = WMVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> wmvvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
++//
+ /* ****************************** OPMVV (VXUNARY0) ******************************* */
+ /* ******************* Vector Integer Extension (SEW/2 source) ******************* */
+ union clause ast = VEXT2TYPE : (vext2funct6, bits(1), vregidx, vregidx)
+@@ -2150,212 +2150,212 @@ mapping clause assembly = MVXMATYPE(funct6, vm, vs2, rs1, vd)
+   <-> mvxmatype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ reg_name(rs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+ 
+ /* *************************** OPMVX (VXTYPE Widening) *************************** */
+-union clause ast = WVXTYPE : (wvxfunct6, bits(1), vregidx, regidx, vregidx)
+-
+-mapping encdec_wvxfunct6 : wvxfunct6 <-> bits(6) = {
+-  WVX_VADD       <-> 0b110001,
+-  WVX_VSUB       <-> 0b110011,
+-  WVX_VADDU      <-> 0b110000,
+-  WVX_VSUBU      <-> 0b110010,
+-  WVX_VWMUL      <-> 0b111011,
+-  WVX_VWMULU     <-> 0b111000,
+-  WVX_VWMULSU    <-> 0b111010
+-}
+-
+-mapping clause encdec = WVXTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> encdec_wvxfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ 0b110 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(WVXTYPE(funct6, vm, vs2, rs1, vd)) = {
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let rs1_val : bits('m)             = get_scalar(rs1, SEW);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        WVX_VADD    => to_bits(SEW_widen, signed(vs2_val[i]) + signed(rs1_val)),
+-        WVX_VSUB    => to_bits(SEW_widen, signed(vs2_val[i]) - signed(rs1_val)),
+-        WVX_VADDU   => to_bits(SEW_widen, unsigned(vs2_val[i]) + unsigned(rs1_val)),
+-        WVX_VSUBU   => to_bits(SEW_widen, unsigned(vs2_val[i]) - unsigned(rs1_val)),
+-        WVX_VWMUL   => to_bits(SEW_widen, signed(vs2_val[i]) * signed(rs1_val)),
+-        WVX_VWMULU  => to_bits(SEW_widen, unsigned(vs2_val[i]) * unsigned(rs1_val)),
+-        WVX_VWMULSU => to_bits(SEW_widen, signed(vs2_val[i]) * unsigned(rs1_val))
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping wvxtype_mnemonic : wvxfunct6 <-> string = {
+-  WVX_VADD       <-> "vwadd.vx",
+-  WVX_VSUB       <-> "vwsub.vx",
+-  WVX_VADDU      <-> "vwaddu.vx",
+-  WVX_VSUBU      <-> "vwsubu.vx",
+-  WVX_VWMUL      <-> "vwmul.vx",
+-  WVX_VWMULU     <-> "vwmulu.vx",
+-  WVX_VWMULSU    <-> "vwmulsu.vx"
+-}
+-
+-mapping clause assembly = WVXTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> wvxtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ reg_name(rs1) ^ maybe_vmask(vm)
+-
++// union clause ast = WVXTYPE : (wvxfunct6, bits(1), vregidx, regidx, vregidx)
++//
++// mapping encdec_wvxfunct6 : wvxfunct6 <-> bits(6) = {
++//   WVX_VADD       <-> 0b110001,
++//   WVX_VSUB       <-> 0b110011,
++//   WVX_VADDU      <-> 0b110000,
++//   WVX_VSUBU      <-> 0b110010,
++//   WVX_VWMUL      <-> 0b111011,
++//   WVX_VWMULU     <-> 0b111000,
++//   WVX_VWMULSU    <-> 0b111010
++// }
++//
++// mapping clause encdec = WVXTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> encdec_wvxfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ 0b110 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(WVXTYPE(funct6, vm, vs2, rs1, vd)) = {
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let rs1_val : bits('m)             = get_scalar(rs1, SEW);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         WVX_VADD    => to_bits(SEW_widen, signed(vs2_val[i]) + signed(rs1_val)),
++//         WVX_VSUB    => to_bits(SEW_widen, signed(vs2_val[i]) - signed(rs1_val)),
++//         WVX_VADDU   => to_bits(SEW_widen, unsigned(vs2_val[i]) + unsigned(rs1_val)),
++//         WVX_VSUBU   => to_bits(SEW_widen, unsigned(vs2_val[i]) - unsigned(rs1_val)),
++//         WVX_VWMUL   => to_bits(SEW_widen, signed(vs2_val[i]) * signed(rs1_val)),
++//         WVX_VWMULU  => to_bits(SEW_widen, unsigned(vs2_val[i]) * unsigned(rs1_val)),
++//         WVX_VWMULSU => to_bits(SEW_widen, signed(vs2_val[i]) * unsigned(rs1_val))
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping wvxtype_mnemonic : wvxfunct6 <-> string = {
++//   WVX_VADD       <-> "vwadd.vx",
++//   WVX_VSUB       <-> "vwsub.vx",
++//   WVX_VADDU      <-> "vwaddu.vx",
++//   WVX_VSUBU      <-> "vwsubu.vx",
++//   WVX_VWMUL      <-> "vwmul.vx",
++//   WVX_VWMULU     <-> "vwmulu.vx",
++//   WVX_VWMULSU    <-> "vwmulsu.vx"
++// }
++//
++// mapping clause assembly = WVXTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> wvxtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ reg_name(rs1) ^ maybe_vmask(vm)
++//
+ /* *************************** OPMVX (WXTYPE Widening) *************************** */
+-union clause ast = WXTYPE : (wxfunct6, bits(1), vregidx, regidx, vregidx)
+-
+-mapping encdec_wxfunct6 : wxfunct6 <-> bits(6) = {
+-  WX_VADD       <-> 0b110101,
+-  WX_VSUB       <-> 0b110111,
+-  WX_VADDU      <-> 0b110100,
+-  WX_VSUBU      <-> 0b110110
+-}
+-
+-mapping clause encdec = WXTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> encdec_wxfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ 0b110 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(WXTYPE(funct6, vm, vs2, rs1, vd)) = {
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen)
+-  then return Illegal_Instruction();
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let rs1_val : bits('m)             = get_scalar(rs1, SEW);
+-  let vs2_val : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        WX_VADD  => to_bits(SEW_widen, signed(vs2_val[i]) + signed(rs1_val)),
+-        WX_VSUB  => to_bits(SEW_widen, signed(vs2_val[i]) - signed(rs1_val)),
+-        WX_VADDU => to_bits(SEW_widen, unsigned(vs2_val[i]) + unsigned(rs1_val)),
+-        WX_VSUBU => to_bits(SEW_widen, unsigned(vs2_val[i]) - unsigned(rs1_val))
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping wxtype_mnemonic : wxfunct6 <-> string = {
+-  WX_VADD       <-> "vwadd.wx",
+-  WX_VSUB       <-> "vwsub.wx",
+-  WX_VADDU      <-> "vwaddu.wx",
+-  WX_VSUBU      <-> "vwsubu.wx"
+-}
+-
+-mapping clause assembly = WXTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> wxtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ reg_name(rs1) ^ maybe_vmask(vm)
+-
+-/* ******************** OPMVX (VXtype Widening Multiply-Add) ********************* */
+-/* Multiply-Add instructions switch the order of source operands in assembly (vs1/rs1 before vs2) */
+-union clause ast =  WMVXTYPE : (wmvxfunct6, bits(1), vregidx, regidx, vregidx)
+-
+-mapping encdec_wmvxfunct6 : wmvxfunct6 <-> bits(6) = {
+-  WMVX_VWMACCU    <-> 0b111100,
+-  WMVX_VWMACC     <-> 0b111101,
+-  WMVX_VWMACCUS   <-> 0b111110,
+-  WMVX_VWMACCSU   <-> 0b111111
+-}
+-
+-mapping clause encdec = WMVXTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> encdec_wmvxfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ 0b110 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(WMVXTYPE(funct6, vm, vs2, rs1, vd)) = {
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)     = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let rs1_val : bits('m)             = get_scalar(rs1, SEW);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        WMVX_VWMACCU  => (to_bits(SEW_widen, unsigned(rs1_val) * unsigned(vs2_val[i]) )) + vd_val[i],
+-        WMVX_VWMACC   => (to_bits(SEW_widen, signed(rs1_val) * signed(vs2_val[i]) )) + vd_val[i],
+-        WMVX_VWMACCUS => (to_bits(SEW_widen, unsigned(rs1_val) * signed(vs2_val[i]) ))+ vd_val[i],
+-        WMVX_VWMACCSU => (to_bits(SEW_widen, signed(rs1_val) * unsigned(vs2_val[i]) ))+ vd_val[i]
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping wmvxtype_mnemonic : wmvxfunct6 <-> string = {
+-  WMVX_VWMACCU     <-> "vwmaccu.vx",
+-  WMVX_VWMACC      <-> "vwmacc.vx",
+-  WMVX_VWMACCUS    <-> "vwmaccus.vx",
+-  WMVX_VWMACCSU    <-> "vwmaccsu.vx"
+-}
+-
+-mapping clause assembly = WMVXTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> wmvxtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ reg_name(rs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+-
++// union clause ast = WXTYPE : (wxfunct6, bits(1), vregidx, regidx, vregidx)
++//
++// mapping encdec_wxfunct6 : wxfunct6 <-> bits(6) = {
++//   WX_VADD       <-> 0b110101,
++//   WX_VSUB       <-> 0b110111,
++//   WX_VADDU      <-> 0b110100,
++//   WX_VSUBU      <-> 0b110110
++// }
++//
++// mapping clause encdec = WXTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> encdec_wxfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ 0b110 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(WXTYPE(funct6, vm, vs2, rs1, vd)) = {
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen)
++//   then return Illegal_Instruction();
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let rs1_val : bits('m)             = get_scalar(rs1, SEW);
++//   let vs2_val : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         WX_VADD  => to_bits(SEW_widen, signed(vs2_val[i]) + signed(rs1_val)),
++//         WX_VSUB  => to_bits(SEW_widen, signed(vs2_val[i]) - signed(rs1_val)),
++//         WX_VADDU => to_bits(SEW_widen, unsigned(vs2_val[i]) + unsigned(rs1_val)),
++//         WX_VSUBU => to_bits(SEW_widen, unsigned(vs2_val[i]) - unsigned(rs1_val))
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping wxtype_mnemonic : wxfunct6 <-> string = {
++//   WX_VADD       <-> "vwadd.wx",
++//   WX_VSUB       <-> "vwsub.wx",
++//   WX_VADDU      <-> "vwaddu.wx",
++//   WX_VSUBU      <-> "vwsubu.wx"
++// }
++//
++// mapping clause assembly = WXTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> wxtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ reg_name(rs1) ^ maybe_vmask(vm)
++//
++// /* ******************** OPMVX (VXtype Widening Multiply-Add) ********************* */
++// /* Multiply-Add instructions switch the order of source operands in assembly (vs1/rs1 before vs2) */
++// union clause ast =  WMVXTYPE : (wmvxfunct6, bits(1), vregidx, regidx, vregidx)
++//
++// mapping encdec_wmvxfunct6 : wmvxfunct6 <-> bits(6) = {
++//   WMVX_VWMACCU    <-> 0b111100,
++//   WMVX_VWMACC     <-> 0b111101,
++//   WMVX_VWMACCUS   <-> 0b111110,
++//   WMVX_VWMACCSU   <-> 0b111111
++// }
++//
++// mapping clause encdec = WMVXTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> encdec_wmvxfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ 0b110 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(WMVXTYPE(funct6, vm, vs2, rs1, vd)) = {
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_variable_width(vd, vm, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)     = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let rs1_val : bits('m)             = get_scalar(rs1, SEW);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         WMVX_VWMACCU  => (to_bits(SEW_widen, unsigned(rs1_val) * unsigned(vs2_val[i]) )) + vd_val[i],
++//         WMVX_VWMACC   => (to_bits(SEW_widen, signed(rs1_val) * signed(vs2_val[i]) )) + vd_val[i],
++//         WMVX_VWMACCUS => (to_bits(SEW_widen, unsigned(rs1_val) * signed(vs2_val[i]) ))+ vd_val[i],
++//         WMVX_VWMACCSU => (to_bits(SEW_widen, signed(rs1_val) * unsigned(vs2_val[i]) ))+ vd_val[i]
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping wmvxtype_mnemonic : wmvxfunct6 <-> string = {
++//   WMVX_VWMACCU     <-> "vwmaccu.vx",
++//   WMVX_VWMACC      <-> "vwmacc.vx",
++//   WMVX_VWMACCUS    <-> "vwmaccus.vx",
++//   WMVX_VWMACCSU    <-> "vwmaccsu.vx"
++// }
++//
++// mapping clause assembly = WMVXTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> wmvxtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ reg_name(rs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
++//
+ /* ****************************** OPMVX (VRXUNARY0) ****************************** */
+ union clause ast = VMVSX : (regidx, vregidx)
+ 
+diff --git a/model/riscv_insts_vext_fp.sail b/model/riscv_insts_vext_fp.sail
+index dedb087..6b7f6d3 100644
+--- a/model/riscv_insts_vext_fp.sail
++++ b/model/riscv_insts_vext_fp.sail
+@@ -167,203 +167,203 @@ mapping clause assembly = FVVMATYPE(funct6, vm, vs2, vs1, vd)
+   <-> fvvmatype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+ 
+ /* *************************** OPFVV (VVTYPE Widening) *************************** */
+-union clause ast = FWVVTYPE : (fwvvfunct6, bits(1), vregidx, vregidx, vregidx)
+-
+-mapping encdec_fwvvfunct6 : fwvvfunct6 <-> bits(6) = {
+-  FWVV_VADD       <-> 0b110000,
+-  FWVV_VSUB       <-> 0b110010,
+-  FWVV_VMUL       <-> 0b111000
+-}
+-
+-mapping clause encdec = FWVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> encdec_fwvvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(FWVVTYPE(funct6, vm, vs2, vs1, vd)) = {
+-  let rm_3b    = fcsr[FRM];
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen)) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-  assert(SEW >= 16 & SEW_widen <= 64);
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        FWVV_VADD    => fp_add(rm_3b, fp_widen(vs2_val[i]), fp_widen(vs1_val[i])),
+-        FWVV_VSUB    => fp_sub(rm_3b, fp_widen(vs2_val[i]), fp_widen(vs1_val[i])),
+-        FWVV_VMUL    => fp_mul(rm_3b, fp_widen(vs2_val[i]), fp_widen(vs1_val[i]))
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping fwvvtype_mnemonic : fwvvfunct6 <-> string = {
+-  FWVV_VADD       <-> "vfwadd.vv",
+-  FWVV_VSUB       <-> "vfwsub.vv",
+-  FWVV_VMUL       <-> "vfwmul.vv"
+-}
+-
+-mapping clause assembly = FWVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> fwvvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
+-
+-/* ******************** OPFVV (VVtype Widening Multiply-Add) ********************* */
+-/* Multiply-Add instructions switch the order of source operands in assembly (vs1/rs1 before vs2) */
+-union clause ast = FWVVMATYPE : (fwvvmafunct6, bits(1), vregidx, vregidx, vregidx)
+-
+-mapping encdec_fwvvmafunct6 : fwvvmafunct6 <-> bits(6) = {
+-  FWVV_VMACC      <-> 0b111100,
+-  FWVV_VNMACC     <-> 0b111101,
+-  FWVV_VMSAC      <-> 0b111110,
+-  FWVV_VNMSAC     <-> 0b111111
+-}
+-
+-mapping clause encdec = FWVVMATYPE(funct6, vm, vs1, vs2, vd)
+-  <-> encdec_fwvvmafunct6(funct6) @ vm @ encdec_vreg(vs1) @ encdec_vreg(vs2) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(FWVVMATYPE(funct6, vm, vs1, vs2, vd)) = {
+-  let rm_3b    = fcsr[FRM];
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen)) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-  assert(SEW >= 16 & SEW_widen <= 64);
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        FWVV_VMACC   => fp_muladd(rm_3b, fp_widen(vs1_val[i]), fp_widen(vs2_val[i]), vd_val[i]),
+-        FWVV_VNMACC  => fp_nmulsub(rm_3b, fp_widen(vs1_val[i]), fp_widen(vs2_val[i]), vd_val[i]),
+-        FWVV_VMSAC   => fp_mulsub(rm_3b, fp_widen(vs1_val[i]), fp_widen(vs2_val[i]), vd_val[i]),
+-        FWVV_VNMSAC  => fp_nmuladd(rm_3b, fp_widen(vs1_val[i]), fp_widen(vs2_val[i]), vd_val[i])
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping fwvvmatype_mnemonic : fwvvmafunct6 <-> string = {
+-  FWVV_VMACC      <-> "vfwmacc.vv",
+-  FWVV_VNMACC     <-> "vfwnmacc.vv",
+-  FWVV_VMSAC      <-> "vfwmsac.vv",
+-  FWVV_VNMSAC     <-> "vfwnmsac.vv"
+-}
+-
+-mapping clause assembly = FWVVMATYPE(funct6, vm, vs1, vs2, vd)
+-  <-> fwvvmatype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+-
+-/* *************************** OPFVV (WVTYPE Widening) *************************** */
+-union clause ast = FWVTYPE : (fwvfunct6, bits(1), vregidx, vregidx, vregidx)
+-
+-mapping encdec_fwvfunct6 : fwvfunct6 <-> bits(6) = {
+-  FWV_VADD       <-> 0b110100,
+-  FWV_VSUB       <-> 0b110110
+-}
+-
+-mapping clause encdec = FWVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> encdec_fwvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(FWVTYPE(funct6, vm, vs2, vs1, vd)) = {
+-  let rm_3b    = fcsr[FRM];
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-  assert(SEW >= 16 & SEW_widen <= 64);
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
+-  let vs2_val : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        FWV_VADD     => fp_add(rm_3b, vs2_val[i], fp_widen(vs1_val[i])),
+-        FWV_VSUB     => fp_sub(rm_3b, vs2_val[i], fp_widen(vs1_val[i]))
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping fwvtype_mnemonic : fwvfunct6 <-> string = {
+-  FWV_VADD       <-> "vfwadd.wv",
+-  FWV_VSUB       <-> "vfwsub.wv"
+-}
+-
+-mapping clause assembly = FWVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> fwvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
+-
++// union clause ast = FWVVTYPE : (fwvvfunct6, bits(1), vregidx, vregidx, vregidx)
++//
++// mapping encdec_fwvvfunct6 : fwvvfunct6 <-> bits(6) = {
++//   FWVV_VADD       <-> 0b110000,
++//   FWVV_VSUB       <-> 0b110010,
++//   FWVV_VMUL       <-> 0b111000
++// }
++//
++// mapping clause encdec = FWVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> encdec_fwvvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(FWVVTYPE(funct6, vm, vs2, vs1, vd)) = {
++//   let rm_3b    = fcsr[FRM];
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen)) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//   assert(SEW >= 16 & SEW_widen <= 64);
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         FWVV_VADD    => fp_add(rm_3b, fp_widen(vs2_val[i]), fp_widen(vs1_val[i])),
++//         FWVV_VSUB    => fp_sub(rm_3b, fp_widen(vs2_val[i]), fp_widen(vs1_val[i])),
++//         FWVV_VMUL    => fp_mul(rm_3b, fp_widen(vs2_val[i]), fp_widen(vs1_val[i]))
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping fwvvtype_mnemonic : fwvvfunct6 <-> string = {
++//   FWVV_VADD       <-> "vfwadd.vv",
++//   FWVV_VSUB       <-> "vfwsub.vv",
++//   FWVV_VMUL       <-> "vfwmul.vv"
++// }
++//
++// mapping clause assembly = FWVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> fwvvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
++//
++// /* ******************** OPFVV (VVtype Widening Multiply-Add) ********************* */
++// /* Multiply-Add instructions switch the order of source operands in assembly (vs1/rs1 before vs2) */
++// union clause ast = FWVVMATYPE : (fwvvmafunct6, bits(1), vregidx, vregidx, vregidx)
++//
++// mapping encdec_fwvvmafunct6 : fwvvmafunct6 <-> bits(6) = {
++//   FWVV_VMACC      <-> 0b111100,
++//   FWVV_VNMACC     <-> 0b111101,
++//   FWVV_VMSAC      <-> 0b111110,
++//   FWVV_VNMSAC     <-> 0b111111
++// }
++//
++// mapping clause encdec = FWVVMATYPE(funct6, vm, vs1, vs2, vd)
++//   <-> encdec_fwvvmafunct6(funct6) @ vm @ encdec_vreg(vs1) @ encdec_vreg(vs2) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(FWVVMATYPE(funct6, vm, vs1, vs2, vd)) = {
++//   let rm_3b    = fcsr[FRM];
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen)) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//   assert(SEW >= 16 & SEW_widen <= 64);
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         FWVV_VMACC   => fp_muladd(rm_3b, fp_widen(vs1_val[i]), fp_widen(vs2_val[i]), vd_val[i]),
++//         FWVV_VNMACC  => fp_nmulsub(rm_3b, fp_widen(vs1_val[i]), fp_widen(vs2_val[i]), vd_val[i]),
++//         FWVV_VMSAC   => fp_mulsub(rm_3b, fp_widen(vs1_val[i]), fp_widen(vs2_val[i]), vd_val[i]),
++//         FWVV_VNMSAC  => fp_nmuladd(rm_3b, fp_widen(vs1_val[i]), fp_widen(vs2_val[i]), vd_val[i])
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping fwvvmatype_mnemonic : fwvvmafunct6 <-> string = {
++//   FWVV_VMACC      <-> "vfwmacc.vv",
++//   FWVV_VNMACC     <-> "vfwnmacc.vv",
++//   FWVV_VMSAC      <-> "vfwmsac.vv",
++//   FWVV_VNMSAC     <-> "vfwnmsac.vv"
++// }
++//
++// mapping clause assembly = FWVVMATYPE(funct6, vm, vs1, vs2, vd)
++//   <-> fwvvmatype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
++//
++// /* *************************** OPFVV (WVTYPE Widening) *************************** */
++// union clause ast = FWVTYPE : (fwvfunct6, bits(1), vregidx, vregidx, vregidx)
++//
++// mapping encdec_fwvfunct6 : fwvfunct6 <-> bits(6) = {
++//   FWV_VADD       <-> 0b110100,
++//   FWV_VSUB       <-> 0b110110
++// }
++//
++// mapping clause encdec = FWVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> encdec_fwvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(FWVTYPE(funct6, vm, vs2, vs1, vd)) = {
++//   let rm_3b    = fcsr[FRM];
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs1, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//   assert(SEW >= 16 & SEW_widen <= 64);
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let vs1_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
++//   let vs2_val : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         FWV_VADD     => fp_add(rm_3b, vs2_val[i], fp_widen(vs1_val[i])),
++//         FWV_VSUB     => fp_sub(rm_3b, vs2_val[i], fp_widen(vs1_val[i]))
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping fwvtype_mnemonic : fwvfunct6 <-> string = {
++//   FWV_VADD       <-> "vfwadd.wv",
++//   FWV_VSUB       <-> "vfwsub.wv"
++// }
++//
++// mapping clause assembly = FWVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> fwvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
++//
+ /* ****************************** OPFVV (VFUNARY0) ******************************* */
+ union clause ast = VFUNARY0 : (bits(1), vregidx, vfunary0, vregidx)
+ 
+@@ -481,137 +481,137 @@ mapping clause assembly = VFUNARY0(vm, vs2, vfunary0, vd)
+   <-> vfunary0_mnemonic(vfunary0) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+ 
+ /* ************************** OPFVV (VFUNARY0 Widening) ************************** */
+-union clause ast = VFWUNARY0 : (bits(1), vregidx, vfwunary0, vregidx)
+-
+-mapping encdec_vfwunary0_vs1 : vfwunary0 <-> bits(5) = {
+-  FWV_CVT_XU_F      <-> 0b01000,
+-  FWV_CVT_X_F       <-> 0b01001,
+-  FWV_CVT_F_XU      <-> 0b01010,
+-  FWV_CVT_F_X       <-> 0b01011,
+-  FWV_CVT_F_F       <-> 0b01100,
+-  FWV_CVT_RTZ_XU_F  <-> 0b01110,
+-  FWV_CVT_RTZ_X_F   <-> 0b01111
+-}
+-
+-mapping clause encdec = VFWUNARY0(vm, vs2, vfwunary0, vd)
+-  <-> 0b010010 @ vm @ encdec_vreg(vs2) @ encdec_vfwunary0_vs1(vfwunary0) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(VFWUNARY0(vm, vs2, vfwunary0, vd)) = {
+-  let rm_3b    = fcsr[FRM];
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-  assert(SEW >= 8 & SEW_widen <= 64);
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match vfwunary0 {
+-        FWV_CVT_XU_F     => {
+-                              let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
+-                                8  => return Illegal_Instruction(),
+-                                16 => riscv_f16ToUi32(rm_3b, vs2_val[i]),
+-                                32 => riscv_f32ToUi64(rm_3b, vs2_val[i])
+-                              };
+-                              accrue_fflags(fflags);
+-                              elem
+-                            },
+-        FWV_CVT_X_F      => {
+-                              let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
+-                                8  => return Illegal_Instruction(),
+-                                16 => riscv_f16ToI32(rm_3b, vs2_val[i]),
+-                                32 => riscv_f32ToI64(rm_3b, vs2_val[i])
+-                              };
+-                              accrue_fflags(fflags);
+-                              elem
+-                            },
+-        FWV_CVT_F_XU     => {
+-                              let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
+-                                8  => riscv_ui32ToF16(rm_3b, zero_extend(vs2_val[i])),
+-                                16 => riscv_ui32ToF32(rm_3b, zero_extend(vs2_val[i])),
+-                                32 => riscv_ui32ToF64(rm_3b, vs2_val[i])
+-                              };
+-                              accrue_fflags(fflags);
+-                              elem
+-                            },
+-        FWV_CVT_F_X      => {
+-                              let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
+-                                8  => riscv_i32ToF16(rm_3b, sign_extend(vs2_val[i])),
+-                                16 => riscv_i32ToF32(rm_3b, sign_extend(vs2_val[i])),
+-                                32 => riscv_i32ToF64(rm_3b, vs2_val[i])
+-                              };
+-                              accrue_fflags(fflags);
+-                              elem
+-                            },
+-        FWV_CVT_F_F      => {
+-                              let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
+-                                8  => return Illegal_Instruction(),
+-                                16 => riscv_f16ToF32(rm_3b, vs2_val[i]),
+-                                32 => riscv_f32ToF64(rm_3b, vs2_val[i])
+-                              };
+-                              accrue_fflags(fflags);
+-                              elem
+-                            },
+-        FWV_CVT_RTZ_XU_F => {
+-                              let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
+-                                8  => return Illegal_Instruction(),
+-                                16 => riscv_f16ToUi32(0b001, vs2_val[i]),
+-                                32 => riscv_f32ToUi64(0b001, vs2_val[i])
+-                              };
+-                              accrue_fflags(fflags);
+-                              elem
+-                            },
+-        FWV_CVT_RTZ_X_F  => {
+-                              let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
+-                                8  => return Illegal_Instruction(),
+-                                16 => riscv_f16ToI32(0b001, vs2_val[i]),
+-                                32 => riscv_f32ToI64(0b001, vs2_val[i])
+-                              };
+-                              accrue_fflags(fflags);
+-                              elem
+-                            }
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping vfwunary0_mnemonic : vfwunary0 <-> string = {
+-  FWV_CVT_XU_F      <-> "vfwcvt.xu.f.v",
+-  FWV_CVT_X_F       <-> "vfwcvt.x.f.v",
+-  FWV_CVT_F_XU      <-> "vfwcvt.f.xu.v",
+-  FWV_CVT_F_X       <-> "vfwcvt.f.x.v",
+-  FWV_CVT_F_F       <-> "vfwcvt.f.f.v",
+-  FWV_CVT_RTZ_XU_F  <-> "vfwcvt.rtz.xu.f.v",
+-  FWV_CVT_RTZ_X_F   <-> "vfwcvt.rtz.x.f.v"
+-}
+-
+-mapping clause assembly = VFWUNARY0(vm, vs2, vfwunary0, vd)
+-  <-> vfwunary0_mnemonic(vfwunary0) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+-
++// union clause ast = VFWUNARY0 : (bits(1), vregidx, vfwunary0, vregidx)
++//
++// mapping encdec_vfwunary0_vs1 : vfwunary0 <-> bits(5) = {
++//   FWV_CVT_XU_F      <-> 0b01000,
++//   FWV_CVT_X_F       <-> 0b01001,
++//   FWV_CVT_F_XU      <-> 0b01010,
++//   FWV_CVT_F_X       <-> 0b01011,
++//   FWV_CVT_F_F       <-> 0b01100,
++//   FWV_CVT_RTZ_XU_F  <-> 0b01110,
++//   FWV_CVT_RTZ_X_F   <-> 0b01111
++// }
++//
++// mapping clause encdec = VFWUNARY0(vm, vs2, vfwunary0, vd)
++//   <-> 0b010010 @ vm @ encdec_vreg(vs2) @ encdec_vfwunary0_vs1(vfwunary0) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(VFWUNARY0(vm, vs2, vfwunary0, vd)) = {
++//   let rm_3b    = fcsr[FRM];
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//   assert(SEW >= 8 & SEW_widen <= 64);
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match vfwunary0 {
++//         FWV_CVT_XU_F     => {
++//                               let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
++//                                 8  => return Illegal_Instruction(),
++//                                 16 => riscv_f16ToUi32(rm_3b, vs2_val[i]),
++//                                 32 => riscv_f32ToUi64(rm_3b, vs2_val[i])
++//                               };
++//                               accrue_fflags(fflags);
++//                               elem
++//                             },
++//         FWV_CVT_X_F      => {
++//                               let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
++//                                 8  => return Illegal_Instruction(),
++//                                 16 => riscv_f16ToI32(rm_3b, vs2_val[i]),
++//                                 32 => riscv_f32ToI64(rm_3b, vs2_val[i])
++//                               };
++//                               accrue_fflags(fflags);
++//                               elem
++//                             },
++//         FWV_CVT_F_XU     => {
++//                               let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
++//                                 8  => riscv_ui32ToF16(rm_3b, zero_extend(vs2_val[i])),
++//                                 16 => riscv_ui32ToF32(rm_3b, zero_extend(vs2_val[i])),
++//                                 32 => riscv_ui32ToF64(rm_3b, vs2_val[i])
++//                               };
++//                               accrue_fflags(fflags);
++//                               elem
++//                             },
++//         FWV_CVT_F_X      => {
++//                               let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
++//                                 8  => riscv_i32ToF16(rm_3b, sign_extend(vs2_val[i])),
++//                                 16 => riscv_i32ToF32(rm_3b, sign_extend(vs2_val[i])),
++//                                 32 => riscv_i32ToF64(rm_3b, vs2_val[i])
++//                               };
++//                               accrue_fflags(fflags);
++//                               elem
++//                             },
++//         FWV_CVT_F_F      => {
++//                               let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
++//                                 8  => return Illegal_Instruction(),
++//                                 16 => riscv_f16ToF32(rm_3b, vs2_val[i]),
++//                                 32 => riscv_f32ToF64(rm_3b, vs2_val[i])
++//                               };
++//                               accrue_fflags(fflags);
++//                               elem
++//                             },
++//         FWV_CVT_RTZ_XU_F => {
++//                               let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
++//                                 8  => return Illegal_Instruction(),
++//                                 16 => riscv_f16ToUi32(0b001, vs2_val[i]),
++//                                 32 => riscv_f32ToUi64(0b001, vs2_val[i])
++//                               };
++//                               accrue_fflags(fflags);
++//                               elem
++//                             },
++//         FWV_CVT_RTZ_X_F  => {
++//                               let (fflags, elem) : (bits_fflags, bits('o)) = match 'm {
++//                                 8  => return Illegal_Instruction(),
++//                                 16 => riscv_f16ToI32(0b001, vs2_val[i]),
++//                                 32 => riscv_f32ToI64(0b001, vs2_val[i])
++//                               };
++//                               accrue_fflags(fflags);
++//                               elem
++//                             }
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping vfwunary0_mnemonic : vfwunary0 <-> string = {
++//   FWV_CVT_XU_F      <-> "vfwcvt.xu.f.v",
++//   FWV_CVT_X_F       <-> "vfwcvt.x.f.v",
++//   FWV_CVT_F_XU      <-> "vfwcvt.f.xu.v",
++//   FWV_CVT_F_X       <-> "vfwcvt.f.x.v",
++//   FWV_CVT_F_F       <-> "vfwcvt.f.f.v",
++//   FWV_CVT_RTZ_XU_F  <-> "vfwcvt.rtz.xu.f.v",
++//   FWV_CVT_RTZ_X_F   <-> "vfwcvt.rtz.x.f.v"
++// }
++//
++// mapping clause assembly = VFWUNARY0(vm, vs2, vfwunary0, vd)
++//   <-> vfwunary0_mnemonic(vfwunary0) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
++//
+ /* ************************* OPFVV (VFUNARY0 Narrowing) ************************** */
+ union clause ast = VFNUNARY0 : (bits(1), vregidx, vfnunary0, vregidx)
+ 
+@@ -1048,200 +1048,200 @@ mapping clause assembly = FVFMATYPE(funct6, vm, vs2, rs1, vd)
+   <-> fvfmatype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ freg_name(rs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+ 
+ /* *************************** OPFVF (VFTYPE Widening) *************************** */
+-union clause ast = FWVFTYPE : (fwvffunct6, bits(1), vregidx, fregidx, vregidx)
+-
+-mapping encdec_fwvffunct6 : fwvffunct6 <-> bits(6) = {
+-  FWVF_VADD       <-> 0b110000,
+-  FWVF_VSUB       <-> 0b110010,
+-  FWVF_VMUL       <-> 0b111000
+-}
+-
+-mapping clause encdec = FWVFTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> encdec_fwvffunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_freg(rs1) @ 0b101 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(FWVFTYPE(funct6, vm, vs2, rs1, vd)) = {
+-  let rm_3b    = fcsr[FRM];
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-  assert(SEW >= 16 & SEW_widen <= 64);
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let rs1_val : bits('m)             = get_scalar_fp(rs1, 'm);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        FWVF_VADD    => fp_add(rm_3b, fp_widen(vs2_val[i]), fp_widen(rs1_val)),
+-        FWVF_VSUB    => fp_sub(rm_3b, fp_widen(vs2_val[i]), fp_widen(rs1_val)),
+-        FWVF_VMUL    => fp_mul(rm_3b, fp_widen(vs2_val[i]), fp_widen(rs1_val))
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping fwvftype_mnemonic : fwvffunct6 <-> string = {
+-  FWVF_VADD       <-> "vfwadd.vf",
+-  FWVF_VSUB       <-> "vfwsub.vf",
+-  FWVF_VMUL       <-> "vfwmul.vf"
+-}
+-
+-mapping clause assembly = FWVFTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> fwvftype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ freg_name(rs1) ^ maybe_vmask(vm)
+-
+-/* ******************** OPFVF (VFtype Widening Multiply-Add) ********************* */
+-/* Multiply-Add instructions switch the order of source operands in assembly (vs1/rs1 before vs2) */
+-union clause ast = FWVFMATYPE : (fwvfmafunct6, bits(1), fregidx, vregidx, vregidx)
+-
+-mapping encdec_fwvfmafunct6 : fwvfmafunct6 <-> bits(6) = {
+-  FWVF_VMACC      <-> 0b111100,
+-  FWVF_VNMACC     <-> 0b111101,
+-  FWVF_VMSAC      <-> 0b111110,
+-  FWVF_VNMSAC     <-> 0b111111
+-}
+-
+-mapping clause encdec = FWVFMATYPE(funct6, vm, rs1, vs2, vd)
+-  <-> encdec_fwvfmafunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_freg(rs1) @ 0b101 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(FWVFMATYPE(funct6, vm, rs1, vs2, vd)) = {
+-  let rm_3b    = fcsr[FRM];
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
+-      not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
+-  then return Illegal_Instruction();
+-  assert(SEW >= 16 & SEW_widen <= 64);
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)     = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let rs1_val : bits('m)             = get_scalar_fp(rs1, 'm);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        FWVF_VMACC   => fp_muladd(rm_3b, fp_widen(rs1_val), fp_widen(vs2_val[i]), vd_val[i]),
+-        FWVF_VNMACC  => fp_nmulsub(rm_3b, fp_widen(rs1_val), fp_widen(vs2_val[i]), vd_val[i]),
+-        FWVF_VMSAC   => fp_mulsub(rm_3b, fp_widen(rs1_val), fp_widen(vs2_val[i]), vd_val[i]),
+-        FWVF_VNMSAC  => fp_nmuladd(rm_3b, fp_widen(rs1_val), fp_widen(vs2_val[i]), vd_val[i])
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping fwvfmatype_mnemonic : fwvfmafunct6 <-> string = {
+-  FWVF_VMACC      <-> "vfwmacc.vf",
+-  FWVF_VNMACC     <-> "vfwnmacc.vf",
+-  FWVF_VMSAC      <-> "vfwmsac.vf",
+-  FWVF_VNMSAC     <-> "vfwnmsac.vf"
+-}
+-
+-mapping clause assembly = FWVFMATYPE(funct6, vm, rs1, vs2, vd)
+-  <-> fwvfmatype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ freg_name(rs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
+-
+-/* *************************** OPFVF (WFTYPE Widening) *************************** */
+-union clause ast = FWFTYPE : (fwffunct6, bits(1), vregidx, fregidx, vregidx)
+-
+-mapping encdec_fwffunct6 : fwffunct6 <-> bits(6) = {
+-  FWF_VADD       <-> 0b110100,
+-  FWF_VSUB       <-> 0b110110
+-}
+-
+-mapping clause encdec = FWFTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> encdec_fwffunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_freg(rs1) @ 0b101 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(FWFTYPE(funct6, vm, vs2, rs1, vd)) = {
+-  let rm_3b    = fcsr[FRM];
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  if illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen)
+-  then return Illegal_Instruction();
+-  assert(SEW >= 16 & SEW_widen <= 64);
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)     = read_vmask(num_elem, vm, zvreg);
+-  let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-  let rs1_val : bits('m)             = get_scalar_fp(rs1, 'm);
+-  let vs2_val : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vs2);
+-
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      result[i] = match funct6 {
+-        FWF_VADD     => fp_add(rm_3b, vs2_val[i], fp_widen(rs1_val)),
+-        FWF_VSUB     => fp_sub(rm_3b, vs2_val[i], fp_widen(rs1_val))
+-      }
+-    }
+-  };
+-
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping fwftype_mnemonic : fwffunct6 <-> string = {
+-  FWF_VADD       <-> "vfwadd.wf",
+-  FWF_VSUB       <-> "vfwsub.wf"
+-}
+-
+-mapping clause assembly = FWFTYPE(funct6, vm, vs2, rs1, vd)
+-  <-> fwftype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ freg_name(rs1) ^ maybe_vmask(vm)
+-
++// union clause ast = FWVFTYPE : (fwvffunct6, bits(1), vregidx, fregidx, vregidx)
++//
++// mapping encdec_fwvffunct6 : fwvffunct6 <-> bits(6) = {
++//   FWVF_VADD       <-> 0b110000,
++//   FWVF_VSUB       <-> 0b110010,
++//   FWVF_VMUL       <-> 0b111000
++// }
++//
++// mapping clause encdec = FWVFTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> encdec_fwvffunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_freg(rs1) @ 0b101 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(FWVFTYPE(funct6, vm, vs2, rs1, vd)) = {
++//   let rm_3b    = fcsr[FRM];
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//   assert(SEW >= 16 & SEW_widen <= 64);
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)             = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let rs1_val : bits('m)             = get_scalar_fp(rs1, 'm);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         FWVF_VADD    => fp_add(rm_3b, fp_widen(vs2_val[i]), fp_widen(rs1_val)),
++//         FWVF_VSUB    => fp_sub(rm_3b, fp_widen(vs2_val[i]), fp_widen(rs1_val)),
++//         FWVF_VMUL    => fp_mul(rm_3b, fp_widen(vs2_val[i]), fp_widen(rs1_val))
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping fwvftype_mnemonic : fwvffunct6 <-> string = {
++//   FWVF_VADD       <-> "vfwadd.vf",
++//   FWVF_VSUB       <-> "vfwsub.vf",
++//   FWVF_VMUL       <-> "vfwmul.vf"
++// }
++//
++// mapping clause assembly = FWVFTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> fwvftype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ freg_name(rs1) ^ maybe_vmask(vm)
++//
++// /* ******************** OPFVF (VFtype Widening Multiply-Add) ********************* */
++// /* Multiply-Add instructions switch the order of source operands in assembly (vs1/rs1 before vs2) */
++// union clause ast = FWVFMATYPE : (fwvfmafunct6, bits(1), fregidx, vregidx, vregidx)
++//
++// mapping encdec_fwvfmafunct6 : fwvfmafunct6 <-> bits(6) = {
++//   FWVF_VMACC      <-> 0b111100,
++//   FWVF_VNMACC     <-> 0b111101,
++//   FWVF_VMSAC      <-> 0b111110,
++//   FWVF_VNMSAC     <-> 0b111111
++// }
++//
++// mapping clause encdec = FWVFMATYPE(funct6, vm, rs1, vs2, vd)
++//   <-> encdec_fwvfmafunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_freg(rs1) @ 0b101 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(FWVFMATYPE(funct6, vm, rs1, vs2, vd)) = {
++//   let rm_3b    = fcsr[FRM];
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if  illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen) |
++//       not(valid_reg_overlap(vs2, vd, LMUL_pow, LMUL_pow_widen))
++//   then return Illegal_Instruction();
++//   assert(SEW >= 16 & SEW_widen <= 64);
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)     = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let rs1_val : bits('m)             = get_scalar_fp(rs1, 'm);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         FWVF_VMACC   => fp_muladd(rm_3b, fp_widen(rs1_val), fp_widen(vs2_val[i]), vd_val[i]),
++//         FWVF_VNMACC  => fp_nmulsub(rm_3b, fp_widen(rs1_val), fp_widen(vs2_val[i]), vd_val[i]),
++//         FWVF_VMSAC   => fp_mulsub(rm_3b, fp_widen(rs1_val), fp_widen(vs2_val[i]), vd_val[i]),
++//         FWVF_VNMSAC  => fp_nmuladd(rm_3b, fp_widen(rs1_val), fp_widen(vs2_val[i]), vd_val[i])
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping fwvfmatype_mnemonic : fwvfmafunct6 <-> string = {
++//   FWVF_VMACC      <-> "vfwmacc.vf",
++//   FWVF_VNMACC     <-> "vfwnmacc.vf",
++//   FWVF_VMSAC      <-> "vfwmsac.vf",
++//   FWVF_VNMSAC     <-> "vfwnmsac.vf"
++// }
++//
++// mapping clause assembly = FWVFMATYPE(funct6, vm, rs1, vs2, vd)
++//   <-> fwvfmatype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ freg_name(rs1) ^ sep() ^ vreg_name(vs2) ^ maybe_vmask(vm)
++//
++// /* *************************** OPFVF (WFTYPE Widening) *************************** */
++// union clause ast = FWFTYPE : (fwffunct6, bits(1), vregidx, fregidx, vregidx)
++//
++// mapping encdec_fwffunct6 : fwffunct6 <-> bits(6) = {
++//   FWF_VADD       <-> 0b110100,
++//   FWF_VSUB       <-> 0b110110
++// }
++//
++// mapping clause encdec = FWFTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> encdec_fwffunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_freg(rs1) @ 0b101 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(FWFTYPE(funct6, vm, vs2, rs1, vd)) = {
++//   let rm_3b    = fcsr[FRM];
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   if illegal_fp_variable_width(vd, vm, SEW, rm_3b, SEW_widen, LMUL_pow_widen)
++//   then return Illegal_Instruction();
++//   assert(SEW >= 16 & SEW_widen <= 64);
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)     = read_vmask(num_elem, vm, zvreg);
++//   let vd_val  : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//   let rs1_val : bits('m)             = get_scalar_fp(rs1, 'm);
++//   let vs2_val : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vs2);
++//
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       result[i] = match funct6 {
++//         FWF_VADD     => fp_add(rm_3b, vs2_val[i], fp_widen(rs1_val)),
++//         FWF_VSUB     => fp_sub(rm_3b, vs2_val[i], fp_widen(rs1_val))
++//       }
++//     }
++//   };
++//
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping fwftype_mnemonic : fwffunct6 <-> string = {
++//   FWF_VADD       <-> "vfwadd.wf",
++//   FWF_VSUB       <-> "vfwsub.wf"
++// }
++//
++// mapping clause assembly = FWFTYPE(funct6, vm, vs2, rs1, vd)
++//   <-> fwftype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ freg_name(rs1) ^ maybe_vmask(vm)
++//
+ /* ************************** OPFVF (Merge Instruction) ************************** */
+ /* This instruction operates on all body elements regardless of mask value */
+ union clause ast = VFMERGE : (vregidx, fregidx, vregidx)
+diff --git a/model/riscv_insts_vext_fp_red.sail b/model/riscv_insts_vext_fp_red.sail
+index c4bf321..f52d1fd 100644
+--- a/model/riscv_insts_vext_fp_red.sail
++++ b/model/riscv_insts_vext_fp_red.sail
+@@ -12,123 +12,123 @@
+ /* ******************************************************************************* */
+ 
+ /* ********************** OPFVV (Floating-Point Reduction) *********************** */
+-union clause ast = RFVVTYPE : (rfvvfunct6, bits(1), vregidx, vregidx, vregidx)
+-
+-mapping encdec_rfvvfunct6 : rfvvfunct6 <-> bits(6) = {
+-  FVV_VFREDOSUM   <-> 0b000011,
+-  FVV_VFREDUSUM   <-> 0b000001,
+-  FVV_VFREDMAX    <-> 0b000111,
+-  FVV_VFREDMIN    <-> 0b000101,
+-  FVV_VFWREDOSUM  <-> 0b110011,
+-  FVV_VFWREDUSUM  <-> 0b110001
+-}
+-
+-mapping clause encdec = RFVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> encdec_rfvvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-val process_rfvv_single: forall 'n 'm 'p, 'n > 0 & 'm in {8, 16, 32, 64}. (rfvvfunct6, bits(1), vregidx, vregidx, vregidx, int('n), int('m), int('p)) -> ExecutionResult
+-function process_rfvv_single(funct6, vm, vs2, vs1, vd, num_elem_vs, SEW, LMUL_pow) = {
+-  let rm_3b = fcsr[FRM];
+-  let num_elem_vd = get_num_elem(0, SEW); /* vd regardless of LMUL setting */
+-
+-  if illegal_fp_reduction(SEW, rm_3b) then return Illegal_Instruction();
+-  assert(SEW != 8);
+-
+-  if unsigned(vl) == 0 then return RETIRE_SUCCESS; /* if vl=0, no operation is performed */
+-
+-  let 'n = num_elem_vs;
+-  let 'd = num_elem_vd;
+-  let 'm = SEW;
+-
+-  let vm_val  : bits('n)     = read_vmask(num_elem_vs, vm, zvreg);
+-  let vd_val  : vector('d, bits('m)) = read_vreg(num_elem_vd, SEW, 0, vd);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem_vs, SEW, LMUL_pow, vs2);
+-  let mask    : bits('n)     = match init_masked_source(num_elem_vs, LMUL_pow, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-
+-  var sum : bits('m) = read_single_element(SEW, 0, vs1); /* vs1 regardless of LMUL setting */
+-  foreach (i from 0 to (num_elem_vs - 1)) {
+-    if mask[i] == bitone then {
+-      sum = match funct6 {
+-        /* currently ordered/unordered sum reductions do the same operations */
+-        FVV_VFREDOSUM   => fp_add(rm_3b, sum, vs2_val[i]),
+-        FVV_VFREDUSUM   => fp_add(rm_3b, sum, vs2_val[i]),
+-        FVV_VFREDMAX    => fp_max(sum, vs2_val[i]),
+-        FVV_VFREDMIN    => fp_min(sum, vs2_val[i]),
+-        _               => internal_error(__FILE__, __LINE__, "Widening op unexpected")
+-      }
+-    }
+-  };
+-
+-  write_single_element(SEW, 0, vd, sum);
+-  /* other elements in vd are treated as tail elements, currently remain unchanged */
+-  /* TODO: configuration support for agnostic behavior */
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-val process_rfvv_widen: forall 'n 'm 'p, 'n > 0 & 'm in {8, 16, 32, 64}. (rfvvfunct6, bits(1), vregidx, vregidx, vregidx, int('n), int('m), int('p)) -> ExecutionResult
+-function process_rfvv_widen(funct6, vm, vs2, vs1, vd, num_elem_vs, SEW, LMUL_pow) = {
+-  let rm_3b          = fcsr[FRM];
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-  let num_elem_vd = get_num_elem(0, SEW_widen); /* vd regardless of LMUL setting */
+-
+-  if illegal_fp_reduction_widen(SEW, rm_3b, SEW_widen, LMUL_pow_widen) then return Illegal_Instruction();
+-  assert(SEW >= 16 & SEW_widen <= 64);
+-
+-  if unsigned(vl) == 0 then return RETIRE_SUCCESS; /* if vl=0, no operation is performed */
+-
+-  let 'n = num_elem_vs;
+-  let 'd = num_elem_vd;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)     = read_vmask(num_elem_vs, vm, zvreg);
+-  let vd_val  : vector('d, bits('o)) = read_vreg(num_elem_vd, SEW_widen, 0, vd);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem_vs, SEW, LMUL_pow, vs2);
+-  let mask    : bits('n)     = match init_masked_source(num_elem_vs, LMUL_pow, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-
+-  var sum : bits('o) = read_single_element(SEW_widen, 0, vs1); /* vs1 regardless of LMUL setting */
+-  foreach (i from 0 to (num_elem_vs - 1)) {
+-    if mask[i] == bitone then {
+-      /* currently ordered/unordered sum reductions do the same operations */
+-      sum = fp_add(rm_3b, sum, fp_widen(vs2_val[i]))
+-    }
+-  };
+-
+-  write_single_element(SEW_widen, 0, vd, sum);
+-  /* other elements in vd are treated as tail elements, currently remain unchanged */
+-  /* TODO: configuration support for agnostic behavior */
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-function clause execute(RFVVTYPE(funct6, vm, vs2, vs1, vd)) = {
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let num_elem_vs = get_num_elem(LMUL_pow, SEW);
+-
+-  if funct6 == FVV_VFWREDOSUM | funct6 == FVV_VFWREDUSUM then
+-    process_rfvv_widen(funct6, vm, vs2, vs1, vd, num_elem_vs, SEW, LMUL_pow)
+-  else
+-    process_rfvv_single(funct6, vm, vs2, vs1, vd, num_elem_vs, SEW, LMUL_pow)
+-}
+-
+-mapping rfvvtype_mnemonic : rfvvfunct6 <-> string = {
+-  FVV_VFREDOSUM   <-> "vfredosum.vs",
+-  FVV_VFREDUSUM   <-> "vfredusum.vs",
+-  FVV_VFREDMAX    <-> "vfredmax.vs",
+-  FVV_VFREDMIN    <-> "vfredmin.vs",
+-  FVV_VFWREDOSUM  <-> "vfwredosum.vs",
+-  FVV_VFWREDUSUM  <-> "vfwredusum.vs"
+-}
+-
+-mapping clause assembly = RFVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> rfvvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
++// union clause ast = RFVVTYPE : (rfvvfunct6, bits(1), vregidx, vregidx, vregidx)
++//
++// mapping encdec_rfvvfunct6 : rfvvfunct6 <-> bits(6) = {
++//   FVV_VFREDOSUM   <-> 0b000011,
++//   FVV_VFREDUSUM   <-> 0b000001,
++//   FVV_VFREDMAX    <-> 0b000111,
++//   FVV_VFREDMIN    <-> 0b000101,
++//   FVV_VFWREDOSUM  <-> 0b110011,
++//   FVV_VFWREDUSUM  <-> 0b110001
++// }
++//
++// mapping clause encdec = RFVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> encdec_rfvvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b001 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// val process_rfvv_single: forall 'n 'm 'p, 'n > 0 & 'm in {8, 16, 32, 64}. (rfvvfunct6, bits(1), vregidx, vregidx, vregidx, int('n), int('m), int('p)) -> ExecutionResult
++// function process_rfvv_single(funct6, vm, vs2, vs1, vd, num_elem_vs, SEW, LMUL_pow) = {
++//   let rm_3b = fcsr[FRM];
++//   let num_elem_vd = get_num_elem(0, SEW); /* vd regardless of LMUL setting */
++//
++//   if illegal_fp_reduction(SEW, rm_3b) then return Illegal_Instruction();
++//   assert(SEW != 8);
++//
++//   if unsigned(vl) == 0 then return RETIRE_SUCCESS; /* if vl=0, no operation is performed */
++//
++//   let 'n = num_elem_vs;
++//   let 'd = num_elem_vd;
++//   let 'm = SEW;
++//
++//   let vm_val  : bits('n)     = read_vmask(num_elem_vs, vm, zvreg);
++//   let vd_val  : vector('d, bits('m)) = read_vreg(num_elem_vd, SEW, 0, vd);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem_vs, SEW, LMUL_pow, vs2);
++//   let mask    : bits('n)     = match init_masked_source(num_elem_vs, LMUL_pow, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//
++//   var sum : bits('m) = read_single_element(SEW, 0, vs1); /* vs1 regardless of LMUL setting */
++//   foreach (i from 0 to (num_elem_vs - 1)) {
++//     if mask[i] == bitone then {
++//       sum = match funct6 {
++//         /* currently ordered/unordered sum reductions do the same operations */
++//         FVV_VFREDOSUM   => fp_add(rm_3b, sum, vs2_val[i]),
++//         FVV_VFREDUSUM   => fp_add(rm_3b, sum, vs2_val[i]),
++//         FVV_VFREDMAX    => fp_max(sum, vs2_val[i]),
++//         FVV_VFREDMIN    => fp_min(sum, vs2_val[i]),
++//         _               => internal_error(__FILE__, __LINE__, "Widening op unexpected")
++//       }
++//     }
++//   };
++//
++//   write_single_element(SEW, 0, vd, sum);
++//   /* other elements in vd are treated as tail elements, currently remain unchanged */
++//   /* TODO: configuration support for agnostic behavior */
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// val process_rfvv_widen: forall 'n 'm 'p, 'n > 0 & 'm in {8, 16, 32, 64}. (rfvvfunct6, bits(1), vregidx, vregidx, vregidx, int('n), int('m), int('p)) -> ExecutionResult
++// function process_rfvv_widen(funct6, vm, vs2, vs1, vd, num_elem_vs, SEW, LMUL_pow) = {
++//   let rm_3b          = fcsr[FRM];
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//   let num_elem_vd = get_num_elem(0, SEW_widen); /* vd regardless of LMUL setting */
++//
++//   if illegal_fp_reduction_widen(SEW, rm_3b, SEW_widen, LMUL_pow_widen) then return Illegal_Instruction();
++//   assert(SEW >= 16 & SEW_widen <= 64);
++//
++//   if unsigned(vl) == 0 then return RETIRE_SUCCESS; /* if vl=0, no operation is performed */
++//
++//   let 'n = num_elem_vs;
++//   let 'd = num_elem_vd;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)     = read_vmask(num_elem_vs, vm, zvreg);
++//   let vd_val  : vector('d, bits('o)) = read_vreg(num_elem_vd, SEW_widen, 0, vd);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem_vs, SEW, LMUL_pow, vs2);
++//   let mask    : bits('n)     = match init_masked_source(num_elem_vs, LMUL_pow, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//
++//   var sum : bits('o) = read_single_element(SEW_widen, 0, vs1); /* vs1 regardless of LMUL setting */
++//   foreach (i from 0 to (num_elem_vs - 1)) {
++//     if mask[i] == bitone then {
++//       /* currently ordered/unordered sum reductions do the same operations */
++//       sum = fp_add(rm_3b, sum, fp_widen(vs2_val[i]))
++//     }
++//   };
++//
++//   write_single_element(SEW_widen, 0, vd, sum);
++//   /* other elements in vd are treated as tail elements, currently remain unchanged */
++//   /* TODO: configuration support for agnostic behavior */
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// function clause execute(RFVVTYPE(funct6, vm, vs2, vs1, vd)) = {
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let num_elem_vs = get_num_elem(LMUL_pow, SEW);
++//
++//   if funct6 == FVV_VFWREDOSUM | funct6 == FVV_VFWREDUSUM then
++//     process_rfvv_widen(funct6, vm, vs2, vs1, vd, num_elem_vs, SEW, LMUL_pow)
++//   else
++//     process_rfvv_single(funct6, vm, vs2, vs1, vd, num_elem_vs, SEW, LMUL_pow)
++// }
++//
++// mapping rfvvtype_mnemonic : rfvvfunct6 <-> string = {
++//   FVV_VFREDOSUM   <-> "vfredosum.vs",
++//   FVV_VFREDUSUM   <-> "vfredusum.vs",
++//   FVV_VFREDMAX    <-> "vfredmax.vs",
++//   FVV_VFREDMIN    <-> "vfredmin.vs",
++//   FVV_VFWREDOSUM  <-> "vfwredosum.vs",
++//   FVV_VFWREDUSUM  <-> "vfwredusum.vs"
++// }
++//
++// mapping clause assembly = RFVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> rfvvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
 diff --git a/model/riscv_insts_vext_mask.sail b/model/riscv_insts_vext_mask.sail
 index d9a4847..0ec92c9 100644
 --- a/model/riscv_insts_vext_mask.sail
@@ -86,19 +2242,238 @@ index d9a4847..0ec92c9 100644
    if illegal_normal(vd, vm) | not(assert_vstart(0)) | vd == vs2
    then return Illegal_Instruction();
 diff --git a/model/riscv_insts_vext_mem.sail b/model/riscv_insts_vext_mem.sail
-index ba5c838..dc1e0ea 100644
+index ba5c838..8040577 100644
 --- a/model/riscv_insts_vext_mem.sail
 +++ b/model/riscv_insts_vext_mem.sail
-@@ -619,7 +619,7 @@ function process_vlre (nf, vd, load_width_bytes, rs1, elem_per_reg) = {
+@@ -55,6 +55,13 @@ mapping vlewidth_bytesnumber : vlewidth <-> {1, 2, 4, 8} = {
+   VLE64     <-> 8
+ }
+ 
++val get_vlewidth_bytesnumber : (vlewidth) -> {'n, 'n in {1, 2, 4, 8} & 8 <= 'n * 8 & 'n * 8 <= vlen. int('n)}
++function get_vlewidth_bytesnumber(v) = {
++  let b = vlewidth_bytesnumber(v);
++  assert(b * 8 <= sizeof(vlen), "VLE width exceeds VLEN constraint");
++  b
++}
++
+ mapping vlewidth_pow : vlewidth <-> {3, 4, 5, 6} = {
+   VLE8      <-> 3,
+   VLE16     <-> 4,
+@@ -69,7 +76,11 @@ mapping clause encdec = VLSEGTYPE(nf, vm, rs1, width, vd)
+   <-> nf @ 0b0 @ 0b00 @ vm @ 0b00000 @ encdec_reg(rs1) @ encdec_vlewidth(width) @ encdec_vreg(vd) @ 0b0000111
+   when currentlyEnabled(Ext_V)
+ 
+-val process_vlseg : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8}) & ('n > 0). (int('f), bits(1), vregidx, int('b), regidx, int('p), int('n)) -> ExecutionResult
++val process_vlseg : forall 'f 'b 'n 'p,
++    nfields_range('f)
++    & ('b in {1, 2, 4, 8} & ('b * 8) <= vlen & (8 <= ('b * 8) <= 128))
++    & (0 < 'n <= vlen).
++    (int('f), bits(1), vregidx, int('b), regidx, int('p), int('n)) -> ExecutionResult
+ function process_vlseg (nf, vm, vd, load_width_bytes, rs1, EMUL_pow, num_elem) = {
+   let EMUL_reg : int = if EMUL_pow <= 0 then 1 else 2 ^ EMUL_pow;
+   let width_type : word_width = size_bytes(load_width_bytes);
+@@ -105,7 +116,7 @@ function process_vlseg (nf, vm, vd, load_width_bytes, rs1, EMUL_pow, num_elem) =
+ }
+ 
+ function clause execute(VLSEGTYPE(nf, vm, rs1, width, vd)) = {
+-  let load_width_bytes = vlewidth_bytesnumber(width);
++  let load_width_bytes = get_vlewidth_bytesnumber(width);
+   let EEW = load_width_bytes * 8;
+   let EEW_pow = vlewidth_pow(width);
+   let SEW_pow = get_sew_pow();
+@@ -114,8 +125,6 @@ function clause execute(VLSEGTYPE(nf, vm, rs1, width, vd)) = {
+   let num_elem = get_num_elem(EMUL_pow, EEW); /* # of element of each register group */
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_load(vd, vm, nf_int, EEW, EMUL_pow) then return Illegal_Instruction();
+ 
+   process_vlseg(nf_int, vm, vd, load_width_bytes, rs1, EMUL_pow, num_elem)
+@@ -131,7 +140,7 @@ mapping clause encdec = VLSEGFFTYPE(nf, vm, rs1, width, vd)
+   <-> nf @ 0b0 @ 0b00 @ vm @ 0b10000 @ encdec_reg(rs1) @ encdec_vlewidth(width) @ encdec_vreg(vd) @ 0b0000111
+   when currentlyEnabled(Ext_V)
+ 
+-val process_vlsegff : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8}) & ('n > 0). (int('f), bits(1), vregidx, int('b), regidx, int('p), int('n)) -> ExecutionResult
++val process_vlsegff : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8} & 'b * 8 <= vlen) & ('n > 0) & 'n <= vlen. (int('f), bits(1), vregidx, int('b), regidx, int('p), int('n)) -> ExecutionResult
+ function process_vlsegff (nf, vm, vd, load_width_bytes, rs1, EMUL_pow, num_elem) = {
+   let EMUL_reg : int = if EMUL_pow <= 0 then 1 else 2 ^ EMUL_pow;
+   let width_type : word_width = size_bytes(load_width_bytes);
+@@ -184,7 +193,7 @@ function process_vlsegff (nf, vm, vd, load_width_bytes, rs1, EMUL_pow, num_elem)
+ }
+ 
+ function clause execute(VLSEGFFTYPE(nf, vm, rs1, width, vd)) = {
+-  let load_width_bytes = vlewidth_bytesnumber(width);
++  let load_width_bytes = get_vlewidth_bytesnumber(width);
+   let EEW = load_width_bytes * 8;
+   let EEW_pow = vlewidth_pow(width);
+   let SEW_pow = get_sew_pow();
+@@ -193,8 +202,6 @@ function clause execute(VLSEGFFTYPE(nf, vm, rs1, width, vd)) = {
+   let num_elem = get_num_elem(EMUL_pow, EEW);
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_load(vd, vm, nf_int, EEW, EMUL_pow) then return Illegal_Instruction();
+ 
+   process_vlsegff(nf_int, vm, vd, load_width_bytes, rs1, EMUL_pow, num_elem)
+@@ -210,7 +217,7 @@ mapping clause encdec = VSSEGTYPE(nf, vm, rs1, width, vs3)
+   <-> nf @ 0b0 @ 0b00 @ vm @ 0b00000 @ encdec_reg(rs1) @ encdec_vlewidth(width) @ encdec_vreg(vs3) @ 0b0100111
+   when currentlyEnabled(Ext_V)
+ 
+-val process_vsseg : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8}) & ('n > 0). (int('f), bits(1), vregidx, int('b), regidx, int('p), int('n)) -> ExecutionResult
++val process_vsseg : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8}) & (0 < 'n & 'n <= vlen). (int('f), bits(1), vregidx, int('b), regidx, int('p), int('n)) -> ExecutionResult
+ function process_vsseg (nf, vm, vs3, load_width_bytes, rs1, EMUL_pow, num_elem) = {
+   let EMUL_reg : int = if EMUL_pow <= 0 then 1 else 2 ^ EMUL_pow;
+   let width_type : word_width = size_bytes(load_width_bytes);
+@@ -243,7 +250,7 @@ function process_vsseg (nf, vm, vs3, load_width_bytes, rs1, EMUL_pow, num_elem)
+ }
+ 
+ function clause execute(VSSEGTYPE(nf, vm, rs1, width, vs3)) = {
+-  let load_width_bytes = vlewidth_bytesnumber(width);
++  let load_width_bytes = get_vlewidth_bytesnumber(width);
+   let EEW = load_width_bytes * 8;
+   let EEW_pow = vlewidth_pow(width);
+   let SEW_pow = get_sew_pow();
+@@ -252,8 +259,6 @@ function clause execute(VSSEGTYPE(nf, vm, rs1, width, vs3)) = {
+   let num_elem = get_num_elem(EMUL_pow, EEW);
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_store(nf_int, EEW, EMUL_pow) then return Illegal_Instruction();
+ 
+   process_vsseg(nf_int, vm, vs3, load_width_bytes, rs1, EMUL_pow, num_elem)
+@@ -269,7 +274,7 @@ mapping clause encdec = VLSSEGTYPE(nf, vm, rs2, rs1, width, vd)
+   <-> nf @ 0b0 @ 0b10 @ vm @ encdec_reg(rs2) @ encdec_reg(rs1) @ encdec_vlewidth(width) @ encdec_vreg(vd) @ 0b0000111
+   when currentlyEnabled(Ext_V)
+ 
+-val process_vlsseg : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8}) & ('n > 0). (int('f), bits(1), vregidx, int('b), regidx, regidx, int('p), int('n)) -> ExecutionResult
++val process_vlsseg : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8} & 'b * 8 <= vlen) & (0 < 'n & 'n <= vlen). (int('f), bits(1), vregidx, int('b), regidx, regidx, int('p), int('n)) -> ExecutionResult
+ function process_vlsseg (nf, vm, vd, load_width_bytes, rs1, rs2, EMUL_pow, num_elem) = {
+   let EMUL_reg : int = if EMUL_pow <= 0 then 1 else 2 ^ EMUL_pow;
+   let width_type : word_width = size_bytes(load_width_bytes);
+@@ -306,7 +311,7 @@ function process_vlsseg (nf, vm, vd, load_width_bytes, rs1, rs2, EMUL_pow, num_e
+ }
+ 
+ function clause execute(VLSSEGTYPE(nf, vm, rs2, rs1, width, vd)) = {
+-  let load_width_bytes = vlewidth_bytesnumber(width);
++  let load_width_bytes = get_vlewidth_bytesnumber(width);
+   let EEW = load_width_bytes * 8;
+   let EEW_pow = vlewidth_pow(width);
+   let SEW_pow = get_sew_pow();
+@@ -315,8 +320,6 @@ function clause execute(VLSSEGTYPE(nf, vm, rs2, rs1, width, vd)) = {
+   let num_elem = get_num_elem(EMUL_pow, EEW);
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_load(vd, vm, nf_int, EEW, EMUL_pow) then return Illegal_Instruction();
+ 
+   process_vlsseg(nf_int, vm, vd, load_width_bytes, rs1, rs2, EMUL_pow, num_elem)
+@@ -332,7 +335,7 @@ mapping clause encdec = VSSSEGTYPE(nf, vm, rs2, rs1, width, vs3)
+   <-> nf @ 0b0 @ 0b10 @ vm @ encdec_reg(rs2) @ encdec_reg(rs1) @ encdec_vlewidth(width) @ encdec_vreg(vs3) @ 0b0100111
+   when currentlyEnabled(Ext_V)
+ 
+-val process_vssseg : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8}) & ('n > 0). (int('f), bits(1), vregidx, int('b), regidx, regidx, int('p), int('n)) -> ExecutionResult
++val process_vssseg : forall 'f 'b 'n 'p, nfields_range('f) & ('b in {1, 2, 4, 8}) & (0 < 'n & 'n <= vlen). (int('f), bits(1), vregidx, int('b), regidx, regidx, int('p), int('n)) -> ExecutionResult
+ function process_vssseg (nf, vm, vs3, load_width_bytes, rs1, rs2, EMUL_pow, num_elem) = {
+   let EMUL_reg : int = if EMUL_pow <= 0 then 1 else 2 ^ EMUL_pow;
+   let width_type : word_width = size_bytes(load_width_bytes);
+@@ -366,7 +369,7 @@ function process_vssseg (nf, vm, vs3, load_width_bytes, rs1, rs2, EMUL_pow, num_
+ }
+ 
+ function clause execute(VSSSEGTYPE(nf, vm, rs2, rs1, width, vs3)) = {
+-  let load_width_bytes = vlewidth_bytesnumber(width);
++  let load_width_bytes = get_vlewidth_bytesnumber(width);
+   let EEW = load_width_bytes * 8;
+   let EEW_pow = vlewidth_pow(width);
+   let SEW_pow = get_sew_pow();
+@@ -375,8 +378,6 @@ function clause execute(VSSSEGTYPE(nf, vm, rs2, rs1, width, vs3)) = {
+   let num_elem = get_num_elem(EMUL_pow, EEW);
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_store(nf_int, EEW, EMUL_pow) then return Illegal_Instruction();
+ 
+   process_vssseg(nf_int, vm, vs3, load_width_bytes, rs1, rs2, EMUL_pow, num_elem)
+@@ -392,7 +393,7 @@ mapping clause encdec = VLUXSEGTYPE(nf, vm, vs2, rs1, width, vd)
+   <-> nf @ 0b0 @ 0b01 @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ encdec_vlewidth(width) @ encdec_vreg(vd) @ 0b0000111
+   when currentlyEnabled(Ext_V)
+ 
+-val process_vlxseg : forall 'f 'ib 'db 'ip 'dp 'n, nfields_range('f) & ('ib in {1, 2, 4, 8}) & ('db in {1, 2, 4, 8}) & ('n > 0). (int('f), bits(1), vregidx, int('ib), int('db), int('ip), int('dp), regidx, vregidx, int('n), int) -> ExecutionResult
++val process_vlxseg : forall 'f 'ib 'db 'ip 'dp 'n, nfields_range('f) & ('ib in {1, 2, 4, 8}) & ('db in {1, 2, 4, 8} & ('db * 8) <= vlen) & (0 < 'n & 'n <= vlen). (int('f), bits(1), vregidx, int('ib), int('db), int('ip), int('dp), regidx, vregidx, int('n), int) -> ExecutionResult
+ function process_vlxseg (nf, vm, vd, EEW_index_bytes, EEW_data_bytes, EMUL_index_pow, EMUL_data_pow, rs1, vs2, num_elem, mop) = {
+   let EMUL_data_reg : int = if EMUL_data_pow <= 0 then 1 else 2 ^ EMUL_data_pow;
+   let width_type : word_width = size_bytes(EEW_data_bytes);
+@@ -439,8 +440,6 @@ function clause execute(VLUXSEGTYPE(nf, vm, vs2, rs1, width, vd)) = {
+   let num_elem = get_num_elem(EMUL_data_pow, EEW_data_bytes * 8);
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_indexed_load(vd, vm, nf_int, EEW_index_bytes * 8, EMUL_index_pow, EMUL_data_pow)
+   then return Illegal_Instruction();
+ 
+@@ -467,8 +466,6 @@ function clause execute(VLOXSEGTYPE(nf, vm, vs2, rs1, width, vd)) = {
+   let num_elem = get_num_elem(EMUL_data_pow, EEW_data_bytes * 8);
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_indexed_load(vd, vm, nf_int, EEW_index_bytes * 8, EMUL_index_pow, EMUL_data_pow)
+   then return Illegal_Instruction();
+ 
+@@ -485,7 +482,7 @@ mapping clause encdec = VSUXSEGTYPE(nf, vm, vs2, rs1, width, vs3)
+   <-> nf @ 0b0 @ 0b01 @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ encdec_vlewidth(width) @ encdec_vreg(vs3) @ 0b0100111
+   when currentlyEnabled(Ext_V)
+ 
+-val process_vsxseg : forall 'f 'ib 'db 'ip 'dp 'n, nfields_range('f) & ('ib in {1, 2, 4, 8}) & ('db in {1, 2, 4, 8}) & ('n > 0). (int('f), bits(1), vregidx, int('ib), int('db), int('ip), int('dp), regidx, vregidx, int('n), int) -> ExecutionResult
++val process_vsxseg : forall 'f 'ib 'db 'ip 'dp 'n, nfields_range('f) & ('ib in {1, 2, 4, 8}) & ('db in {1, 2, 4, 8}) & (0 < 'n & 'n <= vlen). (int('f), bits(1), vregidx, int('ib), int('db), int('ip), int('dp), regidx, vregidx, int('n), int) -> ExecutionResult
+ function process_vsxseg (nf, vm, vs3, EEW_index_bytes, EEW_data_bytes, EMUL_index_pow, EMUL_data_pow, rs1, vs2, num_elem, mop) = {
+   let EMUL_data_reg : int = if EMUL_data_pow <= 0 then 1 else 2 ^ EMUL_data_pow;
+   let width_type : word_width = size_bytes(EEW_data_bytes);
+@@ -529,8 +526,6 @@ function clause execute(VSUXSEGTYPE(nf, vm, vs2, rs1, width, vs3)) = {
+   let num_elem = get_num_elem(EMUL_data_pow, EEW_data_bytes * 8); /* number of data and indices are the same */
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_indexed_store(nf_int, EEW_index_bytes * 8, EMUL_index_pow, EMUL_data_pow)
+   then return Illegal_Instruction();
+ 
+@@ -557,8 +552,6 @@ function clause execute(VSOXSEGTYPE(nf, vm, vs2, rs1, width, vs3)) = {
+   let num_elem = get_num_elem(EMUL_data_pow, EEW_data_bytes * 8); /* number of data and indices are the same */
+   let nf_int = nfields_int(nf);
+ 
+-  assert(num_elem > 0);
+-
+   if illegal_indexed_store(nf_int, EEW_index_bytes * 8, EMUL_index_pow, EMUL_data_pow)
+   then return Illegal_Instruction();
+ 
+@@ -575,7 +568,7 @@ mapping clause encdec = VLRETYPE(nf, rs1, width, vd)
+   <-> nf @ 0b0 @ 0b00 @ 0b1 @ 0b01000 @ encdec_reg(rs1) @ encdec_vlewidth(width) @ encdec_vreg(vd) @ 0b0000111
+   when currentlyEnabled(Ext_V)
+ 
+-val process_vlre : forall 'f 'b 'n, nfields_range_pow2('f) & ('b in {1, 2, 4, 8}) & ('n >= 0). (int('f), vregidx, int('b), regidx, int('n)) -> ExecutionResult
++val process_vlre : forall 'f 'b 'n, nfields_range_pow2('f) & ('b in {1, 2, 4, 8} & 'b * 8 <= vlen) & ('n >= 0). (int('f), vregidx, int('b), regidx, int('n)) -> ExecutionResult
+ function process_vlre (nf, vd, load_width_bytes, rs1, elem_per_reg) = {
+   let width_type : word_width = size_bytes(load_width_bytes);
+   let start_element : nat = match get_start_element() {
+@@ -617,9 +610,9 @@ function process_vlre (nf, vd, load_width_bytes, rs1, elem_per_reg) = {
+ }
+ 
  function clause execute(VLRETYPE(nf, rs1, width, vd)) = {
-   let load_width_bytes = vlewidth_bytesnumber(width);
+-  let load_width_bytes = vlewidth_bytesnumber(width);
++  let load_width_bytes = get_vlewidth_bytesnumber(width);
    let EEW = load_width_bytes * 8;
 -  let elem_per_reg : int = VLEN / EEW;
 +  let elem_per_reg : int = get_vlen() / EEW;
    let nf_int = nfields_int(nf);
  
    assert(elem_per_reg >= 0);
-@@ -687,7 +687,7 @@ function process_vsre (nf, load_width_bytes, rs1, vs3, elem_per_reg) = {
+@@ -687,7 +680,7 @@ function process_vsre (nf, load_width_bytes, rs1, vs3, elem_per_reg) = {
  function clause execute(VSRETYPE(nf, rs1, vs3)) = {
    let load_width_bytes = 1;
    let EEW = 8;
@@ -107,6 +2482,429 @@ index ba5c838..dc1e0ea 100644
    let nf_int = nfields_int(nf);
  
    assert(elem_per_reg >= 0);
+diff --git a/model/riscv_insts_vext_red.sail b/model/riscv_insts_vext_red.sail
+index 80d17f2..7c23588 100644
+--- a/model/riscv_insts_vext_red.sail
++++ b/model/riscv_insts_vext_red.sail
+@@ -12,68 +12,68 @@
+ /* ******************************************************************************* */
+ 
+ /* ********************* OPIVV (Widening Integer Reduction) ********************** */
+-union clause ast = RIVVTYPE : (rivvfunct6, bits(1), vregidx, vregidx, vregidx)
+-
+-mapping encdec_rivvfunct6 : rivvfunct6 <-> bits(6) = {
+-  IVV_VWREDSUMU   <-> 0b110000,
+-  IVV_VWREDSUM    <-> 0b110001
+-}
+-
+-mapping clause encdec = RIVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> encdec_rivvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b000 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_V)
+-
+-function clause execute(RIVVTYPE(funct6, vm, vs2, vs1, vd)) = {
+-  let SEW      = get_sew();
+-  let LMUL_pow = get_lmul_pow();
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-  let num_elem_vs = get_num_elem(LMUL_pow, SEW);
+-  let num_elem_vd = get_num_elem(0, SEW_widen); /* vd regardless of LMUL setting */
+-
+-  if illegal_reduction_widen(SEW_widen, LMUL_pow_widen) then return Illegal_Instruction();
+-
+-  if unsigned(vl) == 0 then return RETIRE_SUCCESS; /* if vl=0, no operation is performed */
+-
+-  let 'n = num_elem_vs;
+-  let 'd = num_elem_vd;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val  : bits('n)     = read_vmask(num_elem_vs, vm, zvreg);
+-  let vd_val  : vector('d, bits('o)) = read_vreg(num_elem_vd, SEW_widen, 0, vd);
+-  let vs2_val : vector('n, bits('m)) = read_vreg(num_elem_vs, SEW, LMUL_pow, vs2);
+-  let mask    : bits('n)     = match init_masked_source(num_elem_vs, LMUL_pow, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-
+-  var sum : bits('o) = read_single_element(SEW_widen, 0, vs1); /* vs1 regardless of LMUL setting */
+-  foreach (i from 0 to (num_elem_vs - 1)) {
+-    if mask[i] == bitone then {
+-      let elem : bits('o) = match funct6 {
+-        IVV_VWREDSUMU  => to_bits(SEW_widen, unsigned(vs2_val[i])),
+-        IVV_VWREDSUM   => to_bits(SEW_widen, signed(vs2_val[i]))
+-      };
+-      sum = sum + elem
+-    }
+-  };
+-
+-  write_single_element(SEW_widen, 0, vd, sum);
+-  /* other elements in vd are treated as tail elements, currently remain unchanged */
+-  /* TODO: configuration support for agnostic behavior */
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-mapping rivvtype_mnemonic : rivvfunct6 <-> string = {
+-  IVV_VWREDSUMU  <-> "vwredsumu.vs",
+-  IVV_VWREDSUM   <-> "vwredsum.vs"
+-}
+-
+-mapping clause assembly = RIVVTYPE(funct6, vm, vs2, vs1, vd)
+-  <-> rivvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
+-
++// union clause ast = RIVVTYPE : (rivvfunct6, bits(1), vregidx, vregidx, vregidx)
++//
++// mapping encdec_rivvfunct6 : rivvfunct6 <-> bits(6) = {
++//   IVV_VWREDSUMU   <-> 0b110000,
++//   IVV_VWREDSUM    <-> 0b110001
++// }
++//
++// mapping clause encdec = RIVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> encdec_rivvfunct6(funct6) @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b000 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_V)
++//
++// function clause execute(RIVVTYPE(funct6, vm, vs2, vs1, vd)) = {
++//   let SEW      = get_sew();
++//   let LMUL_pow = get_lmul_pow();
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//   let num_elem_vs = get_num_elem(LMUL_pow, SEW);
++//   let num_elem_vd = get_num_elem(0, SEW_widen); /* vd regardless of LMUL setting */
++//
++//   if illegal_reduction_widen(SEW_widen, LMUL_pow_widen) then return Illegal_Instruction();
++//
++//   if unsigned(vl) == 0 then return RETIRE_SUCCESS; /* if vl=0, no operation is performed */
++//
++//   let 'n = num_elem_vs;
++//   let 'd = num_elem_vd;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val  : bits('n)     = read_vmask(num_elem_vs, vm, zvreg);
++//   let vd_val  : vector('d, bits('o)) = read_vreg(num_elem_vd, SEW_widen, 0, vd);
++//   let vs2_val : vector('n, bits('m)) = read_vreg(num_elem_vs, SEW, LMUL_pow, vs2);
++//   let mask    : bits('n)     = match init_masked_source(num_elem_vs, LMUL_pow, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//
++//   var sum : bits('o) = read_single_element(SEW_widen, 0, vs1); /* vs1 regardless of LMUL setting */
++//   foreach (i from 0 to (num_elem_vs - 1)) {
++//     if mask[i] == bitone then {
++//       let elem : bits('o) = match funct6 {
++//         IVV_VWREDSUMU  => to_bits(SEW_widen, unsigned(vs2_val[i])),
++//         IVV_VWREDSUM   => to_bits(SEW_widen, signed(vs2_val[i]))
++//       };
++//       sum = sum + elem
++//     }
++//   };
++//
++//   write_single_element(SEW_widen, 0, vd, sum);
++//   /* other elements in vd are treated as tail elements, currently remain unchanged */
++//   /* TODO: configuration support for agnostic behavior */
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++//
++// mapping rivvtype_mnemonic : rivvfunct6 <-> string = {
++//   IVV_VWREDSUMU  <-> "vwredsumu.vs",
++//   IVV_VWREDSUM   <-> "vwredsum.vs"
++// }
++//
++// mapping clause assembly = RIVVTYPE(funct6, vm, vs2, vs1, vd)
++//   <-> rivvtype_mnemonic(funct6) ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ maybe_vmask(vm)
++//
+ /* ******************* OPMVV (Single-Width Integer Reduction) ******************** */
+ union clause ast = RMVVTYPE : (rmvvfunct6, bits(1), vregidx, vregidx, vregidx)
+ 
+diff --git a/model/riscv_insts_vext_utils.sail b/model/riscv_insts_vext_utils.sail
+index 18a3de9..73eae40 100644
+--- a/model/riscv_insts_vext_utils.sail
++++ b/model/riscv_insts_vext_utils.sail
+@@ -185,7 +185,7 @@ val get_velem_quad : forall 'n 'm 'p, 'n > 0 & 'm > 0 & 'p >= 0 & 4 * 'p + 3 < '
+ function get_velem_quad(v, i) = v[4 * i + 3] @ v[4 * i + 2] @ v[4 * i + 1] @ v[4 * i]
+ 
+ /* Divide the input bitvector into 4 equal slices and store them in vd starting at position 4*i */
+-val write_velem_quad : forall 'p 'n 'm, 8 <= 'n <= 64 & 'm > 0 & 'p >= 0. (vregidx, int('n), bits('m), int('p)) -> unit
++val write_velem_quad : forall 'p 'n 'm, 'n <= vlen & 8 <= 'n <= 64 & 'm > 0 & 'p >= 0. (vregidx, int('n), bits('m), int('p)) -> unit
+ function write_velem_quad(vd, SEW, input, i) = {
+   foreach(j from 0 to 3)
+     write_single_element(SEW, 4 * i + j, vd, slice(input, j * SEW, SEW));
+@@ -198,7 +198,7 @@ val get_velem_oct_vec : forall 'n 'm 'p, 'n > 0 & 8 <= 'm <= 64 & 'p >= 0 & 8 *
+ function get_velem_oct_vec(n, v, i) = [ v[8 * i + 7], v[8 * i + 6], v[8 * i + 5], v[8 * i + 4], v[8 * i + 3], v[8 * i + 2], v[8 * i + 1], v[8 * i] ]
+ 
+ /* Writes each of the 8 elements from the input vector to the vector register vd, starting at position 8 * i */
+-val write_velem_oct_vec : forall 'p 'n, 8 <= 'n <= 64 & 'p >= 0. (vregidx, int('n), vector(8, bits('n)), int('p)) -> unit
++val write_velem_oct_vec : forall 'p 'n, 'n <= vlen & 8 <= 'n <= 64 & 'p >= 0. (vregidx, int('n), vector(8, bits('n)), int('p)) -> unit
+ function write_velem_oct_vec(vd, SEW, input, i) = {
+   foreach(j from 0 to 7)
+     write_single_element(SEW, 8 * i + j, vd, input[j]);
+diff --git a/model/riscv_insts_zvbb.sail b/model/riscv_insts_zvbb.sail
+index 4576fb3..c0722d4 100644
+--- a/model/riscv_insts_zvbb.sail
++++ b/model/riscv_insts_zvbb.sail
+@@ -505,132 +505,132 @@ function clause execute (VROR_VI(vm, vs2, uimm, vd)) = {
+   RETIRE_SUCCESS
+ }
+ 
+-union clause ast = VWSLL_VV : (bits(1), vregidx, vregidx, vregidx)
+-
+-mapping clause encdec = VWSLL_VV (vm, vs2, vs1, vd)
+-  <-> 0b110101 @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b000 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_Zvbb)
+-
+-mapping clause assembly = VWSLL_VV (vm, vs2, vs1, vd)
+-  <-> "vwsll.vv" ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ sep() ^ maybe_vmask(vm)
+-
+-function clause execute (VWSLL_VV(vm, vs2, vs1, vd)) = {
+-  let SEW            = get_sew();
+-  let LMUL_pow       = get_lmul_pow();
+-  let num_elem       = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val      : bits('n) = read_vmask(num_elem, vm, zvreg);
+-  let vs1_val_vec : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
+-  let vs2_val_vec : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-  let vd_val      : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-
+-  let SEW_widen_bits = to_bits(SEW_widen, 'o);
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      let vs1_val : bits('o) = zero_extend(vs1_val_vec[i]);
+-      let vs2_val : bits('o) = zero_extend(vs2_val_vec[i]);
+-      result[i] = vs2_val << (vs1_val & zero_extend(SEW_widen_bits - 1));
+-    };
+-  };
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-union clause ast = VWSLL_VX : (bits(1), vregidx, regidx, vregidx)
+-
+-mapping clause encdec = VWSLL_VX (vm, vs2, rs1, vd)
+-  <-> 0b110101 @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ 0b100 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_Zvbb)
+-
+-mapping clause assembly = VWSLL_VX (vm, vs2, rs1, vd)
+-  <-> "vwsll.vx" ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ reg_name(rs1) ^ sep() ^ maybe_vmask(vm)
+-
+-function clause execute (VWSLL_VX(vm, vs2, rs1, vd)) = {
+-  let SEW            = get_sew();
+-  let LMUL_pow       = get_lmul_pow();
+-  let num_elem       = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val      : bits('n) = read_vmask(num_elem, vm, zvreg);
+-  let rs1_val     : bits('o) = zero_extend(get_scalar(rs1, SEW));
+-  let vs2_val_vec : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-  let vd_val      : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-
+-  let SEW_widen_bits = to_bits(SEW_widen, 'o);
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-      let vs2_val : bits('o) = zero_extend(vs2_val_vec[i]);
+-      result[i] = vs2_val << (rs1_val & zero_extend(SEW_widen_bits - 1));
+-    };
+-  };
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
+-
+-union clause ast = VWSLL_VI : (bits(1), vregidx, bits(5), vregidx)
+-
+-mapping clause encdec = VWSLL_VI (vm, vs2, uimm, vd)
+-  <-> 0b110101 @ vm @ encdec_vreg(vs2) @ uimm @ 0b011 @ encdec_vreg(vd) @ 0b1010111
+-  when currentlyEnabled(Ext_Zvbb)
+-
+-mapping clause assembly = VWSLL_VI (vm, vs2, uimm, vd)
+-  <-> "vwsll.vi" ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ hex_bits_5(uimm) ^ sep() ^ maybe_vmask(vm)
+-
+-function clause execute (VWSLL_VI(vm, vs2, uimm, vd)) = {
+-  let SEW            = get_sew();
+-  let LMUL_pow       = get_lmul_pow();
+-  let num_elem       = get_num_elem(LMUL_pow, SEW);
+-  let SEW_widen      = SEW * 2;
+-  let LMUL_pow_widen = LMUL_pow + 1;
+-
+-  let 'n = num_elem;
+-  let 'm = SEW;
+-  let 'o = SEW_widen;
+-
+-  let vm_val      : bits('n) = read_vmask(num_elem, vm, zvreg);
+-  let uimm_val    : bits('o) = zero_extend(uimm);
+-  let vs2_val_vec : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
+-  let vd_val      : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
+-
+-  let SEW_widen_bits = to_bits(SEW_widen, 'o);
+-  let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
+-    Ok(v)   => v,
+-    Err(()) => return Illegal_Instruction()
+-  };
+-  var result = initial_result;
+-
+-  foreach (i from 0 to (num_elem - 1)) {
+-    if mask[i] == bitone then {
+-        let vs2_val : bits('o) = zero_extend(vs2_val_vec[i]);
+-        result[i] = vs2_val << (uimm_val & zero_extend(SEW_widen_bits - 1));
+-    };
+-  };
+-  write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
+-  set_vstart(zeros());
+-  RETIRE_SUCCESS
+-}
++// union clause ast = VWSLL_VV : (bits(1), vregidx, vregidx, vregidx)
++//
++// mapping clause encdec = VWSLL_VV (vm, vs2, vs1, vd)
++//   <-> 0b110101 @ vm @ encdec_vreg(vs2) @ encdec_vreg(vs1) @ 0b000 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_Zvbb)
++//
++// mapping clause assembly = VWSLL_VV (vm, vs2, vs1, vd)
++//   <-> "vwsll.vv" ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ vreg_name(vs1) ^ sep() ^ maybe_vmask(vm)
++//
++// function clause execute (VWSLL_VV(vm, vs2, vs1, vd)) = {
++//   let SEW            = get_sew();
++//   let LMUL_pow       = get_lmul_pow();
++//   let num_elem       = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val      : bits('n) = read_vmask(num_elem, vm, zvreg);
++//   let vs1_val_vec : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs1);
++//   let vs2_val_vec : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//   let vd_val      : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//
++//   let SEW_widen_bits = to_bits(SEW_widen, 'o);
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       let vs1_val : bits('o) = zero_extend(vs1_val_vec[i]);
++//       let vs2_val : bits('o) = zero_extend(vs2_val_vec[i]);
++//       result[i] = vs2_val << (vs1_val & zero_extend(SEW_widen_bits - 1));
++//     };
++//   };
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++
++// union clause ast = VWSLL_VX : (bits(1), vregidx, regidx, vregidx)
++//
++// mapping clause encdec = VWSLL_VX (vm, vs2, rs1, vd)
++//   <-> 0b110101 @ vm @ encdec_vreg(vs2) @ encdec_reg(rs1) @ 0b100 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_Zvbb)
++//
++// mapping clause assembly = VWSLL_VX (vm, vs2, rs1, vd)
++//   <-> "vwsll.vx" ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ reg_name(rs1) ^ sep() ^ maybe_vmask(vm)
++//
++// function clause execute (VWSLL_VX(vm, vs2, rs1, vd)) = {
++//   let SEW            = get_sew();
++//   let LMUL_pow       = get_lmul_pow();
++//   let num_elem       = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val      : bits('n) = read_vmask(num_elem, vm, zvreg);
++//   let rs1_val     : bits('o) = zero_extend(get_scalar(rs1, SEW));
++//   let vs2_val_vec : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//   let vd_val      : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//
++//   let SEW_widen_bits = to_bits(SEW_widen, 'o);
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//       let vs2_val : bits('o) = zero_extend(vs2_val_vec[i]);
++//       result[i] = vs2_val << (rs1_val & zero_extend(SEW_widen_bits - 1));
++//     };
++//   };
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
++
++// union clause ast = VWSLL_VI : (bits(1), vregidx, bits(5), vregidx)
++//
++// mapping clause encdec = VWSLL_VI (vm, vs2, uimm, vd)
++//   <-> 0b110101 @ vm @ encdec_vreg(vs2) @ uimm @ 0b011 @ encdec_vreg(vd) @ 0b1010111
++//   when currentlyEnabled(Ext_Zvbb)
++//
++// mapping clause assembly = VWSLL_VI (vm, vs2, uimm, vd)
++//   <-> "vwsll.vi" ^ spc() ^ vreg_name(vd) ^ sep() ^ vreg_name(vs2) ^ sep() ^ hex_bits_5(uimm) ^ sep() ^ maybe_vmask(vm)
++//
++// function clause execute (VWSLL_VI(vm, vs2, uimm, vd)) = {
++//   let SEW            = get_sew();
++//   let LMUL_pow       = get_lmul_pow();
++//   let num_elem       = get_num_elem(LMUL_pow, SEW);
++//   let SEW_widen      = SEW * 2;
++//   let LMUL_pow_widen = LMUL_pow + 1;
++//
++//   let 'n = num_elem;
++//   let 'm = SEW;
++//   let 'o = SEW_widen;
++//
++//   let vm_val      : bits('n) = read_vmask(num_elem, vm, zvreg);
++//   let uimm_val    : bits('o) = zero_extend(uimm);
++//   let vs2_val_vec : vector('n, bits('m)) = read_vreg(num_elem, SEW, LMUL_pow, vs2);
++//   let vd_val      : vector('n, bits('o)) = read_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd);
++//
++//   let SEW_widen_bits = to_bits(SEW_widen, 'o);
++//   let (initial_result, mask) : (vector('n, bits('o)), bits('n)) = match init_masked_result(num_elem, SEW_widen, LMUL_pow_widen, vd_val, vm_val) {
++//     Ok(v)   => v,
++//     Err(()) => return Illegal_Instruction()
++//   };
++//   var result = initial_result;
++//
++//   foreach (i from 0 to (num_elem - 1)) {
++//     if mask[i] == bitone then {
++//         let vs2_val : bits('o) = zero_extend(vs2_val_vec[i]);
++//         result[i] = vs2_val << (uimm_val & zero_extend(SEW_widen_bits - 1));
++//     };
++//   };
++//   write_vreg(num_elem, SEW_widen, LMUL_pow_widen, vd, result);
++//   set_vstart(zeros());
++//   RETIRE_SUCCESS
++// }
 diff --git a/model/riscv_pmp_regs.sail b/model/riscv_pmp_regs.sail
 index 0eacf8c..a518ca0 100644
 --- a/model/riscv_pmp_regs.sail
@@ -120,29 +2918,86 @@ index 0eacf8c..a518ca0 100644
  function clause read_CSR(0x3A @ idx : bits(4) if idx[0] == bitzero | xlen == 32) = pmpReadCfgReg(unsigned(idx))
  function clause write_CSR((0x3A @ idx : bits(4), value) if idx[0] == bitzero | xlen == 32) = {
    let idx = unsigned(idx);
+diff --git a/model/riscv_sys_regs.sail b/model/riscv_sys_regs.sail
+index 15b54f7..16a7c07 100644
+--- a/model/riscv_sys_regs.sail
++++ b/model/riscv_sys_regs.sail
+@@ -944,26 +944,30 @@ function get_sew_pow() = {
+   SEW_pow
+ }
+ /* this returns the actual value of SEW */
+-val get_sew : unit -> {8, 16, 32, 64}
++val get_sew : unit -> {'r, 'r in {8, 16, 32, 64} & 'r <= vlen. int('r)}
+ function get_sew() = {
+-  match get_sew_pow() {
++  let res: {8, 16, 32, 64} = match get_sew_pow() {
+     3 => 8,
+     4 => 16,
+     5 => 32,
+     6 => 64,
+     _ => {internal_error(__FILE__, __LINE__, "invalid SEW"); 8}
+-  }
++  };
++  assert(res <= sizeof(vlen));
++  res
+ }
+ /* this returns the value of SEW in bytes */
+-val get_sew_bytes : unit -> {1, 2, 4, 8}
++val get_sew_bytes : unit -> {'r, 'r in {1, 2, 4, 8} & 'r * 8 <= vlen. int('r)}
+ function get_sew_bytes() = {
+-  match get_sew_pow() {
++  let res: {1, 2, 4, 8} = match get_sew_pow() {
+     3 => 1,
+     4 => 2,
+     5 => 4,
+     6 => 8,
+     _ => {internal_error(__FILE__, __LINE__, "invalid SEW"); 1}
+-  }
++  };
++  assert(res * 8 <= sizeof(vlen));
++  res
+ }
+ 
+ /* the vector register group multiplier (LMUL) */
 diff --git a/model/riscv_vext_regs.sail b/model/riscv_vext_regs.sail
-index 5866d28..7fc7c30 100644
+index 5866d28..8a46951 100644
 --- a/model/riscv_vext_regs.sail
 +++ b/model/riscv_vext_regs.sail
-@@ -173,7 +173,7 @@ function wV (Vregno(r) : vregno, v : vregtype) -> unit = {
+@@ -173,7 +173,6 @@ function wV (Vregno(r) : vregno, v : vregtype) -> unit = {
  
    dirty_v_context();
  
 -  assert(0 < VLEN & VLEN <= sizeof(vlenmax));
-+  assert(0 < get_vlen() & get_vlen() <= sizeof(vlenmax));
    vreg_write_callback(vregno_to_vregidx(Vregno(r)), v);
  }
  
-@@ -242,7 +242,7 @@ function get_num_elem(LMUL_pow, SEW) = {
+@@ -237,13 +236,13 @@ function ext_write_vcsr (vxrm_val, vxsat_val) = {
+ }
+ 
+ /* num_elem means max(VLMAX,VLEN/SEW)) according to Section 5.4 of RVV spec */
+-val get_num_elem : (int, int) -> {'n, 'n > 0. int('n)}
++val get_num_elem : (int, int) -> {'n, 'n <= vlen & 'n > 0. int('n)}
+ function get_num_elem(LMUL_pow, SEW) = {
    let LMUL_pow_reg = if LMUL_pow < 0 then 0 else LMUL_pow;
    /* Ignore lmul < 1 so that the entire vreg is read, allowing all masking to
     * be handled in init_masked_result */
 -  let num_elem = 2 ^ LMUL_pow_reg * VLEN / SEW;
+-  assert(num_elem > 0);
 +  let num_elem = 2 ^ LMUL_pow_reg * get_vlen() / SEW;
-   assert(num_elem > 0);
++  assert(num_elem <= sizeof(vlen) & num_elem > 0);
    num_elem
  }
-@@ -294,7 +294,7 @@ function read_vreg(num_elem, SEW, LMUL_pow, vrid) = {
+ 
+@@ -263,7 +262,7 @@ function read_single_vreg(num_elem, SEW, vrid) = {
+ }
+ 
+ /* Writes multiple elements into a single vreg */
+-val write_single_vreg : forall 'n 'm, 'n >= 0. (int('n), int('m), vregidx, vector('n, bits('m))) -> unit
++val write_single_vreg : forall 'n 'm, 'm <= vlen & 'n >= 0. (int('n), int('m), vregidx, vector('n, bits('m))) -> unit
+ function write_single_vreg(num_elem, SEW, vrid, v) = {
+   var r : vregtype = zeros();
+ 
+@@ -294,7 +293,7 @@ function read_vreg(num_elem, SEW, LMUL_pow, vrid) = {
      if LMUL_pow < 0 then {
        result = read_single_vreg('n, SEW, vrid);
      } else {
@@ -151,7 +3006,7 @@ index 5866d28..7fc7c30 100644
        assert('num_elem_single >= 0);
        foreach (i_lmul from 0 to (2 ^ LMUL_pow_reg - 1)) {
          let r_start_i : int = i_lmul * 'num_elem_single;
-@@ -317,8 +317,8 @@ function read_vreg(num_elem, SEW, LMUL_pow, vrid) = {
+@@ -317,8 +316,8 @@ function read_vreg(num_elem, SEW, LMUL_pow, vrid) = {
  /* Single element reading operation */
  val read_single_element : forall 'm 'x, 8 <= 'm <= 128. (int('m), int('x), vregidx) -> bits('m)
  function read_single_element(EEW, index, vrid) = {
@@ -162,42 +3017,106 @@ index 5866d28..7fc7c30 100644
    assert('elem_per_reg >= 0);
    let real_vrid  : vregidx = vregidx_offset(vrid, to_bits(5, index / 'elem_per_reg));
    let real_index : int    = index % 'elem_per_reg;
-@@ -332,7 +332,7 @@ val write_vreg : forall 'n 'm 'p, 'n >= 0 & 'm >= 0. (int('n), int('m), int('p),
+@@ -328,11 +327,11 @@ function read_single_element(EEW, index, vrid) = {
+ }
+ 
+ /* The general vreg writing operation with num_elem as max(VLMAX,VLEN/SEW)) */
+-val write_vreg : forall 'n 'm 'p, 'n >= 0 & 'm >= 0. (int('n), int('m), int('p), vregidx, vector('n, bits('m))) -> unit
++val write_vreg : forall 'n 'm 'p, 'n >= 0 & 'm >= 0 & 'm <= vlen. (int('n), int('m), int('p), vregidx, vector('n, bits('m))) -> unit
  function write_vreg(num_elem, SEW, LMUL_pow, vrid, vec) = {
    let LMUL_pow_reg = if LMUL_pow < 0 then 0 else LMUL_pow;
  
 -  let 'num_elem_single  : int = VLEN / SEW;
-+  let 'num_elem_single  : int = get_vlen() / SEW;
++  let 'num_elem_single : int = get_vlen() / SEW;
    assert('num_elem_single >= 0);
    foreach (i_lmul from 0 to (2 ^ LMUL_pow_reg - 1)) {
      var single_vec : vector('num_elem_single, bits('m)) = vector_init(zeros());
-@@ -352,7 +352,7 @@ function write_vreg(num_elem, SEW, LMUL_pow, vrid, vec) = {
+@@ -350,9 +349,9 @@ function write_vreg(num_elem, SEW, LMUL_pow, vrid, vec) = {
+ }
+ 
  /* Single element writing operation */
- val write_single_element : forall 'm 'x, 8 <= 'm <= 128. (int('m), int('x), vregidx, bits('m)) -> unit
+-val write_single_element : forall 'm 'x, 8 <= 'm <= 128. (int('m), int('x), vregidx, bits('m)) -> unit
++val write_single_element : forall 'm 'x, 'm <= vlen & 8 <= 'm <= 128. (int('m), int('x), vregidx, bits('m)) -> unit
  function write_single_element(EEW, index, vrid, value) = {
 -  let 'elem_per_reg : int = VLEN / EEW;
 +  let 'elem_per_reg : int = get_vlen() / EEW;
    assert('elem_per_reg >= 0);
    let real_vrid  : vregidx = vregidx_offset(vrid, to_bits(5, index / 'elem_per_reg));
    let real_index : int    = index % 'elem_per_reg;
-@@ -409,6 +409,7 @@ function read_vmask_carry(num_elem, vm, vrid) = {
- /* Mask register writing operation with num_elem as max(VLMAX,VLEN/SEW)) */
- val write_vmask : forall 'n, 'n > 0. (int('n), vregidx, bits('n)) -> unit
- function write_vmask(num_elem, vrid, v) = {
-+  let VLEN: range(8, 65536) = get_vlen();
-   assert(0 < VLEN & VLEN <= sizeof(vlenmax));
-   assert(0 < num_elem & num_elem <= VLEN);
+@@ -371,9 +370,8 @@ function write_single_element(EEW, index, vrid, value) = {
+ }
+ 
+ /* Mask register reading operation with num_elem as max(VLMAX,VLEN/SEW)) */
+-val read_vmask : forall 'n, 'n > 0. (int('n), bits(1), vregidx) -> bits('n)
++val read_vmask : forall 'n, 'n <= vlen & 'n > 0. (int('n), bits(1), vregidx) -> bits('n)
+ function read_vmask(num_elem, vm, vrid) = {
+-  assert(num_elem <= sizeof(vlenmax));
    let vreg_val : vregtype = V(vrid);
+   var result   : bits('n) = ones();
+ 
+@@ -389,9 +387,8 @@ function read_vmask(num_elem, vm, vrid) = {
+ }
+ 
+ /* This is a special version of read_vmask for carry/borrow instructions, where vm=1 means no carry */
+-val read_vmask_carry : forall 'n, 'n > 0. (int('n), bits(1), vregidx) -> bits('n)
++val read_vmask_carry : forall 'n, 'n <= vlen & 'n > 0. (int('n), bits(1), vregidx) -> bits('n)
+ function read_vmask_carry(num_elem, vm, vrid) = {
+-  assert(num_elem <= sizeof(vlenmax));
+   let vreg_val : vregtype = V(vrid);
+   var result   : bits('n) = zeros();
+ 
+@@ -407,17 +404,15 @@ function read_vmask_carry(num_elem, vm, vrid) = {
+ }
+ 
+ /* Mask register writing operation with num_elem as max(VLMAX,VLEN/SEW)) */
+-val write_vmask : forall 'n, 'n > 0. (int('n), vregidx, bits('n)) -> unit
++val write_vmask : forall 'n, 'n <= vlen & 'n > 0. (int('n), vregidx, bits('n)) -> unit
+ function write_vmask(num_elem, vrid, v) = {
+-  assert(0 < VLEN & VLEN <= sizeof(vlenmax));
+-  assert(0 < num_elem & num_elem <= VLEN);
+   let vreg_val : vregtype = V(vrid);
+   var result   : vregtype = undefined;
+ 
+   foreach (i from 0 to (num_elem - 1)) {
+     result[i] = v[i]
+   };
+-  foreach (i from num_elem to (VLEN - 1)) {
++  foreach (i from num_elem to (sizeof(vlen) - 1)) {
+     /* Mask tail is always agnostic */
+     result[i] = vreg_val[i] /* TODO: configuration support */
+   };
 diff --git a/model/riscv_vlen.sail b/model/riscv_vlen.sail
-index 2367b72..8fd41ce 100644
+index 2367b72..2b54bed 100644
 --- a/model/riscv_vlen.sail
 +++ b/model/riscv_vlen.sail
-@@ -17,4 +17,4 @@ function get_vlen_pow() -> range(3, 16) = config extensions.V.vlen_exp
+@@ -13,8 +13,11 @@ function get_elen_pow() -> range(3, 16) = config extensions.V.elen_exp
+  * TODO: the configurarion of ELEN and its corresponding vtype implementations.
+  */
  
- type vlenmax : Int = 65536
+-function get_vlen_pow() -> range(3, 16) = config extensions.V.vlen_exp
++type vlen_exp : Int = config extensions.V.vlen_exp
++constraint 3 <= vlen_exp <= 16
+ 
+-type vlenmax : Int = 65536
++type vlen : Int = 2 ^ vlen_exp
++constraint 8 <= vlen <= 65536
  
 -let VLEN = 2 ^ get_vlen_pow()
-+function get_vlen() -> range(8, 65536) = 2 ^ get_vlen_pow()
++function get_vlen_pow() -> { 'n, 'n == vlen_exp. int('n) } = sizeof(vlen_exp)
++function get_vlen() -> { 'n, 'n == vlen. int('n) } = sizeof(vlen)
+diff --git a/model/riscv_vreg_type.sail b/model/riscv_vreg_type.sail
+index 2f399de..0f45d55 100644
+--- a/model/riscv_vreg_type.sail
++++ b/model/riscv_vreg_type.sail
+@@ -8,7 +8,7 @@
+ 
+ /* Definitions for vector registers (V extension) */
+ 
+-type vreglenbits = bits(vlenmax) /* use the largest possible register length */
++type vreglenbits = bits(vlen) /* use the largest possible register length */
+ 
+ /* default vector register type */
+ type vregtype = vreglenbits
 diff --git a/model/riscv_zvk_utils.sail b/model/riscv_zvk_utils.sail
 index 38ca001..2e59def 100644
 --- a/model/riscv_zvk_utils.sail
