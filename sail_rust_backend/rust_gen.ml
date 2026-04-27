@@ -194,10 +194,14 @@ type rs_program = RsProg of rs_obj list
 let core_ctx = "core_ctx"
 let default_copy_derive = [ "Eq"; "PartialEq"; "Clone"; "Copy"; "Debug" ]
 let default_move_derive = [ "Eq"; "PartialEq"; "Clone"; "Debug" ]
-let rs_type_nat: rs_type = RsTypId "nat"
-let rs_type_int: rs_type = RsTypId "i128" (* TODO(Gurvan): Maybe should be defined in prelude *)
-let rs_type_bool: rs_type = RsTypId "bool"
-let rs_type_usize: rs_type = RsTypId "usize"
+let rs_type_nat : rs_type = RsTypId "nat"
+
+let rs_type_int : rs_type =
+  RsTypId "i128" (* TODO(Gurvan): Maybe should be defined in prelude *)
+;;
+
+let rs_type_bool : rs_type = RsTypId "bool"
+let rs_type_usize : rs_type = RsTypId "usize"
 
 let merge_rs_prog (prog1 : rs_program) (prog2 : rs_program) : rs_program =
   let (RsProg fn1) = prog1 in

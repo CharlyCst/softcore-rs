@@ -164,7 +164,8 @@ and transform_app
   (* Built-in elementary operations *)
   (* TODO(Gurvan): This does not make much sense to be here, it should be in its
      own pass instead of being done again each time *)
-  | RsId "plain_vector_access", [ vector; item ] -> RsIndex (vector, mk_as item rs_type_usize)
+  | RsId "plain_vector_access", [ vector; item ] ->
+    RsIndex (vector, mk_as item rs_type_usize)
   | RsId "neq_int", [ left; right ] -> RsBinop (left, RsBinopNeq, right)
   | RsId "neq_bits", [ left; right ] -> RsBinop (left, RsBinopNeq, right)
   | RsId "eq_int", [ left; right ] -> RsBinop (left, RsBinopEq, right)
@@ -1756,7 +1757,9 @@ let transform_basic_types_lexp (_ctx : context) (lexp : rs_lexp) : rs_lexp =
 
 let transform_basic_types_type (_ctx : context) (typ : rs_type) : rs_type =
   match typ with
-  | RsTypId "string" -> RsTypBorrow (RsTypId "'static str") (* TODO(Gurvan): Lifetime should be part of type RsTypBorrow *)
+  | RsTypId "string" ->
+    RsTypBorrow (RsTypId "'static str")
+    (* TODO(Gurvan): Lifetime should be part of type RsTypBorrow *)
   | RsTypId "int" -> rs_type_int
   | RsTypId "bit" -> rs_type_bool
   (* TODO: Is this transformation legal? Should we add an assertion at some place in the code? *)

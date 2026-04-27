@@ -324,6 +324,7 @@ pub struct ConfigV {
     pub elen_exp: i128,
     pub supported: bool,
     pub vl_use_ceil: bool,
+    pub vlen_exp: i128,
 }
 
 #[derive(Eq, PartialEq, Clone, Debug)]
@@ -926,11 +927,12 @@ pub fn get_elen_pow(core_ctx: &mut Core, unit_arg: ()) -> i128 {
     core_ctx.config.extensions.V.elen_exp
 }
 
+/// vlen_exp
+///
+/// Generated from the Sail sources at `riscv_vlen.sail` L16.
 pub fn vlen_exp(core_ctx: &mut Core) -> i128 {
     core_ctx.config.extensions.V.vlen_exp
 }
-
-// pub const vlen: i128 = i128::pow(2, ((vlen_exp as u32) as u32));
 
 /// get_vlen_pow
 ///
