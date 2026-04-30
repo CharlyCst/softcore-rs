@@ -175,6 +175,7 @@ type rs_const =
   { name : string
   ; typ : rs_type
   ; value : rs_exp
+  ; doc : string list
   }
 
 type rs_obj =
@@ -887,7 +888,8 @@ let string_of_rs_obj (obj : rs_obj) : string =
       (string_of_rs_type alias.old_type)
   | RsConst const ->
     Printf.sprintf
-      "pub const %s: %s = %s;"
+      "%spub const %s: %s = %s;"
+      (string_of_doc const.doc)
       const.name
       (string_of_rs_type const.typ)
       (string_of_rs_exp 0 const.value)

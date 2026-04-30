@@ -818,6 +818,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         | TDC_key xs -> fields_chain acc xs
         | TDC_none -> assert false (* TODO(Gurvan): probably better error *)
       in
+      (* TODO(Gurvan): Should we really rely on adding core_ctx ourself or should we
+         rely on later transformations to add it? *)
       let acc = { e_annot = None; e_exp = RsField (mk_exp_id core_ctx, "config") } in
       let body = td_as_fields acc tdc in
       let name = string_of_id id in
@@ -861,22 +863,26 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         | Some n -> mk_big_num n
         | None -> nexp_to_rs_exp nexp
       in
-      let const = { name = string_of_id id; value; typ = rs_type_int } in
-      RsProg [ RsConst const ]
+      let name = string_of_id id in
+      RsProg
+        [ RsConst { name; value; typ = rs_type_int; doc = [ name; ""; loc_to_doc l ] } ]
     | TD_abbrev _ -> RsProg [] (* Ignore all other abbreviations *)
     | _ -> RsProg []
 
-  and toplevel_let_to_rust (LB_aux (LB_val (pat, exp), _aux)) (ctx : context) : rs_program
+  and toplevel_let_to_rust (LB_aux (LB_val (pat, exp), (l, _))) (ctx : context)
+    : rs_program
     =
     let pat = process_pat pat in
     let rexp = process_exp ctx exp in
     let rexp = Rust_transform.simplify_rs_exp ctx rexp in
     match pat with
     | RsPatId id ->
-      let const = { name = id; value = rexp; typ = rs_type_int } in
+      let const =
+        { name = id; value = rexp; typ = rs_type_int; doc = [ id; ""; loc_to_doc l ] }
+      in
       RsProg [ RsConst const ]
     | RsPatType (typ, RsPatId id) ->
-      let const = { name = id; value = rexp; typ } in
+      let const = { name = id; value = rexp; typ; doc = [ id; ""; loc_to_doc l ] } in
       RsProg [ RsConst const ]
     | _ -> RsProg []
 
@@ -1193,16 +1199,21 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | [] -> SMap.empty
   ;;
 
-  let type_def_fun_def (TD_aux (typ, _)) : unionmap =
+  let type_def_fun_def (TD_aux (typ, _)) : defs =
     match typ with
-    | TD_abbrev (_id, _typquant, _typ_arg) -> SMap.empty
-    | TD_record (_id, _typquant, _items, _) -> SMap.empty
-    | TD_variant (_id, _typquant, members, _) -> type_union_defs members
-    | TD_enum (_id, _member, _) -> SMap.empty
-    | TD_bitfield _ -> SMap.empty
+    | TD_abbrev (_id, _typquant, _typ_arg) -> defs_empty
+    | TD_record (_id, _typquant, _items, _) -> defs_empty
+    | TD_variant (_id, _typquant, members, _) ->
+      { defs_empty with unions = type_union_defs members }
+    | TD_enum (_id, _member, _) -> defs_empty
+    | TD_bitfield _ -> defs_empty
+    | TD_abstract (id, K_aux (K_int, _), tdc) ->
+      (* TODO(Gurvan): Is this really what we want? *)
+      (* { defs_empty with constants = SSet.singleton (string_of_id id) } *)
+        defs_empty
     | _ ->
       print_endline "TypeFunDef: other";
-      SMap.empty
+      defs_empty
   ;;
 
   (* ——————————————————————— Iterating over definitions ——————————————————————— *)
@@ -1214,7 +1225,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | DEF_scattered (SD_aux (_scattered, _annot)) -> defs_empty
     | DEF_fundef (FD_aux (_fundef, _annot)) -> defs_empty
     | DEF_impl _funcl -> defs_empty
-    | DEF_type typ -> defs_from_union (type_def_fun_def typ)
+    | DEF_type typ -> type_def_fun_def typ
     | DEF_let (LB_aux (LB_val (pat, _), _)) ->
       let pat = process_pat pat in
       (match pat with

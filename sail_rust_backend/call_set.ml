@@ -173,14 +173,18 @@ let fundef_call_set
   funcl_call_set funcl arch ctx
 ;;
 
-let typ_call_set (TD_aux (typ, (l, _)) : tannot type_def) (arch : arch_t) (ctx : sail_ctx)
+let typ_call_set
+      (TD_aux (typ, (l, _)) : tannot type_def)
+      (_arch : arch_t)
+      (ctx : sail_ctx)
   : sail_ctx
   =
   match typ with
   | TD_abstract (id, K_aux (K_int, _), TDC_key cfgs) ->
     let cfg = String.concat "." cfgs in
-    (* TODO: The following is wrong, what is the type of int? *)
-    let typ = Typ_aux (Typ_id (Id_aux (Id "atom", l)), l) in
+    (* TODO: The following is kind of wrong, we should probably use "atom" here
+       instead of i128 but we need to find the correct *)
+    let typ = Typ_aux (Typ_id (Id_aux (Id "i128", l)), l) in
     add_config cfg typ ctx
   | _ -> ctx
 ;;

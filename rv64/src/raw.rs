@@ -889,6 +889,9 @@ pub fn log2(n: i128) -> i128 {
     result
 }
 
+/// max_mem_access
+///
+/// Generated from the Sail sources at `prelude.sail` L233.
 pub const max_mem_access: i128 = 4096;
 
 pub type mem_access_width = i128;
@@ -902,22 +905,43 @@ pub enum exception {
     Error_internal_error(())
 }
 
+/// log2_xlen
+///
+/// Generated from the Sail sources at `riscv_xlen.sail` L17.
 pub const log2_xlen: i128 = 6;
 
+/// log2_xlen_bytes
+///
+/// Generated from the Sail sources at `riscv_xlen.sail` L18.
 pub const log2_xlen_bytes: i128 = 3;
 
+/// xlen_bytes
+///
+/// Generated from the Sail sources at `riscv_xlen.sail` L19.
 pub const xlen_bytes: i128 = 8;
 
+/// xlen
+///
+/// Generated from the Sail sources at `riscv_xlen.sail` L20.
 pub const xlen: i128 = 64;
 
+/// asidlen
+///
+/// Generated from the Sail sources at `riscv_xlen.sail` L22.
 pub const asidlen: i128 = 16;
 
 pub type asidbits = BitDynamic;
 
 pub type flenbits = BitDynamic;
 
+/// flen_bytes
+///
+/// Generated from the Sail sources at `riscv_flen.sail` L15.
 pub const flen_bytes: i128 = 8;
 
+/// flen
+///
+/// Generated from the Sail sources at `riscv_flen.sail` L16.
 pub const flen: i128 = 64;
 
 /// get_elen_pow
@@ -950,6 +974,9 @@ pub fn get_vlen(core_ctx: &mut Core, unit_arg: ()) -> i128 {
 
 pub type physaddrbits = BitDynamic;
 
+/// physaddrbits_len
+///
+/// Generated from the Sail sources at `prelude_mem_addrtype.sail` L14.
 pub const physaddrbits_len: i128 = 64;
 
 /// physaddr
@@ -969,6 +996,9 @@ pub fn bits_of_virtaddr(virtaddr::Virtaddr(vaddr): virtaddr) -> BitDynamic {
 
 pub type mem_meta = ();
 
+/// default_meta
+///
+/// Generated from the Sail sources at `prelude_mem_metadata.sail` L15.
 pub const default_meta: mem_meta = ();
 
 /// result
@@ -1040,8 +1070,14 @@ pub struct Mem_read_request<const N: i128, const VASIZE: i128, PA, TS, ARCH_AK> 
     pub tag: bool,
 }
 
+/// __monomorphize_reads
+///
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write_v1.sail` L137.
 pub const __monomorphize_reads: bool = false;
 
+/// __monomorphize_writes
+///
+/// Generated from the Sail sources at `sail/lib/concurrency_interface/read_write_v1.sail` L138.
 pub const __monomorphize_writes: bool = false;
 
 /// write_kind
@@ -1246,6 +1282,9 @@ pub type exc_code = BitDynamic;
 
 pub type ext_ptw = ();
 
+/// init_ext_ptw
+///
+/// Generated from the Sail sources at `riscv_types_ext.sail` L42.
 pub const init_ext_ptw: ext_ptw = ();
 
 pub type ext_ptw_fail = ();
@@ -1275,10 +1314,19 @@ pub const fn ext_exc_type_to_str(unit_arg: ()) -> &'static str {
     "extension-exception"
 }
 
+/// xlen_max_unsigned
+///
+/// Generated from the Sail sources at `riscv_types.sail` L10.
 pub const xlen_max_unsigned: i128 = 18446744073709551615;
 
+/// xlen_max_signed
+///
+/// Generated from the Sail sources at `riscv_types.sail` L11.
 pub const xlen_max_signed: i128 = 9223372036854775807;
 
+/// xlen_min_signed
+///
+/// Generated from the Sail sources at `riscv_types.sail` L12.
 pub const xlen_min_signed: i128 = -9223372036854775808;
 
 pub type half = BitDynamic;
@@ -1287,6 +1335,9 @@ pub type word = BitDynamic;
 
 pub type instbits = BitDynamic;
 
+/// pagesize_bits
+///
+/// Generated from the Sail sources at `riscv_types.sail` L21.
 pub const pagesize_bits: i128 = 12;
 
 /// regidx
@@ -1336,10 +1387,19 @@ pub fn creg2reg_idx(cregidx::Cregidx(i): cregidx) -> regidx {
     regidx::Regidx(bitvector_concat(BitDynamic::from(BitDynamic::new(2, 0b01)), BitDynamic::from(i)))
 }
 
+/// zreg
+///
+/// Generated from the Sail sources at `riscv_types.sail` L44.
 pub const zreg: regidx = regidx::Regidx(BitDynamic::new(5, 0b00000));
 
+/// ra
+///
+/// Generated from the Sail sources at `riscv_types.sail` L45.
 pub const ra: regidx = regidx::Regidx(BitDynamic::new(5, 0b00001));
 
+/// sp
+///
+/// Generated from the Sail sources at `riscv_types.sail` L46.
 pub const sp: regidx = regidx::Regidx(BitDynamic::new(5, 0b00010));
 
 /// Architecture
@@ -3495,8 +3555,14 @@ pub type level_range<const V: i128> = i128;
 
 pub type ext_access_type = ();
 
+/// Data
+///
+/// Generated from the Sail sources at `riscv_vmem_types.sail` L36.
 pub const Data: ext_access_type = ();
 
+/// default_write_acc
+///
+/// Generated from the Sail sources at `riscv_vmem_types.sail` L38.
 pub const default_write_acc: ext_access_type = Data;
 
 /// xreg_write_callback
@@ -3867,6 +3933,9 @@ pub fn csr_id_read_callback(csr: BitDynamic, value: BitDynamic) {
 
 pub type regtype = xlenbits;
 
+/// zero_reg
+///
+/// Generated from the Sail sources at `riscv_reg_type.sail` L13.
 pub const zero_reg: regtype = zeros(64);
 
 /// regval_from_reg
@@ -3885,6 +3954,9 @@ pub fn regval_into_reg(v: BitDynamic) -> BitDynamic {
 
 pub type fregtype = flenbits;
 
+/// zero_freg
+///
+/// Generated from the Sail sources at `riscv_freg_type.sail` L15.
 pub const zero_freg: fregtype = zeros(64);
 
 /// rX
@@ -6987,6 +7059,9 @@ pub const fn vreg_write_callback(_: vregidx, missing_arg_0: BitDynamic) {
     ()
 }
 
+/// zvreg
+///
+/// Generated from the Sail sources at `riscv_vext_regs.sail` L21.
 pub const zvreg: vregidx = vregidx::Vregidx(BitDynamic::new(5, 0b00000));
 
 /// dirty_v_context
@@ -8400,14 +8475,29 @@ pub fn plat_mtval_has_illegal_inst_bits(core_ctx: &mut Core, unit_arg: ()) -> bo
     core_ctx.config.base.mtval_has_illegal_instruction_bits
 }
 
+/// MSIP_BASE
+///
+/// Generated from the Sail sources at `riscv_platform.sail` L139.
 pub const MSIP_BASE: physaddrbits = BitDynamic::new(20, 0b00000000000000000000).zero_extend_dyn(64);
 
+/// MTIMECMP_BASE
+///
+/// Generated from the Sail sources at `riscv_platform.sail` L140.
 pub const MTIMECMP_BASE: physaddrbits = BitDynamic::new(20, 0b00000100000000000000).zero_extend_dyn(64);
 
+/// MTIMECMP_BASE_HI
+///
+/// Generated from the Sail sources at `riscv_platform.sail` L141.
 pub const MTIMECMP_BASE_HI: physaddrbits = BitDynamic::new(20, 0b00000100000000000100).zero_extend_dyn(64);
 
+/// MTIME_BASE
+///
+/// Generated from the Sail sources at `riscv_platform.sail` L142.
 pub const MTIME_BASE: physaddrbits = BitDynamic::new(20, 0b00001011111111111000).zero_extend_dyn(64);
 
+/// MTIME_BASE_HI
+///
+/// Generated from the Sail sources at `riscv_platform.sail` L143.
 pub const MTIME_BASE_HI: physaddrbits = BitDynamic::new(20, 0b00001011111111111100).zero_extend_dyn(64);
 
 /// handle_illegal
@@ -8462,12 +8552,18 @@ pub enum ExecutionResult {
     Ext_XRET_Priv_Failure(())
 }
 
+/// RETIRE_SUCCESS
+///
+/// Generated from the Sail sources at `riscv_inst_retire.sail` L35.
 pub const RETIRE_SUCCESS: ExecutionResult = ExecutionResult::Retire_Success(());
 
 pub type pte_flags_bits = BitDynamic;
 
 pub type pte_ext_bits = BitDynamic;
 
+/// default_sv32_ext_pte
+///
+/// Generated from the Sail sources at `riscv_vmem_pte.sail` L42.
 pub const default_sv32_ext_pte: pte_ext_bits = zeros(10);
 
 /// PTE_Check
@@ -8479,8 +8575,14 @@ pub enum PTE_Check {
     PTE_Check_Failure((ext_ptw, ext_ptw_fail))
 }
 
+/// tlb_vpn_bits
+///
+/// Generated from the Sail sources at `riscv_vmem_tlb.sail` L18.
 pub const tlb_vpn_bits: i128 = 45;
 
+/// tlb_ppn_bits
+///
+/// Generated from the Sail sources at `riscv_vmem_tlb.sail` L20.
 pub const tlb_ppn_bits: i128 = 44;
 
 /// TLB_Entry
@@ -8497,6 +8599,9 @@ pub struct TLB_Entry {
     pub pteAddr: physaddr,
 }
 
+/// num_tlb_entries
+///
+/// Generated from the Sail sources at `riscv_vmem_tlb.sail` L69.
 pub const num_tlb_entries: i128 = 64;
 
 pub type tlb_index_range = i128;
@@ -8547,10 +8652,19 @@ pub enum TR_Result<PADDR, FAILURE> {
     TR_Failure((FAILURE, ext_ptw))
 }
 
+/// sm4_sbox_table
+///
+/// Generated from the Sail sources at `riscv_types_kext.sail` L104-125.
 pub const sm4_sbox_table: [BitDynamic; (256 as usize)] = [BitDynamic::new(8, 0b11010110), BitDynamic::new(8, 0b10010000), BitDynamic::new(8, 0b11101001), BitDynamic::new(8, 0b11111110), BitDynamic::new(8, 0b11001100), BitDynamic::new(8, 0b11100001), BitDynamic::new(8, 0b00111101), BitDynamic::new(8, 0b10110111), BitDynamic::new(8, 0b00010110), BitDynamic::new(8, 0b10110110), BitDynamic::new(8, 0b00010100), BitDynamic::new(8, 0b11000010), BitDynamic::new(8, 0b00101000), BitDynamic::new(8, 0b11111011), BitDynamic::new(8, 0b00101100), BitDynamic::new(8, 0b00000101), BitDynamic::new(8, 0b00101011), BitDynamic::new(8, 0b01100111), BitDynamic::new(8, 0b10011010), BitDynamic::new(8, 0b01110110), BitDynamic::new(8, 0b00101010), BitDynamic::new(8, 0b10111110), BitDynamic::new(8, 0b00000100), BitDynamic::new(8, 0b11000011), BitDynamic::new(8, 0b10101010), BitDynamic::new(8, 0b01000100), BitDynamic::new(8, 0b00010011), BitDynamic::new(8, 0b00100110), BitDynamic::new(8, 0b01001001), BitDynamic::new(8, 0b10000110), BitDynamic::new(8, 0b00000110), BitDynamic::new(8, 0b10011001), BitDynamic::new(8, 0b10011100), BitDynamic::new(8, 0b01000010), BitDynamic::new(8, 0b01010000), BitDynamic::new(8, 0b11110100), BitDynamic::new(8, 0b10010001), BitDynamic::new(8, 0b11101111), BitDynamic::new(8, 0b10011000), BitDynamic::new(8, 0b01111010), BitDynamic::new(8, 0b00110011), BitDynamic::new(8, 0b01010100), BitDynamic::new(8, 0b00001011), BitDynamic::new(8, 0b01000011), BitDynamic::new(8, 0b11101101), BitDynamic::new(8, 0b11001111), BitDynamic::new(8, 0b10101100), BitDynamic::new(8, 0b01100010), BitDynamic::new(8, 0b11100100), BitDynamic::new(8, 0b10110011), BitDynamic::new(8, 0b00011100), BitDynamic::new(8, 0b10101001), BitDynamic::new(8, 0b11001001), BitDynamic::new(8, 0b00001000), BitDynamic::new(8, 0b11101000), BitDynamic::new(8, 0b10010101), BitDynamic::new(8, 0b10000000), BitDynamic::new(8, 0b11011111), BitDynamic::new(8, 0b10010100), BitDynamic::new(8, 0b11111010), BitDynamic::new(8, 0b01110101), BitDynamic::new(8, 0b10001111), BitDynamic::new(8, 0b00111111), BitDynamic::new(8, 0b10100110), BitDynamic::new(8, 0b01000111), BitDynamic::new(8, 0b00000111), BitDynamic::new(8, 0b10100111), BitDynamic::new(8, 0b11111100), BitDynamic::new(8, 0b11110011), BitDynamic::new(8, 0b01110011), BitDynamic::new(8, 0b00010111), BitDynamic::new(8, 0b10111010), BitDynamic::new(8, 0b10000011), BitDynamic::new(8, 0b01011001), BitDynamic::new(8, 0b00111100), BitDynamic::new(8, 0b00011001), BitDynamic::new(8, 0b11100110), BitDynamic::new(8, 0b10000101), BitDynamic::new(8, 0b01001111), BitDynamic::new(8, 0b10101000), BitDynamic::new(8, 0b01101000), BitDynamic::new(8, 0b01101011), BitDynamic::new(8, 0b10000001), BitDynamic::new(8, 0b10110010), BitDynamic::new(8, 0b01110001), BitDynamic::new(8, 0b01100100), BitDynamic::new(8, 0b11011010), BitDynamic::new(8, 0b10001011), BitDynamic::new(8, 0b11111000), BitDynamic::new(8, 0b11101011), BitDynamic::new(8, 0b00001111), BitDynamic::new(8, 0b01001011), BitDynamic::new(8, 0b01110000), BitDynamic::new(8, 0b01010110), BitDynamic::new(8, 0b10011101), BitDynamic::new(8, 0b00110101), BitDynamic::new(8, 0b00011110), BitDynamic::new(8, 0b00100100), BitDynamic::new(8, 0b00001110), BitDynamic::new(8, 0b01011110), BitDynamic::new(8, 0b01100011), BitDynamic::new(8, 0b01011000), BitDynamic::new(8, 0b11010001), BitDynamic::new(8, 0b10100010), BitDynamic::new(8, 0b00100101), BitDynamic::new(8, 0b00100010), BitDynamic::new(8, 0b01111100), BitDynamic::new(8, 0b00111011), BitDynamic::new(8, 0b00000001), BitDynamic::new(8, 0b00100001), BitDynamic::new(8, 0b01111000), BitDynamic::new(8, 0b10000111), BitDynamic::new(8, 0b11010100), BitDynamic::new(8, 0b00000000), BitDynamic::new(8, 0b01000110), BitDynamic::new(8, 0b01010111), BitDynamic::new(8, 0b10011111), BitDynamic::new(8, 0b11010011), BitDynamic::new(8, 0b00100111), BitDynamic::new(8, 0b01010010), BitDynamic::new(8, 0b01001100), BitDynamic::new(8, 0b00110110), BitDynamic::new(8, 0b00000010), BitDynamic::new(8, 0b11100111), BitDynamic::new(8, 0b10100000), BitDynamic::new(8, 0b11000100), BitDynamic::new(8, 0b11001000), BitDynamic::new(8, 0b10011110), BitDynamic::new(8, 0b11101010), BitDynamic::new(8, 0b10111111), BitDynamic::new(8, 0b10001010), BitDynamic::new(8, 0b11010010), BitDynamic::new(8, 0b01000000), BitDynamic::new(8, 0b11000111), BitDynamic::new(8, 0b00111000), BitDynamic::new(8, 0b10110101), BitDynamic::new(8, 0b10100011), BitDynamic::new(8, 0b11110111), BitDynamic::new(8, 0b11110010), BitDynamic::new(8, 0b11001110), BitDynamic::new(8, 0b11111001), BitDynamic::new(8, 0b01100001), BitDynamic::new(8, 0b00010101), BitDynamic::new(8, 0b10100001), BitDynamic::new(8, 0b11100000), BitDynamic::new(8, 0b10101110), BitDynamic::new(8, 0b01011101), BitDynamic::new(8, 0b10100100), BitDynamic::new(8, 0b10011011), BitDynamic::new(8, 0b00110100), BitDynamic::new(8, 0b00011010), BitDynamic::new(8, 0b01010101), BitDynamic::new(8, 0b10101101), BitDynamic::new(8, 0b10010011), BitDynamic::new(8, 0b00110010), BitDynamic::new(8, 0b00110000), BitDynamic::new(8, 0b11110101), BitDynamic::new(8, 0b10001100), BitDynamic::new(8, 0b10110001), BitDynamic::new(8, 0b11100011), BitDynamic::new(8, 0b00011101), BitDynamic::new(8, 0b11110110), BitDynamic::new(8, 0b11100010), BitDynamic::new(8, 0b00101110), BitDynamic::new(8, 0b10000010), BitDynamic::new(8, 0b01100110), BitDynamic::new(8, 0b11001010), BitDynamic::new(8, 0b01100000), BitDynamic::new(8, 0b11000000), BitDynamic::new(8, 0b00101001), BitDynamic::new(8, 0b00100011), BitDynamic::new(8, 0b10101011), BitDynamic::new(8, 0b00001101), BitDynamic::new(8, 0b01010011), BitDynamic::new(8, 0b01001110), BitDynamic::new(8, 0b01101111), BitDynamic::new(8, 0b11010101), BitDynamic::new(8, 0b11011011), BitDynamic::new(8, 0b00110111), BitDynamic::new(8, 0b01000101), BitDynamic::new(8, 0b11011110), BitDynamic::new(8, 0b11111101), BitDynamic::new(8, 0b10001110), BitDynamic::new(8, 0b00101111), BitDynamic::new(8, 0b00000011), BitDynamic::new(8, 0b11111111), BitDynamic::new(8, 0b01101010), BitDynamic::new(8, 0b01110010), BitDynamic::new(8, 0b01101101), BitDynamic::new(8, 0b01101100), BitDynamic::new(8, 0b01011011), BitDynamic::new(8, 0b01010001), BitDynamic::new(8, 0b10001101), BitDynamic::new(8, 0b00011011), BitDynamic::new(8, 0b10101111), BitDynamic::new(8, 0b10010010), BitDynamic::new(8, 0b10111011), BitDynamic::new(8, 0b11011101), BitDynamic::new(8, 0b10111100), BitDynamic::new(8, 0b01111111), BitDynamic::new(8, 0b00010001), BitDynamic::new(8, 0b11011001), BitDynamic::new(8, 0b01011100), BitDynamic::new(8, 0b01000001), BitDynamic::new(8, 0b00011111), BitDynamic::new(8, 0b00010000), BitDynamic::new(8, 0b01011010), BitDynamic::new(8, 0b11011000), BitDynamic::new(8, 0b00001010), BitDynamic::new(8, 0b11000001), BitDynamic::new(8, 0b00110001), BitDynamic::new(8, 0b10001000), BitDynamic::new(8, 0b10100101), BitDynamic::new(8, 0b11001101), BitDynamic::new(8, 0b01111011), BitDynamic::new(8, 0b10111101), BitDynamic::new(8, 0b00101101), BitDynamic::new(8, 0b01110100), BitDynamic::new(8, 0b11010000), BitDynamic::new(8, 0b00010010), BitDynamic::new(8, 0b10111000), BitDynamic::new(8, 0b11100101), BitDynamic::new(8, 0b10110100), BitDynamic::new(8, 0b10110000), BitDynamic::new(8, 0b10001001), BitDynamic::new(8, 0b01101001), BitDynamic::new(8, 0b10010111), BitDynamic::new(8, 0b01001010), BitDynamic::new(8, 0b00001100), BitDynamic::new(8, 0b10010110), BitDynamic::new(8, 0b01110111), BitDynamic::new(8, 0b01111110), BitDynamic::new(8, 0b01100101), BitDynamic::new(8, 0b10111001), BitDynamic::new(8, 0b11110001), BitDynamic::new(8, 0b00001001), BitDynamic::new(8, 0b11000101), BitDynamic::new(8, 0b01101110), BitDynamic::new(8, 0b11000110), BitDynamic::new(8, 0b10000100), BitDynamic::new(8, 0b00011000), BitDynamic::new(8, 0b11110000), BitDynamic::new(8, 0b01111101), BitDynamic::new(8, 0b11101100), BitDynamic::new(8, 0b00111010), BitDynamic::new(8, 0b11011100), BitDynamic::new(8, 0b01001101), BitDynamic::new(8, 0b00100000), BitDynamic::new(8, 0b01111001), BitDynamic::new(8, 0b11101110), BitDynamic::new(8, 0b01011111), BitDynamic::new(8, 0b00111110), BitDynamic::new(8, 0b11010111), BitDynamic::new(8, 0b11001011), BitDynamic::new(8, 0b00111001), BitDynamic::new(8, 0b01001000)];
 
+/// aes_sbox_fwd_table
+///
+/// Generated from the Sail sources at `riscv_types_kext.sail` L127-148.
 pub const aes_sbox_fwd_table: [BitDynamic; (256 as usize)] = [BitDynamic::new(8, 0b01100011), BitDynamic::new(8, 0b01111100), BitDynamic::new(8, 0b01110111), BitDynamic::new(8, 0b01111011), BitDynamic::new(8, 0b11110010), BitDynamic::new(8, 0b01101011), BitDynamic::new(8, 0b01101111), BitDynamic::new(8, 0b11000101), BitDynamic::new(8, 0b00110000), BitDynamic::new(8, 0b00000001), BitDynamic::new(8, 0b01100111), BitDynamic::new(8, 0b00101011), BitDynamic::new(8, 0b11111110), BitDynamic::new(8, 0b11010111), BitDynamic::new(8, 0b10101011), BitDynamic::new(8, 0b01110110), BitDynamic::new(8, 0b11001010), BitDynamic::new(8, 0b10000010), BitDynamic::new(8, 0b11001001), BitDynamic::new(8, 0b01111101), BitDynamic::new(8, 0b11111010), BitDynamic::new(8, 0b01011001), BitDynamic::new(8, 0b01000111), BitDynamic::new(8, 0b11110000), BitDynamic::new(8, 0b10101101), BitDynamic::new(8, 0b11010100), BitDynamic::new(8, 0b10100010), BitDynamic::new(8, 0b10101111), BitDynamic::new(8, 0b10011100), BitDynamic::new(8, 0b10100100), BitDynamic::new(8, 0b01110010), BitDynamic::new(8, 0b11000000), BitDynamic::new(8, 0b10110111), BitDynamic::new(8, 0b11111101), BitDynamic::new(8, 0b10010011), BitDynamic::new(8, 0b00100110), BitDynamic::new(8, 0b00110110), BitDynamic::new(8, 0b00111111), BitDynamic::new(8, 0b11110111), BitDynamic::new(8, 0b11001100), BitDynamic::new(8, 0b00110100), BitDynamic::new(8, 0b10100101), BitDynamic::new(8, 0b11100101), BitDynamic::new(8, 0b11110001), BitDynamic::new(8, 0b01110001), BitDynamic::new(8, 0b11011000), BitDynamic::new(8, 0b00110001), BitDynamic::new(8, 0b00010101), BitDynamic::new(8, 0b00000100), BitDynamic::new(8, 0b11000111), BitDynamic::new(8, 0b00100011), BitDynamic::new(8, 0b11000011), BitDynamic::new(8, 0b00011000), BitDynamic::new(8, 0b10010110), BitDynamic::new(8, 0b00000101), BitDynamic::new(8, 0b10011010), BitDynamic::new(8, 0b00000111), BitDynamic::new(8, 0b00010010), BitDynamic::new(8, 0b10000000), BitDynamic::new(8, 0b11100010), BitDynamic::new(8, 0b11101011), BitDynamic::new(8, 0b00100111), BitDynamic::new(8, 0b10110010), BitDynamic::new(8, 0b01110101), BitDynamic::new(8, 0b00001001), BitDynamic::new(8, 0b10000011), BitDynamic::new(8, 0b00101100), BitDynamic::new(8, 0b00011010), BitDynamic::new(8, 0b00011011), BitDynamic::new(8, 0b01101110), BitDynamic::new(8, 0b01011010), BitDynamic::new(8, 0b10100000), BitDynamic::new(8, 0b01010010), BitDynamic::new(8, 0b00111011), BitDynamic::new(8, 0b11010110), BitDynamic::new(8, 0b10110011), BitDynamic::new(8, 0b00101001), BitDynamic::new(8, 0b11100011), BitDynamic::new(8, 0b00101111), BitDynamic::new(8, 0b10000100), BitDynamic::new(8, 0b01010011), BitDynamic::new(8, 0b11010001), BitDynamic::new(8, 0b00000000), BitDynamic::new(8, 0b11101101), BitDynamic::new(8, 0b00100000), BitDynamic::new(8, 0b11111100), BitDynamic::new(8, 0b10110001), BitDynamic::new(8, 0b01011011), BitDynamic::new(8, 0b01101010), BitDynamic::new(8, 0b11001011), BitDynamic::new(8, 0b10111110), BitDynamic::new(8, 0b00111001), BitDynamic::new(8, 0b01001010), BitDynamic::new(8, 0b01001100), BitDynamic::new(8, 0b01011000), BitDynamic::new(8, 0b11001111), BitDynamic::new(8, 0b11010000), BitDynamic::new(8, 0b11101111), BitDynamic::new(8, 0b10101010), BitDynamic::new(8, 0b11111011), BitDynamic::new(8, 0b01000011), BitDynamic::new(8, 0b01001101), BitDynamic::new(8, 0b00110011), BitDynamic::new(8, 0b10000101), BitDynamic::new(8, 0b01000101), BitDynamic::new(8, 0b11111001), BitDynamic::new(8, 0b00000010), BitDynamic::new(8, 0b01111111), BitDynamic::new(8, 0b01010000), BitDynamic::new(8, 0b00111100), BitDynamic::new(8, 0b10011111), BitDynamic::new(8, 0b10101000), BitDynamic::new(8, 0b01010001), BitDynamic::new(8, 0b10100011), BitDynamic::new(8, 0b01000000), BitDynamic::new(8, 0b10001111), BitDynamic::new(8, 0b10010010), BitDynamic::new(8, 0b10011101), BitDynamic::new(8, 0b00111000), BitDynamic::new(8, 0b11110101), BitDynamic::new(8, 0b10111100), BitDynamic::new(8, 0b10110110), BitDynamic::new(8, 0b11011010), BitDynamic::new(8, 0b00100001), BitDynamic::new(8, 0b00010000), BitDynamic::new(8, 0b11111111), BitDynamic::new(8, 0b11110011), BitDynamic::new(8, 0b11010010), BitDynamic::new(8, 0b11001101), BitDynamic::new(8, 0b00001100), BitDynamic::new(8, 0b00010011), BitDynamic::new(8, 0b11101100), BitDynamic::new(8, 0b01011111), BitDynamic::new(8, 0b10010111), BitDynamic::new(8, 0b01000100), BitDynamic::new(8, 0b00010111), BitDynamic::new(8, 0b11000100), BitDynamic::new(8, 0b10100111), BitDynamic::new(8, 0b01111110), BitDynamic::new(8, 0b00111101), BitDynamic::new(8, 0b01100100), BitDynamic::new(8, 0b01011101), BitDynamic::new(8, 0b00011001), BitDynamic::new(8, 0b01110011), BitDynamic::new(8, 0b01100000), BitDynamic::new(8, 0b10000001), BitDynamic::new(8, 0b01001111), BitDynamic::new(8, 0b11011100), BitDynamic::new(8, 0b00100010), BitDynamic::new(8, 0b00101010), BitDynamic::new(8, 0b10010000), BitDynamic::new(8, 0b10001000), BitDynamic::new(8, 0b01000110), BitDynamic::new(8, 0b11101110), BitDynamic::new(8, 0b10111000), BitDynamic::new(8, 0b00010100), BitDynamic::new(8, 0b11011110), BitDynamic::new(8, 0b01011110), BitDynamic::new(8, 0b00001011), BitDynamic::new(8, 0b11011011), BitDynamic::new(8, 0b11100000), BitDynamic::new(8, 0b00110010), BitDynamic::new(8, 0b00111010), BitDynamic::new(8, 0b00001010), BitDynamic::new(8, 0b01001001), BitDynamic::new(8, 0b00000110), BitDynamic::new(8, 0b00100100), BitDynamic::new(8, 0b01011100), BitDynamic::new(8, 0b11000010), BitDynamic::new(8, 0b11010011), BitDynamic::new(8, 0b10101100), BitDynamic::new(8, 0b01100010), BitDynamic::new(8, 0b10010001), BitDynamic::new(8, 0b10010101), BitDynamic::new(8, 0b11100100), BitDynamic::new(8, 0b01111001), BitDynamic::new(8, 0b11100111), BitDynamic::new(8, 0b11001000), BitDynamic::new(8, 0b00110111), BitDynamic::new(8, 0b01101101), BitDynamic::new(8, 0b10001101), BitDynamic::new(8, 0b11010101), BitDynamic::new(8, 0b01001110), BitDynamic::new(8, 0b10101001), BitDynamic::new(8, 0b01101100), BitDynamic::new(8, 0b01010110), BitDynamic::new(8, 0b11110100), BitDynamic::new(8, 0b11101010), BitDynamic::new(8, 0b01100101), BitDynamic::new(8, 0b01111010), BitDynamic::new(8, 0b10101110), BitDynamic::new(8, 0b00001000), BitDynamic::new(8, 0b10111010), BitDynamic::new(8, 0b01111000), BitDynamic::new(8, 0b00100101), BitDynamic::new(8, 0b00101110), BitDynamic::new(8, 0b00011100), BitDynamic::new(8, 0b10100110), BitDynamic::new(8, 0b10110100), BitDynamic::new(8, 0b11000110), BitDynamic::new(8, 0b11101000), BitDynamic::new(8, 0b11011101), BitDynamic::new(8, 0b01110100), BitDynamic::new(8, 0b00011111), BitDynamic::new(8, 0b01001011), BitDynamic::new(8, 0b10111101), BitDynamic::new(8, 0b10001011), BitDynamic::new(8, 0b10001010), BitDynamic::new(8, 0b01110000), BitDynamic::new(8, 0b00111110), BitDynamic::new(8, 0b10110101), BitDynamic::new(8, 0b01100110), BitDynamic::new(8, 0b01001000), BitDynamic::new(8, 0b00000011), BitDynamic::new(8, 0b11110110), BitDynamic::new(8, 0b00001110), BitDynamic::new(8, 0b01100001), BitDynamic::new(8, 0b00110101), BitDynamic::new(8, 0b01010111), BitDynamic::new(8, 0b10111001), BitDynamic::new(8, 0b10000110), BitDynamic::new(8, 0b11000001), BitDynamic::new(8, 0b00011101), BitDynamic::new(8, 0b10011110), BitDynamic::new(8, 0b11100001), BitDynamic::new(8, 0b11111000), BitDynamic::new(8, 0b10011000), BitDynamic::new(8, 0b00010001), BitDynamic::new(8, 0b01101001), BitDynamic::new(8, 0b11011001), BitDynamic::new(8, 0b10001110), BitDynamic::new(8, 0b10010100), BitDynamic::new(8, 0b10011011), BitDynamic::new(8, 0b00011110), BitDynamic::new(8, 0b10000111), BitDynamic::new(8, 0b11101001), BitDynamic::new(8, 0b11001110), BitDynamic::new(8, 0b01010101), BitDynamic::new(8, 0b00101000), BitDynamic::new(8, 0b11011111), BitDynamic::new(8, 0b10001100), BitDynamic::new(8, 0b10100001), BitDynamic::new(8, 0b10001001), BitDynamic::new(8, 0b00001101), BitDynamic::new(8, 0b10111111), BitDynamic::new(8, 0b11100110), BitDynamic::new(8, 0b01000010), BitDynamic::new(8, 0b01101000), BitDynamic::new(8, 0b01000001), BitDynamic::new(8, 0b10011001), BitDynamic::new(8, 0b00101101), BitDynamic::new(8, 0b00001111), BitDynamic::new(8, 0b10110000), BitDynamic::new(8, 0b01010100), BitDynamic::new(8, 0b10111011), BitDynamic::new(8, 0b00010110)];
 
+/// aes_sbox_inv_table
+///
+/// Generated from the Sail sources at `riscv_types_kext.sail` L150-171.
 pub const aes_sbox_inv_table: [BitDynamic; (256 as usize)] = [BitDynamic::new(8, 0b01010010), BitDynamic::new(8, 0b00001001), BitDynamic::new(8, 0b01101010), BitDynamic::new(8, 0b11010101), BitDynamic::new(8, 0b00110000), BitDynamic::new(8, 0b00110110), BitDynamic::new(8, 0b10100101), BitDynamic::new(8, 0b00111000), BitDynamic::new(8, 0b10111111), BitDynamic::new(8, 0b01000000), BitDynamic::new(8, 0b10100011), BitDynamic::new(8, 0b10011110), BitDynamic::new(8, 0b10000001), BitDynamic::new(8, 0b11110011), BitDynamic::new(8, 0b11010111), BitDynamic::new(8, 0b11111011), BitDynamic::new(8, 0b01111100), BitDynamic::new(8, 0b11100011), BitDynamic::new(8, 0b00111001), BitDynamic::new(8, 0b10000010), BitDynamic::new(8, 0b10011011), BitDynamic::new(8, 0b00101111), BitDynamic::new(8, 0b11111111), BitDynamic::new(8, 0b10000111), BitDynamic::new(8, 0b00110100), BitDynamic::new(8, 0b10001110), BitDynamic::new(8, 0b01000011), BitDynamic::new(8, 0b01000100), BitDynamic::new(8, 0b11000100), BitDynamic::new(8, 0b11011110), BitDynamic::new(8, 0b11101001), BitDynamic::new(8, 0b11001011), BitDynamic::new(8, 0b01010100), BitDynamic::new(8, 0b01111011), BitDynamic::new(8, 0b10010100), BitDynamic::new(8, 0b00110010), BitDynamic::new(8, 0b10100110), BitDynamic::new(8, 0b11000010), BitDynamic::new(8, 0b00100011), BitDynamic::new(8, 0b00111101), BitDynamic::new(8, 0b11101110), BitDynamic::new(8, 0b01001100), BitDynamic::new(8, 0b10010101), BitDynamic::new(8, 0b00001011), BitDynamic::new(8, 0b01000010), BitDynamic::new(8, 0b11111010), BitDynamic::new(8, 0b11000011), BitDynamic::new(8, 0b01001110), BitDynamic::new(8, 0b00001000), BitDynamic::new(8, 0b00101110), BitDynamic::new(8, 0b10100001), BitDynamic::new(8, 0b01100110), BitDynamic::new(8, 0b00101000), BitDynamic::new(8, 0b11011001), BitDynamic::new(8, 0b00100100), BitDynamic::new(8, 0b10110010), BitDynamic::new(8, 0b01110110), BitDynamic::new(8, 0b01011011), BitDynamic::new(8, 0b10100010), BitDynamic::new(8, 0b01001001), BitDynamic::new(8, 0b01101101), BitDynamic::new(8, 0b10001011), BitDynamic::new(8, 0b11010001), BitDynamic::new(8, 0b00100101), BitDynamic::new(8, 0b01110010), BitDynamic::new(8, 0b11111000), BitDynamic::new(8, 0b11110110), BitDynamic::new(8, 0b01100100), BitDynamic::new(8, 0b10000110), BitDynamic::new(8, 0b01101000), BitDynamic::new(8, 0b10011000), BitDynamic::new(8, 0b00010110), BitDynamic::new(8, 0b11010100), BitDynamic::new(8, 0b10100100), BitDynamic::new(8, 0b01011100), BitDynamic::new(8, 0b11001100), BitDynamic::new(8, 0b01011101), BitDynamic::new(8, 0b01100101), BitDynamic::new(8, 0b10110110), BitDynamic::new(8, 0b10010010), BitDynamic::new(8, 0b01101100), BitDynamic::new(8, 0b01110000), BitDynamic::new(8, 0b01001000), BitDynamic::new(8, 0b01010000), BitDynamic::new(8, 0b11111101), BitDynamic::new(8, 0b11101101), BitDynamic::new(8, 0b10111001), BitDynamic::new(8, 0b11011010), BitDynamic::new(8, 0b01011110), BitDynamic::new(8, 0b00010101), BitDynamic::new(8, 0b01000110), BitDynamic::new(8, 0b01010111), BitDynamic::new(8, 0b10100111), BitDynamic::new(8, 0b10001101), BitDynamic::new(8, 0b10011101), BitDynamic::new(8, 0b10000100), BitDynamic::new(8, 0b10010000), BitDynamic::new(8, 0b11011000), BitDynamic::new(8, 0b10101011), BitDynamic::new(8, 0b00000000), BitDynamic::new(8, 0b10001100), BitDynamic::new(8, 0b10111100), BitDynamic::new(8, 0b11010011), BitDynamic::new(8, 0b00001010), BitDynamic::new(8, 0b11110111), BitDynamic::new(8, 0b11100100), BitDynamic::new(8, 0b01011000), BitDynamic::new(8, 0b00000101), BitDynamic::new(8, 0b10111000), BitDynamic::new(8, 0b10110011), BitDynamic::new(8, 0b01000101), BitDynamic::new(8, 0b00000110), BitDynamic::new(8, 0b11010000), BitDynamic::new(8, 0b00101100), BitDynamic::new(8, 0b00011110), BitDynamic::new(8, 0b10001111), BitDynamic::new(8, 0b11001010), BitDynamic::new(8, 0b00111111), BitDynamic::new(8, 0b00001111), BitDynamic::new(8, 0b00000010), BitDynamic::new(8, 0b11000001), BitDynamic::new(8, 0b10101111), BitDynamic::new(8, 0b10111101), BitDynamic::new(8, 0b00000011), BitDynamic::new(8, 0b00000001), BitDynamic::new(8, 0b00010011), BitDynamic::new(8, 0b10001010), BitDynamic::new(8, 0b01101011), BitDynamic::new(8, 0b00111010), BitDynamic::new(8, 0b10010001), BitDynamic::new(8, 0b00010001), BitDynamic::new(8, 0b01000001), BitDynamic::new(8, 0b01001111), BitDynamic::new(8, 0b01100111), BitDynamic::new(8, 0b11011100), BitDynamic::new(8, 0b11101010), BitDynamic::new(8, 0b10010111), BitDynamic::new(8, 0b11110010), BitDynamic::new(8, 0b11001111), BitDynamic::new(8, 0b11001110), BitDynamic::new(8, 0b11110000), BitDynamic::new(8, 0b10110100), BitDynamic::new(8, 0b11100110), BitDynamic::new(8, 0b01110011), BitDynamic::new(8, 0b10010110), BitDynamic::new(8, 0b10101100), BitDynamic::new(8, 0b01110100), BitDynamic::new(8, 0b00100010), BitDynamic::new(8, 0b11100111), BitDynamic::new(8, 0b10101101), BitDynamic::new(8, 0b00110101), BitDynamic::new(8, 0b10000101), BitDynamic::new(8, 0b11100010), BitDynamic::new(8, 0b11111001), BitDynamic::new(8, 0b00110111), BitDynamic::new(8, 0b11101000), BitDynamic::new(8, 0b00011100), BitDynamic::new(8, 0b01110101), BitDynamic::new(8, 0b11011111), BitDynamic::new(8, 0b01101110), BitDynamic::new(8, 0b01000111), BitDynamic::new(8, 0b11110001), BitDynamic::new(8, 0b00011010), BitDynamic::new(8, 0b01110001), BitDynamic::new(8, 0b00011101), BitDynamic::new(8, 0b00101001), BitDynamic::new(8, 0b11000101), BitDynamic::new(8, 0b10001001), BitDynamic::new(8, 0b01101111), BitDynamic::new(8, 0b10110111), BitDynamic::new(8, 0b01100010), BitDynamic::new(8, 0b00001110), BitDynamic::new(8, 0b10101010), BitDynamic::new(8, 0b00011000), BitDynamic::new(8, 0b10111110), BitDynamic::new(8, 0b00011011), BitDynamic::new(8, 0b11111100), BitDynamic::new(8, 0b01010110), BitDynamic::new(8, 0b00111110), BitDynamic::new(8, 0b01001011), BitDynamic::new(8, 0b11000110), BitDynamic::new(8, 0b11010010), BitDynamic::new(8, 0b01111001), BitDynamic::new(8, 0b00100000), BitDynamic::new(8, 0b10011010), BitDynamic::new(8, 0b11011011), BitDynamic::new(8, 0b11000000), BitDynamic::new(8, 0b11111110), BitDynamic::new(8, 0b01111000), BitDynamic::new(8, 0b11001101), BitDynamic::new(8, 0b01011010), BitDynamic::new(8, 0b11110100), BitDynamic::new(8, 0b00011111), BitDynamic::new(8, 0b11011101), BitDynamic::new(8, 0b10101000), BitDynamic::new(8, 0b00110011), BitDynamic::new(8, 0b10001000), BitDynamic::new(8, 0b00000111), BitDynamic::new(8, 0b11000111), BitDynamic::new(8, 0b00110001), BitDynamic::new(8, 0b10110001), BitDynamic::new(8, 0b00010010), BitDynamic::new(8, 0b00010000), BitDynamic::new(8, 0b01011001), BitDynamic::new(8, 0b00100111), BitDynamic::new(8, 0b10000000), BitDynamic::new(8, 0b11101100), BitDynamic::new(8, 0b01011111), BitDynamic::new(8, 0b01100000), BitDynamic::new(8, 0b01010001), BitDynamic::new(8, 0b01111111), BitDynamic::new(8, 0b10101001), BitDynamic::new(8, 0b00011001), BitDynamic::new(8, 0b10110101), BitDynamic::new(8, 0b01001010), BitDynamic::new(8, 0b00001101), BitDynamic::new(8, 0b00101101), BitDynamic::new(8, 0b11100101), BitDynamic::new(8, 0b01111010), BitDynamic::new(8, 0b10011111), BitDynamic::new(8, 0b10010011), BitDynamic::new(8, 0b11001001), BitDynamic::new(8, 0b10011100), BitDynamic::new(8, 0b11101111), BitDynamic::new(8, 0b10100000), BitDynamic::new(8, 0b11100000), BitDynamic::new(8, 0b00111011), BitDynamic::new(8, 0b01001101), BitDynamic::new(8, 0b10101110), BitDynamic::new(8, 0b00101010), BitDynamic::new(8, 0b11110101), BitDynamic::new(8, 0b10110000), BitDynamic::new(8, 0b11001000), BitDynamic::new(8, 0b11101011), BitDynamic::new(8, 0b10111011), BitDynamic::new(8, 0b00111100), BitDynamic::new(8, 0b10000011), BitDynamic::new(8, 0b01010011), BitDynamic::new(8, 0b10011001), BitDynamic::new(8, 0b01100001), BitDynamic::new(8, 0b00010111), BitDynamic::new(8, 0b00101011), BitDynamic::new(8, 0b00000100), BitDynamic::new(8, 0b01111110), BitDynamic::new(8, 0b10111010), BitDynamic::new(8, 0b01110111), BitDynamic::new(8, 0b11010110), BitDynamic::new(8, 0b00100110), BitDynamic::new(8, 0b11100001), BitDynamic::new(8, 0b01101001), BitDynamic::new(8, 0b00010100), BitDynamic::new(8, 0b01100011), BitDynamic::new(8, 0b01010101), BitDynamic::new(8, 0b00100001), BitDynamic::new(8, 0b00001100), BitDynamic::new(8, 0b01111101)];
 
 /// sbox_lookup
