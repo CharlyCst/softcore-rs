@@ -248,7 +248,7 @@ impl BitDynamic {
     pub const fn set_subrange(mut self, bits: BitDynamic, to: u64, from: u64) -> Self {
         let to = to as i128;
         let from = from as i128;
-        assert!(0 <= from && from <= to && to < self.len);
+        assert!(from <= to && to < self.len);
         let len = to - from + 1;
         assert!(bits.len == len);
         let range_mask = BitDynamic {

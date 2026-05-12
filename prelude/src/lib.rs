@@ -131,7 +131,7 @@ pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {
 }
 
 pub const fn subrange_bits(vec: BitDynamic, end: i128, start: i128) -> BitDynamic {
-    vec.get_subrange(end, start)
+    vec.get_subrange(end + 1, start)
 }
 
 pub const fn update_subrange_bits(
