@@ -1295,5 +1295,19 @@ mod tests_bitdynamic {
         assert_eq!(result.unsigned(), 0x0000000000000000); // Should remain unchanged
     }
 
-    // TODO(Gurvan): Tests for to_le_bytes
+    #[test]
+    fn test_to_raw_le() {
+        for i in 0..=0xFF {
+            let raw_le = BitDynamic::new(8, i).to_raw_le();
+            assert_eq!(raw_le[0] as u64, i);
+        }
+
+        for i in 0..=0xFFFF {
+            let raw_le = BitDynamic::new(16, i).to_raw_le();
+            let low = raw_le[0] as u64;
+            let high = raw_le[1] as u64;
+            assert_eq!(low + (high << 8), i);
+        }
+    }
+
 }
