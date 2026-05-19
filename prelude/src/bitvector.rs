@@ -289,19 +289,19 @@ impl BitDynamic {
         mask
     }
 
-    pub fn to_raw_le(self) -> Vec<u8> {
-        assert!(self.len % 8 == 0, "Length must be byte-aligned");
-        let num_bytes = (self.len / 8) as usize;
-        let mut raw_bytes = Vec::with_capacity(num_bytes);
+    pub fn to_raw_le(self) -> [u8; BITDYNAMIC_SIZE*8] {
+        let mut raw_bytes = [0u8; BITDYNAMIC_SIZE * 8];
 
-        raw_bytes.extend(
-            self.bits
-                .iter()
-                .flat_map(|limb| limb.to_le_bytes())
-                .take(num_bytes),
-        );
+        for (i, limb) in self.bits.iter().enumerate() {
+            raw_bytes[i * 8..(i + 1) * 8].copy_from_slice(&limb.to_le_bytes());
+        }
 
         raw_bytes
+    }
+
+    pub fn num_bytes(self) -> usize {
+        assert!(self.len % 8 == 0, "Length must be byte-aligned");
+        (self.len / 8) as usize
     }
 }
 
