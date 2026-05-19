@@ -193,7 +193,7 @@ let unsupported_match : SSet.t =
     ; "NXTYPE"
     ; "VXSG"
     ; "MASKTYPEX" (* ; "MOVETYPEX" *)
-    ; "VITYPE"
+    (* ; "VITYPE" *)
     ; "NISTYPE"
     ; "NITYPE"
     ; "VISG"

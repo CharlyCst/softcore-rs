@@ -99,12 +99,24 @@ pub const fn ones(n: i128) -> BitDynamic {
     sail_ones(n)
 }
 
+/// log2_xlen_bytes
+///
+/// Generated from the Sail sources at `tests/vec/arch.sail` L85.
 pub const log2_xlen_bytes: i128 = 3;
 
+/// log2_xlen
+///
+/// Generated from the Sail sources at `tests/vec/arch.sail` L89.
 pub const log2_xlen: i128 = 6;
 
+/// xlen_bytes
+///
+/// Generated from the Sail sources at `tests/vec/arch.sail` L90.
 pub const xlen_bytes: i128 = i128::pow(2, ((3 as u32) as u32));
 
+/// xlen
+///
+/// Generated from the Sail sources at `tests/vec/arch.sail` L91.
 pub const xlen: i128 = (xlen_bytes * 8);
 
 pub type xlenbits = BitDynamic;
@@ -262,8 +274,14 @@ pub const fn get_vlen_pow(unit_arg: ()) -> i128 {
     9
 }
 
+/// vlenmax
+///
+/// Generated from the Sail sources at `tests/vec/arch.sail` L170.
 pub const vlenmax: i128 = 65536;
 
+/// VLEN
+///
+/// Generated from the Sail sources at `tests/vec/arch.sail` L171.
 pub const VLEN: i128 = 512;
 
 pub type vreglenbits = BitDynamic;
@@ -319,6 +337,9 @@ pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitDynamic {
     b
 }
 
+/// zvreg
+///
+/// Generated from the Sail sources at `tests/vec/arch.sail` L195.
 pub const zvreg: vregidx = vregidx::Vregidx(BitDynamic::new(5, 0b00000));
 
 /// rV

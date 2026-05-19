@@ -958,6 +958,13 @@ pub fn vlen_exp(core_ctx: &mut Core) -> i128 {
     core_ctx.config.extensions.V.vlen_exp
 }
 
+/// vlen
+///
+/// Generated from the Sail sources at `riscv_vlen.sail` L19.
+pub fn vlen(core_ctx: &mut Core) -> i128 {
+    i128::pow(2, ((vlen_exp(core_ctx) as u32) as u32))
+}
+
 /// get_vlen_pow
 ///
 /// Generated from the Sail sources at `riscv_vlen.sail` L22.
@@ -10053,6 +10060,27 @@ pub fn encdec_vxsgfunct6_backwards_matches(arg_hashtag_: BitDynamic) -> bool {
     }
 }
 
+/// encdec_vifunct6_forwards
+///
+/// Generated from the Sail sources.
+pub fn encdec_vifunct6_forwards(arg_hashtag_: vifunct6) -> BitDynamic {
+    match arg_hashtag_ {
+        vifunct6::VI_VADD => {BitDynamic::new(6, 0b000000)}
+        vifunct6::VI_VRSUB => {BitDynamic::new(6, 0b000011)}
+        vifunct6::VI_VAND => {BitDynamic::new(6, 0b001001)}
+        vifunct6::VI_VOR => {BitDynamic::new(6, 0b001010)}
+        vifunct6::VI_VXOR => {BitDynamic::new(6, 0b001011)}
+        vifunct6::VI_VSADDU => {BitDynamic::new(6, 0b100000)}
+        vifunct6::VI_VSADD => {BitDynamic::new(6, 0b100001)}
+        vifunct6::VI_VSLL => {BitDynamic::new(6, 0b100101)}
+        vifunct6::VI_VSRL => {BitDynamic::new(6, 0b101000)}
+        vifunct6::VI_VSRA => {BitDynamic::new(6, 0b101001)}
+        vifunct6::VI_VSSRL => {BitDynamic::new(6, 0b101010)}
+        vifunct6::VI_VSSRA => {BitDynamic::new(6, 0b101011)}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// encdec_vifunct6_backwards
 ///
 /// Generated from the Sail sources.
@@ -11572,7 +11600,7 @@ pub fn encdec_forwards(core_ctx: &mut Core, arg_hashtag_: ast) -> BitDynamic {
         ast::VXSG((funct6, vm, vs2, rs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VXSG'")}
         ast::MASKTYPEX((vs2, rs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'MASKTYPEX'")}
         ast::MOVETYPEX((rs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(BitDynamic::from(BitDynamic::new(6, 0b010111)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(1, 0b1)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(bitvector_concat(BitDynamic::from(encdec_reg_forwards(rs1)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b100)), BitDynamic::from(bitvector_concat(BitDynamic::from(encdec_vreg_forwards(vd)), BitDynamic::from(BitDynamic::new(7, 0b1010111)))))))))))))}
-        ast::VITYPE((funct6, vm, vs2, simm, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VITYPE'")}
+        ast::VITYPE((funct6, vm, vs2, simm, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {bitvector_concat(BitDynamic::from(encdec_vifunct6_forwards(funct6)), BitDynamic::from(bitvector_concat(BitDynamic::from((vm as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from(encdec_vreg_forwards(vs2)), BitDynamic::from(bitvector_concat(BitDynamic::from((simm as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b011)), BitDynamic::from(bitvector_concat(BitDynamic::from(encdec_vreg_forwards(vd)), BitDynamic::from(BitDynamic::new(7, 0b1010111)))))))))))))}
         ast::NISTYPE((funct6, vm, vs2, simm, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NISTYPE'")}
         ast::NITYPE((funct6, vm, vs2, simm, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NITYPE'")}
         ast::VISG((funct6, vm, vs2, simm, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VISG'")}
@@ -19501,7 +19529,73 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 RETIRE_SUCCESS
             }
         }}
-        ast::VITYPE((funct6, vm, vs2, simm, vd)) => {todo!("Unsupported: 'VITYPE'")}
+        ast::VITYPE((funct6, vm, vs2, simm, vd)) => {{
+            let SEW: i128 = get_sew(core_ctx, ());
+            let LMUL_pow: i128 = get_lmul_pow(core_ctx, ());
+            let num_elem: i128 = get_num_elem(core_ctx, LMUL_pow, SEW);
+            if {illegal_normal(core_ctx, vd, vm)} {
+                return ExecutionResult::Illegal_Instruction(());
+            } else {
+                ()
+            };
+            let n: i128 = num_elem;
+            let m: i128 = SEW;
+            let vm_val: BitDynamic = read_vmask(core_ctx, num_elem, vm, zvreg);
+            let imm_val: BitDynamic = sign_extend(__id(m), simm);
+            let vs2_val: Vec::<BitDynamic> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
+            let vd_val: Vec::<BitDynamic> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
+            let (initial_result, mask): (Vec::<BitDynamic>, BitDynamic) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
+                result::Ok(v) => {v}
+                result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
+                _ => {panic!("Unreachable code")}
+            };
+            let mut result: Vec::<BitDynamic> = initial_result;
+            {
+                for i in 0..=(num_elem - 1) {
+                    if {(bitvector_access(mask, i) == true)} {
+                        result[(i as usize)] = match funct6 {
+                            vifunct6::VI_VADD => {vs2_val[(i as usize)].wrapped_add(imm_val)}
+                            vifunct6::VI_VRSUB => {sub_vec(imm_val, vs2_val[(i as usize)])}
+                            vifunct6::VI_VAND => {(vs2_val[(i as usize)] & imm_val)}
+                            vifunct6::VI_VOR => {(vs2_val[(i as usize)] | imm_val)}
+                            vifunct6::VI_VXOR => {(vs2_val[(i as usize)] ^ imm_val)}
+                            vifunct6::VI_VSADDU => {unsigned_saturation(core_ctx, __id(m), vs2_val[(i as usize)].zero_extend_dyn((__id(m) + 1)).wrapped_add(imm_val.zero_extend_dyn((__id(m) + 1))))}
+                            vifunct6::VI_VSADD => {signed_saturation(core_ctx, __id(m), sign_extend((__id(m) + 1), vs2_val[(i as usize)]).wrapped_add(sign_extend((__id(m) + 1), imm_val)))}
+                            vifunct6::VI_VSLL => {{
+                                let shift_amount: nat = get_shift_amount(simm.zero_extend_dyn(__id(m)), SEW);
+                                (vs2_val[(i as usize)] << shift_amount)
+                            }}
+                            vifunct6::VI_VSRL => {{
+                                let shift_amount: nat = get_shift_amount(simm.zero_extend_dyn(__id(m)), SEW);
+                                (vs2_val[(i as usize)] >> shift_amount)
+                            }}
+                            vifunct6::VI_VSRA => {{
+                                let shift_amount: nat = get_shift_amount(simm.zero_extend_dyn(__id(m)), SEW);
+                                let v_double: BitDynamic = sign_extend((__id(m) * 2), vs2_val[(i as usize)]);
+                                slice((v_double >> shift_amount), 0, SEW)
+                            }}
+                            vifunct6::VI_VSSRL => {{
+                                let shift_amount: nat = get_shift_amount(simm.zero_extend_dyn(__id(m)), SEW);
+                                let rounding_incr: BitDynamic = get_fixed_rounding_incr(core_ctx, vs2_val[(i as usize)], shift_amount);
+                                (vs2_val[(i as usize)] >> shift_amount).wrapped_add(rounding_incr.zero_extend_dyn(__id(m)))
+                            }}
+                            vifunct6::VI_VSSRA => {{
+                                let shift_amount: nat = get_shift_amount(simm.zero_extend_dyn(__id(m)), SEW);
+                                let rounding_incr: BitDynamic = get_fixed_rounding_incr(core_ctx, vs2_val[(i as usize)], shift_amount);
+                                let v_double: BitDynamic = sign_extend((__id(m) * 2), vs2_val[(i as usize)]);
+                                slice((v_double >> shift_amount), 0, SEW).wrapped_add(rounding_incr.zero_extend_dyn(__id(m)))
+                            }}
+                            _ => {panic!("Unreachable code")}
+                        }
+                    } else {
+                        ()
+                    }
+                };
+                write_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd, result);
+                set_vstart(core_ctx, zeros(16));
+                RETIRE_SUCCESS
+            }
+        }}
         ast::NISTYPE((funct6, vm, vs2, simm, vd)) => {todo!("Unsupported: 'NISTYPE'")}
         ast::NITYPE((funct6, vm, vs2, simm, vd)) => {todo!("Unsupported: 'NITYPE'")}
         ast::VISG((funct6, vm, vs2, simm, vd)) => {todo!("Unsupported: 'VISG'")}

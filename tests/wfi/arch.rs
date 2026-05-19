@@ -42,6 +42,9 @@ pub fn _operator_smaller_u_(x: BitDynamic, y: BitDynamic) -> bool {
     (x.unsigned() < y.unsigned())
 }
 
+/// xlen
+///
+/// Generated from the Sail sources at `tests/wfi/arch.sail` L16.
 pub const xlen: i128 = 64;
 
 pub type xlenbits = BitDynamic;

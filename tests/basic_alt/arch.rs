@@ -44,8 +44,14 @@ pub fn EXTS(m: i128, v: BitDynamic) -> BitDynamic {
     sail_sign_extend(v, m)
 }
 
+/// xlen
+///
+/// Generated from the Sail sources at `tests/basic_alt/arch.sail` L14.
 pub const xlen: i128 = 64;
 
+/// xlen_bytes
+///
+/// Generated from the Sail sources at `tests/basic_alt/arch.sail` L15.
 pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitDynamic;

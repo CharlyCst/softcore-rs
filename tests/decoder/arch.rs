@@ -27,8 +27,14 @@ pub fn _reset_all_registers() {
     
 }
 
+/// xlen
+///
+/// Generated from the Sail sources at `tests/decoder/arch.sail` L28.
 pub const xlen: i128 = 64;
 
+/// xlen_bytes
+///
+/// Generated from the Sail sources at `tests/decoder/arch.sail` L29.
 pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitDynamic;

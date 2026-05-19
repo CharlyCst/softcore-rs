@@ -97,8 +97,14 @@ pub fn _operator_smaller_u_(x: BitDynamic, y: BitDynamic) -> bool {
     (x.unsigned() < y.unsigned())
 }
 
+/// xlen
+///
+/// Generated from the Sail sources at `tests/trap/arch.sail` L50.
 pub const xlen: i128 = 64;
 
+/// xlen_bytes
+///
+/// Generated from the Sail sources at `tests/trap/arch.sail` L51.
 pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitDynamic;

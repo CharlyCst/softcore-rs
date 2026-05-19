@@ -27,10 +27,16 @@ pub fn _reset_all_registers() {
     
 }
 
+/// xlen_bytes
+///
+/// Generated from the Sail sources at `tests/optimization/arch.sail` L7.
 pub const xlen_bytes: i128 = 8;
 
 pub type xlenbits = BitDynamic;
 
+/// xlen
+///
+/// Generated from the Sail sources at `tests/optimization/arch.sail` L11.
 pub const xlen: i128 = 64;
 
 /// known_match_branch
