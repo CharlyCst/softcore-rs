@@ -289,17 +289,30 @@ impl BitDynamic {
         mask
     }
 
-    pub fn to_raw_le(self) -> [u8; BITDYNAMIC_SIZE*8] {
+    pub const fn to_raw_le(self) -> [u8; BITDYNAMIC_SIZE*8] {
         let mut raw_bytes = [0u8; BITDYNAMIC_SIZE * 8];
 
-        for (i, limb) in self.bits.iter().enumerate() {
-            raw_bytes[i * 8..(i + 1) * 8].copy_from_slice(&limb.to_le_bytes());
+        let mut i = 0;
+        while i < BITDYNAMIC_SIZE {
+            let base_idx = i * 8;
+            let le_limb = self.bits[i].to_le();
+
+            raw_bytes[base_idx]     = (le_limb & 0xFF) as u8;
+            raw_bytes[base_idx + 1] = ((le_limb >> 8) & 0xFF) as u8;
+            raw_bytes[base_idx + 2] = ((le_limb >> 16) & 0xFF) as u8;
+            raw_bytes[base_idx + 3] = ((le_limb >> 24) & 0xFF) as u8;
+            raw_bytes[base_idx + 4] = ((le_limb >> 32) & 0xFF) as u8;
+            raw_bytes[base_idx + 5] = ((le_limb >> 40) & 0xFF) as u8;
+            raw_bytes[base_idx + 6] = ((le_limb >> 48) & 0xFF) as u8;
+            raw_bytes[base_idx + 7] = ((le_limb >> 56) & 0xFF) as u8;
+
+            i += 1;
         }
 
         raw_bytes
     }
 
-    pub fn num_bytes(self) -> usize {
+    pub const fn num_bytes(self) -> usize {
         assert!(self.len % 8 == 0, "Length must be byte-aligned");
         (self.len / 8) as usize
     }
