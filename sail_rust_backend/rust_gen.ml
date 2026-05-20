@@ -677,9 +677,16 @@ and string_of_rs_exp (n : int) (exp : rs_exp) : string =
   | RsArraySize (exp, size) ->
     Printf.sprintf "[%s; %s]" (string_of_rs_exp n exp) (string_of_rs_exp n size)
   | RsVec exps ->
-    Printf.sprintf "vec![%s]" (String.concat ", " (List.map (string_of_rs_exp n) exps))
+    (* TODO(Gurvan): Ugly fix for now to bake into here *)
+    Printf.sprintf
+      "vec![%s].into()"
+      (String.concat ", " (List.map (string_of_rs_exp n) exps))
   | RsVecSize (exp, size) ->
-    Printf.sprintf "vec![%s; %s]" (string_of_rs_exp n exp) (string_of_rs_exp n size)
+    (* TODO(Gurvan): Ugly fix for now to bake into here *)
+    Printf.sprintf
+      "vec![%s; %s].into()"
+      (string_of_rs_exp n exp)
+      (string_of_rs_exp n size)
   | RsAssign (exp1, exp2) ->
     Printf.sprintf "%s = %s" (string_of_rs_lexp n exp1) (string_of_rs_exp n exp2)
   | RsIndex (exp1, exp2) ->

@@ -289,7 +289,7 @@ impl BitDynamic {
         mask
     }
 
-    pub const fn to_raw_le(self) -> [u8; BITDYNAMIC_SIZE*8] {
+    pub const fn to_raw_le(self) -> [u8; BITDYNAMIC_SIZE * 8] {
         let mut raw_bytes = [0u8; BITDYNAMIC_SIZE * 8];
 
         let mut i = 0;
@@ -297,7 +297,7 @@ impl BitDynamic {
             let base_idx = i * 8;
             let le_limb = self.bits[i].to_le();
 
-            raw_bytes[base_idx]     = (le_limb & 0xFF) as u8;
+            raw_bytes[base_idx] = (le_limb & 0xFF) as u8;
             raw_bytes[base_idx + 1] = ((le_limb >> 8) & 0xFF) as u8;
             raw_bytes[base_idx + 2] = ((le_limb >> 16) & 0xFF) as u8;
             raw_bytes[base_idx + 3] = ((le_limb >> 24) & 0xFF) as u8;
@@ -1322,5 +1322,4 @@ mod tests_bitdynamic {
             assert_eq!(low + (high << 8), i);
         }
     }
-
 }

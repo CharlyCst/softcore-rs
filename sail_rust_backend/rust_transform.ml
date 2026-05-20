@@ -1938,7 +1938,9 @@ let remove_unsupported_match : expr_type_transform =
 let use_dynamic_vector_typ (ctx : context) (typ : rs_type) : rs_type =
   match typ with
   | RsTypArray (typ', size) ->
-    if is_const_rs_typ_param ctx size then typ else RsTypGenericParam ("Vec", [ typ' ])
+    if is_const_rs_typ_param ctx size
+    then typ
+    else RsTypGenericParam ("BoundedVec", [ typ'; RsTypParamNum (mk_num 32) ])
   | _ -> typ
 ;;
 
@@ -1987,9 +1989,9 @@ let use_dynamic_vectors (ctx : context) (rust_program : rs_program) : rs_program
 
 let cast_if_array_to_vec (typ : rs_type) (e : rs_exp) : rs_exp =
   match typ, e.e_exp with
-  | RsTypGenericParam ("Vec", _), (RsArray _ | RsArraySize _) ->
+  | RsTypGenericParam ("BoundedVec", _), (RsArray _ | RsArraySize _) ->
     { e_annot = None
-    ; e_exp = RsMethodApp { exp = e; name = "to_vec"; generics = []; args = [] }
+    ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
     }
   | _ -> e
 ;;

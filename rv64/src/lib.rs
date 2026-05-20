@@ -31,7 +31,7 @@ use raw::{cregidx, regidx};
 use registers::GeneralRegister;
 use registers::*;
 pub use softcore_prelude as prelude;
-use softcore_prelude::BitDynamic;
+use softcore_prelude::{BitDynamic, BoundedVec};
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
 
@@ -142,20 +142,18 @@ impl Core {
 
     /// Get the values of vector registers according to current Core vtype.
     /// NOTE: Does not take into account any mask, nor vstart
-    pub fn get_vec(&mut self, reg: VectorRegister) -> Vec<BitDynamic> {
+    /// NOTE: 32 here is hardcoded but maybe we would like to do something cleaner
+    pub fn get_vec(&mut self, reg: VectorRegister) -> BoundedVec<BitDynamic, 32> {
         let sew = raw::get_sew(self, ());
         let lmul_pow = raw::get_lmul_pow(self, ());
         let num_elem = raw::get_num_elem(self, lmul_pow, sew);
         let vl = self.vl.unsigned() as usize;
-        raw::read_vreg(self, num_elem, sew, lmul_pow, reg)
-            .into_iter()
-            .take(vl)
-            .collect()
+        raw::read_vreg(self, num_elem, sew, lmul_pow, reg).take(vl)
     }
 
     /// Set the values of vector registers according to current Core vtype.
     /// NOTE: Does not take into account any mask, nor vstart
-    pub fn set_vec(&mut self, reg: VectorRegister, value: Vec<BitDynamic>) {
+    pub fn set_vec(&mut self, reg: VectorRegister, value: BoundedVec<BitDynamic, 32>) {
         // TODO(Gurvan): Check for endianness problem
         // NOTE: For now we are kinda always considering that the tail policy is always
         // undisturbed, but this is the safe option anyway
@@ -314,9 +312,9 @@ impl Core {
     }
 
     /// Decode an instruction
-    // pub fn decode_instr(&mut self, instr: u32) -> ast {
-    //     raw::encdec_backwards(self, BitDynamic::new(32, instr as u64))
-    // }
+    pub fn decode_instr(&mut self, instr: u32) -> ast {
+        raw::encdec_backwards(self, BitDynamic::new(32, instr as u64))
+    }
 
     /// Encode and instruction
     pub fn encode_instr(&mut self, instr: ast) -> u32 {
@@ -538,6 +536,43 @@ pub const fn new_core(config: raw::Config) -> Core {
         },
         mhpmevent: [DEFAULT_HPM_EVENT; 32],
         mhpmcounter: [ZEROES; 32],
+        float_result: BitDynamic::new(64, 0),
+        float_fflags: BitDynamic::new(64, 0),
+        f0: BitDynamic::new(raw::flen, 0),
+        f1: BitDynamic::new(raw::flen, 0),
+        f2: BitDynamic::new(raw::flen, 0),
+        f3: BitDynamic::new(raw::flen, 0),
+        f4: BitDynamic::new(raw::flen, 0),
+        f5: BitDynamic::new(raw::flen, 0),
+        f6: BitDynamic::new(raw::flen, 0),
+        f7: BitDynamic::new(raw::flen, 0),
+        f8: BitDynamic::new(raw::flen, 0),
+        f9: BitDynamic::new(raw::flen, 0),
+        f10: BitDynamic::new(raw::flen, 0),
+        f11: BitDynamic::new(raw::flen, 0),
+        f12: BitDynamic::new(raw::flen, 0),
+        f13: BitDynamic::new(raw::flen, 0),
+        f14: BitDynamic::new(raw::flen, 0),
+        f15: BitDynamic::new(raw::flen, 0),
+        f16: BitDynamic::new(raw::flen, 0),
+        f17: BitDynamic::new(raw::flen, 0),
+        f18: BitDynamic::new(raw::flen, 0),
+        f19: BitDynamic::new(raw::flen, 0),
+        f20: BitDynamic::new(raw::flen, 0),
+        f21: BitDynamic::new(raw::flen, 0),
+        f22: BitDynamic::new(raw::flen, 0),
+        f23: BitDynamic::new(raw::flen, 0),
+        f24: BitDynamic::new(raw::flen, 0),
+        f25: BitDynamic::new(raw::flen, 0),
+        f26: BitDynamic::new(raw::flen, 0),
+        f27: BitDynamic::new(raw::flen, 0),
+        f28: BitDynamic::new(raw::flen, 0),
+        f29: BitDynamic::new(raw::flen, 0),
+        f30: BitDynamic::new(raw::flen, 0),
+        f31: BitDynamic::new(raw::flen, 0),
+        fcsr: raw::Fcsr {
+            bits: BitDynamic::new(32, 0),
+        },
         mcyclecfg: raw::CountSmcntrpmf {
             bits: BitDynamic::new(64, 0),
         },
@@ -622,6 +657,66 @@ mod tests {
         assert!(
             core.pmp_check(addr, access).is_none(),
             "PMP allow read access"
+        );
+    }
+
+    #[test]
+    fn decoder() {
+        let mut ctx = new_core(config::U74);
+        let uimm0 = BitDynamic::new(5, 0);
+
+        // Load/Store
+
+        assert_eq!(
+            ctx.decode_instr(0xff87b703),
+            ast::LOAD((
+                BitDynamic::new(12, 0xFFF - 7), // immediate is -8
+                X15,
+                X14,
+                false,
+                word_width::DOUBLE,
+                false,
+                false
+            ))
+        );
+
+        // CSR instructions
+
+        // csrrw x0, mstatus, x0
+        assert_eq!(
+            ctx.decode_instr(0x30001073),
+            ast::CSRReg((BitDynamic::new(12, 0x300), X0, X0, csrop::CSRRW))
+        );
+        // csrrs x0, mstatus, x0
+        assert_eq!(
+            ctx.decode_instr(0x30002073),
+            ast::CSRReg((BitDynamic::new(12, 0x300), X0, X0, csrop::CSRRS))
+        );
+        // csrrc x0, mstatus, x0
+        assert_eq!(
+            ctx.decode_instr(0x30003073),
+            ast::CSRReg((BitDynamic::new(12, 0x300), X0, X0, csrop::CSRRC))
+        );
+        // csrrwi x0, mstatus, 0
+        assert_eq!(
+            ctx.decode_instr(0x30005073),
+            ast::CSRImm((BitDynamic::new(12, 0x300), uimm0, X0, csrop::CSRRW))
+        );
+        // csrrsi x0, mstatus, 0
+        assert_eq!(
+            ctx.decode_instr(0x30006073),
+            ast::CSRImm((BitDynamic::new(12, 0x300), uimm0, X0, csrop::CSRRS))
+        );
+        // csrrci x0, mstatus, 0
+        assert_eq!(
+            ctx.decode_instr(0x30007073),
+            ast::CSRImm((BitDynamic::new(12, 0x300), uimm0, X0, csrop::CSRRC))
+        );
+
+        // Illegal
+        assert_eq!(
+            ctx.decode_instr(0x30001072),
+            ast::ILLEGAL(BitDynamic::new(32, 0x30001072))
         );
     }
 

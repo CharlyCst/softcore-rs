@@ -4,7 +4,9 @@ use std::cmp::max;
 use std::cmp::min;
 
 mod bitvector;
+mod boundedvec;
 pub use bitvector::*;
+pub use boundedvec::*;
 
 // NOTE: Ideally we would use unbounded integers for natural numbers. Yet in practice this would
 // mess up with things such as the SMT solver during symbolic execution.
@@ -157,8 +159,11 @@ pub const fn undefined_array<T: Copy, const N: usize>(v: T) -> [T; N] {
     [v; N]
 }
 
-pub fn undefined_vector<T: Copy>(n: i128, v: T) -> Vec<T> {
-    vec![v; n as usize]
+pub fn undefined_vector<T: Default + Copy, const BOUND: usize>(
+    n: i128,
+    v: T,
+) -> BoundedVec<T, BOUND> {
+    vec![v; n as usize].into()
 }
 
 pub const fn vector_length<T>(v: &[T]) -> i128 {

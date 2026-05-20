@@ -1210,7 +1210,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | TD_abstract (id, K_aux (K_int, _), tdc) ->
       (* TODO(Gurvan): Is this really what we want? *)
       (* { defs_empty with constants = SSet.singleton (string_of_id id) } *)
-        defs_empty
+      defs_empty
     | _ ->
       print_endline "TypeFunDef: other";
       defs_empty
