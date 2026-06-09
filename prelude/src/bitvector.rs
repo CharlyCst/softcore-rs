@@ -340,7 +340,6 @@ pub const fn bvd(len: i128, val: u64) -> BitDynamic {
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
 pub struct BitStatic<const LEN: i128> {
-    /// Little endian
     pub bits: u64,
 }
 
