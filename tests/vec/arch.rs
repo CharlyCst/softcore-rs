@@ -442,9 +442,9 @@ pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitDynamic) {
 /// read_single_vreg
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L323-334.
-pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> Vec::<BitDynamic> {
+pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> BoundedVec::<BitDynamic, 32> {
     let bv: vregtype = rV_bits(core_ctx, vrid);
-    let mut result: Vec::<BitDynamic> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)];
+    let mut result: BoundedVec::<BitDynamic, 32> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)].into();
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:327.29-327.30");
         for i in 0..=(num_elem - 1) {
@@ -458,7 +458,7 @@ pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vr
 /// write_single_vreg
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L338-348.
-pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: Vec::<BitDynamic>) {
+pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: BoundedVec::<BitDynamic, 32>) {
     let mut r: vregtype = zeros(65536);
     {
         assert!(((8 <= SEW) && (SEW <= 64)), "tests/vec/arch.sail:341.29-341.30");
@@ -475,9 +475,9 @@ pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: v
 /// read_vreg
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L352-386.
-pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> Vec::<BitDynamic> {
+pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx) -> BoundedVec::<BitDynamic, 32> {
     let vrid_val: i128 = vregidx_bits(vrid).unsigned();
-    let mut result: Vec::<BitDynamic> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)];
+    let mut result: BoundedVec::<BitDynamic, 32> = vec![zeros(__id(SEW)); (__id(num_elem) as usize)].into();
     {
         let LMUL_pow_reg: i128 = if {(LMUL_pow < 0)} {
             0
@@ -498,7 +498,7 @@ pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128,
                     let r_start_i: i128 = (i_lmul * __id(num_elem_single));
                     let r_end_i: i128 = ((r_start_i + __id(num_elem_single)) - 1);
                     let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
-                    let single_result: Vec::<BitDynamic> = read_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul);
+                    let single_result: BoundedVec::<BitDynamic, 32> = read_single_vreg(core_ctx, __id(num_elem_single), SEW, vrid_lmul);
                     for r_i in r_start_i..=r_end_i {
                         let s_i: i128 = (r_i - r_start_i);
                         assert!(((0 <= r_i) && (r_i < num_elem)), "tests/vec/arch.sail:377.42-377.43");
@@ -515,7 +515,7 @@ pub fn read_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128,
 /// write_vreg
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L390-408.
-pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx, vec: Vec::<BitDynamic>) {
+pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vrid: vregidx, vec: BoundedVec::<BitDynamic, 32>) {
     let LMUL_pow_reg: i128 = if {(LMUL_pow < 0)} {
         0
     } else {
@@ -524,7 +524,7 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
     let num_elem_single: i128 = quot_round_zero(512, SEW);
     assert!((__id(num_elem_single) >= 0), "tests/vec/arch.sail:394.30-394.31");
     for i_lmul in 0..=(i128::pow(2, (LMUL_pow_reg as u32)) - 1) {
-        let mut single_vec: Vec::<BitDynamic> = vec![zeros(__id(SEW)); (__id(num_elem_single) as usize)];
+        let mut single_vec: BoundedVec::<BitDynamic, 32> = vec![zeros(__id(SEW)); (__id(num_elem_single) as usize)].into();
         {
             let vrid_lmul: vregidx = vregidx_offset(vrid, to_bits(5, i_lmul));
             let r_start_i: i128 = (i_lmul * __id(num_elem_single));
@@ -638,7 +638,7 @@ pub fn get_end_element(core_ctx: &mut Core, unit_arg: ()) -> i128 {
 /// init_masked_result
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L526-574.
-pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vd_val: Vec::<BitDynamic>, vm_val: BitDynamic) -> result::<(Vec::<BitDynamic>, BitDynamic), ()> {
+pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128, vd_val: BoundedVec::<BitDynamic, 32>, vm_val: BitDynamic) -> result::<(BoundedVec::<BitDynamic, 32>, BitDynamic), ()> {
     let start_element: nat = match get_start_element(core_ctx, ()) {
         result::Ok(v) => {v}
         result::Err(()) => {return result::Err(());}
@@ -649,7 +649,7 @@ pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_p
     let mask_ag: agtype = get_vtype_vma(core_ctx, ());
     let mut mask: BitDynamic = undefined_bitvector(bitvector_length(vm_val));
     {
-        let mut result: Vec::<BitDynamic> = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
+        let mut result: BoundedVec::<BitDynamic, 32> = undefined_vector(bitvector_length(vm_val), undefined_bitvector(__id(SEW)));
         {
             let real_num_elem: i128 = if {(LMUL_pow >= 0)} {
                 num_elem
@@ -714,15 +714,15 @@ pub fn execute(core_ctx: &mut Core, funct6: ast) -> ExecutionResult {
     let n: i128 = num_elem;
     let m: i128 = SEW;
     let vm_val: BitDynamic = read_vmask(core_ctx, num_elem, vm, zvreg);
-    let vs1_val: Vec::<BitDynamic> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
-    let vs2_val: Vec::<BitDynamic> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
-    let vd_val: Vec::<BitDynamic> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
-    let (initial_result, mask): (Vec::<BitDynamic>, BitDynamic) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
+    let vs1_val: BoundedVec::<BitDynamic, 32> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs1);
+    let vs2_val: BoundedVec::<BitDynamic, 32> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2);
+    let vd_val: BoundedVec::<BitDynamic, 32> = read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd);
+    let (initial_result, mask): (BoundedVec::<BitDynamic, 32>, BitDynamic) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, vd_val, vm_val) {
         result::Ok(v) => {v}
         result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
         _ => {panic!("Unreachable code")}
     };
-    let mut result: Vec::<BitDynamic> = initial_result;
+    let mut result: BoundedVec::<BitDynamic, 32> = initial_result;
     {
         for i in 0..=(num_elem - 1) {
             if {(bitvector_access(mask, i) == true)} {

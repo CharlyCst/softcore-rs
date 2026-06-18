@@ -15,7 +15,7 @@ impl<T: Default + Copy, const BOUND: usize> BoundedVec<T, BOUND> {
         }
     }
 
-    pub fn push(&mut self, item: T) {
+    pub const fn push(&mut self, item: T) {
         assert!(self.len < BOUND, "BoundedVec capacity exceeded");
 
         self.vec[self.len] = item;
@@ -37,13 +37,13 @@ impl<T: Default + Copy, const BOUND: usize> BoundedVec<T, BOUND> {
         &self.as_slice()[index]
     }
 
-    pub fn take(mut self, vl: usize) -> Self {
-        self.len = std::cmp::min(self.len, vl);
+    pub const fn take(mut self, vl: usize) -> Self {
+        self.len = if self.len < vl { self.len } else { vl };
         self
     }
 
-    pub fn truncate(&mut self, vl: usize) {
-        self.len = std::cmp::min(self.len, vl);
+    pub const fn truncate(&mut self, vl: usize) {
+        self.len = if self.len < vl { self.len } else { vl };
     }
 }
 
@@ -75,5 +75,7 @@ impl<T: Default + Copy, const BOUND: usize> From<Vec<T>> for BoundedVec<T, BOUND
         }
     }
 }
+
+// TODO(Gurvan): From slice functions
 
 // TODO(Gurvan): Test functions

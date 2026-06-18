@@ -133,7 +133,7 @@ pub fn hex_bits_backwards(m: i128, str: &'static str) -> BitDynamic {
 /// validDoubleRegs
 ///
 /// Generated from the Sail sources at `tests/types/arch.sail` L80-85.
-pub fn validDoubleRegs(n: i128, regs: Vec::<BitDynamic>) -> bool {
+pub fn validDoubleRegs(n: i128, regs: BoundedVec::<BitDynamic, 32>) -> bool {
     for i in 0..=(n - 1) {
         if {(bitvector_access(regs[(i as usize)], 0) == true)} {
             return false;
@@ -250,7 +250,7 @@ pub fn execute(core_ctx: &mut Core, ast::TEST(()): ast) {
         let idx: i128 = i;
         ()
     };
-    let ok: bool = validDoubleRegs(2, [BitDynamic::new(5, 0b11011), BitDynamic::new(5, 0b01111)].to_vec());
+    let ok: bool = validDoubleRegs(2, [BitDynamic::new(5, 0b11011), BitDynamic::new(5, 0b01111)].into());
     let s: My_struct = My_struct {
         field1: BitDynamic::new(5, 0b11111),
         field2: 5,

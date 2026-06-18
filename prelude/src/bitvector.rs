@@ -5,6 +5,7 @@ use core::ops::*;
 const fn assert_eq_range<const START: i128, const END: i128, const LEN: i128>() {
     assert!(END - START == LEN);
 }
+
 const fn assert_eq_sum<const X: i128, const Y: i128, const Z: i128>() {
     assert!(X + Y == Z);
 }
@@ -332,6 +333,8 @@ impl<const LEN: i128> From<BitStatic<LEN>> for BitDynamic {
     }
 }
 
+// TODO: Implement Display for BitDynamic
+
 pub const fn bvd(len: i128, val: u64) -> BitDynamic {
     BitDynamic::new(len, val)
 }
@@ -440,7 +443,7 @@ impl<const LEN: i128> BitStatic<LEN> {
 
     pub const ASSERT_LEN_VALID: () = assert!(
         0 <= LEN && LEN <= 64,
-        "Length of BitStatic must be less than 64"
+        "Length of BitStatic must be between 0 and 64"
     );
 
     pub const BIT_MASK: u64 = if LEN == 64 { u64::MAX } else { (1 << LEN) - 1 };

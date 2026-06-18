@@ -62,8 +62,8 @@ pub const fn zeros(n: i128) -> BitDynamic {
 /// read
 ///
 /// Generated from the Sail sources at `tests/vec_mini/arch.sail` L13-22.
-pub fn read(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> Vec::<BitDynamic> {
-    let mut result: Vec::<BitDynamic> = vec![zeros(__id(elem_size)); (__id(elem_count) as usize)];
+pub fn read(core_ctx: &mut Core, elem_count: i128, elem_size: i128) -> BoundedVec::<BitDynamic, 32> {
+    let mut result: BoundedVec::<BitDynamic, 32> = vec![zeros(__id(elem_size)); (__id(elem_count) as usize)].into();
     {
         for i in 0..=(elem_count - 1) {
             let start_index: i128 = (i * elem_size);
@@ -81,6 +81,6 @@ pub fn execute(core_ctx: &mut Core, unit_arg: ()) {
     let elem_count: i128 = core_ctx.rcount;
     let n: i128 = elem_count;
     let m: i128 = elem_size;
-    let vs: Vec::<BitDynamic> = read(core_ctx, elem_count, elem_size);
+    let vs: BoundedVec::<BitDynamic, 32> = read(core_ctx, elem_count, elem_size);
     ()
 }
