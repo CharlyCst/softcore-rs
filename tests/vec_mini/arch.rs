@@ -14,7 +14,7 @@ use crate::arch_prelude::*;
 pub struct Core {
     pub rsize: i128,
     pub rcount: i128,
-    pub rv: BitDynamic,
+    pub rv: BitStatic::<256>,
     pub config: Config,
 }
 

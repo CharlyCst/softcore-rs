@@ -1,4 +1,5 @@
-module SSet = Types.SSet
+open Rs_ast
+open Rs_context
 
 let call_set =
   SSet.of_list
@@ -43,66 +44,66 @@ let call_set =
     ]
 ;;
 
-let overwritten_func : SSet.t =
-  SSet.of_list
-    [ "shift_right_arith"
+let overwritten_func : rs_fn_type option SMap.t =
+  SMap.of_list
+    [ "shift_right_arith", None
       (* Necessary until https://github.com/rems-project/sail/issues/1596 is fixed: *)
-    ; "hex_bits_12_backwards_matches"
+    ; "hex_bits_12_backwards_matches", None
     ]
 ;;
 
-let external_func : SSet.t =
-  let externals =
-    SSet.of_list
-      [ "not_implemented"
-      ; "print_output"
-      ; "format!"
-      ; "assert!"
-      ; "panic!"
-      ; "dec_str"
-      ; "hex_str"
-      ; "update_subrange_bits"
-      ; "zero_extend_16"
-      ; "zero_extend_63"
-      ; "zero_extend_64"
-      ; "sign_extend"
-      ; "sail_sign_extend"
-      ; "sail_ones"
-      ; "max_int"
-      ; "min_int"
-      ; "__exit"
-      ; "signed"
-      ; "lteq_int"
-      ; "sail_branch_announce"
-      ; "bitvector_length"
-      ; "bits_str"
-      ; "print_reg"
-      ; "bitvector_access"
-      ; "get_16_random_bits"
-      ; "bitvector_concat"
-      ; "print_platform"
-      ; "cancel_reservation"
-      ; "truncate"
-      ; "subrange_bits"
-      ; "internal_error"
-      ; "bitvector_update"
-      ; "hex_bits_12_forwards"
-      ; "hex_bits_12_backwards"
-      ; "sail_zeros"
-      ; "parse_hex_bits"
-      ; "get_slice_int"
-      ; "sub_vec"
-      ; "shift_bits_left"
-      ; "shift_bits_right"
-      ; "quot_round_zero"
-      ; "rem_round_zero"
-      ; "undefined_vector"
-      ; "undefined_bitvector"
-      ; "bitvector_concat"
-      ; "slice"
+let external_func : rs_fn_type option SMap.t =
+  let externals : rs_fn_type option SMap.t =
+    SMap.of_list
+      [ "not_implemented", None
+      ; "print_output", None
+      ; "format!", None
+      ; "assert!", None
+      ; "panic!", None
+      ; "dec_str", None
+      ; "hex_str", None
+      ; "update_subrange_bits", None
+      ; "zero_extend_16", None
+      ; "zero_extend_63", None
+      ; "zero_extend_64", None
+      ; "sign_extend", None
+      ; "sail_sign_extend", None
+      ; "sail_ones", None
+      ; "max_int", None
+      ; "min_int", None
+      ; "__exit", None
+      ; "signed", None
+      ; "lteq_int", None
+      ; "sail_branch_announce", None
+      ; "bitvector_length", None
+      ; "bits_str", None
+      ; "print_reg", None
+      ; "bitvector_access", None
+      ; "get_16_random_bits", None
+      ; "bitvector_concat", None
+      ; "print_platform", None
+      ; "cancel_reservation", None
+      ; "truncate", None
+      ; "subrange_bits", None
+      ; "internal_error", None
+      ; "bitvector_update", None
+      ; "hex_bits_12_forwards", None
+      ; "hex_bits_12_backwards", None
+      ; "sail_zeros", None
+      ; "parse_hex_bits", None
+      ; "get_slice_int", None
+      ; "sub_vec", None
+      ; "shift_bits_left", None
+      ; "shift_bits_right", None
+      ; "quot_round_zero", None
+      ; "rem_round_zero", None
+      ; "undefined_vector", None
+      ; "undefined_bitvector", None
+      ; "bitvector_concat", None
+      ; "slice", None
       ]
   in
-  SSet.union externals overwritten_func
+  SMap.union (fun _ _ _ -> None) externals overwritten_func
 ;;
 
 let unsupported_obj : SSet.t =
@@ -368,7 +369,7 @@ let unsupported_match : SSet.t =
     ]
 ;;
 
-let rv64 : Types.arch_t =
+let rv64 : arch_t =
   { call_set
   ; external_func
   ; overwritten_func

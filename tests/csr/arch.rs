@@ -64,9 +64,9 @@ pub const xlen: i128 = 64;
 /// Generated from the Sail sources at `tests/csr/arch.sail` L29.
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitDynamic;
+pub type xlenbits = BitStatic::<xlen>;
 
-pub type priv_level = BitDynamic;
+pub type priv_level = BitStatic::<2>;
 
 /// Privilege
 ///
@@ -81,7 +81,7 @@ pub enum Privilege {
 /// privLevel_to_bits
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L37-42.
-pub fn privLevel_to_bits(p: Privilege) -> BitDynamic {
+pub fn privLevel_to_bits(p: Privilege) -> BitStatic::<2> {
     match p {
         Privilege::User => {BitDynamic::new(2, 0b00)}
         Privilege::Supervisor => {BitDynamic::new(2, 0b01)}
@@ -90,16 +90,16 @@ pub fn privLevel_to_bits(p: Privilege) -> BitDynamic {
     }
 }
 
-pub type regidx = BitDynamic;
+pub type regidx = BitStatic::<5>;
 
-pub type cregidx = BitDynamic;
+pub type cregidx = BitStatic::<3>;
 
-pub type csreg = BitDynamic;
+pub type csreg = BitStatic::<12>;
 
 /// rX
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L67-71.
-pub fn rX(core_ctx: &mut Core, r: BitDynamic) -> BitDynamic {
+pub fn rX(core_ctx: &mut Core, r: BitStatic::<5>) -> BitStatic::<64> {
     match r {
         b__0 if {(b__0 == BitDynamic::new(5, 0b00000))} => {EXTZ(64, BitDynamic::new(4, 0b0000))}
         _ => {core_ctx.Xs[(r.unsigned() as usize)]}
@@ -110,7 +110,7 @@ pub fn rX(core_ctx: &mut Core, r: BitDynamic) -> BitDynamic {
 /// wX
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L74-77.
-pub fn wX(core_ctx: &mut Core, r: BitDynamic, v: BitDynamic) {
+pub fn wX(core_ctx: &mut Core, r: BitStatic::<5>, v: BitStatic::<64>) {
     if {(r != BitDynamic::new(5, 0b00000))} {
         core_ctx.Xs[(r.unsigned() as usize)] = v
     } else {
@@ -121,7 +121,7 @@ pub fn wX(core_ctx: &mut Core, r: BitDynamic, v: BitDynamic) {
 /// bool_bits_forwards
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitDynamic {
+pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitStatic::<1> {
     match arg_hashtag_ {
         true => {BitDynamic::new(1, 0b1)}
         false => {BitDynamic::new(1, 0b0)}
@@ -132,7 +132,7 @@ pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitDynamic {
 /// bool_bits_backwards
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_backwards(arg_hashtag_: BitDynamic) -> bool {
+pub fn bool_bits_backwards(arg_hashtag_: BitStatic::<1>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitDynamic::new(1, 0b1))} => {true}
         _ => {false}
@@ -143,7 +143,7 @@ pub fn bool_bits_backwards(arg_hashtag_: BitDynamic) -> bool {
 /// bool_bits_backwards_matches
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_backwards_matches(arg_hashtag_: BitDynamic) -> bool {
+pub fn bool_bits_backwards_matches(arg_hashtag_: BitStatic::<1>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitDynamic::new(1, 0b1))} => {true}
         b__1 if {(b__1 == BitDynamic::new(1, 0b0))} => {true}
@@ -196,14 +196,14 @@ pub enum Retired {
 /// Generated from the Sail sources at `tests/csr/arch.sail` L103.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    ITYPE((BitDynamic, regidx, regidx, iop)),
-    CSR((BitDynamic, regidx, regidx, bool, csrop))
+    ITYPE((BitStatic::<12>, regidx, regidx, iop)),
+    CSR((BitStatic::<12>, regidx, regidx, bool, csrop))
 }
 
 /// encdec_csrop_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitDynamic {
+pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitStatic::<2> {
     match arg_hashtag_ {
         csrop::CSRRW => {BitDynamic::new(2, 0b01)}
         csrop::CSRRS => {BitDynamic::new(2, 0b10)}
@@ -215,7 +215,7 @@ pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitDynamic {
 /// encdec_csrop_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_backwards(arg_hashtag_: BitDynamic) -> csrop {
+pub fn encdec_csrop_backwards(arg_hashtag_: BitStatic::<2>) -> csrop {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitDynamic::new(2, 0b01))} => {csrop::CSRRW}
         b__1 if {(b__1 == BitDynamic::new(2, 0b10))} => {csrop::CSRRS}
@@ -227,7 +227,7 @@ pub fn encdec_csrop_backwards(arg_hashtag_: BitDynamic) -> csrop {
 /// encdec_csrop_backwards_matches
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitDynamic) -> bool {
+pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitStatic::<2>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitDynamic::new(2, 0b01))} => {true}
         b__1 if {(b__1 == BitDynamic::new(2, 0b10))} => {true}
@@ -237,29 +237,29 @@ pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitDynamic) -> bool {
     }
 }
 
-pub type csrRW = BitDynamic;
+pub type csrRW = BitStatic::<2>;
 
 /// csrAccess
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L135.
-pub fn csrAccess(csr: BitDynamic) -> BitDynamic {
+pub fn csrAccess(csr: BitStatic::<12>) -> BitStatic::<2> {
     csr.subrange::<10, 12, 2>()
 }
 
 /// csrPriv
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L136.
-pub fn csrPriv(csr: BitDynamic) -> BitDynamic {
+pub fn csrPriv(csr: BitStatic::<12>) -> BitStatic::<2> {
     csr.subrange::<8, 10, 2>()
 }
 
 /// encdec_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_forwards(arg_hashtag_: ast) -> BitDynamic {
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitStatic::<32> {
     match arg_hashtag_ {
-        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {bitvector_concat(BitDynamic::from((imm as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as regidx)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from((rd as regidx)), BitDynamic::from(BitDynamic::new(7, 0b0010011)))))))))}
-        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat(BitDynamic::from((csr as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from(bool_bits_forwards(is_imm)), BitDynamic::from(bitvector_concat(BitDynamic::from(encdec_csrop_forwards(op)), BitDynamic::from(bitvector_concat(BitDynamic::from((rd as BitDynamic)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
+        ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {bitvector_concat(BitDynamic::from((imm as BitStatic::<12>)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as regidx)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from((rd as regidx)), BitDynamic::from(BitDynamic::new(7, 0b0010011)))))))))}
+        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat(BitDynamic::from((csr as BitStatic::<12>)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitStatic::<5>)), BitDynamic::from(bitvector_concat(BitDynamic::from(bool_bits_forwards(is_imm)), BitDynamic::from(bitvector_concat(BitDynamic::from(encdec_csrop_forwards(op)), BitDynamic::from(bitvector_concat(BitDynamic::from((rd as BitStatic::<5>)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -267,22 +267,22 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitDynamic {
 /// encdec_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_backwards(arg_hashtag_: BitDynamic) -> ast {
-    let head_exp_hashtag_: BitDynamic = arg_hashtag_;
+pub fn encdec_backwards(arg_hashtag_: BitStatic::<32>) -> ast {
+    let head_exp_hashtag_: BitStatic::<32> = arg_hashtag_;
     match match head_exp_hashtag_ {
-        v__0 if {((v__0.subrange::<12, 15, 3>() == BitDynamic::new(3, 0b000)) && (v__0.subrange::<0, 7, 7>() == BitDynamic::new(7, 0b0010011)))} => {let imm: BitDynamic = v__0.subrange::<20, 32, 12>();
+        v__0 if {((v__0.subrange::<12, 15, 3>() == BitDynamic::new(3, 0b000)) && (v__0.subrange::<0, 7, 7>() == BitDynamic::new(7, 0b0010011)))} => {let imm: BitStatic::<12> = v__0.subrange::<20, 32, 12>();
         let rs1: regidx = v__0.subrange::<15, 20, 5>();
         let rd: regidx = v__0.subrange::<7, 12, 5>();
-        let imm: BitDynamic = v__0.subrange::<20, 32, 12>();
+        let imm: BitStatic::<12> = v__0.subrange::<20, 32, 12>();
         Some(ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)))}
-        v__3 if {let mapping1_hashtag__var_1: BitDynamic = v__3.subrange::<12, 14, 2>();
-        let mapping0_hashtag__var_2: BitDynamic = v__3.subrange::<14, 15, 1>();
-        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__3.subrange::<0, 7, 7>() == BitDynamic::new(7, 0b1110011)))} => {let csr: BitDynamic = v__3.subrange::<20, 32, 12>();
-        let rs1: BitDynamic = v__3.subrange::<15, 20, 5>();
-        let rd: BitDynamic = v__3.subrange::<7, 12, 5>();
-        let mapping1_hashtag_: BitDynamic = v__3.subrange::<12, 14, 2>();
-        let mapping0_hashtag_: BitDynamic = v__3.subrange::<14, 15, 1>();
-        let csr: BitDynamic = v__3.subrange::<20, 32, 12>();
+        v__3 if {let mapping1_hashtag__var_1: BitStatic::<2> = v__3.subrange::<12, 14, 2>();
+        let mapping0_hashtag__var_2: BitStatic::<1> = v__3.subrange::<14, 15, 1>();
+        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__3.subrange::<0, 7, 7>() == BitDynamic::new(7, 0b1110011)))} => {let csr: BitStatic::<12> = v__3.subrange::<20, 32, 12>();
+        let rs1: BitStatic::<5> = v__3.subrange::<15, 20, 5>();
+        let rd: BitStatic::<5> = v__3.subrange::<7, 12, 5>();
+        let mapping1_hashtag_: BitStatic::<2> = v__3.subrange::<12, 14, 2>();
+        let mapping0_hashtag_: BitStatic::<1> = v__3.subrange::<14, 15, 1>();
+        let csr: BitStatic::<12> = v__3.subrange::<20, 32, 12>();
         match (bool_bits_backwards(mapping0_hashtag_), encdec_csrop_backwards(mapping1_hashtag_)) {
             (is_imm, op) => {Some(ast::CSR((csr, rs1, rd, is_imm, op)))}
             _ => {None}
@@ -299,7 +299,7 @@ pub fn encdec_backwards(arg_hashtag_: BitDynamic) -> ast {
 /// is_CSR_defined
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L141-146.
-pub fn is_CSR_defined(csr: BitDynamic, p: Privilege) -> bool {
+pub fn is_CSR_defined(csr: BitStatic::<12>, p: Privilege) -> bool {
     match csr {
         b__0 if {(b__0 == BitDynamic::new(12, 0b001101000000))} => {(p == Privilege::Machine)}
         b__1 if {(b__1 == BitDynamic::new(12, 0b000101000000))} => {((p == Privilege::Machine) || (p == Privilege::Supervisor))}
@@ -311,21 +311,21 @@ pub fn is_CSR_defined(csr: BitDynamic, p: Privilege) -> bool {
 /// check_CSR_access
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L149-151.
-pub fn check_CSR_access(csrrw: BitDynamic, csrpr: BitDynamic, p: Privilege, isWrite: bool) -> bool {
+pub fn check_CSR_access(csrrw: BitStatic::<2>, csrpr: BitStatic::<2>, p: Privilege, isWrite: bool) -> bool {
     (!(((isWrite == true) && (csrrw == BitDynamic::new(2, 0b11)))) && _operator_biggerequal_u_(privLevel_to_bits(p), csrpr))
 }
 
 /// check_CSR
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L153-154.
-pub fn check_CSR(csr: BitDynamic, p: Privilege, isWrite: bool) -> bool {
+pub fn check_CSR(csr: BitStatic::<12>, p: Privilege, isWrite: bool) -> bool {
     (is_CSR_defined(csr, p) && check_CSR_access(csrAccess(csr), csrPriv(csr), p, isWrite))
 }
 
 /// readCSR
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L156-164.
-pub fn readCSR(core_ctx: &mut Core, csr: BitDynamic) -> BitDynamic {
+pub fn readCSR(core_ctx: &mut Core, csr: BitStatic::<12>) -> BitStatic::<64> {
     let res: xlenbits = match (csr, 64) {
         (b__0, _) if {(b__0 == BitDynamic::new(12, 0b001101000000))} => {core_ctx.mscratch}
         (b__1, _) if {(b__1 == BitDynamic::new(12, 0b000101000000))} => {core_ctx.sscratch}
@@ -338,7 +338,7 @@ pub fn readCSR(core_ctx: &mut Core, csr: BitDynamic) -> BitDynamic {
 /// writeCSR
 ///
 /// Generated from the Sail sources at `tests/csr/arch.sail` L166-173.
-pub fn writeCSR(core_ctx: &mut Core, csr: BitDynamic, value: BitDynamic) {
+pub fn writeCSR(core_ctx: &mut Core, csr: BitStatic::<12>, value: BitStatic::<64>) {
     let res: Option<xlenbits> = match (csr, 64) {
         (b__0, _) if {(b__0 == BitDynamic::new(12, 0b001101000000))} => {{
             core_ctx.mscratch = value;
@@ -360,9 +360,9 @@ pub fn writeCSR(core_ctx: &mut Core, csr: BitDynamic, value: BitDynamic) {
 pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> Retired {
     match merge_hashtag_var {
         ast::ITYPE((imm, rs1, rd, iop::RISCV_ADDI)) => {{
-            let rs1_val: BitDynamic = rX(core_ctx, rs1);
+            let rs1_val: BitStatic::<64> = rX(core_ctx, rs1);
             let imm_ext: xlenbits = EXTS(64, imm);
-            let result: BitDynamic = rs1_val.wrapped_add(imm_ext);
+            let result: BitStatic::<64> = rs1_val.wrapped_add(imm_ext);
             wX(core_ctx, rd, result);
             Retired::RETIRE_SUCCESS
         }}
@@ -388,7 +388,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> Retired {
                 ();
                 Retired::RETIRE_FAIL
             } else {
-                let csr_val: BitDynamic = readCSR(core_ctx, csr);
+                let csr_val: BitStatic::<64> = readCSR(core_ctx, csr);
                 if {isWrite} {
                     let new_val: xlenbits = match op {
                         csrop::CSRRW => {rs1_val}

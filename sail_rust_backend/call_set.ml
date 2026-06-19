@@ -1,20 +1,12 @@
 (** Compute the set of functions transitively called from a given entry point **)
 
+open Rs_ast
+open Rs_context
 open Libsail
 open Ast
 open Ast_util
 open Ast_defs
 open Type_check
-module SSet = Types.SSet
-module SMap = Types.SMap
-
-type arch_t = Types.arch_t
-type config_map = typ SMap.t
-
-type sail_ctx =
-  { call_set : SSet.t
-  ; config_map : config_map
-  }
 
 let add_fn (fn : string) (ctx : sail_ctx) : sail_ctx =
   { ctx with call_set = SSet.add fn ctx.call_set }
@@ -44,7 +36,7 @@ let rec exp_call_set (texp : tannot exp) (arch : arch_t) (ctx : sail_ctx) : sail
   | E_typ (_, exp) -> exp_call_set exp arch ctx
   | E_app (id, exp_list) ->
     let id = string_of_id id in
-    if SSet.mem id arch.unsupported_func || SSet.mem id arch.overwritten_func
+    if SSet.mem id arch.unsupported_func || SMap.mem id arch.overwritten_func
     then ctx
     else (
       let ctx = add_fn id ctx in

@@ -47,7 +47,7 @@ pub const V_LEN_ELEM: i128 = 65536;
 /// Generated from the Sail sources at `tests/vec_arith/arch.sail` L36.
 pub const V_LEN_BITS: i128 = 16;
 
-pub type vreglenbits = BitDynamic;
+pub type vreglenbits = BitStatic::<V_LEN_BITS>;
 
 pub type vregtype = [vreglenbits; (V_LEN_ELEM as usize)];
 
@@ -56,7 +56,7 @@ pub type vregtype = [vreglenbits; (V_LEN_ELEM as usize)];
 /// Generated from the Sail sources at `tests/vec_arith/arch.sail` L45.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregidx {
-    Vregidx(BitDynamic)
+    Vregidx(BitStatic::<2>)
 }
 
 /// vregno
@@ -77,7 +77,7 @@ pub fn vregidx_to_vregno(vregidx::Vregidx(b): vregidx) -> vregno {
 /// rV
 ///
 /// Generated from the Sail sources at `tests/vec_arith/arch.sail` L50-58.
-pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BoundedVec::<BitDynamic, 32> {
+pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BoundedVec::<BitStatic::<16>, 32> {
     match r {
         l__7 if {(l__7 == 0)} => {vec![zeros(16); (({
                     65536
@@ -92,7 +92,7 @@ pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BoundedVec::<BitDyn
 /// wV
 ///
 /// Generated from the Sail sources at `tests/vec_arith/arch.sail` L60-67.
-pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BoundedVec::<BitDynamic, 32>) {
+pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BoundedVec::<BitStatic::<16>, 32>) {
     match r {
         l__4 if {(l__4 == 0)} => {()}
         l__5 if {(l__5 == 1)} => {core_ctx.vr1 = v}
@@ -126,8 +126,8 @@ pub enum ast {
 ///
 /// Generated from the Sail sources at `tests/vec_arith/arch.sail` L83-99.
 pub fn execute(core_ctx: &mut Core, op: ast) {
-    let vs1_val: BoundedVec::<BitDynamic, 32> = rV(core_ctx, vregidx_to_vregno(vs1));
-    let vs2_val: BoundedVec::<BitDynamic, 32> = rV(core_ctx, vregidx_to_vregno(vs2));
+    let vs1_val: BoundedVec::<BitStatic::<16>, 32> = rV(core_ctx, vregidx_to_vregno(vs1));
+    let vs2_val: BoundedVec::<BitStatic::<16>, 32> = rV(core_ctx, vregidx_to_vregno(vs2));
     let mut vd_val: vregtype = vec![zeros(16); (({
                 65536
             } as usize) as usize)].into();

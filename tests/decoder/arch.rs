@@ -37,9 +37,9 @@ pub const xlen: i128 = 64;
 /// Generated from the Sail sources at `tests/decoder/arch.sail` L29.
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitDynamic;
+pub type xlenbits = BitStatic::<xlen>;
 
-pub type priv_level = BitDynamic;
+pub type priv_level = BitStatic::<2>;
 
 /// Privilege
 ///
@@ -51,16 +51,16 @@ pub enum Privilege {
     Machine
 }
 
-pub type regidx = BitDynamic;
+pub type regidx = BitStatic::<5>;
 
-pub type cregidx = BitDynamic;
+pub type cregidx = BitStatic::<3>;
 
-pub type csreg = BitDynamic;
+pub type csreg = BitStatic::<12>;
 
 /// bool_bits_forwards
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitDynamic {
+pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitStatic::<1> {
     match arg_hashtag_ {
         true => {BitDynamic::new(1, 0b1)}
         false => {BitDynamic::new(1, 0b0)}
@@ -71,7 +71,7 @@ pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitDynamic {
 /// bool_bits_backwards
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_backwards(arg_hashtag_: BitDynamic) -> bool {
+pub fn bool_bits_backwards(arg_hashtag_: BitStatic::<1>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitDynamic::new(1, 0b1))} => {true}
         _ => {false}
@@ -82,7 +82,7 @@ pub fn bool_bits_backwards(arg_hashtag_: BitDynamic) -> bool {
 /// bool_bits_backwards_matches
 ///
 /// Generated from the Sail sources.
-pub fn bool_bits_backwards_matches(arg_hashtag_: BitDynamic) -> bool {
+pub fn bool_bits_backwards_matches(arg_hashtag_: BitStatic::<1>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitDynamic::new(1, 0b1))} => {true}
         b__1 if {(b__1 == BitDynamic::new(1, 0b0))} => {true}
@@ -128,19 +128,19 @@ pub enum Retired {
 /// Generated from the Sail sources at `tests/decoder/arch.sail` L62.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    CSR((BitDynamic, regidx, regidx, bool, csrop)),
+    CSR((BitStatic::<12>, regidx, regidx, bool, csrop)),
     MRET(()),
     SRET(()),
     WFI(()),
-    SFENCE_VMA((BitDynamic, BitDynamic)),
-    HFENCE_VVMA((BitDynamic, BitDynamic)),
-    HFENCE_GVMA((BitDynamic, BitDynamic))
+    SFENCE_VMA((BitStatic::<5>, BitStatic::<5>)),
+    HFENCE_VVMA((BitStatic::<5>, BitStatic::<5>)),
+    HFENCE_GVMA((BitStatic::<5>, BitStatic::<5>))
 }
 
 /// encdec_csrop_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitDynamic {
+pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitStatic::<2> {
     match arg_hashtag_ {
         csrop::CSRRW => {BitDynamic::new(2, 0b01)}
         csrop::CSRRS => {BitDynamic::new(2, 0b10)}
@@ -152,7 +152,7 @@ pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitDynamic {
 /// encdec_csrop_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_backwards(arg_hashtag_: BitDynamic) -> csrop {
+pub fn encdec_csrop_backwards(arg_hashtag_: BitStatic::<2>) -> csrop {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitDynamic::new(2, 0b01))} => {csrop::CSRRW}
         b__1 if {(b__1 == BitDynamic::new(2, 0b10))} => {csrop::CSRRS}
@@ -164,7 +164,7 @@ pub fn encdec_csrop_backwards(arg_hashtag_: BitDynamic) -> csrop {
 /// encdec_csrop_backwards_matches
 ///
 /// Generated from the Sail sources.
-pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitDynamic) -> bool {
+pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitStatic::<2>) -> bool {
     match arg_hashtag_ {
         b__0 if {(b__0 == BitDynamic::new(2, 0b01))} => {true}
         b__1 if {(b__1 == BitDynamic::new(2, 0b10))} => {true}
@@ -174,20 +174,20 @@ pub fn encdec_csrop_backwards_matches(arg_hashtag_: BitDynamic) -> bool {
     }
 }
 
-pub type csrRW = BitDynamic;
+pub type csrRW = BitStatic::<2>;
 
 /// encdec_forwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_forwards(arg_hashtag_: ast) -> BitDynamic {
+pub fn encdec_forwards(arg_hashtag_: ast) -> BitStatic::<32> {
     match arg_hashtag_ {
-        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat(BitDynamic::from((csr as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from(bool_bits_forwards(is_imm)), BitDynamic::from(bitvector_concat(BitDynamic::from(encdec_csrop_forwards(op)), BitDynamic::from(bitvector_concat(BitDynamic::from((rd as BitDynamic)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
+        ast::CSR((csr, rs1, rd, is_imm, op)) => {bitvector_concat(BitDynamic::from((csr as BitStatic::<12>)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitStatic::<5>)), BitDynamic::from(bitvector_concat(BitDynamic::from(bool_bits_forwards(is_imm)), BitDynamic::from(bitvector_concat(BitDynamic::from(encdec_csrop_forwards(op)), BitDynamic::from(bitvector_concat(BitDynamic::from((rd as BitStatic::<5>)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
         ast::MRET(()) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0011000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00010)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
         ast::SRET(()) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0001000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00010)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
         ast::WFI(()) => {bitvector_concat(BitDynamic::from(BitDynamic::new(12, 0b000100000101)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))}
-        ast::SFENCE_VMA((rs1, rs2)) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0001001)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs2 as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
-        ast::HFENCE_VVMA((rs1, rs2)) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0010001)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs2 as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
-        ast::HFENCE_GVMA((rs1, rs2)) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0110001)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs2 as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitDynamic)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
+        ast::SFENCE_VMA((rs1, rs2)) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0001001)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs2 as BitStatic::<5>)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitStatic::<5>)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
+        ast::HFENCE_VVMA((rs1, rs2)) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0010001)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs2 as BitStatic::<5>)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitStatic::<5>)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
+        ast::HFENCE_GVMA((rs1, rs2)) => {bitvector_concat(BitDynamic::from(BitDynamic::new(7, 0b0110001)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs2 as BitStatic::<5>)), BitDynamic::from(bitvector_concat(BitDynamic::from((rs1 as BitStatic::<5>)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(3, 0b000)), BitDynamic::from(bitvector_concat(BitDynamic::from(BitDynamic::new(5, 0b00000)), BitDynamic::from(BitDynamic::new(7, 0b1110011)))))))))))}
         _ => {panic!("Unreachable code")}
     }
 }
@@ -195,17 +195,17 @@ pub fn encdec_forwards(arg_hashtag_: ast) -> BitDynamic {
 /// encdec_backwards
 ///
 /// Generated from the Sail sources.
-pub fn encdec_backwards(arg_hashtag_: BitDynamic) -> ast {
-    let head_exp_hashtag_: BitDynamic = arg_hashtag_;
+pub fn encdec_backwards(arg_hashtag_: BitStatic::<32>) -> ast {
+    let head_exp_hashtag_: BitStatic::<32> = arg_hashtag_;
     match match head_exp_hashtag_ {
-        v__35 if {let mapping1_hashtag__var_1: BitDynamic = v__35.subrange::<12, 14, 2>();
-        let mapping0_hashtag__var_2: BitDynamic = v__35.subrange::<14, 15, 1>();
-        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__35.subrange::<0, 7, 7>() == BitDynamic::new(7, 0b1110011)))} => {let csr: BitDynamic = v__35.subrange::<20, 32, 12>();
-        let rs1: BitDynamic = v__35.subrange::<15, 20, 5>();
-        let rd: BitDynamic = v__35.subrange::<7, 12, 5>();
-        let mapping1_hashtag_: BitDynamic = v__35.subrange::<12, 14, 2>();
-        let mapping0_hashtag_: BitDynamic = v__35.subrange::<14, 15, 1>();
-        let csr: BitDynamic = v__35.subrange::<20, 32, 12>();
+        v__35 if {let mapping1_hashtag__var_1: BitStatic::<2> = v__35.subrange::<12, 14, 2>();
+        let mapping0_hashtag__var_2: BitStatic::<1> = v__35.subrange::<14, 15, 1>();
+        ((bool_bits_backwards_matches(mapping0_hashtag__var_2) && encdec_csrop_backwards_matches(mapping1_hashtag__var_1)) && (v__35.subrange::<0, 7, 7>() == BitDynamic::new(7, 0b1110011)))} => {let csr: BitStatic::<12> = v__35.subrange::<20, 32, 12>();
+        let rs1: BitStatic::<5> = v__35.subrange::<15, 20, 5>();
+        let rd: BitStatic::<5> = v__35.subrange::<7, 12, 5>();
+        let mapping1_hashtag_: BitStatic::<2> = v__35.subrange::<12, 14, 2>();
+        let mapping0_hashtag_: BitStatic::<1> = v__35.subrange::<14, 15, 1>();
+        let csr: BitStatic::<12> = v__35.subrange::<20, 32, 12>();
         match (bool_bits_backwards(mapping0_hashtag_), encdec_csrop_backwards(mapping1_hashtag_)) {
             (is_imm, op) => {Some(ast::CSR((csr, rs1, rd, is_imm, op)))}
             _ => {None}
@@ -219,14 +219,14 @@ pub fn encdec_backwards(arg_hashtag_: BitDynamic) -> ast {
             v__0 if {(v__0 == BitDynamic::new(32, 0b00110000001000000000000001110011))} => {ast::MRET(())}
             v__7 if {(v__7 == BitDynamic::new(32, 0b00010000001000000000000001110011))} => {ast::SRET(())}
             v__14 if {(v__14 == BitDynamic::new(32, 0b00010000010100000000000001110011))} => {ast::WFI(())}
-            v__20 if {((v__20.subrange::<25, 32, 7>() == BitDynamic::new(7, 0b0001001)) && (v__20.subrange::<0, 15, 15>() == BitDynamic::new(15, 0b000000001110011)))} => {let rs2: BitDynamic = v__20.subrange::<20, 25, 5>();
-            let rs1: BitDynamic = v__20.subrange::<15, 20, 5>();
+            v__20 if {((v__20.subrange::<25, 32, 7>() == BitDynamic::new(7, 0b0001001)) && (v__20.subrange::<0, 15, 15>() == BitDynamic::new(15, 0b000000001110011)))} => {let rs2: BitStatic::<5> = v__20.subrange::<20, 25, 5>();
+            let rs1: BitStatic::<5> = v__20.subrange::<15, 20, 5>();
             ast::SFENCE_VMA((rs1, rs2))}
-            v__25 if {((v__25.subrange::<25, 32, 7>() == BitDynamic::new(7, 0b0010001)) && (v__25.subrange::<0, 15, 15>() == BitDynamic::new(15, 0b000000001110011)))} => {let rs2: BitDynamic = v__25.subrange::<20, 25, 5>();
-            let rs1: BitDynamic = v__25.subrange::<15, 20, 5>();
+            v__25 if {((v__25.subrange::<25, 32, 7>() == BitDynamic::new(7, 0b0010001)) && (v__25.subrange::<0, 15, 15>() == BitDynamic::new(15, 0b000000001110011)))} => {let rs2: BitStatic::<5> = v__25.subrange::<20, 25, 5>();
+            let rs1: BitStatic::<5> = v__25.subrange::<15, 20, 5>();
             ast::HFENCE_VVMA((rs1, rs2))}
-            v__30 if {((v__30.subrange::<25, 32, 7>() == BitDynamic::new(7, 0b0110001)) && (v__30.subrange::<0, 15, 15>() == BitDynamic::new(15, 0b000000001110011)))} => {let rs2: BitDynamic = v__30.subrange::<20, 25, 5>();
-            let rs1: BitDynamic = v__30.subrange::<15, 20, 5>();
+            v__30 if {((v__30.subrange::<25, 32, 7>() == BitDynamic::new(7, 0b0110001)) && (v__30.subrange::<0, 15, 15>() == BitDynamic::new(15, 0b000000001110011)))} => {let rs2: BitStatic::<5> = v__30.subrange::<20, 25, 5>();
+            let rs1: BitStatic::<5> = v__30.subrange::<15, 20, 5>();
             ast::HFENCE_GVMA((rs1, rs2))}
             _ => {panic!("Unreachable code")}
         }}

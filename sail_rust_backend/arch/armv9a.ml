@@ -1,4 +1,5 @@
-module SSet = Types.SSet
+open Rs_ast
+open Rs_context
 
 let call_set =
   SSet.of_list
@@ -12,36 +13,36 @@ let call_set =
     ]
 ;;
 
-let overwritten_func : SSet.t = SSet.of_list []
+let overwritten_func : rs_fn_type option SMap.t = SMap.of_list []
 
-let external_func : SSet.t =
+let external_func : rs_fn_type option SMap.t =
   let externals =
-    SSet.of_list
-      [ "UInt0"
-      ; "SInt0"
-      ; "ZeroExtend0"
-      ; "SignExtend0"
-      ; "emod_nat"
-      ; "get_slice_int"
-      ; "sail_zeros"
-      ; "sail_shiftleft"
-      ; "sail_shiftright"
-      ; "update_subrange_bits"
-      ; "undefined_bitvector"
-      ; "undefined_bool"
-      ; "undefined_int"
-      ; "bitvector_length"
-      ; "bitvector_access"
-      ; "bitvector_concat"
-      ; "subrange_bits"
-      ; "max_int"
-      ; "min_int"
-      ; "format!"
-      ; "assert!"
-      ; "panic!"
+    SMap.of_list
+      [ "UInt0", None
+      ; "SInt0", None
+      ; "ZeroExtend0", None
+      ; "SignExtend0", None
+      ; "emod_nat", None
+      ; "get_slice_int", None
+      ; "sail_zeros", None
+      ; "sail_shiftleft", None
+      ; "sail_shiftright", None
+      ; "update_subrange_bits", None
+      ; "undefined_bitvector", None
+      ; "undefined_bool", None
+      ; "undefined_int", None
+      ; "bitvector_length", None
+      ; "bitvector_access", None
+      ; "bitvector_concat", None
+      ; "subrange_bits", None
+      ; "max_int", None
+      ; "min_int", None
+      ; "format!", None
+      ; "assert!", None
+      ; "panic!", None
       ]
   in
-  SSet.union externals overwritten_func
+  SMap.union (fun _ _ _ -> None) externals overwritten_func
 ;;
 
 let unsupported_obj : SSet.t =
@@ -60,7 +61,7 @@ let unsupported_obj : SSet.t =
 let unsupported_func : SSet.t = SSet.of_list [ "NVMem_read__1" ]
 let unsupported_match : SSet.t = SSet.of_list []
 
-let armv9a : Types.arch_t =
+let armv9a : arch_t =
   { call_set
   ; external_func
   ; overwritten_func

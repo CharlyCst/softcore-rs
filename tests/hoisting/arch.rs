@@ -38,9 +38,9 @@ pub const xlen: i128 = 64;
 /// Generated from the Sail sources at `tests/hoisting/arch.sail` L7.
 pub const xlen_bytes: i128 = 8;
 
-pub type xlenbits = BitDynamic;
+pub type xlenbits = BitStatic::<xlen>;
 
-pub type regbits = BitDynamic;
+pub type regbits = BitStatic::<5>;
 
 /// ast
 ///
@@ -54,13 +54,13 @@ pub enum ast {
 ///
 /// Generated from the Sail sources at `tests/hoisting/arch.sail` L24-34.
 pub fn execute(ast::TEST(()): ast) {
-    if {let foo_var_1: BitDynamic = BitDynamic::new(3, 0b101);
+    if {let foo_var_1: BitStatic::<3> = BitDynamic::new(3, 0b101);
     (BitDynamic::new(3, 0b101) != foo_var_1)} {
         assert!(false, "Branch should not be taken")
     } else {
         ()
     };
-    let a: BitDynamic = BitDynamic::new(3, 0b100);
-    let a__quote: BitDynamic = BitDynamic::new(3, 0b101);
+    let a: BitStatic::<3> = BitDynamic::new(3, 0b100);
+    let a__quote: BitStatic::<3> = BitDynamic::new(3, 0b101);
     assert!((a != a__quote), "Those variables should be different!")
 }

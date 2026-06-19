@@ -13,7 +13,7 @@ use crate::arch_prelude::*;
 #[derive(Eq, PartialEq, Clone, Debug)]
 pub struct Core {
     pub vtype: Vtype,
-    pub vstart: BitDynamic,
+    pub vstart: BitStatic::<16>,
     pub vl: xlenbits,
     pub vr0: vregtype,
     pub vr1: vregtype,
@@ -119,7 +119,7 @@ pub const xlen_bytes: i128 = i128::pow(2, ((3 as u32) as u32));
 /// Generated from the Sail sources at `tests/vec/arch.sail` L91.
 pub const xlen: i128 = (xlen_bytes * 8);
 
-pub type xlenbits = BitDynamic;
+pub type xlenbits = BitStatic::<xlen>;
 
 /// Vtype
 ///
@@ -132,35 +132,35 @@ pub struct Vtype {
 /// _get_Vtype_vill
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vill(v: Vtype) -> BitDynamic {
+pub fn _get_Vtype_vill(v: Vtype) -> BitStatic::<1> {
     v.bits.subrange::<63, 64, 1>()
 }
 
 /// _get_Vtype_vlmul
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vlmul(v: Vtype) -> BitDynamic {
+pub fn _get_Vtype_vlmul(v: Vtype) -> BitStatic::<3> {
     v.bits.subrange::<0, 3, 3>()
 }
 
 /// _get_Vtype_vma
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vma(v: Vtype) -> BitDynamic {
+pub fn _get_Vtype_vma(v: Vtype) -> BitStatic::<1> {
     v.bits.subrange::<7, 8, 1>()
 }
 
 /// _get_Vtype_vsew
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vsew(v: Vtype) -> BitDynamic {
+pub fn _get_Vtype_vsew(v: Vtype) -> BitStatic::<3> {
     v.bits.subrange::<3, 6, 3>()
 }
 
 /// _get_Vtype_vta
 ///
 /// Generated from the Sail sources.
-pub fn _get_Vtype_vta(v: Vtype) -> BitDynamic {
+pub fn _get_Vtype_vta(v: Vtype) -> BitStatic::<1> {
     v.bits.subrange::<6, 7, 1>()
 }
 
@@ -237,7 +237,7 @@ pub enum agtype {
 /// decode_agtype
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L152-157.
-pub fn decode_agtype(ag: BitDynamic) -> agtype {
+pub fn decode_agtype(ag: BitStatic::<1>) -> agtype {
     match ag {
         b__0 if {(b__0 == BitDynamic::new(1, 0b0))} => {agtype::UNDISTURBED}
         _ => {agtype::AGNOSTIC}
@@ -249,7 +249,7 @@ pub fn decode_agtype(ag: BitDynamic) -> agtype {
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L160.
 pub fn get_vtype_vma(core_ctx: &mut Core, unit_arg: ()) -> agtype {
-    let var_1: BitDynamic = {
+    let var_1: BitStatic::<1> = {
         let var_2: Vtype = core_ctx.vtype;
         _get_Vtype_vma(var_2)
     };
@@ -260,7 +260,7 @@ pub fn get_vtype_vma(core_ctx: &mut Core, unit_arg: ()) -> agtype {
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L163.
 pub fn get_vtype_vta(core_ctx: &mut Core, unit_arg: ()) -> agtype {
-    let var_1: BitDynamic = {
+    let var_1: BitStatic::<1> = {
         let var_2: Vtype = core_ctx.vtype;
         _get_Vtype_vta(var_2)
     };
@@ -284,7 +284,7 @@ pub const vlenmax: i128 = 65536;
 /// Generated from the Sail sources at `tests/vec/arch.sail` L171.
 pub const VLEN: i128 = 512;
 
-pub type vreglenbits = BitDynamic;
+pub type vreglenbits = BitStatic::<vlenmax>;
 
 pub type vregtype = vreglenbits;
 
@@ -305,7 +305,7 @@ pub enum vvfunct6 {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L188.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum vregidx {
-    Vregidx(BitDynamic)
+    Vregidx(BitStatic::<5>)
 }
 
 /// vregno
@@ -326,14 +326,14 @@ pub fn vregidx_to_vregno(vregidx::Vregidx(b): vregidx) -> vregno {
 /// vregidx_offset
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L192.
-pub fn vregidx_offset(vregidx::Vregidx(r): vregidx, o: BitDynamic) -> vregidx {
+pub fn vregidx_offset(vregidx::Vregidx(r): vregidx, o: BitStatic::<5>) -> vregidx {
     vregidx::Vregidx(r.wrapped_add(o))
 }
 
 /// vregidx_bits
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L193.
-pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitDynamic {
+pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitStatic::<5> {
     b
 }
 
@@ -345,7 +345,7 @@ pub const zvreg: vregidx = vregidx::Vregidx(BitDynamic::new(5, 0b00000));
 /// rV
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L231-266.
-pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitDynamic {
+pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitStatic::<65536> {
     match r {
         l__31 if {(l__31 == 0)} => {core_ctx.vr0}
         l__32 if {(l__32 == 1)} => {core_ctx.vr1}
@@ -386,7 +386,7 @@ pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitDynamic {
 /// wV
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L268-311.
-pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitDynamic) {
+pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitStatic::<65536>) {
     match r {
         l__0 if {(l__0 == 0)} => {core_ctx.vr0 = v}
         l__1 if {(l__1 == 1)} => {core_ctx.vr1 = v}
@@ -428,14 +428,14 @@ pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitDynamic) {
 /// rV_bits
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L313.
-pub fn rV_bits(core_ctx: &mut Core, i: vregidx) -> BitDynamic {
+pub fn rV_bits(core_ctx: &mut Core, i: vregidx) -> BitStatic::<65536> {
     rV(core_ctx, vregidx_to_vregno(i))
 }
 
 /// wV_bits
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L315-317.
-pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitDynamic) {
+pub fn wV_bits(core_ctx: &mut Core, i: vregidx, data: BitStatic::<65536>) {
     wV(core_ctx, vregidx_to_vregno(i), data)
 }
 
@@ -557,7 +557,7 @@ pub fn get_num_elem(LMUL_pow: i128, SEW: i128) -> i128 {
 /// read_vmask
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L423-437.
-pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitDynamic, vrid: vregidx) -> BitDynamic {
+pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitStatic::<1>, vrid: vregidx) -> BitDynamic {
     assert!((num_elem <= 65536), "tests/vec/arch.sail:424.36-424.37");
     let vreg_val: vregtype = rV_bits(core_ctx, vrid);
     let mut result: BitDynamic = ones(__id(num_elem));
@@ -588,7 +588,7 @@ pub enum ExecutionResult {
 /// Generated from the Sail sources at `tests/vec/arch.sail` L463.
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub enum ast {
-    VVTYPE((vvfunct6, BitDynamic, vregidx, vregidx, vregidx))
+    VVTYPE((vvfunct6, BitStatic::<1>, vregidx, vregidx, vregidx))
 }
 
 /// valid_vtype
@@ -604,14 +604,14 @@ pub fn valid_vtype(core_ctx: &mut Core, unit_arg: ()) -> bool {
 /// valid_rd_mask
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L486-488.
-pub fn valid_rd_mask(rd: vregidx, vm: BitDynamic) -> bool {
+pub fn valid_rd_mask(rd: vregidx, vm: BitStatic::<1>) -> bool {
     ((vm != BitDynamic::new(1, 0b0)) || (rd != zvreg))
 }
 
 /// illegal_normal
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L492-494.
-pub fn illegal_normal(core_ctx: &mut Core, vd: vregidx, vm: BitDynamic) -> bool {
+pub fn illegal_normal(core_ctx: &mut Core, vd: vregidx, vm: BitStatic::<1>) -> bool {
     (!(valid_vtype(core_ctx, ())) || !(valid_rd_mask(vd, vm)))
 }
 
@@ -694,7 +694,7 @@ pub fn init_masked_result(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_p
 /// set_vstart
 ///
 /// Generated from the Sail sources at `tests/vec/arch.sail` L578-584.
-pub fn set_vstart(core_ctx: &mut Core, value: BitDynamic) {
+pub fn set_vstart(core_ctx: &mut Core, value: BitStatic::<16>) {
     core_ctx.vstart = value.subrange::<0, 9, 9>().zero_extend_dyn(16)
 }
 

@@ -10,7 +10,7 @@ let c_error ?loc:(l = Parse_ast.Unknown) message =
 ;;
 
 module type CODEGEN_CONFIG = sig
-  val arch : Types.arch_t
+  val arch : Rs_context.arch_t
 end
 
 (** Converts a Sail AST to a Rust **)
@@ -19,9 +19,10 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   open Ast
   open Ast_util
   open Ast_defs
-  open Rust_gen
-  open Context
-  module SSet = Types.SSet
+  open Rs_ast
+  open Rs_ast_utils
+  open Rs_to_string
+  open Rs_context
 
   type function_kind =
     | FunKindFunc

@@ -2,7 +2,7 @@ open Libsail
 open Type_check
 
 module type CODEGEN_CONFIG = sig
-  val arch : Types.arch_t
+  val arch : Rs_context.arch_t
 end
 
 module Codegen (_ : CODEGEN_CONFIG) : sig

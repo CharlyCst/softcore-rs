@@ -2,12 +2,11 @@
 
 (** This module transforms raw Rust code generated from Sail into a valid Rust module. **)
 
-open Context
-open Rust_gen
+open Rs_ast
+open Rs_context
+open Rs_ast_utils
+open Rs_to_string
 open Libsail
-module SSet = Types.SSet
-module SMap = Types.SMap
-module Big_int = Libsail.Ast_util.Big_int
 
 (* ————————————————————————— Transform Expressions —————————————————————————— *)
 
@@ -526,6 +525,20 @@ let use_dynamic_bitvec_exp_in_app (ctx : context) (e : rs_exp) : rs_exp_aux =
   | RsLet ((RsPatType (t, _) as p), e1, e2) -> RsLet (p, cast_bitvec ctx t e1, e2)
   | RsLet (p, ({ e_annot = Some t1; e_exp = _ } as e1), e2) ->
     RsLet (p, cast_bitvec ctx t1 e1, e2)
+  | RsMethodApp { exp; name; generics = _; args } ->
+    Reporting.simple_warn
+      (Format.sprintf
+         "Couldn't find type of method app '%s::%s', argument might be incorrect"
+         (string_of_rs_exp 0 exp)
+         name);
+    e.e_exp
+  | RsStaticApp (t, name, args) ->
+    Reporting.simple_warn
+      (Format.sprintf
+         "Couldn't find type of static app '%s::%s', arguments might be incorrect"
+         (string_of_rs_type t)
+         name);
+    e.e_exp
   | RsApp (({ e_annot = _; e_exp = RsId id } as e_id), generics, args) ->
     (match ctx_fun id ctx with
      | Some fn ->
@@ -536,9 +549,15 @@ let use_dynamic_bitvec_exp_in_app (ctx : context) (e : rs_exp) : rs_exp_aux =
         | None ->
           Reporting.simple_warn
             (Format.sprintf
-               "Couldn't find type of function '%s', argument might be incorrect"
+               "Couldn't find type of function '%s', arguments might be incorrect"
                id);
           e.e_exp))
+  | RsApp (e, generics, args) ->
+    Reporting.simple_warn
+      (Format.sprintf
+         "Couldn't find type of app '%s', arguments might be incorrect"
+         (string_of_rs_exp 0 e));
+    e.e_exp
   | _ -> e.e_exp
 ;;
 
@@ -555,6 +574,7 @@ let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
 
 let use_dynamic_bitvec_args (ctx : context) (rust_program : rs_program) : rs_program =
   let ctx = update_context_fn_type ctx rust_program in
+  (* TODO: This does not translate types? *)
   rust_transform_expr
     { id_expr_type_transform with exp_aux = use_dynamic_bitvec_exp }
     ctx
@@ -1306,7 +1326,7 @@ let expr_hoister (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
   (* We dont need to hoist external functions & some macro might not work with hoisting (for example: format!)*)
   | RsApp (({ e_annot = _; e_exp = RsId name } as id), generics, args)
-    when should_hoist_args args && not (SSet.mem name ctx.arch.external_func) ->
+    when should_hoist_args args && not (SMap.mem name ctx.arch.external_func) ->
     let ret = hoist args in
     RsBlock
       [ generate_hoisted_block
@@ -1820,7 +1840,7 @@ let is_enum (value : string) : bool =
 let sail_context_arg_inserter_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
   | RsApp (({ e_annot = _; e_exp = RsId app_id } as e_id), generics, args)
-    when (not (SSet.mem app_id ctx.arch.external_func)) && not (is_enum app_id) ->
+    when (not (SMap.mem app_id ctx.arch.external_func)) && not (is_enum app_id) ->
     (match ctx_fun app_id ctx with
      | Some fn when not fn.use_sail_ctx -> exp.e_exp
      | Some _fn ->

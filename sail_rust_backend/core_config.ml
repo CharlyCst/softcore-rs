@@ -11,7 +11,7 @@
     making some pattern compile where they would not otherwise.
  **)
 
-module SMap = Types.SMap
+open Rs_ast
 
 type core_config = int SMap.t
 
