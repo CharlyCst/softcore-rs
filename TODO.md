@@ -23,5 +23,4 @@
 - Is the problem the fact that some types used to be in the context with empty
   body but now no longer are because when we update the context they are removed
 - We should be able to specify which functions we want to export
-- Function `remove_illegal_operator_char` could be implemented with `|>`
 - Updating the context continuously is highly inefficient

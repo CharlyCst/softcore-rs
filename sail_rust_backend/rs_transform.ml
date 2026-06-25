@@ -1653,13 +1653,13 @@ let const_fn_rewriter = { func = const_functions }
 open Str
 
 let remove_illegal_operator_char str =
-  let str = global_replace (regexp "=") "equal" str in
-  let str = global_replace (regexp "<") "smaller" str in
-  let str = global_replace (regexp ">") "bigger" str in
-  let str = global_replace (regexp "(") "_" str in
-  let str = global_replace (regexp ")") "_" str in
-  let str = global_replace (regexp " ") "_" str in
   str
+  |> global_replace (regexp "=") "equal"
+  |> global_replace (regexp "<") "smaller"
+  |> global_replace (regexp ">") "bigger"
+  |> global_replace (regexp "(") "_"
+  |> global_replace (regexp ")") "_"
+  |> global_replace (regexp " ") "_"
 ;;
 
 let operator_rewriter_func (_ctx : context) (func : rs_fn) : rs_fn =
