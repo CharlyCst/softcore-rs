@@ -31,9 +31,6 @@ let external_func : rs_fn_type option SMap.t =
       ; "undefined_bitvector", None
       ; "undefined_bool", None
       ; "undefined_int", None
-      ; "bitvector_length", None
-      ; "bitvector_access", None
-      ; "bitvector_concat", None
       ; "subrange_bits", None
       ; "max_int", None
       ; "min_int", None

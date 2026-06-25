@@ -5,8 +5,8 @@ open Call_set
 open Core_config
 module Big_int = Nat_big_num
 
-let c_error ?loc:(l = Parse_ast.Unknown) message =
-  raise (Reporting.err_general l ("\nC backend: " ^ message))
+let rs_error ?loc:(l = Parse_ast.Unknown) message =
+  raise (Reporting.err_general l ("\nRust backend: " ^ message))
 ;;
 
 module type CODEGEN_CONFIG = sig
@@ -40,8 +40,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   ;;
 
   let defs_empty =
-    { fun_typs = SMap.empty
-    ; unions = SMap.empty
+    { unions = SMap.empty
     ; funmap = SMap.empty
     ; constants = SSet.empty
     ; num_constants = SMap.empty
@@ -50,8 +49,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   ;;
 
   let defs_merge (a : defs) (b : defs) : defs =
-    { fun_typs = map_union a.fun_typs b.fun_typs
-    ; unions = map_union a.unions b.unions
+    { unions = map_union a.unions b.unions
     ; funmap = map_union a.funmap b.funmap
     ; constants = SSet.union a.constants b.constants
     ; num_constants = map_union a.num_constants b.num_constants
@@ -65,7 +63,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   ;;
 
   let defs_from_union (union : unionmap) : defs = { defs_empty with unions = union }
-  let defs_from_funs (funs : defmap) : defs = { defs_empty with fun_typs = funs }
+  let defs_from_funs (funs : funmap) : defs = { defs_empty with funmap = funs }
 
   (* —————————————————————————————— Other Utils ——————————————————————————————— *)
 
@@ -494,8 +492,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       (* Generate a bitvector literal *)
       let vector_length = List.length items in
       RsStaticApp
-        (*  ( RsTypGenericParam ("BitStatic", [ RsTypParamNum (mk_num
-            vector_length) ]) *)
+        (* TODO(Gurvan): Uncomment to try back BitStatic *)
+        (* (  RsTypGenericParam ("BitStatic", [ RsTypParamNum (mk_num
+        vector_length) ]) *)
         ( RsTypId "BitDynamic"
         , "new"
         , [ mk_num vector_length
@@ -646,6 +645,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       | FunKindFunc ->
         (match ctx_fun_type name ctx with
          | Some signature -> signature
+         (* TODO(Gurvan): Fix the following *)
          | None -> mk_fn_typ [ RsTypId "TodoNoSignature" ] RsTypUnit)
       | FunKindUnion (func, union) ->
         (* We look up the function definition to get the return type *)
@@ -875,7 +875,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     =
     let pat = process_pat pat in
     let rexp = process_exp ctx exp in
-    let rexp = Rust_transform.simplify_rs_exp ctx rexp in
+    let rexp = Rs_transform.simplify_rs_exp ctx rexp in
     match pat with
     | RsPatId id ->
       let const =
@@ -1174,7 +1174,20 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | _ -> mk_fn_typ [ RsTypTodo "todo_extract_types" ] (RsTypTodo "todo_extract_types")
   ;;
 
-  let val_fun_def (val_spec : val_spec_aux) : defmap =
+  let empty_function_from_type (name : string) (signature : rs_fn_type) : rs_fn =
+    { name
+    ; signature
+    ; const = false
+    ; body = { e_annot = None; e_exp = RsTodo "Undefined function" }
+    ; doc = []
+    ; use_sail_ctx =
+        false
+        (* TODO(Gurvan) : This can actually be true… This function should later be updated in the context *)
+    ; args = List.map (fun _ -> RsPatWildcard) signature.args
+    }
+  ;;
+
+  let val_fun_def (val_spec : val_spec_aux) : funmap =
     let map = SMap.empty in
     let (VS_val_spec (typeschm, id, _extern)) = val_spec in
     let id = string_of_id id in
@@ -1184,7 +1197,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     (* print_string id; *)
     (* print_string ": "; *)
     (* print_endline (String.concat ", " (List.map string_of_rs_fn (extract_types typeschm))); *)
-    SMap.add id (extract_types typeschm) map
+    SMap.add id (extract_types typeschm |> empty_function_from_type id) map
   ;;
 
   (* ————————————————————————————————— Union —————————————————————————————————— *)
@@ -1208,7 +1221,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       { defs_empty with unions = type_union_defs members }
     | TD_enum (_id, _member, _) -> defs_empty
     | TD_bitfield _ -> defs_empty
-    | TD_abstract (id, K_aux (K_int, _), tdc) ->
+    | TD_abstract (_, K_aux (K_int, _), _) ->
       (* TODO(Gurvan): Is this really what we want? *)
       (* { defs_empty with constants = SSet.singleton (string_of_id id) } *)
       defs_empty
@@ -1304,11 +1317,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     try
       (* Compute call set *)
       let sail_ctx = get_call_set CodegenConfig.arch ast in
-      (* Collect definitions *)
-      let defs = get_defs ast in
       (* Build the context *)
       let ctx =
-        { defs
+        { defs = get_defs ast
         ; call_set = sail_ctx.call_set
         ; config_map = sail_ctx.config_map
         ; registers = Util.StringSet.of_list (gather_registers_list ast)
@@ -1320,10 +1331,10 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       (* First stage : sail to raw (invalid) rust *)
       let rust_program = sail_to_rust ast ctx in
       (* Update context with all function definitions *)
-      let funs = get_funs rust_program in
-      let defs = defs_merge ctx.defs { defs_empty with funmap = SMap.of_list funs } in
+      let funmap = SMap.of_list (get_funs rust_program) in
+      let defs = defs_merge ctx.defs { defs_empty with funmap } in
       let ctx = { ctx with defs } in
-      let rust_program = Rust_transform.transform rust_program ctx in
+      let rust_program = Rs_transform.transform rust_program ctx in
       let rust_program_string = string_of_rs_prog rust_program in
       (* Post processing stage: replace illegals # and ' in rust *)
       (* TODO: Rewrite in the future, as the code is a bit ugly *)
@@ -1345,9 +1356,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       rust_program_string
     with
     | Type_error.Type_error (l, err) ->
-      c_error
+      rs_error
         ~loc:l
-        ("Unexpected type error when compiling to C:\n"
+        ("Unexpected type error when compiling to Rust:\n"
          ^ fst (Type_error.string_of_type_error err))
   ;;
 end

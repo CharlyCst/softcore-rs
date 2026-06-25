@@ -25,11 +25,11 @@ pub struct BitDynamic {
 }
 
 impl BitDynamic {
-    pub const fn len(self) -> i128 {
+    pub const fn len(&self) -> i128 {
         self.len
     }
 
-    pub const fn signed(self) -> i128 {
+    pub const fn signed(&self) -> i128 {
         assert!(self.len <= 128);
         let val = self.unsigned();
         let sign_bit_mask = 1i128 << (self.len - 1);
@@ -42,7 +42,7 @@ impl BitDynamic {
         }
     }
 
-    pub const fn unsigned(self) -> i128 {
+    pub const fn unsigned(&self) -> i128 {
         assert!(self.len <= 128);
         ((self.bits[0] as u128) | ((self.bits[1] as u128) << 64)) as i128
     }
@@ -77,7 +77,7 @@ impl BitDynamic {
         self
     }
 
-    pub const fn get_bit(self, idx: i128) -> bool {
+    pub const fn get_bit(&self, idx: i128) -> bool {
         assert!(0 <= idx && idx < self.len);
         let limb = (idx / 64) as usize;
         let bit = (idx % 64) as u32;
@@ -272,6 +272,11 @@ impl BitDynamic {
         assert_eq_range::<START, END, LEN>();
         self.get_subrange(END, START)
     }
+
+    /* pub const fn subrange<const START: i128, const END: i128, const LEN: i128>(self) -> BitStatic<LEN> {
+        assert_eq_range::<START, END, LEN>();
+        BitStatic::<LEN>::from_bitdynamic(self.get_subrange(END, START))
+    } */
 
     pub const fn bit_mask(len: i128) -> [u64; BITDYNAMIC_SIZE] {
         let mut mask = [0u64; BITDYNAMIC_SIZE];
@@ -487,6 +492,11 @@ impl<const LEN: i128> BitStatic<LEN> {
             .shl(LEN2 as u128)
             .bitor(other.zero_extend())
     }
+
+    pub const fn from_bitdynamic(bv: BitDynamic) -> Self {
+        assert!(bv.len == LEN);
+        Self { bits: bv.bits[0] }
+    }
 }
 
 impl<const LEN: i128> PartialOrd for BitStatic<LEN> {
@@ -497,8 +507,7 @@ impl<const LEN: i128> PartialOrd for BitStatic<LEN> {
 
 impl<const LEN: i128> From<BitDynamic> for BitStatic<LEN> {
     fn from(bv: BitDynamic) -> Self {
-        assert!(bv.len == LEN);
-        Self { bits: bv.bits[0] }
+        Self::from_bitdynamic(bv)
     }
 }
 

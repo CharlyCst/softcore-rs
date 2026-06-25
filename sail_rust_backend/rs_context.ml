@@ -1,14 +1,12 @@
 open Rs_ast
 
-type defmap = rs_fn_type SMap.t
 type unionmap = rs_type SMap.t
 type funmap = rs_fn SMap.t
 type nummap = Libsail.Ast_util.Big_int.num SMap.t
 type inline_fun = rs_exp SMap.t
 
 type defs =
-  { fun_typs : defmap
-  ; unions : unionmap
+  { unions : unionmap
   ; funmap : funmap
   ; constants : SSet.t
   ; num_constants : nummap
@@ -46,7 +44,12 @@ let ctx_fun_is_used (fun_id : string) (ctx : context) : bool =
 ;;
 
 let ctx_fun_type (fun_id : string) (ctx : context) : rs_fn_type option =
-  SMap.find_opt fun_id ctx.defs.fun_typs
+  match SMap.find_opt fun_id ctx.defs.funmap with
+  | Some fn -> Some fn.signature
+  | None ->
+    (match SMap.find_opt fun_id ctx.arch.external_func with
+     | Some (Some t) -> Some t
+     | _ -> None)
 ;;
 
 let ctx_fun (fun_id : string) (ctx : context) : rs_fn option =
@@ -56,3 +59,5 @@ let ctx_fun (fun_id : string) (ctx : context) : rs_fn option =
 let ctx_union_type (union_id : string) (ctx : context) : rs_type option =
   SMap.find_opt union_id ctx.defs.unions
 ;;
+
+let ctx_type (type_id : string) (ctx : context) : rs_type option = None

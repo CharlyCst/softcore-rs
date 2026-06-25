@@ -188,3 +188,36 @@ type rs_obj =
   | RsObjTodo of string
 
 type rs_program = RsProg of rs_obj list
+
+(* Built-in types ----------------------------------------------------------- *)
+
+let rs_type_bool : rs_type = RsTypId "bool"
+let rs_type_usize : rs_type = RsTypId "usize"
+let rs_type_i128 : rs_type = RsTypId "i128"
+let rs_type_i64 : rs_type = RsTypId "i64"
+let rs_type_i32 : rs_type = RsTypId "i32"
+let rs_type_u128 : rs_type = RsTypId "u128"
+let rs_type_u64 : rs_type = RsTypId "u64"
+let rs_type_u32 : rs_type = RsTypId "u32"
+
+let rs_type_builtins : rs_type list =
+  [ rs_type_bool
+  ; rs_type_usize
+  ; rs_type_i128
+  ; rs_type_i64
+  ; rs_type_i32
+  ; rs_type_u128
+  ; rs_type_u64
+  ; rs_type_u32
+  ]
+;;
+
+(* Prelude types ------------------------------------------------------------ *)
+
+let rs_type_nat : rs_type = RsTypId "nat"
+let rs_type_int : rs_type = RsTypId "i128"
+let rs_type_bitdynamic : rs_type = RsTypId "BitDynamic"
+
+let rs_type_bitstatic (len : rs_type_param) : rs_type =
+  RsTypGenericParam ("BitStatic", [ len ])
+;;

@@ -316,22 +316,22 @@ let update_context_constants (ctx : context) (RsProg objs : rs_program) : contex
   { ctx with defs = List.fold_left update_constants ctx.defs objs }
 ;;
 
+(* TODO: This could just update all context and not only functions *)
 let update_context_fn_type (ctx : context) (RsProg objs : rs_program) : context =
-  let update_fn_type (defs : defs) (obj : rs_obj) : defs =
+  let add_obj (defs : defs) (obj : rs_obj) : defs =
     match obj with
     | RsFn f -> { defs with funmap = SMap.add f.name f defs.funmap }
     | _ -> defs
   in
-  { ctx with defs = List.fold_left update_fn_type ctx.defs objs }
+  { ctx with defs = List.fold_left add_obj { ctx.defs with funmap = SMap.empty } objs }
 ;;
 
 let is_const_rs_typ_id (ctx : context) (x : string) : bool =
   match x with
-  (* TODO(Gurvan): We should probably have a cleaner way to figure out built-ins *)
+  (* TODO(Gurvan): We should have a cleaner way to figure out Rust's built-ins *)
   | "usize" | "i128" | "i64" -> true
   | _ ->
-    (* TODO(Gurvan): Actually, in some case it could still be a a const
-         we need to check the context. We don't want to check parameters however *)
+    (* TODO(Gurvan): In some case it could still be a a const, check `ctx` *)
     false
 ;;
 
@@ -400,74 +400,88 @@ let parse_first_tuple_entry (values : rs_pexp list) : rs_pat list =
     failwith "Code should be unreachable"
 ;;
 
+(* TODO(Gurvan):
+  - Try to add a `into` everywhere `exp` is of type BitVec.
+  -
+*)
 let bitvec_transform_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
-  match exp.e_exp with
-  | RsApp
-      ( { e_annot = _; e_exp = RsId "subrange_bits" }
-      , _generics
-      , [ { e_annot = tvec; e_exp = RsField (bitvec, "bits") }
-        ; { e_annot = _; e_exp = RsLit (RsLitNum r_end) }
-        ; { e_annot = _; e_exp = RsLit (RsLitNum r_start) }
-        ] ) ->
-    let r_end = Big_int.add r_end (Big_int.of_int 1) in
-    let r_size = Big_int.sub r_end r_start in
-    RsMethodApp
-      { exp = { e_annot = tvec; e_exp = RsField (bitvec, "bits") }
-      ; name = "subrange"
-      ; generics =
-          [ Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size ]
-      ; args = []
-      }
-  | RsApp
-      ( { e_annot = _; e_exp = RsId "subrange_bits" }
-      , _generics
-      , [ { e_annot = _; e_exp = RsId id }
-        ; { e_annot = _; e_exp = RsLit (RsLitNum r_end) }
-        ; { e_annot = _; e_exp = RsLit (RsLitNum r_start) }
-        ] ) ->
-    let r_end = Big_int.add r_end (Big_int.of_int 1) in
-    let r_size = Big_int.sub r_end r_start in
-    RsMethodApp
-      { exp = { e_annot = None; e_exp = RsId id }
-      ; name = "subrange"
-      ; generics =
-          [ Big_int.to_string r_start; Big_int.to_string r_end; Big_int.to_string r_size ]
-      ; args = []
-      }
-  | RsAssign (RsLexpIndexRange (lexp, r_end, r_start), exp) ->
-    let method_app =
-      { exp = lexp_to_exp lexp
-      ; name = "set_subrange"
-      ; generics = []
-      ; args = [ exp; r_end; r_start ]
-      }
-    in
-    RsAssign (lexp, { exp with e_exp = RsMethodApp method_app })
-  | RsApp ({ e_annot = _; e_exp = RsId "zero_extend" }, _generics, [ size; e ])
-  | RsApp ({ e_annot = _; e_exp = RsId "sail_zero_extend" }, _generics, [ e; size ]) ->
-    (* if is_const_rs_exp ctx size then
+  let e_exp =
+    match exp.e_exp with
+    | RsApp
+        ( { e_annot = _; e_exp = RsId "subrange_bits" }
+        , _generics
+        , [ { e_annot = tvec; e_exp = RsField (bitvec, "bits") }
+          ; { e_annot = _; e_exp = RsLit (RsLitNum r_end) }
+          ; { e_annot = _; e_exp = RsLit (RsLitNum r_start) }
+          ] ) ->
+      let r_end = Big_int.add r_end (Big_int.of_int 1) in
+      let r_size = Big_int.sub r_end r_start in
+      RsMethodApp
+        { exp = { e_annot = tvec; e_exp = RsField (bitvec, "bits") }
+        ; name = "subrange"
+        ; generics =
+            [ Big_int.to_string r_start
+            ; Big_int.to_string r_end
+            ; Big_int.to_string r_size
+            ]
+        ; args = []
+        }
+    | RsApp
+        ( { e_annot = _; e_exp = RsId "subrange_bits" }
+        , _generics
+        , [ { e_annot = _; e_exp = RsId id }
+          ; { e_annot = _; e_exp = RsLit (RsLitNum r_end) }
+          ; { e_annot = _; e_exp = RsLit (RsLitNum r_start) }
+          ] ) ->
+      let r_end = Big_int.add r_end (Big_int.of_int 1) in
+      let r_size = Big_int.sub r_end r_start in
+      RsMethodApp
+        { exp = { e_annot = None; e_exp = RsId id }
+        ; name = "subrange"
+        ; generics =
+            [ Big_int.to_string r_start
+            ; Big_int.to_string r_end
+            ; Big_int.to_string r_size
+            ]
+        ; args = []
+        }
+    | RsAssign (RsLexpIndexRange (lexp, r_end, r_start), exp) ->
+      let method_app =
+        { exp = lexp_to_exp lexp
+        ; name = "set_subrange"
+        ; generics = []
+        ; args = [ exp; r_end; r_start ]
+        }
+      in
+      RsAssign (lexp, { exp with e_exp = RsMethodApp method_app })
+    | RsApp ({ e_annot = _; e_exp = RsId "zero_extend" }, _generics, [ size; e ])
+    | RsApp ({ e_annot = _; e_exp = RsId "sail_zero_extend" }, _generics, [ e; size ]) ->
+      (* if is_const_rs_exp ctx size then
       RsMethodApp { exp = e; name = "zero_extend"; generics = [ const_exp_to_generic ctx size ]; args = [ ] }
     else *)
-    RsMethodApp { exp = e; name = "zero_extend_dyn"; generics = []; args = [ size ] }
-  | RsMatch (exp, pat :: pats) when is_bitvec_lit pat ->
-    let method_app = { exp; name = "bits"; generics = []; args = [] } in
-    RsMatch ({ e_annot = None; e_exp = RsMethodApp method_app }, pat :: pats)
-  | RsMatch ({ e_annot = _; e_exp = RsTuple exp_tuple }, patterns) ->
-    RsMatch
-      (bitvec_transform_match_tuple exp_tuple (parse_first_tuple_entry patterns), patterns)
-  | RsAssign (RsLexpBitVectorAccess (lexp, exp_idx), exp) ->
-    RsAssign
-      ( lexp
-      , { e_annot = None
-        ; e_exp =
-            RsMethodApp
-              { exp = lexp_to_exp lexp
-              ; name = "set_bit"
-              ; generics = []
-              ; args = [ exp_idx; exp ]
-              }
-        } )
-  | _ -> exp.e_exp
+      RsMethodApp { exp = e; name = "zero_extend_dyn"; generics = []; args = [ size ] }
+    | RsMatch (exp, pat :: pats) when is_bitvec_lit pat ->
+      let method_app = { exp; name = "bits"; generics = []; args = [] } in
+      RsMatch ({ e_annot = None; e_exp = RsMethodApp method_app }, pat :: pats)
+    | RsMatch ({ e_annot = _; e_exp = RsTuple exp_tuple }, patterns) ->
+      RsMatch
+        ( bitvec_transform_match_tuple exp_tuple (parse_first_tuple_entry patterns)
+        , patterns )
+    | RsAssign (RsLexpBitVectorAccess (lexp, exp_idx), exp) ->
+      RsAssign
+        ( lexp
+        , { e_annot = None
+          ; e_exp =
+              RsMethodApp
+                { exp = lexp_to_exp lexp
+                ; name = "set_bit"
+                ; generics = []
+                ; args = [ exp_idx; exp ]
+                }
+          } )
+    | _ -> exp.e_exp
+  in
+  e_exp
 ;;
 
 let bitvec_transform_type (ctx : context) (typ : rs_type) : rs_type =
@@ -476,13 +490,13 @@ let bitvec_transform_type (ctx : context) (typ : rs_type) : rs_type =
   | RsTypGenericParam ("bits", t)
   (* TODO: This violate the fact that vector or bits != bitvector. Change it in the future *)
   | RsTypGenericParam ("vector", t) ->
-    (* TODO(Gurvan): Uncomment to try back BitStatic *)
+    (* TODO(Gurvan): Uncomment to try back bitVector *)
     (* if List.for_all (is_const_rs_typ_param ctx) t
     then RsTypGenericParam ("BitStatic", t)
     else *)
     RsTypId "BitDynamic"
-  (* TODO: once we resolve type aliasing we can remove those manual conversions *)
-  | RsTypId "regbits" -> RsTypId "BitDynamic"
+  (* TODO(Gurvan): Should we uncomment the following? once we resolve type aliasing we can remove those manual conversions *)
+  (* | RsTypId "regbits" -> RsTypId "BitDynamic" *)
   (* Otherwise keep as is *)
   | _ -> typ
 ;;
@@ -501,13 +515,16 @@ let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program 
 (* ———————————————————— Dynamic BitVectors Arguments ——————————————————————— *)
 (* TODO(Gurvan): This is the same ugly fix that we use for vec! vs array *)
 
-let is_bitvec_type (ctx : context) (typ : rs_type) =
+let rec is_bitvec_type (ctx : context) (typ : rs_type) =
   match typ with
   | RsTypId "BitDynamic" | RsTypGenericParam ("BitStatic", _) -> true
   | RsTypId x ->
-    false
-    (* TODO: Try to find type definition in typ, see if it might be an alias to
-       a BitVector *)
+    (match ctx_type x ctx with
+     | Some t -> is_bitvec_type ctx t
+     | None ->
+       Reporting.simple_warn
+         (Format.sprintf "Couldn't find if type '%s' is a BitVector type" x);
+       false)
   | _ -> false
 ;;
 
@@ -528,30 +545,31 @@ let use_dynamic_bitvec_exp_in_app (ctx : context) (e : rs_exp) : rs_exp_aux =
   | RsMethodApp { exp; name; generics = _; args } ->
     Reporting.simple_warn
       (Format.sprintf
-         "Couldn't find type of method app '%s::%s', argument might be incorrect"
-         (string_of_rs_exp 0 exp)
-         name);
+         "Couldn't find type of method app '%s', argument might be incorrect"
+         (string_of_rs_exp 0 e));
     e.e_exp
   | RsStaticApp (t, name, args) ->
     Reporting.simple_warn
       (Format.sprintf
-         "Couldn't find type of static app '%s::%s', arguments might be incorrect"
-         (string_of_rs_type t)
-         name);
+         "Couldn't find type of static app '%s', arguments might be incorrect"
+         (string_of_rs_exp 0 e));
     e.e_exp
   | RsApp (({ e_annot = _; e_exp = RsId id } as e_id), generics, args) ->
-    (match ctx_fun id ctx with
-     | Some fn ->
-       RsApp (e_id, generics, List.map2 (cast_bitvec ctx) fn.signature.args args)
+    (match ctx_fun_type id ctx with
+     | Some signature ->
+       (try RsApp (e_id, generics, List.map2 (cast_bitvec ctx) signature.args args) with
+        | Invalid_argument _ ->
+          Format.eprintf "ERROR for %s\n" id;
+          List.iter (fun t -> Format.eprintf "%s\n" (string_of_rs_type t)) signature.args;
+          Format.eprintf "vs\n";
+          List.iter (fun e -> Format.eprintf "%s\n" (string_of_rs_exp 0 e)) args;
+          assert false)
      | None ->
-       (match ctx_fun_type id ctx with
-        | Some fn -> RsApp (e_id, generics, List.map2 (cast_bitvec ctx) fn.args args)
-        | None ->
-          Reporting.simple_warn
-            (Format.sprintf
-               "Couldn't find type of function '%s', arguments might be incorrect"
-               id);
-          e.e_exp))
+       Reporting.simple_warn
+         (Format.sprintf
+            "Couldn't find type of function '%s', arguments might be incorrect"
+            id);
+       e.e_exp)
   | RsApp (e, generics, args) ->
     Reporting.simple_warn
       (Format.sprintf
@@ -566,15 +584,8 @@ let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
   e_exp
 ;;
 
-(* match e.e_annot with
-  | Some t when is_bitvec_type ctx t ->
-      RsMethodApp { exp={ e_annot=None; e_exp }; name="into"; generics=[]; args=[] }
-  | _ -> e_exp
-*)
-
 let use_dynamic_bitvec_args (ctx : context) (rust_program : rs_program) : rs_program =
   let ctx = update_context_fn_type ctx rust_program in
-  (* TODO: This does not translate types? *)
   rust_transform_expr
     { id_expr_type_transform with exp_aux = use_dynamic_bitvec_exp }
     ctx
@@ -1411,13 +1422,17 @@ let is_sail_context_needed (ctx : context) (func : rs_fn) : rs_fn =
      | false -> func)
 ;;
 
-let virt_context_call_graph = { func = is_sail_context_needed }
+let virt_context_call_graph (ctx : context) (rust_program : rs_program) : rs_program =
+  let ctx = update_context_fn_type ctx rust_program in
+  rust_transform_func { func = is_sail_context_needed } ctx rust_program
+;;
 
 (* ———————————————————————— VirtContext transformer ————————————————————————— *)
 (* Adds a virtual context as first argument to all functions.                 *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
 let sail_context_inserter (_ctx : context) (func : rs_fn) : rs_fn =
+  if func.use_sail_ctx then Format.eprintf "Inserting context argument for %s\n" func.name;
   if func.use_sail_ctx
   then
     { func with
@@ -1428,7 +1443,10 @@ let sail_context_inserter (_ctx : context) (func : rs_fn) : rs_fn =
   else func
 ;;
 
-let virt_context_transform = { func = sail_context_inserter }
+let virt_context_transform (ctx : context) (rust_program : rs_program) : rs_program =
+  let ctx = update_context_fn_type ctx rust_program in
+  rust_transform_func { func = sail_context_inserter } ctx rust_program
+;;
 
 (* —————————————————————————— Enum Args Namespace ——————————————————————————— *)
 (* Sail does not need to namespace its enum, but Rust does. This pass adds    *)
@@ -1465,7 +1483,7 @@ let enum_arg_namespace : func_transform = { func = add_namespace_to_arg_pats }
 (* Sail treats all arguments as a single tuple, which our back-end flatten to *)
 (* fit the Rust model better. Therefore, the match will only match on the     *)
 (* first argument, instead of the whole tuple as it should.                   *)
-(* This transformation detects scattered functions matching one more than one *)
+(* This transformation detects scattered functions matching on more than one  *)
 (* argument and modify the match to encompass all the arguments of the        *)
 (* scattered function.                                                        *)
 (* —————————————————————————————————————————————————————————————————————————— *)
@@ -1499,6 +1517,7 @@ let fix_scattered_func : func_transform = { func = fix_scattered_func }
   NOTE: Commenting it does not seem to change anything, except the fact that
   generics which used to be usize are now i128
 *)
+
 (* let fix_generic_type_func (_ctx : context) (func : rs_fn) : rs_fn = *)
 (*   let rec get_array_type_vars (typs : rs_type list) = *)
 (*     match typs with *)
@@ -1760,7 +1779,19 @@ let transform_basic_types_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
     in
     let args =
       match ctx_fun_type id ctx with
-      | Some fun_def -> List.map patch_arg (List.combine args fun_def.args)
+      | Some fun_def ->
+        (try List.map patch_arg (List.combine args fun_def.args) with
+         (* TODO: This is due to a commented regbits special translation, what
+             is it like? *)
+         | Invalid_argument _ ->
+           Format.eprintf "%s(" id;
+           List.iter
+             (fun (a : rs_exp) -> Format.eprintf "%s, " (string_of_rs_exp 0 a))
+             args;
+           Format.eprintf ") vs (";
+           List.iter (fun t -> Format.eprintf "%s, " (string_of_rs_type t)) fun_def.args;
+           Format.eprintf ")\n";
+           args)
       | None -> args
     in
     RsApp (e_id, generics, args)
@@ -1827,35 +1858,29 @@ let add_wildcard_match : expr_type_transform =
 
 (* ———————————————————————— VirtContext argument inserter  ————————————————————————— *)
 
-(* TODO: Is it correct like that? It might not be... *)
-let is_enum (value : string) : bool =
-  let re = Str.regexp_string "::" in
-  try
-    ignore (Str.search_forward re value 0);
-    true
-  with
-  | Not_found -> false
-;;
-
 let sail_context_arg_inserter_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   match exp.e_exp with
-  | RsApp (({ e_annot = _; e_exp = RsId app_id } as e_id), generics, args)
-    when (not (SMap.mem app_id ctx.arch.external_func)) && not (is_enum app_id) ->
+  | RsApp (({ e_annot = _; e_exp = RsId app_id } as e_id), generics, args) ->
     (match ctx_fun app_id ctx with
-     | Some fn when not fn.use_sail_ctx -> exp.e_exp
-     | Some _fn ->
-       let args = mk_exp_id core_ctx :: args in
-       RsApp (e_id, generics, args)
+     | Some fn ->
+       if fn.use_sail_ctx
+       then (
+         let args = mk_exp_id core_ctx :: args in
+         RsApp (e_id, generics, args))
+       else exp.e_exp
      | _ ->
        Reporting.simple_warn
          (Printf.sprintf "Could not find function '%s' in context" app_id);
-       let args = mk_exp_id core_ctx :: args in
-       RsApp (e_id, generics, args))
+       exp.e_exp)
   | e -> e
 ;;
 
-let sail_context_arg_inserter : expr_type_transform =
-  { id_expr_type_transform with exp_aux = sail_context_arg_inserter_exp }
+let sail_context_arg_inserter (ctx : context) (rs_program : rs_program) : rs_program =
+  let ctx = update_context_fn_type ctx rs_program in
+  rust_transform_expr
+    { id_expr_type_transform with exp_aux = sail_context_arg_inserter_exp }
+    ctx
+    rs_program
 ;;
 
 (* TODO: This is a very (almost useless) basic dead code remover only for our use case. Extend it in the future *)
@@ -2104,8 +2129,8 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     rust_program
     |> rust_transform_expr remove_unsupported_calls ctx
     |> rust_transform_expr remove_unsupported_match ctx
-    |> fix_point (rust_transform_func virt_context_call_graph) ctx 3
-    |> rust_transform_func virt_context_transform ctx
+    |> fix_point virt_context_call_graph ctx 3
+    |> virt_context_transform ctx
     |> rust_transform_expr nested_block_remover ctx
     |> rust_transform_expr native_func_transform ctx
     |> fix_point optimizer ctx 10
@@ -2118,7 +2143,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> insert_annotation_imports
     |> rust_transform_expr transform_basic_types ctx
     |> rust_transform_expr add_wildcard_match ctx
-    |> rust_transform_expr sail_context_arg_inserter ctx
+    |> sail_context_arg_inserter ctx
     |> rust_transform_expr expr_type_hoister ctx
     |> rust_transform_expr expr_type_operator_rewriter ctx
     |> rust_transform_expr atom_rewriter ctx

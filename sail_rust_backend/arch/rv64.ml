@@ -62,12 +62,9 @@ let external_func : rs_fn_type option SMap.t =
       ; "panic!", None
       ; "dec_str", None
       ; "hex_str", None
-      ; "update_subrange_bits", None
       ; "zero_extend_16", None
       ; "zero_extend_63", None
       ; "zero_extend_64", None
-      ; "sign_extend", None
-      ; "sail_sign_extend", None
       ; "sail_ones", None
       ; "max_int", None
       ; "min_int", None
@@ -75,18 +72,12 @@ let external_func : rs_fn_type option SMap.t =
       ; "signed", None
       ; "lteq_int", None
       ; "sail_branch_announce", None
-      ; "bitvector_length", None
       ; "bits_str", None
       ; "print_reg", None
-      ; "bitvector_access", None
       ; "get_16_random_bits", None
-      ; "bitvector_concat", None
       ; "print_platform", None
       ; "cancel_reservation", None
-      ; "truncate", None
-      ; "subrange_bits", None
       ; "internal_error", None
-      ; "bitvector_update", None
       ; "hex_bits_12_forwards", None
       ; "hex_bits_12_backwards", None
       ; "sail_zeros", None
@@ -98,8 +89,6 @@ let external_func : rs_fn_type option SMap.t =
       ; "quot_round_zero", None
       ; "rem_round_zero", None
       ; "undefined_vector", None
-      ; "undefined_bitvector", None
-      ; "bitvector_concat", None
       ; "slice", None
       ]
   in
@@ -370,11 +359,12 @@ let unsupported_match : SSet.t =
 ;;
 
 let rv64 : arch_t =
-  { call_set
-  ; external_func
-  ; overwritten_func
-  ; unsupported_obj
-  ; unsupported_func
-  ; unsupported_match
-  }
+  Prelude.add_prelude
+    { call_set
+    ; external_func
+    ; overwritten_func
+    ; unsupported_obj
+    ; unsupported_func
+    ; unsupported_match
+    }
 ;;
