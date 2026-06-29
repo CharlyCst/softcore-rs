@@ -71,7 +71,7 @@ let rec strip_generic_parameters (typ : rs_type) : rs_type =
   match typ with
   | RsTypTuple typs -> RsTypTuple (List.map strip_generic_parameters typs)
   | RsTypGenericParam (name, _) -> RsTypId name
-  | RsTypArray (typ, size) -> RsTypArray (strip_typ_params typ, strip_typ_params size)
+  | RsTypArray (typ, size) -> RsTypArray (strip_generic_parameters typ, strip_typ_params size)
   | RsTypOption typ -> RsTypOption (strip_typ_params typ)
   | _ -> typ
 ;;
@@ -91,7 +91,7 @@ let rec generics_of_typ (typ : rs_type) : SSet.t =
       SSet.empty
       params
   | RsTypArray (param1, param2) ->
-    SSet.union (generics_param param1) (generics_param param2)
+    SSet.union (generics_of_typ param1) (generics_param param2)
   | RsTypOption typ_param -> generics_param typ_param
   | RsTypTodo _ -> SSet.empty
   | RsTypBorrow t -> generics_of_typ t
@@ -106,11 +106,7 @@ and generics_of_exp (exp : rs_exp) : SSet.t =
     List.fold_left (fun acc exp -> SSet.union acc (generics_of_exp exp)) SSet.empty exps
   in
   match exp.e_exp with
-  | RsLet (pat, exp, next) ->
-    generics_of_pat pat
-    |> SSet.union (generics_of_exp exp)
-    |> SSet.union (generics_of_exp next)
-  | RsLetMut (pat, exp, next) ->
+  | RsLet (_, pat, exp, next) ->
     generics_of_pat pat
     |> SSet.union (generics_of_exp exp)
     |> SSet.union (generics_of_exp next)
@@ -257,4 +253,17 @@ let rec lexp_to_exp (lexp : rs_lexp) : rs_exp =
     | _ -> RsId "LexpToExpTodo"
   in
   { e_annot = None; e_exp }
+;;
+
+let empty_function_from_type (name : string) (signature : rs_fn_type) : rs_fn =
+  { name
+  ; signature
+  ; const = false
+  ; body = { e_annot = None; e_exp = RsTodo "Undefined function" }
+  ; doc =
+      []
+      (* This can actually be true, in which case the function should later be updated in the context *)
+  ; use_sail_ctx = false
+  ; args = List.map (fun _ -> RsPatWildcard) signature.args
+  }
 ;;

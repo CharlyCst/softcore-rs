@@ -31,18 +31,18 @@ use raw::{cregidx, regidx};
 use registers::GeneralRegister;
 use registers::*;
 pub use softcore_prelude as prelude;
-use softcore_prelude::{BitDynamic, BoundedVec};
+use softcore_prelude::{BitDynamic, BitStatic, BoundedVec};
 
 // ———————————————————————— Initialization Constants ———————————————————————— //
 
 const DEFAULT_PMP_CFG: raw::Pmpcfg_ent = raw::Pmpcfg_ent {
-    bits: BitDynamic::new(8, 0),
+    bits: BitStatic::<8>::new(0),
 };
 const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent {
-    bits: BitDynamic::new(64, 0),
+    bits: BitStatic::<64>::new(0),
 };
 const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
-const ZEROES: BitDynamic = BitDynamic::new(64, 0);
+const ZEROES: BitStatic::<64> = BitStatic::<64>::new(0);
 
 // ————————————————————————————— Trap Handling —————————————————————————————— //
 
@@ -97,7 +97,7 @@ impl Core {
                 Trap::Some(self.nextPC.unsigned() as u64)
             }
             ExecutionResult::Trap((privilege, ctl, pc)) => {
-                let pc = raw::exception_handler(self, privilege, ctl, pc);
+                let pc = raw::exception_handler(self, privilege, ctl, pc.into());
                 raw::set_next_pc(self, pc);
                 Trap::Some(self.nextPC.unsigned() as u64)
             }
@@ -126,7 +126,7 @@ impl Core {
         let reg = match reg {
             raw::regidx::Regidx(reg) => reg.unsigned() as i128,
         };
-        raw::wX(self, raw::regno::Regno(reg), BitDynamic::new(64, value));
+        raw::wX(self, raw::regno::Regno(reg), BitStatic::<64>::new(value).into());
     }
 
     /// Get the value of a single vector register.
@@ -175,7 +175,7 @@ impl Core {
     /// This function returns [None] if the CSR can not be read by the current privilege level or
     /// is not implemented given the core configuration.
     pub fn get_csr(&mut self, csr: u64) -> Option<u64> {
-        let csr = BitDynamic::new(12, csr);
+        let csr = BitStatic::<12>::new(csr);
         if raw::check_CSR(self, csr, self.cur_privilege, false) {
             Some(raw::read_CSR(self, csr).unsigned() as u64)
         } else {
@@ -189,9 +189,9 @@ impl Core {
     /// or is not implemented given the core configuration. Otherwise the new CSR value is
     /// returned.
     pub fn set_csr(&mut self, csr: u64, value: u64) -> Option<u64> {
-        let csr = BitDynamic::new(12, csr);
+        let csr = BitStatic::<12>::new(csr);
         if raw::check_CSR(self, csr, self.cur_privilege, true) {
-            Some(raw::write_CSR(self, csr, BitDynamic::new(64, value)).unsigned() as u64)
+            Some(raw::write_CSR(self, csr, BitStatic::<64>::new(value).into()).unsigned() as u64)
         } else {
             None
         }
@@ -292,9 +292,9 @@ impl Core {
         op: raw::csrop,
         is_write: bool,
     ) -> Result<(), raw::ExecutionResult> {
-        let csr = BitDynamic::new(12, csr);
-        let val = BitDynamic::new(64, val);
-        let res = raw::doCSR(self, csr, val, rd, op, is_write);
+        let csr = BitStatic::<12>::new(csr);
+        let val = BitStatic::<64>::new(val);
+        let res = raw::doCSR(self, csr, val.into(), rd, op, is_write);
         match res {
             raw::ExecutionResult::Retire_Success(()) => Ok(()),
             _ => Err(res),
@@ -313,7 +313,7 @@ impl Core {
 
     /// Decode an instruction
     pub fn decode_instr(&mut self, instr: u32) -> ast {
-        raw::encdec_backwards(self, BitDynamic::new(32, instr as u64))
+        raw::encdec_backwards(self, BitStatic::<32>::new(instr as u64))
     }
 
     /// Encode and instruction
@@ -323,7 +323,7 @@ impl Core {
 
     /// Return true if the CSR is defined (and enabled) on the core
     pub fn is_csr_defined(&mut self, csr_id: usize) -> bool {
-        raw::is_CSR_defined(self, BitDynamic::new(12, csr_id as u64))
+        raw::is_CSR_defined(self, BitStatic::<12>::new(csr_id as u64))
     }
 
     /// Dispatch pending interrupt
@@ -350,8 +350,8 @@ impl Core {
             target_level,
             false,
             raw::exceptionType_to_bits(exception),
-            self.PC,
-            Some(BitDynamic::new(64, tval)),
+            self.PC.into(),
+            Some(BitStatic::<64>::new(tval).into()),
             None,
         );
     }
@@ -363,12 +363,12 @@ impl Core {
 
     /// Set the `pmpaddr<index>` register to the given value.
     pub fn set_pmpaddr(&mut self, index: usize, val: u64) {
-        raw::pmpWriteAddrReg(self, index as i128, BitDynamic::new(64, val));
+        raw::pmpWriteAddrReg(self, index as i128, BitStatic::<64>::new(val).into());
     }
 
     /// Set the `pmpcfg<index>` register to the given value.
     pub fn set_pmpcfg(&mut self, index: usize, val: u64) {
-        raw::pmpWriteCfgReg(self, index as i128, BitDynamic::new(64, val));
+        raw::pmpWriteCfgReg(self, index as i128, BitStatic::<64>::new(val).into());
     }
 
     /// Check if an 8 byte access is allowed with the current mode and PMP configuration.
@@ -379,7 +379,7 @@ impl Core {
         addr: u64,
         access_kind: raw::AccessType<()>,
     ) -> Option<raw::ExceptionType> {
-        let addr = raw::physaddr::Physaddr(BitDynamic::new(raw::physaddrbits_len, addr));
+        let addr = raw::physaddr::Physaddr(BitStatic::new(addr));
         let width = 8;
         raw::pmpCheck(self, addr, width, access_kind, self.cur_privilege)
     }
@@ -396,106 +396,106 @@ const fn vlen(config: &raw::Config) -> i128 {
 /// [Core::reset] or update CSRs manually to ensure the core enters a valid starting state.
 pub const fn new_core(config: raw::Config) -> Core {
     Core {
-        PC: BitDynamic::new(raw::xlen, 0),
-        nextPC: BitDynamic::new(raw::xlen, 0),
-        x1: BitDynamic::new(raw::xlen, 0),
-        x2: BitDynamic::new(raw::xlen, 0),
-        x3: BitDynamic::new(raw::xlen, 0),
-        x4: BitDynamic::new(raw::xlen, 0),
-        x5: BitDynamic::new(raw::xlen, 0),
-        x6: BitDynamic::new(raw::xlen, 0),
-        x7: BitDynamic::new(raw::xlen, 0),
-        x8: BitDynamic::new(raw::xlen, 0),
-        x9: BitDynamic::new(raw::xlen, 0),
-        x10: BitDynamic::new(raw::xlen, 0),
-        x11: BitDynamic::new(raw::xlen, 0),
-        x12: BitDynamic::new(raw::xlen, 0),
-        x13: BitDynamic::new(raw::xlen, 0),
-        x14: BitDynamic::new(raw::xlen, 0),
-        x15: BitDynamic::new(raw::xlen, 0),
-        x16: BitDynamic::new(raw::xlen, 0),
-        x17: BitDynamic::new(raw::xlen, 0),
-        x18: BitDynamic::new(raw::xlen, 0),
-        x19: BitDynamic::new(raw::xlen, 0),
-        x20: BitDynamic::new(raw::xlen, 0),
-        x21: BitDynamic::new(raw::xlen, 0),
-        x22: BitDynamic::new(raw::xlen, 0),
-        x23: BitDynamic::new(raw::xlen, 0),
-        x24: BitDynamic::new(raw::xlen, 0),
-        x25: BitDynamic::new(raw::xlen, 0),
-        x26: BitDynamic::new(raw::xlen, 0),
-        x27: BitDynamic::new(raw::xlen, 0),
-        x28: BitDynamic::new(raw::xlen, 0),
-        x29: BitDynamic::new(raw::xlen, 0),
-        x30: BitDynamic::new(raw::xlen, 0),
-        x31: BitDynamic::new(raw::xlen, 0),
+        PC: BitStatic::new(0),
+        nextPC: BitStatic::new(0),
+        x1: BitStatic::new(0),
+        x2: BitStatic::new(0),
+        x3: BitStatic::new(0),
+        x4: BitStatic::new(0),
+        x5: BitStatic::new(0),
+        x6: BitStatic::new(0),
+        x7: BitStatic::new(0),
+        x8: BitStatic::new(0),
+        x9: BitStatic::new(0),
+        x10: BitStatic::new(0),
+        x11: BitStatic::new(0),
+        x12: BitStatic::new(0),
+        x13: BitStatic::new(0),
+        x14: BitStatic::new(0),
+        x15: BitStatic::new(0),
+        x16: BitStatic::new(0),
+        x17: BitStatic::new(0),
+        x18: BitStatic::new(0),
+        x19: BitStatic::new(0),
+        x20: BitStatic::new(0),
+        x21: BitStatic::new(0),
+        x22: BitStatic::new(0),
+        x23: BitStatic::new(0),
+        x24: BitStatic::new(0),
+        x25: BitStatic::new(0),
+        x26: BitStatic::new(0),
+        x27: BitStatic::new(0),
+        x28: BitStatic::new(0),
+        x29: BitStatic::new(0),
+        x30: BitStatic::new(0),
+        x31: BitStatic::new(0),
         cur_privilege: raw::Privilege::Machine,
-        cur_inst: BitDynamic::new(raw::xlen, 0),
+        cur_inst: BitStatic::new(0),
         misa: raw::Misa {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         mstatus: raw::Mstatus {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         menvcfg: raw::MEnvcfg {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         senvcfg: raw::SEnvcfg {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         mie: raw::Minterrupts {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         mip: raw::Minterrupts {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         medeleg: raw::Medeleg {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         mideleg: raw::Minterrupts {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         mtvec: raw::Mtvec {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
         mcause: raw::Mcause {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
-        mepc: BitDynamic::new(raw::xlen, 0),
-        mtval: BitDynamic::new(raw::xlen, 0),
-        mscratch: BitDynamic::new(raw::xlen, 0),
+        mepc: BitStatic::new(0),
+        mtval: BitStatic::new(0),
+        mscratch: BitStatic::new(0),
         scounteren: raw::Counteren {
-            bits: BitDynamic::new(32, 0),
+            bits: BitStatic::<32>::new(0),
         },
         mcounteren: raw::Counteren {
-            bits: BitDynamic::new(32, 0),
+            bits: BitStatic::<32>::new(0),
         },
         mcountinhibit: raw::Counterin {
-            bits: BitDynamic::new(32, 0),
+            bits: BitStatic::<32>::new(0),
         },
-        mcycle: BitDynamic::new(64, 0),
-        mtime: BitDynamic::new(64, 0),
-        minstret: BitDynamic::new(64, 0),
+        mcycle: BitStatic::<64>::new(0),
+        mtime: BitStatic::<64>::new(0),
+        minstret: BitStatic::<64>::new(0),
         minstret_increment: false,
-        mvendorid: BitDynamic::new(32, 0),
-        mimpid: BitDynamic::new(raw::xlen, 0),
-        marchid: BitDynamic::new(raw::xlen, 0),
-        mhartid: BitDynamic::new(raw::xlen, 0),
-        mconfigptr: BitDynamic::new(raw::xlen, 0),
+        mvendorid: BitStatic::<32>::new(0),
+        mimpid: BitStatic::new(0),
+        marchid: BitStatic::new(0),
+        mhartid: BitStatic::new(0),
+        mconfigptr: BitStatic::new(0),
         stvec: raw::Mtvec {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(),
         },
-        sscratch: BitDynamic::new(raw::xlen, 0),
-        sepc: BitDynamic::new(raw::xlen, 0),
+        sscratch: BitStatic::new(0),
+        sepc: BitStatic::new(0),
         scause: raw::Mcause {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(), // TODO(Gurvan): Check the size?
         },
-        stval: BitDynamic::new(raw::xlen, 0),
-        tselect: BitDynamic::new(raw::xlen, 0),
-        vstart: BitDynamic::new(16, 0),
-        vl: BitDynamic::new(raw::xlen, 0),
+        stval: BitStatic::new(0),
+        tselect: BitStatic::new(0),
+        vstart: BitStatic::<16>::new(0),
+        vl: BitStatic::new(0),
         vtype: raw::Vtype {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0).into(), // TODO(Gurvan): Check the size?
         },
         pmpcfg_n: [DEFAULT_PMP_CFG; 64],
         pmpaddr_n: [ZEROES; 64],
@@ -532,62 +532,62 @@ pub const fn new_core(config: raw::Config) -> Core {
         vr30: BitDynamic::new(vlen(&config), 0),
         vr31: BitDynamic::new(vlen(&config), 0),
         vcsr: raw::Vcsr {
-            bits: BitDynamic::new(3, 0),
+            bits: BitStatic::<3>::new(0),
         },
         mhpmevent: [DEFAULT_HPM_EVENT; 32],
         mhpmcounter: [ZEROES; 32],
-        float_result: BitDynamic::new(64, 0),
-        float_fflags: BitDynamic::new(64, 0),
-        f0: BitDynamic::new(raw::flen, 0),
-        f1: BitDynamic::new(raw::flen, 0),
-        f2: BitDynamic::new(raw::flen, 0),
-        f3: BitDynamic::new(raw::flen, 0),
-        f4: BitDynamic::new(raw::flen, 0),
-        f5: BitDynamic::new(raw::flen, 0),
-        f6: BitDynamic::new(raw::flen, 0),
-        f7: BitDynamic::new(raw::flen, 0),
-        f8: BitDynamic::new(raw::flen, 0),
-        f9: BitDynamic::new(raw::flen, 0),
-        f10: BitDynamic::new(raw::flen, 0),
-        f11: BitDynamic::new(raw::flen, 0),
-        f12: BitDynamic::new(raw::flen, 0),
-        f13: BitDynamic::new(raw::flen, 0),
-        f14: BitDynamic::new(raw::flen, 0),
-        f15: BitDynamic::new(raw::flen, 0),
-        f16: BitDynamic::new(raw::flen, 0),
-        f17: BitDynamic::new(raw::flen, 0),
-        f18: BitDynamic::new(raw::flen, 0),
-        f19: BitDynamic::new(raw::flen, 0),
-        f20: BitDynamic::new(raw::flen, 0),
-        f21: BitDynamic::new(raw::flen, 0),
-        f22: BitDynamic::new(raw::flen, 0),
-        f23: BitDynamic::new(raw::flen, 0),
-        f24: BitDynamic::new(raw::flen, 0),
-        f25: BitDynamic::new(raw::flen, 0),
-        f26: BitDynamic::new(raw::flen, 0),
-        f27: BitDynamic::new(raw::flen, 0),
-        f28: BitDynamic::new(raw::flen, 0),
-        f29: BitDynamic::new(raw::flen, 0),
-        f30: BitDynamic::new(raw::flen, 0),
-        f31: BitDynamic::new(raw::flen, 0),
+        float_result: BitStatic::<64>::new(0),
+        float_fflags: BitStatic::<64>::new(0),
+        f0: BitStatic::new(0),
+        f1: BitStatic::new(0),
+        f2: BitStatic::new(0),
+        f3: BitStatic::new(0),
+        f4: BitStatic::new(0),
+        f5: BitStatic::new(0),
+        f6: BitStatic::new(0),
+        f7: BitStatic::new(0),
+        f8: BitStatic::new(0),
+        f9: BitStatic::new(0),
+        f10: BitStatic::new(0),
+        f11: BitStatic::new(0),
+        f12: BitStatic::new(0),
+        f13: BitStatic::new(0),
+        f14: BitStatic::new(0),
+        f15: BitStatic::new(0),
+        f16: BitStatic::new(0),
+        f17: BitStatic::new(0),
+        f18: BitStatic::new(0),
+        f19: BitStatic::new(0),
+        f20: BitStatic::new(0),
+        f21: BitStatic::new(0),
+        f22: BitStatic::new(0),
+        f23: BitStatic::new(0),
+        f24: BitStatic::new(0),
+        f25: BitStatic::new(0),
+        f26: BitStatic::new(0),
+        f27: BitStatic::new(0),
+        f28: BitStatic::new(0),
+        f29: BitStatic::new(0),
+        f30: BitStatic::new(0),
+        f31: BitStatic::new(0),
         fcsr: raw::Fcsr {
-            bits: BitDynamic::new(32, 0),
+            bits: BitStatic::<32>::new(0),
         },
         mcyclecfg: raw::CountSmcntrpmf {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0),
         },
         minstretcfg: raw::CountSmcntrpmf {
-            bits: BitDynamic::new(64, 0),
+            bits: BitStatic::<64>::new(0),
         },
-        mtimecmp: BitDynamic::new(64, 0),
-        stimecmp: BitDynamic::new(64, 0),
-        htif_tohost: BitDynamic::new(64, 0),
+        mtimecmp: BitStatic::<64>::new(0),
+        stimecmp: BitStatic::<64>::new(0),
+        htif_tohost: BitStatic::<64>::new(0),
         htif_done: false,
-        htif_exit_code: BitDynamic::new(64, 0),
+        htif_exit_code: BitStatic::<64>::new(0),
         htif_cmd_write: false,
-        htif_payload_writes: BitDynamic::new(4, 0),
+        htif_payload_writes: BitStatic::<4>::new(0),
         tlb: [DEFAULT_TLB_ENTRY; raw::num_tlb_entries as usize],
-        satp: BitDynamic::new(raw::xlen, 0),
+        satp: BitStatic::new(0),
         hart_state: raw::HartState::HART_ACTIVE(()),
         config,
     }
@@ -598,7 +598,7 @@ pub const fn new_core(config: raw::Config) -> Core {
 impl regidx {
     /// Creates a new regidx from a register index
     pub fn new(reg: u8) -> regidx {
-        regidx::Regidx(BitDynamic::new(5, reg as u64))
+        regidx::Regidx(BitStatic::<5>::new(reg as u64))
     }
 
     /// Return the register index as bits.
@@ -663,14 +663,14 @@ mod tests {
     #[test]
     fn decoder() {
         let mut ctx = new_core(config::U74);
-        let uimm0 = BitDynamic::new(5, 0);
+        let uimm0 = BitStatic::<5>::new(0);
 
         // Load/Store
 
         assert_eq!(
             ctx.decode_instr(0xff87b703),
             ast::LOAD((
-                BitDynamic::new(12, 0xFFF - 7), // immediate is -8
+                BitStatic::<12>::new(0xFFF - 7), // immediate is -8
                 X15,
                 X14,
                 false,
@@ -685,38 +685,38 @@ mod tests {
         // csrrw x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30001073),
-            ast::CSRReg((BitDynamic::new(12, 0x300), X0, X0, csrop::CSRRW))
+            ast::CSRReg((BitStatic::<12>::new(0x300), X0, X0, csrop::CSRRW))
         );
         // csrrs x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30002073),
-            ast::CSRReg((BitDynamic::new(12, 0x300), X0, X0, csrop::CSRRS))
+            ast::CSRReg((BitStatic::<12>::new(0x300), X0, X0, csrop::CSRRS))
         );
         // csrrc x0, mstatus, x0
         assert_eq!(
             ctx.decode_instr(0x30003073),
-            ast::CSRReg((BitDynamic::new(12, 0x300), X0, X0, csrop::CSRRC))
+            ast::CSRReg((BitStatic::<12>::new(0x300), X0, X0, csrop::CSRRC))
         );
         // csrrwi x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30005073),
-            ast::CSRImm((BitDynamic::new(12, 0x300), uimm0, X0, csrop::CSRRW))
+            ast::CSRImm((BitStatic::<12>::new(0x300), uimm0, X0, csrop::CSRRW))
         );
         // csrrsi x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30006073),
-            ast::CSRImm((BitDynamic::new(12, 0x300), uimm0, X0, csrop::CSRRS))
+            ast::CSRImm((BitStatic::<12>::new(0x300), uimm0, X0, csrop::CSRRS))
         );
         // csrrci x0, mstatus, 0
         assert_eq!(
             ctx.decode_instr(0x30007073),
-            ast::CSRImm((BitDynamic::new(12, 0x300), uimm0, X0, csrop::CSRRC))
+            ast::CSRImm((BitStatic::<12>::new(0x300), uimm0, X0, csrop::CSRRC))
         );
 
         // Illegal
         assert_eq!(
             ctx.decode_instr(0x30001072),
-            ast::ILLEGAL(BitDynamic::new(32, 0x30001072))
+            ast::ILLEGAL(BitStatic::<32>::new(0x30001072))
         );
     }
 
@@ -850,7 +850,7 @@ mod tests {
 
         // Set initial state
         core.set_mode(Privilege::User);
-        core.PC = BitDynamic::new(raw::xlen, 0x1000);
+        core.PC = BitStatic::new(0x1000);
         let initial_pc = core.PC.unsigned();
 
         assert_eq!(core.mode(), Privilege::User, "Initial mode should be User");
@@ -1111,12 +1111,12 @@ mod tests {
 
         // Test basic ADDI: addi a1, x0, 0x42
         assert_eq!(core.get(A1), 0, "A1 should start at 0");
-        let result = core.execute(ast::ITYPE((BitDynamic::new(12, 0x42), X0, A1, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((BitStatic::<12>::new(0x42), X0, A1, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(core.get(A1), 0x42, "A1 should contain immediate value");
 
         // Test ADDI with register source: addi a1, a1, 0x20
-        let result = core.execute(ast::ITYPE((BitDynamic::new(12, 0x20), A1, A1, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((BitStatic::<12>::new(0x20), A1, A1, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(
             core.get(A1),
@@ -1127,7 +1127,7 @@ mod tests {
         // Test ADDI with negative immediate (sign extension)
         core.set(T0, 100);
         let result = core.execute(ast::ITYPE((
-            BitDynamic::new(12, (-10i64) as u64),
+            BitStatic::<12>::new((-10i64) as u64),
             T0,
             T1,
             iop::ADDI,
@@ -1140,13 +1140,13 @@ mod tests {
         );
 
         // Test ADDI with X0 as destination (should be ignored)
-        let result = core.execute(ast::ITYPE((BitDynamic::new(12, 0xFF), T0, X0, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((BitStatic::<12>::new(0xFF), T0, X0, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(core.get(X0), 0, "X0 should remain hardwired to 0");
 
         // Test overflow behavior
         core.set(T2, u64::MAX);
-        let result = core.execute(ast::ITYPE((BitDynamic::new(12, 1), T2, T3, iop::ADDI)));
+        let result = core.execute(ast::ITYPE((BitStatic::<12>::new(1), T2, T3, iop::ADDI)));
         assert!(matches!(result, Trap::None));
         assert_eq!(core.get(T3), 0, "Addition should wrap around on overflow");
     }
@@ -1156,15 +1156,15 @@ mod tests {
         let mut core = new_core(config::U74);
 
         // Set up initial PC and register state
-        core.PC = BitDynamic::new(raw::xlen, 0x1000);
-        core.nextPC = BitDynamic::new(raw::xlen, 0x1004);
+        core.PC = BitStatic::new(0x1000);
+        core.nextPC = BitStatic::new(0x1004);
         core.set(T0, 0x3000); // Target address base
 
         let initial_pc = core.PC.unsigned();
 
         // Test JALR: jalr ra, t0, 8
         // This should jump to (t0 + 8) & ~1 and store PC+4 in ra
-        let result = core.execute(ast::JALR((BitDynamic::new(12, 8), T0, RA)));
+        let result = core.execute(ast::JALR((BitStatic::<12>::new(8), T0, RA)));
 
         assert!(matches!(result, Trap::None));
 

@@ -8,8 +8,8 @@ type rs_type =
   | RsTypUnit
   | RsTypGeneric of string
   | RsTypGenericParam of string * rs_type_param list
-  | RsTypArray of rs_type_param * rs_type_param
-  | RsTypOption of rs_type_param
+  | RsTypArray of rs_type * rs_type_param
+  | RsTypOption of rs_type_param (* TODO: This should just be a regular TypGenericParam ? *)
   | RsTypTodo of string
   | RsTypBorrow of rs_type
 
@@ -74,8 +74,7 @@ and rs_method_app =
   }
 
 and rs_exp_aux =
-  | RsLet of rs_pat * rs_exp * rs_exp
-  | RsLetMut of rs_pat * rs_exp * rs_exp
+  | RsLet of bool * rs_pat * rs_exp * rs_exp (* first bool is mutable *)
   | RsApp of rs_exp * string list * rs_exp list (* the strings are the generics *)
   | RsMethodApp of rs_method_app
   | RsStaticApp of rs_type * string * rs_exp list
@@ -221,3 +220,7 @@ let rs_type_bitdynamic : rs_type = RsTypId "BitDynamic"
 let rs_type_bitstatic (len : rs_type_param) : rs_type =
   RsTypGenericParam ("BitStatic", [ len ])
 ;;
+
+let rs_type_boundedvec (typ: rs_type) (len : rs_type_param): rs_type =
+  RsTypGenericParam ("BoundedVec", [ RsTypParamTyp typ; len ])
+

@@ -32,8 +32,10 @@ pub fn parse_hex_bits(_n: i128, _hex_str: &str) -> BitDynamic {
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
-pub const fn bitvector_concat(e1: BitDynamic, e2: BitDynamic) -> BitDynamic {
-    e1.concat(e2)
+pub fn bitvector_concat<B1, B2>(e1: B1, e2: B2) -> BitDynamic where B1: Into<BitDynamic>, B2: Into<BitDynamic> {
+    let e1_dyn: BitDynamic = e1.into();
+    let e2_dyn: BitDynamic = e2.into();
+    e1_dyn.concat(e2_dyn)
 }
 
 pub fn get_slice_int(l: i128, n: i128, start: i128) -> BitDynamic {
@@ -179,4 +181,11 @@ const fn mask128(nb_ones: usize) -> u128 {
     } else {
         (1 << nb_ones) - 1
     }
+}
+
+pub fn opt_into<T, V>(opt: Option<T>) -> Option<V>
+where
+    V: From<T>,
+{
+    opt.map(V::from)
 }

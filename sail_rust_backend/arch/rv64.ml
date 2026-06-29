@@ -62,12 +62,10 @@ let external_func : rs_fn_type option SMap.t =
       ; "panic!", None
       ; "dec_str", None
       ; "hex_str", None
-      ; "zero_extend_16", None
-      ; "zero_extend_63", None
-      ; "zero_extend_64", None
-      ; "sail_ones", None
-      ; "max_int", None
-      ; "min_int", None
+      ; ( "max_int", Some { generics = []; args = [ rs_type_i128; rs_type_i128
+      ]; ret = rs_type_i128; linked_gen_args = [] } )
+      ; ( "min_int", Some { generics = []; args = [ rs_type_i128; rs_type_i128
+      ]; ret = rs_type_i128; linked_gen_args = [] } )
       ; "__exit", None
       ; "signed", None
       ; "lteq_int", None
@@ -80,12 +78,27 @@ let external_func : rs_fn_type option SMap.t =
       ; "internal_error", None
       ; "hex_bits_12_forwards", None
       ; "hex_bits_12_backwards", None
-      ; "sail_zeros", None
       ; "parse_hex_bits", None
-      ; "get_slice_int", None
-      ; "sub_vec", None
-      ; "shift_bits_left", None
-      ; "shift_bits_right", None
+      ; ( "get_slice_int", Some {
+        generics = [];
+        args = [ rs_type_i128; rs_type_i128; rs_type_i128];
+        ret = rs_type_bitdynamic;
+        linked_gen_args = [];
+      })
+      ; ( "shift_bits_left"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_bitdynamic ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
+      ; ( "shift_bits_right"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_bitdynamic ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
       ; "quot_round_zero", None
       ; "rem_round_zero", None
       ; "undefined_vector", None

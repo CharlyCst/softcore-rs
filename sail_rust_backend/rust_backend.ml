@@ -39,8 +39,9 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     SMap.union select a b
   ;;
 
-  let defs_empty =
+  let defs_empty : defs =
     { unions = SMap.empty
+    ; aliasmap = SMap.empty
     ; funmap = SMap.empty
     ; constants = SSet.empty
     ; num_constants = SMap.empty
@@ -50,6 +51,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
 
   let defs_merge (a : defs) (b : defs) : defs =
     { unions = map_union a.unions b.unions
+    ; aliasmap = map_union a.aliasmap b.aliasmap
     ; funmap = map_union a.funmap b.funmap
     ; constants = SSet.union a.constants b.constants
     ; num_constants = map_union a.num_constants b.num_constants
@@ -281,16 +283,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_typ (typ, exp) -> RsAs (process_exp ctx exp, typ_to_rust typ)
     | E_app (id, [ e1; e2 ]) when string_of_id id = "mult_atom" ->
       process_binop_exp ctx e1 RsBinopMult e2
-    | E_app (id, exp_list) when string_of_id id = "bitvector_concat" ->
-      let exp_list = List.map (process_exp ctx) exp_list in
-      let exp_list =
-        List.map
-          (fun e ->
-             { e_annot = None; e_exp = RsStaticApp (RsTypId "BitDynamic", "from", [ e ]) })
-          exp_list
-      in
-      (* TODO(Gurvan): Call .into() onto this result *)
-      RsApp (mk_exp_id (sanitize_id (string_of_id id)), [], exp_list)
     | E_app (id, exp_list)
       when let sid = string_of_id id in
            sid = "ones" || sid = "sail_ones" ->
@@ -352,9 +344,10 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     | E_match (exp, pexp_list) ->
       RsMatch (process_exp ctx exp, List.map (process_pexp ctx) pexp_list)
     | E_let (LB_aux (LB_val (let_var, let_exp), _), exp) ->
-      RsLet (process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
+      RsLet (false, process_pat let_var, process_exp ctx let_exp, process_exp ctx exp)
     | E_var (lexp, value, next) ->
-      RsLetMut (process_lexp_as_pat ctx lexp, process_exp ctx value, process_exp ctx next)
+      RsLet
+        (true, process_lexp_as_pat ctx lexp, process_exp ctx value, process_exp ctx next)
     | E_assign (lexp, exp) -> RsAssign (process_lexp ctx lexp, process_exp ctx exp)
     | E_sizeof (Nexp_aux (nexp, _)) ->
       (* Numeric expressions are just regular expressions at runtime *)
@@ -491,14 +484,12 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     then (
       (* Generate a bitvector literal *)
       let vector_length = List.length items in
+      (* TODO(Gurvan): Check if vector_length is more than 64, in which case
+         error out *)
       RsStaticApp
-        (* TODO(Gurvan): Uncomment to try back BitStatic *)
-        (* (  RsTypGenericParam ("BitStatic", [ RsTypParamNum (mk_num
-        vector_length) ]) *)
-        ( RsTypId "BitDynamic"
+        ( rs_type_bitstatic (RsTypParamNum (mk_num vector_length))
         , "new"
-        , [ mk_num vector_length
-          ; { e_annot = None
+        , [ { e_annot = None
             ; e_exp =
                 RsLit
                   (RsLitBin
@@ -1111,6 +1102,11 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
         | RsTypParamNum n -> RsTypParamNum (mk_as n rs_type_usize)
         | _ -> size
       in
+      let typ =
+        match typ with
+        | RsTypParamTyp t -> t
+        | _ -> assert false (* TODO(Gurvan): Unreachable? *)
+      in
       RsTypArray (typ, size)
     | Typ_app (id, params) ->
       RsTypGenericParam (string_of_id id, List.map extract_type_arg params)
@@ -1172,19 +1168,6 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let fn = mk_fn_typ_gen args ret generics in
       { fn with linked_gen_args = find_linked_gen_args generics args ret }
     | _ -> mk_fn_typ [ RsTypTodo "todo_extract_types" ] (RsTypTodo "todo_extract_types")
-  ;;
-
-  let empty_function_from_type (name : string) (signature : rs_fn_type) : rs_fn =
-    { name
-    ; signature
-    ; const = false
-    ; body = { e_annot = None; e_exp = RsTodo "Undefined function" }
-    ; doc = []
-    ; use_sail_ctx =
-        false
-        (* TODO(Gurvan) : This can actually be true… This function should later be updated in the context *)
-    ; args = List.map (fun _ -> RsPatWildcard) signature.args
-    }
   ;;
 
   let val_fun_def (val_spec : val_spec_aux) : funmap =

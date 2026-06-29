@@ -1,12 +1,22 @@
 open Rs_ast
 
+(** Map from type constructors to their types *)
 type unionmap = rs_type SMap.t
+
+(** Map from type alias to the type they point to *)
+type aliasmap = rs_type SMap.t
+
+(** Map for function definitions *)
 type funmap = rs_fn SMap.t
+
+(** Map for numerical constants *)
 type nummap = Libsail.Ast_util.Big_int.num SMap.t
+
 type inline_fun = rs_exp SMap.t
 
 type defs =
   { unions : unionmap
+  ; aliasmap : aliasmap
   ; funmap : funmap
   ; constants : SSet.t
   ; num_constants : nummap
@@ -60,4 +70,6 @@ let ctx_union_type (union_id : string) (ctx : context) : rs_type option =
   SMap.find_opt union_id ctx.defs.unions
 ;;
 
-let ctx_type (type_id : string) (ctx : context) : rs_type option = None
+let ctx_type (type_id : string) (ctx : context) : rs_type option =
+  SMap.find_opt type_id ctx.defs.aliasmap
+;;

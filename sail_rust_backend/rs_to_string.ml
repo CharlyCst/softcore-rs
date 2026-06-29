@@ -52,7 +52,7 @@ let rec string_of_rs_type (typ : rs_type) : string =
       id
       (String.concat ", " (List.map string_of_rs_type_param params))
   | RsTypArray (typ, size) ->
-    Printf.sprintf "[%s; %s]" (string_of_rs_type_param typ) (string_of_rs_type_param size)
+    Printf.sprintf "[%s; %s]" (string_of_rs_type typ) (string_of_rs_type_param size)
   | RsTypOption param -> Printf.sprintf "Option<%s>" (string_of_rs_type_param param)
   | RsTypTodo e -> e
   | RsTypBorrow t -> Printf.sprintf "&%s" (string_of_rs_type t)
@@ -123,26 +123,21 @@ and indent (n : int) : string = String.make (n * 4) ' '
 and string_of_rs_exp (n : int) (exp : rs_exp) : string =
   match exp.e_exp with
   (* The block indentation if not needed after a let, remove it to pretify *)
-  | RsLet (pat, exp, { e_annot = _; e_exp = RsBlock exps }) ->
+  | RsLet (mut, pat, exp, { e_annot = _; e_exp = RsBlock exps }) ->
     (* TODO: If we have a type annotation for the let print it *)
     Printf.sprintf
-      "let %s = %s;\n%s%s"
+      "let%s %s = %s;\n%s%s"
+      (if mut then " mut" else "")
       (string_of_rs_pat_annot pat exp.e_annot)
       (string_of_rs_exp n exp)
       (indent n)
       (String.concat
          (Printf.sprintf ";\n%s" (indent n))
          (List.map (string_of_rs_exp n) exps))
-  | RsLet (pat, exp, next) ->
+  | RsLet (mut, pat, exp, next) ->
     Printf.sprintf
-      "let %s = %s;\n%s%s"
-      (string_of_rs_pat_annot pat exp.e_annot)
-      (string_of_rs_exp n exp)
-      (indent n)
-      (string_of_rs_exp n next)
-  | RsLetMut (pat, exp, next) ->
-    Printf.sprintf
-      "let mut %s = %s;\n%s%s"
+      "let%s %s = %s;\n%s%s"
+      (if mut then " mut" else "")
       (string_of_rs_pat_annot pat exp.e_annot)
       (string_of_rs_exp n exp)
       (indent n)
@@ -317,9 +312,9 @@ and string_of_rs_lexp (n : int) (lexp : rs_lexp) : string =
       (string_of_rs_exp 0 range_end)
     (* string_of_rs_lexp n lexp *)
   | RsLexpBitVectorAccess _ ->
-    (* TODO: This constructor should no longer be available so we should
-           fail *)
-    assert false (* TODO(Gurvan) *)
+    (* TODO(Gurvan): This constructor should no longer be available so we should
+           fail properly *)
+    assert false
   | RsLexpTodo -> "LEXP_TODO"
 
 and string_of_rs_pexp (n : int) (pexp : rs_pexp) : string =

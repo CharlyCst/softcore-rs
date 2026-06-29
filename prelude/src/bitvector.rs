@@ -85,6 +85,7 @@ impl BitDynamic {
     }
 
     pub const fn bitand(mut self, rhs: Self) -> Self {
+        // TODO(Gurvan): Should we assert that self and rhs have the same size?
         let mut i: usize = 0;
         while i < BITDYNAMIC_SIZE {
             self.bits[i] = self.bits[i] & rhs.bits[i];
@@ -93,7 +94,12 @@ impl BitDynamic {
         self
     }
 
+    pub const fn bitand_static<const LEN: i128>(self, rhs: BitStatic<LEN>) -> Self {
+        self.bitand(rhs.to_dynamic())
+    }
+
     pub const fn bitor(mut self, rhs: Self) -> Self {
+        // TODO(Gurvan): Should we assert that self and rhs have the same size?
         let mut i: usize = 0;
         while i < BITDYNAMIC_SIZE {
             self.bits[i] = self.bits[i] | rhs.bits[i];
@@ -102,13 +108,22 @@ impl BitDynamic {
         self
     }
 
+    pub const fn bitor_static<const LEN: i128>(self, rhs: BitStatic<LEN>) -> Self {
+        self.bitor(rhs.to_dynamic())
+    }
+
     pub const fn bitxor(mut self, rhs: Self) -> Self {
+        // TODO(Gurvan): Should we assert that self and rhs have the same size?
         let mut i: usize = 0;
         while i < BITDYNAMIC_SIZE {
             self.bits[i] = self.bits[i] ^ rhs.bits[i];
             i += 1;
         }
         self
+    }
+
+    pub const fn bitxor_static<const LEN: i128>(self, rhs: BitStatic<LEN>) -> Self {
+        self.bitxor(rhs.to_dynamic())
     }
 
     pub const fn not(mut self) -> Self {
@@ -121,11 +136,14 @@ impl BitDynamic {
         self
     }
 
-    pub const fn add(self, rhs: u64) -> Self {
+    pub fn add(self, rhs: u64) -> Self {
         self.wrapped_add(Self::new(self.len(), rhs))
     }
 
-    pub const fn wrapped_add(mut self, rhs: Self) -> Self {
+    pub fn wrapped_add<B>(mut self, rhs: B) -> Self
+        where
+            BitDynamic: From<B> {
+        let rhs = BitDynamic::from(rhs);
         assert!(self.len == rhs.len);
         let mut carry: u128 = 0;
         let mask = Self::bit_mask(self.len);
@@ -268,15 +286,12 @@ impl BitDynamic {
         self.bitor(shifted_bits)
     }
 
-    pub const fn subrange<const START: i128, const END: i128, const LEN: i128>(self) -> BitDynamic {
-        assert_eq_range::<START, END, LEN>();
-        self.get_subrange(END, START)
-    }
-
-    /* pub const fn subrange<const START: i128, const END: i128, const LEN: i128>(self) -> BitStatic<LEN> {
+    pub const fn subrange<const START: i128, const END: i128, const LEN: i128>(
+        self,
+    ) -> BitStatic<LEN> {
         assert_eq_range::<START, END, LEN>();
         BitStatic::<LEN>::from_bitdynamic(self.get_subrange(END, START))
-    } */
+    }
 
     pub const fn bit_mask(len: i128) -> [u64; BITDYNAMIC_SIZE] {
         let mut mask = [0u64; BITDYNAMIC_SIZE];
@@ -403,17 +418,29 @@ impl<const LEN: i128> BitStatic<LEN> {
         self.bits & (1 << idx) > 0
     }
 
-    pub const fn bitand(mut self, rhs: Self) -> Self {
+    pub const fn bitand(self, rhs: BitDynamic) -> BitDynamic {
+        rhs.bitand(self.to_dynamic())
+    }
+
+    pub const fn bitand_static(mut self, rhs: Self) -> Self {
         self.bits &= rhs.bits;
         self
     }
 
-    pub const fn bitor(mut self, rhs: Self) -> Self {
+    pub const fn bitor(self, rhs: BitDynamic) -> BitDynamic {
+        rhs.bitor(self.to_dynamic())
+    }
+
+    pub const fn bitor_static(mut self, rhs: Self) -> Self {
         self.bits |= rhs.bits;
         self
     }
 
-    pub const fn bitxor(mut self, rhs: Self) -> Self {
+    pub const fn bitxor(self, rhs: BitDynamic) -> BitDynamic {
+        rhs.bitxor(self.to_dynamic())
+    }
+
+    pub const fn bitxor_static(mut self, rhs: Self) -> Self {
         self.bits ^= rhs.bits;
         self
     }
@@ -424,13 +451,14 @@ impl<const LEN: i128> BitStatic<LEN> {
         }
     }
 
-    pub const fn add(self, rhs: u64) -> Self {
+    pub fn add(self, rhs: u64) -> Self {
         self.wrapped_add(Self { bits: rhs })
     }
 
-    pub const fn wrapped_add(self, rhs: Self) -> Self {
+    pub fn wrapped_add<B>(self, rhs: B) -> Self where B: Into<Self>{
+        let rhs_static: Self = rhs.into();
         Self {
-            bits: (self.bits as u64).wrapping_add(rhs.bits),
+            bits: (self.bits as u64).wrapping_add(rhs_static.bits),
         }
     }
 
@@ -490,7 +518,7 @@ impl<const LEN: i128> BitStatic<LEN> {
         assert_eq_sum::<LEN, LEN2, LEN3>();
         self.zero_extend::<LEN3>()
             .shl(LEN2 as u128)
-            .bitor(other.zero_extend())
+            .bitor_static(other.zero_extend())
     }
 
     pub const fn from_bitdynamic(bv: BitDynamic) -> Self {
@@ -519,21 +547,21 @@ pub const fn bv<const LEN: i128>(val: u64) -> BitStatic<LEN> {
 
 macro_rules! impl_ops_for_storage {
     ($target:ty, $($header:tt)*) => {
-        impl $($header)* BitAnd for $target {
-            type Output = Self;
-            fn bitand(self, rhs: Self) -> Self {
+        impl $($header)* BitAnd<BitDynamic> for $target {
+            type Output = BitDynamic;
+            fn bitand(self, rhs: BitDynamic) -> BitDynamic {
                 <$target>::bitand(self, rhs)
             }
         }
-        impl $($header)* BitOr for $target {
-            type Output = Self;
-            fn bitor(self, rhs: Self) -> Self {
+        impl $($header)* BitOr<BitDynamic> for $target {
+            type Output = BitDynamic;
+            fn bitor(self, rhs: BitDynamic) -> BitDynamic {
                 <$target>::bitor(self, rhs)
             }
         }
-        impl $($header)* BitXor for $target {
-            type Output = Self;
-            fn bitxor(self, rhs: Self) -> Self {
+        impl $($header)* BitXor<BitDynamic> for $target {
+            type Output = BitDynamic;
+            fn bitxor(self, rhs: BitDynamic) -> BitDynamic {
                 <$target>::bitxor(self, rhs)
             }
         }
@@ -590,6 +618,48 @@ macro_rules! impl_ops_for_storage {
 
 impl_ops_for_storage!(BitDynamic,);
 impl_ops_for_storage!(BitStatic<LEN>, <const LEN: i128>);
+
+impl<const LEN: i128> BitAnd<BitStatic<LEN>> for BitDynamic {
+    type Output = Self;
+    fn bitand(self, rhs: BitStatic<LEN>) -> Self {
+        Self::bitand_static(self, rhs)
+    }
+}
+
+impl<const LEN: i128> BitOr<BitStatic<LEN>> for BitDynamic {
+    type Output = Self;
+    fn bitor(self, rhs: BitStatic<LEN>) -> Self {
+        Self::bitor_static(self, rhs)
+    }
+}
+
+impl<const LEN: i128> BitXor<BitStatic<LEN>> for BitDynamic {
+    type Output = Self;
+    fn bitxor(self, rhs: BitStatic<LEN>) -> Self {
+        Self::bitxor_static(self, rhs)
+    }
+}
+
+impl<const LEN: i128> BitAnd for BitStatic<LEN> {
+    type Output = Self;
+    fn bitand(self, rhs: Self) -> Self {
+        BitStatic::<LEN>::bitand_static(self, rhs)
+    }
+}
+
+impl<const LEN: i128> BitOr for BitStatic<LEN> {
+    type Output = Self;
+    fn bitor(self, rhs: Self) -> Self {
+        BitStatic::<LEN>::bitor_static(self, rhs)
+    }
+}
+
+impl<const LEN: i128> BitXor for BitStatic<LEN> {
+    type Output = Self;
+    fn bitxor(self, rhs: Self) -> Self {
+        BitStatic::<LEN>::bitxor_static(self, rhs)
+    }
+}
 
 // Tests -------------------------------------------------------------------------------------------
 

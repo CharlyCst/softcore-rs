@@ -1,5 +1,6 @@
 use std::ops::{Deref, DerefMut};
 use std::slice::SliceIndex;
+use crate::{BitDynamic, BitStatic};
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BoundedVec<T, const BOUND: usize> {
@@ -64,18 +65,51 @@ impl<T: Default, const BOUND: usize> DerefMut for BoundedVec<T, BOUND> {
 
 impl<T: Default + Copy, const BOUND: usize> From<Vec<T>> for BoundedVec<T, BOUND> {
     fn from(v: Vec<T>) -> Self {
-        assert!(v.len() < BOUND, "BoundedVec capacity exceeded");
+        assert!(v.len() <= BOUND, "BoundedVec capacity exceeded");
         let mut vec = [T::default(); BOUND];
         for i in 0..v.len() {
             vec[i] = v[i];
         }
         Self {
-            len: vec.len(),
+            len: v.len(),
             vec: vec,
         }
     }
 }
 
 // TODO(Gurvan): From slice functions
+
+impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitDynamic, BOUND>> for BoundedVec<BitStatic<LEN>, BOUND> {
+    fn from(dynamic_bvec: BoundedVec<BitDynamic, BOUND>) -> Self {
+        let mut static_vec = [BitStatic::<LEN>::zeros(); BOUND];
+
+        let mut i = 0;
+        while i < dynamic_bvec.len {
+            static_vec[i] = BitStatic::<LEN>::from(dynamic_bvec.vec[i]);
+            i += 1;
+        }
+
+        Self {
+            len: dynamic_bvec.len,
+            vec: static_vec,
+        }
+    }
+}
+impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitStatic<LEN>, BOUND>> for BoundedVec<BitDynamic, BOUND> {
+    fn from(static_bvec: BoundedVec<BitStatic<LEN>, BOUND>) -> Self {
+        let mut dynamic_vec = [BitDynamic::default(); BOUND];
+
+        let mut i = 0;
+        while i < static_bvec.len {
+            dynamic_vec[i] = BitDynamic::from(static_bvec.vec[i]);
+            i += 1;
+        }
+
+        Self {
+            len: static_bvec.len,
+            vec: dynamic_vec,
+        }
+    }
+}
 
 // TODO(Gurvan): Test functions

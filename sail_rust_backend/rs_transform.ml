@@ -78,11 +78,9 @@ and transform_exp_aux (ct : expr_type_transform) (ctx : context) (exp : rs_exp)
   =
   let exp = ct.exp_aux ctx exp in
   match exp with
-  | RsLet (pat, exp, next) ->
-    RsLet (transform_pat ct ctx pat, transform_exp ct ctx exp, transform_exp ct ctx next)
-  | RsLetMut (pat, exp, next) ->
-    RsLetMut
-      (transform_pat ct ctx pat, transform_exp ct ctx exp, transform_exp ct ctx next)
+  | RsLet (mut, pat, exp, next) ->
+    RsLet
+      (mut, transform_pat ct ctx pat, transform_exp ct ctx exp, transform_exp ct ctx next)
   | RsApp (app, generics, args) -> transform_app ct ctx app generics args
   | RsStaticApp (app, method_name, args) ->
     RsStaticApp
@@ -220,7 +218,7 @@ and transform_type (ct : expr_type_transform) (ctx : context) (typ : rs_type) : 
   | RsTypGenericParam (typ, params) ->
     RsTypGenericParam (typ, List.map (transform_type_param ct ctx) params)
   | RsTypArray (typ, size) ->
-    RsTypArray (transform_type_param ct ctx typ, transform_type_param ct ctx size)
+    RsTypArray (transform_type ct ctx typ, transform_type_param ct ctx size)
   | RsTypOption param -> RsTypOption (transform_type_param ct ctx param)
   | RsTypBorrow t -> RsTypBorrow (transform_type ct ctx t)
 
@@ -316,11 +314,33 @@ let update_context_constants (ctx : context) (RsProg objs : rs_program) : contex
   { ctx with defs = List.fold_left update_constants ctx.defs objs }
 ;;
 
-(* TODO: This could just update all context and not only functions *)
-let update_context_fn_type (ctx : context) (RsProg objs : rs_program) : context =
+(* TODO(Gurvan): This could just update all context and not only functions *)
+let update_context_types (ctx : context) (RsProg objs : rs_program) : context =
   let add_obj (defs : defs) (obj : rs_obj) : defs =
     match obj with
     | RsFn f -> { defs with funmap = SMap.add f.name f defs.funmap }
+    | RsEnum enum ->
+      (* TODO(Gurvan): Enum can probably also be considered constant *)
+      List.fold_left
+        (fun (defs : defs) (constructor_name, constructor_type) : defs ->
+           match constructor_type with
+           | Some t ->
+             (* TODO(Gurvan): fix that by adding a path to patterns? *)
+             let name = enum.name ^ "::" ^ constructor_name in
+             let signature =
+               { generics = enum.generics
+               ; args = [ t ]
+               ; ret = RsTypId enum.name
+               ; linked_gen_args = []
+               }
+             in
+             let f = empty_function_from_type name signature in
+             { defs with funmap = SMap.add name f defs.funmap }
+           | None -> defs)
+        defs
+        enum.fields
+    | RsAlias alias when alias.generics = [] ->
+      { defs with aliasmap = SMap.add alias.new_typ alias.old_type defs.aliasmap }
     | _ -> defs
   in
   { ctx with defs = List.fold_left add_obj { ctx.defs with funmap = SMap.empty } objs }
@@ -351,7 +371,7 @@ and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
   | RsTypGenericParam (x, params) -> assert false (* TODO *)
   | RsTypTodo _ -> assert false (* TODO *)
   | RsTypArray (typ1, typ2) ->
-    is_const_rs_typ_param ctx typ1 && is_const_rs_typ_param ctx typ2
+    is_const_rs_typ ctx typ1 && is_const_rs_typ_param ctx typ2
   | RsTypOption param -> is_const_rs_typ_param ctx param
   | RsTypUnit -> true
   | RsTypBorrow t -> is_const_rs_typ ctx t
@@ -486,17 +506,13 @@ let bitvec_transform_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
 
 let bitvec_transform_type (ctx : context) (typ : rs_type) : rs_type =
   match typ with
-  | RsTypGenericParam ("bitvector", t)
-  | RsTypGenericParam ("bits", t)
+  | RsTypGenericParam ("bitvector", [ t ])
+  | RsTypGenericParam ("bits", [ t ])
   (* TODO: This violate the fact that vector or bits != bitvector. Change it in the future *)
-  | RsTypGenericParam ("vector", t) ->
-    (* TODO(Gurvan): Uncomment to try back bitVector *)
-    (* if List.for_all (is_const_rs_typ_param ctx) t
-    then RsTypGenericParam ("BitStatic", t)
-    else *)
-    RsTypId "BitDynamic"
-  (* TODO(Gurvan): Should we uncomment the following? once we resolve type aliasing we can remove those manual conversions *)
-  (* | RsTypId "regbits" -> RsTypId "BitDynamic" *)
+  | RsTypGenericParam ("vector", [ t ]) ->
+    if is_const_rs_typ_param ctx t
+    then rs_type_bitstatic t
+    else rs_type_bitdynamic
   (* Otherwise keep as is *)
   | _ -> typ
 ;;
@@ -516,32 +532,65 @@ let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program 
 (* TODO(Gurvan): This is the same ugly fix that we use for vec! vs array *)
 
 let rec is_bitvec_type (ctx : context) (typ : rs_type) =
+  if rs_type_is_builtin typ
+  then false
+  else (
+    match typ with
+    | RsTypId "BitDynamic" | RsTypGenericParam ("BitStatic", _) -> true
+    | RsTypId x ->
+      (match ctx_type x ctx with
+       | Some t -> is_bitvec_type ctx t
+       | None ->
+           (* TODO(Gurvan): We want to remove this warning *)
+         Reporting.simple_warn
+           (Format.sprintf "Couldn't find if type '%s' is a BitVector type" x);
+         false)
+    | _ -> false)
+;;
+
+(** If `e` has a different type to the expected type `typ`, return a casted
+    expression which has type `typ` *)
+let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
+  (* TODO(Gurvan): We should not do any cast if we e.e_annot is a BitDynamic and typ is
+     already BitDynamic for example, or same with BitStatic *)
   match typ with
-  | RsTypId "BitDynamic" | RsTypGenericParam ("BitStatic", _) -> true
-  | RsTypId x ->
-    (match ctx_type x ctx with
-     | Some t -> is_bitvec_type ctx t
-     | None ->
+  | RsTypTuple ts ->
+    (match e.e_exp with
+     | RsTuple es ->
+       { e_annot = Some typ; e_exp = RsTuple (List.map2 (cast_bitvec ctx) ts es) }
+     | _ ->
        Reporting.simple_warn
-         (Format.sprintf "Couldn't find if type '%s' is a BitVector type" x);
-       false)
-  | _ -> false
+         (Format.sprintf "Unsupported tuple construction '%s'" (string_of_rs_exp 0 e));
+       e)
+  (* TODO: We should do the same for BoundedVec of BitVec probably *)
+  | RsTypArray (t, size) when is_bitvec_type ctx t ->
+      (* TODO(Gurvan): e_annot *)
+      { e_annot = None
+      ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
+      }
+  | RsTypGenericParam ("BoundedVec", _) ->
+      (* TODO(Gurvan): e_annot *)
+      { e_annot = None
+      ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
+      }
+  | RsTypOption (RsTypParamTyp t) when is_bitvec_type ctx t ->
+      { e_annot = Some typ
+      ; e_exp  = RsApp (mk_exp_id "opt_into", [], [ e ]) }
+  | _ ->
+    if is_bitvec_type ctx typ
+    then
+      { e_annot = Some typ
+      ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
+      }
+    else e
 ;;
 
-let cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
-  if is_bitvec_type ctx typ
-  then
-    { e_annot = Some typ
-    ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
-    }
-  else e
-;;
-
-let use_dynamic_bitvec_exp_in_app (ctx : context) (e : rs_exp) : rs_exp_aux =
+let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
   match e.e_exp with
-  | RsLet ((RsPatType (t, _) as p), e1, e2) -> RsLet (p, cast_bitvec ctx t e1, e2)
-  | RsLet (p, ({ e_annot = Some t1; e_exp = _ } as e1), e2) ->
-    RsLet (p, cast_bitvec ctx t1 e1, e2)
+  | RsLet (mut, (RsPatType (t, _) as p), e1, e2) ->
+    RsLet (mut, p, cast_bitvec ctx t e1, e2)
+  | RsLet (mut, p, ({ e_annot = Some t1; e_exp = _ } as e1), e2) ->
+    RsLet (mut, p, cast_bitvec ctx t1 e1, e2)
   | RsMethodApp { exp; name; generics = _; args } ->
     Reporting.simple_warn
       (Format.sprintf
@@ -557,17 +606,11 @@ let use_dynamic_bitvec_exp_in_app (ctx : context) (e : rs_exp) : rs_exp_aux =
   | RsApp (({ e_annot = _; e_exp = RsId id } as e_id), generics, args) ->
     (match ctx_fun_type id ctx with
      | Some signature ->
-       (try RsApp (e_id, generics, List.map2 (cast_bitvec ctx) signature.args args) with
-        | Invalid_argument _ ->
-          Format.eprintf "ERROR for %s\n" id;
-          List.iter (fun t -> Format.eprintf "%s\n" (string_of_rs_type t)) signature.args;
-          Format.eprintf "vs\n";
-          List.iter (fun e -> Format.eprintf "%s\n" (string_of_rs_exp 0 e)) args;
-          assert false)
+       RsApp (e_id, generics, List.map2 (cast_bitvec ctx) signature.args args)
      | None ->
        Reporting.simple_warn
          (Format.sprintf
-            "Couldn't find type of function '%s', arguments might be incorrect"
+            "Couldn't find type of function '%s' to use dynamic bitvectors"
             id);
        e.e_exp)
   | RsApp (e, generics, args) ->
@@ -576,16 +619,12 @@ let use_dynamic_bitvec_exp_in_app (ctx : context) (e : rs_exp) : rs_exp_aux =
          "Couldn't find type of app '%s', arguments might be incorrect"
          (string_of_rs_exp 0 e));
     e.e_exp
+  | RsAssign (l, ({ e_annot = Some t; _ } as e')) -> RsAssign (l, cast_bitvec ctx t e')
   | _ -> e.e_exp
 ;;
 
-let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
-  let e_exp = use_dynamic_bitvec_exp_in_app ctx e in
-  e_exp
-;;
-
 let use_dynamic_bitvec_args (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context_fn_type ctx rust_program in
+  let ctx = update_context_types ctx rust_program in
   rust_transform_expr
     { id_expr_type_transform with exp_aux = use_dynamic_bitvec_exp }
     ctx
@@ -718,8 +757,8 @@ let simplify_rs_exp_aux (ctx : context) (rs_exp : rs_exp) : rs_exp_aux =
            binding expires.
            Note that this assumes that the binding expression has no side
            effects. *)
-  | RsLet (_, _, { e_annot = _; e_exp = RsLit RsLitFalse }) -> RsLit RsLitFalse
-  | RsLet (_, _, { e_annot = _; e_exp = RsLit RsLitTrue }) -> RsLit RsLitTrue
+  | RsLet (_, _, _, { e_annot = _; e_exp = RsLit RsLitFalse }) -> RsLit RsLitFalse
+  | RsLet (_, _, _, { e_annot = _; e_exp = RsLit RsLitTrue }) -> RsLit RsLitTrue
   | _ -> rs_exp.e_exp
 ;;
 
@@ -753,7 +792,7 @@ let rec propagate_in_exp_aux (ctx : bindings) (exp : rs_exp) : rs_exp_aux =
     (match SMap.find_opt id ctx with
      | Some exp' -> exp'.e_exp (* The constant propagation happens here *)
      | None -> RsId id)
-  | RsLet (RsPatId id, ({ e_annot = _; e_exp = RsLit _ } as lit), next) ->
+  | RsLet (false, RsPatId id, ({ e_annot = _; e_exp = RsLit _ } as lit), next) ->
     (* This binding is a Rust literal, we can remove it and inline the literal in the next expression *)
     let ctx' = SMap.add id lit ctx in
     (* We remove nested blocks here *)
@@ -763,18 +802,18 @@ let rec propagate_in_exp_aux (ctx : bindings) (exp : rs_exp) : rs_exp_aux =
       | _ -> next
     in
     propagate_in_exp_aux ctx' next
-  | RsLet (pat, pat_exp, next) ->
+  | RsLet (false, pat, pat_exp, next) ->
     (* We need to invalidate all bindings that are being re-defined *)
     let new_ids = ids_of_pat pat in
     let ctx' = invalidate_bindings ctx (SSet.to_list new_ids) in
     (* We keep the old bindings in the let expression, but we use the new bindings in the body of the let expression *)
-    RsLet (pat, propagate pat_exp, propagate_in_exp ctx' next)
-  | RsLetMut (pat, pat_exp, next) ->
+    RsLet (false, pat, propagate pat_exp, propagate_in_exp ctx' next)
+  | RsLet (true, pat, pat_exp, next) ->
     (* We need to invalidate all bindings that are being re-defined *)
     let new_ids = ids_of_pat pat in
     let ctx' = invalidate_bindings ctx (SSet.to_list new_ids) in
     (* We keep the old bindings in the let expression, but we use the new bindings in the body of the let expression *)
-    RsLetMut (pat, propagate pat_exp, propagate_in_exp ctx' next)
+    RsLet (true, pat, propagate pat_exp, propagate_in_exp ctx' next)
   | RsApp (fn, generics, args) -> RsApp (propagate fn, generics, propagate_list args)
   | RsMethodApp app ->
     RsMethodApp { app with exp = propagate app.exp; args = propagate_list app.args }
@@ -1108,24 +1147,15 @@ let rec rename_in_exp_aux (rn : string * string) (exp : rs_exp) : rs_exp_aux =
   let id, new_id = rn in
   match exp.e_exp with
   | RsId id' -> if id' = id then RsId new_id (* Rename! *) else RsId id' (* No renaming *)
-  | RsLet (pat, exp, next) ->
+  | RsLet (mut, pat, exp, next) ->
     let new_ids = ids_of_pat pat in
     if SSet.mem id new_ids
     then
       (* The ID is being shadowed, stop renaming at that point *)
-      RsLet (pat, rename_in_exp exp, next)
+      RsLet (mut, pat, rename_in_exp exp, next)
     else
       (* The ID is not shadowed, so we need to continue the renaming *)
-      RsLet (pat, rename_in_exp exp, rename_in_exp next)
-  | RsLetMut (pat, exp, next) ->
-    let new_ids = ids_of_pat pat in
-    if SSet.mem id new_ids
-    then
-      (* The ID is being shadowed, stop renaming at that point *)
-      RsLetMut (pat, rename_in_exp exp, next)
-    else
-      (* The ID is not shadowed, so we need to continue the renaming *)
-      RsLetMut (pat, rename_in_exp exp, rename_in_exp next)
+      RsLet (mut, pat, rename_in_exp exp, rename_in_exp next)
   | RsApp (fn, generics, args) -> RsApp (rename_in_exp fn, generics, rename_in_exps args)
   | RsMethodApp app ->
     RsMethodApp { app with exp = rename_in_exp app.exp; args = rename_in_exps app.args }
@@ -1223,7 +1253,7 @@ let rec hoist (exp : rs_exp list) : rs_exp list * rs_exp list =
   | e :: arr when should_hoist_exp false e ->
     let ident = !variable_generator () in
     let l1, l2 = hoist arr in
-    ( { e_annot = None; e_exp = RsLet (RsPatId ident, e, mk_todo "hoist") } :: l1
+    ( { e_annot = None; e_exp = RsLet (false, RsPatId ident, e, mk_todo "hoist") } :: l1
     , mk_exp_id ident :: l2 )
   | e :: arr ->
     let l1, l2 = hoist arr in
@@ -1233,8 +1263,8 @@ let rec hoist (exp : rs_exp list) : rs_exp list * rs_exp list =
 
 let rec generate_hoisted_block (exp : rs_exp list) app : rs_exp =
   match exp with
-  | { e_annot = t; e_exp = RsLet (pat, exp2, _) } :: arr ->
-    { e_annot = t; e_exp = RsLet (pat, exp2, generate_hoisted_block arr app) }
+  | { e_annot = t; e_exp = RsLet (false, pat, exp2, _) } :: arr ->
+    { e_annot = t; e_exp = RsLet (false, pat, exp2, generate_hoisted_block arr app) }
   | [] -> app
   | _ -> failwith "Unreachable code"
 ;;
@@ -1250,7 +1280,7 @@ let rec hoist_let_exp_aux (exp : rs_exp) : rs_exp_aux * (rs_pat * rs_exp) list =
     exps, List.flatten defs
   in
   match exp.e_exp with
-  | RsLet (pat, exp, next) ->
+  | RsLet (false, pat, exp, next) ->
     (* We generate a new ID to to avoid shadowing existing variables when hoisting the let statement. *)
     let build_new_id id = id ^ "_" ^ !variable_generator () in
     let rename, pat =
@@ -1273,7 +1303,7 @@ let rec hoist_let_exp_aux (exp : rs_exp) : rs_exp_aux * (rs_pat * rs_exp) list =
      (* We will not hoist that definition *)
      | None ->
        let next, defs = hoist_let_exp next in
-       RsLet (pat, exp, next), defs)
+       RsLet (false, pat, exp, next), defs)
   | RsApp (fn, generics, args) ->
     let fn, defs = hoist_let_exp fn in
     let args, defs_args = hoit_let_exp_list args in
@@ -1325,7 +1355,9 @@ let pexp_hoister (_ctx : context) (pexp : rs_pexp) : rs_pexp =
     let rec build_cond exp defs =
       match defs with
       | (pat, binding) :: tail ->
-        { e_annot = exp.e_annot; e_exp = RsLet (pat, binding, build_cond exp tail) }
+        { e_annot = exp.e_annot
+        ; e_exp = RsLet (false, pat, binding, build_cond exp tail)
+        }
       | [] -> exp
     in
     let cond = build_cond cond defs in
@@ -1358,7 +1390,7 @@ let expr_hoister (ctx : context) (exp : rs_exp) : rs_exp_aux =
     let rec build_cond (exp : rs_exp) defs : rs_exp =
       match defs with
       | (pat, binding) :: tail ->
-        { e_annot = None; e_exp = RsLet (pat, binding, build_cond exp tail) }
+        { e_annot = None; e_exp = RsLet (false, pat, binding, build_cond exp tail) }
       | [] -> exp
     in
     let cond = build_cond cond defs in
@@ -1423,7 +1455,7 @@ let is_sail_context_needed (ctx : context) (func : rs_fn) : rs_fn =
 ;;
 
 let virt_context_call_graph (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context_fn_type ctx rust_program in
+  let ctx = update_context_types ctx rust_program in
   rust_transform_func { func = is_sail_context_needed } ctx rust_program
 ;;
 
@@ -1444,7 +1476,7 @@ let sail_context_inserter (_ctx : context) (func : rs_fn) : rs_fn =
 ;;
 
 let virt_context_transform (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context_fn_type ctx rust_program in
+  let ctx = update_context_types ctx rust_program in
   rust_transform_func { func = sail_context_inserter } ctx rust_program
 ;;
 
@@ -1876,7 +1908,7 @@ let sail_context_arg_inserter_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
 ;;
 
 let sail_context_arg_inserter (ctx : context) (rs_program : rs_program) : rs_program =
-  let ctx = update_context_fn_type ctx rs_program in
+  let ctx = update_context_types ctx rs_program in
   rust_transform_expr
     { id_expr_type_transform with exp_aux = sail_context_arg_inserter_exp }
     ctx
@@ -1985,7 +2017,7 @@ let use_dynamic_vector_typ (ctx : context) (typ : rs_type) : rs_type =
   | RsTypArray (typ', size) ->
     if is_const_rs_typ_param ctx size
     then typ
-    else RsTypGenericParam ("BoundedVec", [ typ'; RsTypParamNum (mk_num 32) ])
+    else rs_type_boundedvec typ' (RsTypParamNum (mk_num 32))
   | _ -> typ
 ;;
 
@@ -2052,7 +2084,7 @@ let use_dynamic_vector_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
 ;;
 
 let use_dynamic_vectors_args (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context_fn_type ctx rust_program in
+  let ctx = update_context_types ctx rust_program in
   rust_transform_expr
     { id_expr_type_transform with exp_aux = use_dynamic_vector_exp }
     ctx
@@ -2153,7 +2185,7 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     (* Optimizer: Dead code elimination *)
     |> rust_transform_expr dead_code_remover ctx
     |> use_dynamic_bitvec ctx
-    (* |> use_dynamic_bitvec_args ctx *)
+    |> use_dynamic_bitvec_args ctx
     |> use_dynamic_vectors ctx
     |> use_dynamic_vectors_args ctx
     |> rust_transform_func remove_unused_generics ctx

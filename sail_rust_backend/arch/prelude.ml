@@ -13,15 +13,72 @@ let external_func : rs_fn_type option SMap.t =
             ; ret = rs_type_i128
             ; linked_gen_args = []
             } )
-      ; "bitvector_access", None
-      ; "bitvector_concat", None
-      ; "bitvector_update", None
+      ; ( "bitvector_access"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_i128 ]
+            ; ret = rs_type_bool
+            ; linked_gen_args = []
+            } )
+      ; ( "bitvector_concat"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_bitdynamic ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
+      ; ( "bitvector_update"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_i128; rs_type_bool ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
       ; "update_subrange_bits", None
-      ; "subrange_bits", None
-      ; "undefined_bitvector", None
-      ; "truncate", None
-      ; "sign_extend", None
+      ; ( "subrange_bits"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_i128; rs_type_i128 ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
+      ; ( "undefined_bitvector"
+        , Some
+            { generics = []
+            ; args = [ rs_type_i128 ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
+      ; ( "truncate"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_i128 ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
+      ; ( "sign_extend"
+        , Some
+            { generics = []
+            ; args = [ rs_type_nat; rs_type_bitdynamic ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
       ; "sail_sign_extend", None
+      ; ( "sail_zeros"
+        , Some
+            { generics = []
+            ; args = [ rs_type_i128 ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
+      ; ( "sail_ones"
+        , Some
+            { generics = []
+            ; args = [ rs_type_i128 ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
+      ; "sub_vec", None
       ]
   in
   SMap.union (fun _ _ _ -> None) externals overwritten_func
