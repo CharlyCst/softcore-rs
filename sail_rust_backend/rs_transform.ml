@@ -341,19 +341,18 @@ let update_context_types (ctx : context) (RsProg objs : rs_program) : context =
         enum.fields
     | RsAlias alias when alias.generics = [] ->
       { defs with aliasmap = SMap.add alias.new_typ alias.old_type defs.aliasmap }
+    | RsStruct s when s.generics = [] ->
+      { defs with structmap = SMap.add s.name s defs.structmap }
     | _ -> defs
   in
   { ctx with defs = List.fold_left add_obj { ctx.defs with funmap = SMap.empty } objs }
 ;;
 
 let is_const_rs_typ_id (ctx : context) (x : string) : bool =
-  match x with
-  (* TODO(Gurvan): We should have a cleaner way to figure out Rust's built-ins *)
-  | "usize" | "i128" | "i64" -> true
-  | _ ->
-    (* TODO(Gurvan): In some case it could still be a a const, check `ctx` *)
-    false
+  rs_type_is_builtin (RsTypId x)
 ;;
+
+(* TODO(Gurvan): In some case it could still be a a const, check `ctx` *)
 
 let rec is_const_rs_exp (ctx : context) (e : rs_exp) : bool =
   match e.e_exp with
@@ -367,11 +366,10 @@ and is_const_rs_typ (ctx : context) (typ : rs_type) : bool =
   match typ with
   | RsTypId x -> is_const_rs_typ_id ctx x
   | RsTypTuple params -> List.for_all (is_const_rs_typ ctx) params
-  | RsTypGeneric x -> assert false (* TODO *)
-  | RsTypGenericParam (x, params) -> assert false (* TODO *)
-  | RsTypTodo _ -> assert false (* TODO *)
-  | RsTypArray (typ1, typ2) ->
-    is_const_rs_typ ctx typ1 && is_const_rs_typ_param ctx typ2
+  | RsTypGeneric x -> assert false (* TODO(Gurvan) *)
+  | RsTypGenericParam (x, params) -> assert false (* TODO(Gurvan) *)
+  | RsTypTodo _ -> assert false (* TODO(Gurvan) *)
+  | RsTypArray (typ1, typ2) -> is_const_rs_typ ctx typ1 && is_const_rs_typ_param ctx typ2
   | RsTypOption param -> is_const_rs_typ_param ctx param
   | RsTypUnit -> true
   | RsTypBorrow t -> is_const_rs_typ ctx t
@@ -380,6 +378,22 @@ and is_const_rs_typ_param (ctx : context) (param : rs_type_param) : bool =
   match param with
   | RsTypParamTyp t -> is_const_rs_typ ctx t
   | RsTypParamNum e -> is_const_rs_exp ctx e
+;;
+
+let type_of_lexp (ctx : context) (lexp : rs_lexp) : rs_type option =
+  match lexp with
+  | RsLexpId x -> Some (ctx_type (RsTypId x) ctx)
+  | RsLexpTyp (_, t) -> Some (ctx_type t ctx)
+  | RsLexpField (e, field) ->
+    (match e.e_annot with
+     | Some t -> ctx_field_type t field ctx
+     | None ->
+       Format.eprintf "Couldn't find field %s because left side is not annotated\n" field;
+       None (*TODO(Gurvan): Proper error *))
+  | RsLexpIndex (e1, e2) -> None (* TODO *)
+  | RsLexpIndexRange (e1, e2, e3) -> None (* TODO *)
+  | RsLexpBitVectorAccess (e1, e2) -> None (* TODO *)
+  | RsLexpTodo -> None
 ;;
 
 (* ——————————————————————————— BitVec transformation ———————————————————————————— *)
@@ -510,9 +524,7 @@ let bitvec_transform_type (ctx : context) (typ : rs_type) : rs_type =
   | RsTypGenericParam ("bits", [ t ])
   (* TODO: This violate the fact that vector or bits != bitvector. Change it in the future *)
   | RsTypGenericParam ("vector", [ t ]) ->
-    if is_const_rs_typ_param ctx t
-    then rs_type_bitstatic t
-    else rs_type_bitdynamic
+    if is_const_rs_typ_param ctx t then rs_type_bitstatic t else rs_type_bitdynamic
   (* Otherwise keep as is *)
   | _ -> typ
 ;;
@@ -531,25 +543,49 @@ let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program 
 (* ———————————————————— Dynamic BitVectors Arguments ——————————————————————— *)
 (* TODO(Gurvan): This is the same ugly fix that we use for vec! vs array *)
 
-let rec is_bitvec_type (ctx : context) (typ : rs_type) =
-  if rs_type_is_builtin typ
-  then false
-  else (
-    match typ with
-    | RsTypId "BitDynamic" | RsTypGenericParam ("BitStatic", _) -> true
-    | RsTypId x ->
-      (match ctx_type x ctx with
-       | Some t -> is_bitvec_type ctx t
-       | None ->
-           (* TODO(Gurvan): We want to remove this warning *)
-         Reporting.simple_warn
-           (Format.sprintf "Couldn't find if type '%s' is a BitVector type" x);
-         false)
-    | _ -> false)
+(* TODO(Gurvan): This code is inefficient because we are checking
+   types twice to see if they are bitstatic or bitdynamic instead of
+   returning `IsBitStatic`, `IsBitDynamic` or `NotBitVector` *)
+
+let is_bitdynamic_type (ctx : context) (typ : rs_type) =
+  match ctx_type typ ctx with
+  | RsTypId "BitDynamic" -> true
+  | _ -> false
 ;;
 
-(** If `e` has a different type to the expected type `typ`, return a casted
-    expression which has type `typ` *)
+let is_bitstatic_type (ctx : context) (typ : rs_type) =
+  match ctx_type typ ctx with
+  | RsTypGenericParam ("BitStatic", _) -> true
+  | _ -> false
+;;
+
+
+(* TODO(Gurvan): Maybe add an additional parameters which say final type for
+   e_annot? *)
+let rec add_cast_function (cast_name : string) (e : rs_exp) : rs_exp =
+  match e.e_exp with
+  | RsMatch (e', pes') ->
+    { e_annot = None
+    ; e_exp =
+        RsMatch
+          ( e'
+          , List.map
+              (fun i ->
+                 match i with
+                 | RsPexp (p, e) -> RsPexp (p, add_cast_function cast_name e)
+                 | RsPexpWhen (p, e1, e2) ->
+                   RsPexpWhen (p, e1, add_cast_function cast_name e2))
+              pes' )
+    }
+  | RsIf (e1, e2, e3) ->
+    { e_annot = None
+    ; e_exp = RsIf (e1, add_cast_function cast_name e2, add_cast_function cast_name e3)
+    }
+  | _ -> { e_annot = None; e_exp = RsApp (mk_exp_id cast_name, [], [ e ]) }
+;;
+
+(** If `e` has a different type to the expected BitVector type `typ`, return a
+    casted expression which has type `typ` *)
 let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
   (* TODO(Gurvan): We should not do any cast if we e.e_annot is a BitDynamic and typ is
      already BitDynamic for example, or same with BitStatic *)
@@ -562,27 +598,25 @@ let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
        Reporting.simple_warn
          (Format.sprintf "Unsupported tuple construction '%s'" (string_of_rs_exp 0 e));
        e)
-  (* TODO: We should do the same for BoundedVec of BitVec probably *)
-  | RsTypArray (t, size) when is_bitvec_type ctx t ->
-      (* TODO(Gurvan): e_annot *)
-      { e_annot = None
-      ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
-      }
-  | RsTypGenericParam ("BoundedVec", _) ->
-      (* TODO(Gurvan): e_annot *)
-      { e_annot = None
-      ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
-      }
-  | RsTypOption (RsTypParamTyp t) when is_bitvec_type ctx t ->
-      { e_annot = Some typ
-      ; e_exp  = RsApp (mk_exp_id "opt_into", [], [ e ]) }
-  | _ ->
-    if is_bitvec_type ctx typ
-    then
-      { e_annot = Some typ
-      ; e_exp = RsMethodApp { exp = e; name = "into"; generics = []; args = [] }
-      }
-    else e
+  | RsTypArray (t, size) when is_bitdynamic_type ctx t ->
+    (* TODO(Gurvan): e_annot *)
+    add_cast_function "array_into_dyn" e
+  | RsTypArray (t, size) when is_bitstatic_type ctx t ->
+    add_cast_function "array_into_static" e
+  | RsTypGenericParam ("BoundedVec", RsTypParamTyp t :: _) when is_bitstatic_type ctx t ->
+    add_cast_function "boundedvec_into_static" e
+  | RsTypGenericParam ("BoundedVec", RsTypParamTyp t :: _) when is_bitdynamic_type ctx t
+    ->
+    add_cast_function "boundedvec_into_dyn"e
+  | RsTypOption (RsTypParamTyp t) when is_bitstatic_type ctx t ->
+    add_cast_function "opt_into_static" e
+  | RsTypOption (RsTypParamTyp t) when is_bitdynamic_type ctx t ->
+    add_cast_function "opt_into_dyn" e
+  | t when is_bitstatic_type ctx t ->
+    add_cast_function "into_static" e
+  | t when is_bitdynamic_type ctx t ->
+    add_cast_function "into_dyn" e
+  | _ -> e
 ;;
 
 let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
@@ -613,13 +647,19 @@ let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
             "Couldn't find type of function '%s' to use dynamic bitvectors"
             id);
        e.e_exp)
-  | RsApp (e, generics, args) ->
+  | RsApp (e', generics, args) ->
     Reporting.simple_warn
       (Format.sprintf
          "Couldn't find type of app '%s', arguments might be incorrect"
          (string_of_rs_exp 0 e));
     e.e_exp
-  | RsAssign (l, ({ e_annot = Some t; _ } as e')) -> RsAssign (l, cast_bitvec ctx t e')
+  | RsAssign (l, e') ->
+    (match type_of_lexp ctx l with
+     | Some t -> RsAssign (l, cast_bitvec ctx t e')
+     | None -> e.e_exp)
+  (* TODO(Gurvan): Cast for binary operators: If one is a BitStatic and the
+     other is a Bitdynamic, cast the BitDynamic into the BitStatic probably.
+  *)
   | _ -> e.e_exp
 ;;
 
@@ -2184,10 +2224,10 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
     |> fix_point optimizer ctx 5
     (* Optimizer: Dead code elimination *)
     |> rust_transform_expr dead_code_remover ctx
-    |> use_dynamic_bitvec ctx
-    |> use_dynamic_bitvec_args ctx
     |> use_dynamic_vectors ctx
     |> use_dynamic_vectors_args ctx
+    |> use_dynamic_bitvec ctx
+    |> use_dynamic_bitvec_args ctx
     |> rust_transform_func remove_unused_generics ctx
   in
   (* Filter unsupported items *)

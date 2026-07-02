@@ -42,6 +42,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   let defs_empty : defs =
     { unions = SMap.empty
     ; aliasmap = SMap.empty
+    ; structmap = SMap.empty
     ; funmap = SMap.empty
     ; constants = SSet.empty
     ; num_constants = SMap.empty
@@ -52,6 +53,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
   let defs_merge (a : defs) (b : defs) : defs =
     { unions = map_union a.unions b.unions
     ; aliasmap = map_union a.aliasmap b.aliasmap
+    ; structmap = map_union a.structmap b.structmap
     ; funmap = map_union a.funmap b.funmap
     ; constants = SSet.union a.constants b.constants
     ; num_constants = map_union a.num_constants b.num_constants
@@ -421,7 +423,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       then (
         let _ = ctx.uses_sail_ctx <- true in
         (* set flag *)
-        RsLexpField (mk_exp_id core_ctx, id))
+        RsLexpField (mk_exp_id ~e_annot:(Some rs_type_core) core_ctx, id))
       else RsLexpId id
     | LE_vector (lexp, idx) ->
       let (LE_aux (_, (_, tannot))) = lexp in
@@ -485,7 +487,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       (* Generate a bitvector literal *)
       let vector_length = List.length items in
       (* TODO(Gurvan): Check if vector_length is more than 64, in which case
-         error out *)
+         error out for now *)
       RsStaticApp
         ( rs_type_bitstatic (RsTypParamNum (mk_num vector_length))
         , "new"

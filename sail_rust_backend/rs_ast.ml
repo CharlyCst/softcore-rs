@@ -9,7 +9,8 @@ type rs_type =
   | RsTypGeneric of string
   | RsTypGenericParam of string * rs_type_param list
   | RsTypArray of rs_type * rs_type_param
-  | RsTypOption of rs_type_param (* TODO: This should just be a regular TypGenericParam ? *)
+  | RsTypOption of
+      rs_type_param (* TODO: This should just be a regular TypGenericParam ? *)
   | RsTypTodo of string
   | RsTypBorrow of rs_type
 
@@ -216,11 +217,12 @@ let rs_type_builtins : rs_type list =
 let rs_type_nat : rs_type = RsTypId "nat"
 let rs_type_int : rs_type = RsTypId "i128"
 let rs_type_bitdynamic : rs_type = RsTypId "BitDynamic"
+let rs_type_core : rs_type = RsTypId "Core"
 
 let rs_type_bitstatic (len : rs_type_param) : rs_type =
   RsTypGenericParam ("BitStatic", [ len ])
 ;;
 
-let rs_type_boundedvec (typ: rs_type) (len : rs_type_param): rs_type =
+let rs_type_boundedvec (typ : rs_type) (len : rs_type_param) : rs_type =
   RsTypGenericParam ("BoundedVec", [ RsTypParamTyp typ; len ])
-
+;;

@@ -40,9 +40,12 @@ let mk_borrow (exp : rs_exp) : rs_exp =
   }
 ;;
 
-let mk_todo (id : string) : rs_exp = { e_annot = None; e_exp = RsTodo id }
-let mk_exp_id (id : string) : rs_exp = { e_annot = None; e_exp = RsId id }
-let mk_lit_str (str : string) : rs_exp = { e_annot = None; e_exp = RsLit (RsLitStr str) }
+let mk_todo ?(e_annot = None) (id : string) : rs_exp = { e_annot; e_exp = RsTodo id }
+let mk_exp_id ?(e_annot = None) (id : string) : rs_exp = { e_annot; e_exp = RsId id }
+
+let mk_lit_str ?(e_annot = None) (str : string) : rs_exp =
+  { e_annot; e_exp = RsLit (RsLitStr str) }
+;;
 
 let mk_method_app (exp : rs_exp) (name : string) (args : rs_exp list) : rs_exp_aux =
   RsMethodApp { exp; name; generics = []; args }
@@ -71,7 +74,8 @@ let rec strip_generic_parameters (typ : rs_type) : rs_type =
   match typ with
   | RsTypTuple typs -> RsTypTuple (List.map strip_generic_parameters typs)
   | RsTypGenericParam (name, _) -> RsTypId name
-  | RsTypArray (typ, size) -> RsTypArray (strip_generic_parameters typ, strip_typ_params size)
+  | RsTypArray (typ, size) ->
+    RsTypArray (strip_generic_parameters typ, strip_typ_params size)
   | RsTypOption typ -> RsTypOption (strip_typ_params typ)
   | _ -> typ
 ;;

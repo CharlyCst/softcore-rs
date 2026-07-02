@@ -183,9 +183,53 @@ const fn mask128(nb_ones: usize) -> u128 {
     }
 }
 
+// TODO(Gurvan): Comment out?
 pub fn opt_into<T, V>(opt: Option<T>) -> Option<V>
 where
     V: From<T>,
 {
     opt.map(V::from)
+}
+
+pub fn opt_into_dyn<T>(opt: Option<T>) -> Option<BitDynamic>
+where
+    T: Into<BitDynamic>,
+{
+    opt.map(T::into)
+}
+
+pub fn opt_into_static<T, const LEN: i128>(opt: Option<T>) -> Option<BitStatic<LEN>>
+where
+    T: Into<BitStatic::<LEN>>,
+{
+    opt.map(T::into)
+}
+
+// TODO: boundedvec_into_static, boundedvec_into_dyn, array_into_static, array_into_dyn
+pub fn boundedvec_into_static<T, const LEN: i128, const BOUND: usize>(bv: BoundedVec<T, BOUND>) -> BoundedVec<BitStatic<LEN>, BOUND>
+where
+    T: Into<BitStatic<LEN>>
+{
+    todo!()
+}
+
+pub fn boundedvec_into_dyn<T, const BOUND: usize>(bv: BoundedVec<T, BOUND>) -> BoundedVec<BitDynamic, BOUND>
+where
+    T: Into<BitDynamic>
+{
+    todo!()
+}
+
+pub fn into_dyn<T>(bv: T) -> BitDynamic
+where
+    T: Into<BitDynamic>
+{
+    T::into(bv)
+}
+
+pub fn into_static<T, const LEN: i128>(bv: T) -> BitStatic<LEN>
+where
+    T: Into<BitStatic<LEN>>
+{
+    T::into(bv)
 }

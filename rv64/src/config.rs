@@ -6,7 +6,7 @@
 //! PRs to contribute new configurations for popular cores are welcome.
 
 use crate::raw;
-use softcore_prelude::BitDynamic;
+use softcore_prelude::BitStatic;
 
 /// A configuration with all extensions disabled.
 pub const MINIMAL: raw::Config = raw::Config {
@@ -77,7 +77,7 @@ pub const MINIMAL: raw::Config = raw::Config {
     base: raw::ConfigBase {
         mtval_has_illegal_instruction_bits: false,
         writable_fiom: false,
-        writable_hpm_counters: BitDynamic::new(32, 0),
+        writable_hpm_counters: BitStatic::<32>::new(0),
         writable_misa: false,
     },
     memory: raw::ConfigMemory {
@@ -161,7 +161,7 @@ pub const U74: raw::Config = raw::Config {
     base: raw::ConfigBase {
         mtval_has_illegal_instruction_bits: true,
         writable_fiom: true,
-        writable_hpm_counters: BitDynamic::new(32, 0), // TODO: check on a board
+        writable_hpm_counters: BitStatic::<32>::new(0), // TODO: check on a board
         writable_misa: false,
     },
     memory: raw::ConfigMemory {
@@ -249,7 +249,7 @@ pub const VECTOR_TEST: raw::Config = raw::Config {
     base: raw::ConfigBase {
         mtval_has_illegal_instruction_bits: true,
         writable_fiom: true,
-        writable_hpm_counters: BitDynamic::new(32, 0), // TODO: check on a board
+        writable_hpm_counters: BitStatic::<32>::new(0), // TODO: check on a board
         writable_misa: false,
     },
     memory: raw::ConfigMemory {

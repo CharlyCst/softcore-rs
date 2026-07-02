@@ -290,7 +290,7 @@ impl BitDynamic {
         self,
     ) -> BitStatic<LEN> {
         assert_eq_range::<START, END, LEN>();
-        BitStatic::<LEN>::from_bitdynamic(self.get_subrange(END, START))
+        self.get_subrange(END, START).into_static()
     }
 
     pub const fn bit_mask(len: i128) -> [u64; BITDYNAMIC_SIZE] {
@@ -337,6 +337,15 @@ impl BitDynamic {
         assert!(self.len % 8 == 0, "Length must be byte-aligned");
         (self.len / 8) as usize
     }
+
+    pub const fn into_dyn(self) -> BitDynamic {
+        self
+    }
+
+    pub const fn into_static<const LEN: i128>(self) -> BitStatic::<LEN> {
+        assert!(self.len == LEN);
+        BitStatic::<LEN> { bits: self.bits[0] }
+    }
 }
 
 impl PartialOrd for BitDynamic {
@@ -347,9 +356,7 @@ impl PartialOrd for BitDynamic {
 
 impl<const LEN: i128> From<BitStatic<LEN>> for BitDynamic {
     fn from(bv: BitStatic<LEN>) -> Self {
-        let mut bits = [0u64; BITDYNAMIC_SIZE];
-        bits[0] = bv.bits;
-        Self { len: LEN, bits }
+        bv.into_dyn()
     }
 }
 
@@ -521,9 +528,14 @@ impl<const LEN: i128> BitStatic<LEN> {
             .bitor_static(other.zero_extend())
     }
 
-    pub const fn from_bitdynamic(bv: BitDynamic) -> Self {
-        assert!(bv.len == LEN);
-        Self { bits: bv.bits[0] }
+    pub const fn into_dyn(self) -> BitDynamic {
+        let mut bits = [0u64; BITDYNAMIC_SIZE];
+        bits[0] = self.bits;
+        BitDynamic { len: LEN, bits }
+    }
+
+    pub const fn into_static(self) -> BitStatic::<LEN> {
+        self
     }
 }
 
@@ -535,7 +547,7 @@ impl<const LEN: i128> PartialOrd for BitStatic<LEN> {
 
 impl<const LEN: i128> From<BitDynamic> for BitStatic<LEN> {
     fn from(bv: BitDynamic) -> Self {
-        Self::from_bitdynamic(bv)
+        bv.into_static()
     }
 }
 

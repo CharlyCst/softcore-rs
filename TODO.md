@@ -39,3 +39,16 @@
   only know the expected type (sometime).
 - A way to fix our problem is just to say that `wrapped_add` the arguments
   should just be something which can be converted into a `BitDynamic`
+- Why does `wX` still use `BitDynamic` when in the sail model it uses
+  `xlenbits`?
+- We currently report a lot of  `We don't know if type "..." is a bitvector type`
+  because we don't track enums
+- Maybe instead of `..._into_static` we could just use `to_static`
+- Since `bitvector_concat` is used a lot, it would benefit from a switch of
+  either `bitvector_concat_bitstatic` and `bitvector_concat_bitdynamic`
+- Add a `return` to instructions to make it easier to know when we need to cast
+  to the return type of the function. Or we could just also cast the whole
+  expression of the function at top-level into the return type (way easier)
+- The compiler would be very very slightly faster if we had just one thing for
+  the match where the condition of a branch is an option type, would simplify
+  function a lot probably
