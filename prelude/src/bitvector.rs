@@ -251,16 +251,16 @@ impl BitDynamic {
         res
     }
 
+    // TODO: Could pass by reference here
     pub const fn zero_extend<const RESULT_LEN: i128>(self) -> BitStatic<RESULT_LEN> {
         assert!(self.len <= RESULT_LEN);
-        BitStatic { bits: self.bits[0] }
+        BitStatic::new(self.bits[0])
     }
 
-    pub const fn zero_extend_dyn(self, len: i128) -> BitDynamic {
+    pub const fn zero_extend_dyn(mut self, len: i128) -> BitDynamic {
         assert!(self.len <= len);
-        let mut res = self;
-        res.len = len; // Bits outside original len are already 0
-        res
+        self.len = len;
+        self
     }
 
     // TODO: Move to i128
@@ -338,6 +338,7 @@ impl BitDynamic {
         (self.len / 8) as usize
     }
 
+    #[inline]
     pub const fn into_dyn(self) -> BitDynamic {
         self
     }
@@ -357,6 +358,13 @@ impl PartialOrd for BitDynamic {
 impl<const LEN: i128> From<BitStatic<LEN>> for BitDynamic {
     fn from(bv: BitStatic<LEN>) -> Self {
         bv.into_dyn()
+    }
+}
+
+impl From<!> for BitDynamic {
+    #[inline]
+    fn from(never: !) -> Self {
+        match never {}
     }
 }
 
@@ -423,6 +431,20 @@ impl<const LEN: i128> BitStatic<LEN> {
     pub const fn get_bit(self, idx: i128) -> bool {
         assert!(idx < LEN);
         self.bits & (1 << idx) > 0
+    }
+
+    // TODO: Move to i128
+    pub const fn set_subrange(mut self, bits: BitDynamic, to: u64, from: u64) -> Self {
+        assert!(from <= to && (to as i128) < LEN);
+        let len = to - from + 1;
+        assert!(bits.len == len as i128);
+
+        let range_mask = if len == 64 { u64::MAX } else { (1u64 << len) - 1 };
+        let clear_mask = !(range_mask << from);
+        self.bits &= clear_mask;
+        let insert_bits = (bits.bits[0] & range_mask) << from;
+        self.bits |= insert_bits;
+        self
     }
 
     pub const fn bitand(self, rhs: BitDynamic) -> BitDynamic {
@@ -534,6 +556,7 @@ impl<const LEN: i128> BitStatic<LEN> {
         BitDynamic { len: LEN, bits }
     }
 
+    #[inline]
     pub const fn into_static(self) -> BitStatic::<LEN> {
         self
     }
@@ -548,6 +571,31 @@ impl<const LEN: i128> PartialOrd for BitStatic<LEN> {
 impl<const LEN: i128> From<BitDynamic> for BitStatic<LEN> {
     fn from(bv: BitDynamic) -> Self {
         bv.into_static()
+    }
+}
+
+impl<const LEN: i128> From<!> for BitStatic<LEN> {
+    #[inline]
+    fn from(never: !) -> Self {
+        match never {}
+    }
+}
+
+impl<const LEN: i128> From<u32> for BitStatic<LEN> {
+    fn from(val: u32) -> Self {
+        Self::new(val as u64)
+    }
+}
+
+impl<const LEN: i128> From<u64> for BitStatic<LEN> {
+    fn from(val: u64) -> Self {
+        Self::new(val)
+    }
+}
+impl<const LEN: i128> From<i32> for BitStatic<LEN> {
+    fn from(val: i32) -> Self {
+        // TODO: Should we assert that this is positive ?
+        Self::new(val as u64)
     }
 }
 
@@ -630,6 +678,22 @@ macro_rules! impl_ops_for_storage {
 
 impl_ops_for_storage!(BitDynamic,);
 impl_ops_for_storage!(BitStatic<LEN>, <const LEN: i128>);
+
+impl<const LEN: i128> Shl<BitStatic<LEN>> for BitStatic<LEN> {
+    type Output = Self;
+    fn shl(self, rhs: BitStatic<LEN>) -> Self {
+        Self::shl(self, rhs.bits as u128)
+    }
+}
+
+impl<const LEN: i128> Shr<BitStatic<LEN>> for BitStatic<LEN> {
+    type Output = Self;
+    fn shr(self, rhs: BitStatic<LEN>) -> Self {
+        Self::shr(self, rhs.bits as u128)
+    }
+}
+
+// TODO: The following should not be necessary anymore ---------------------------------------------
 
 impl<const LEN: i128> BitAnd<BitStatic<LEN>> for BitDynamic {
     type Output = Self;

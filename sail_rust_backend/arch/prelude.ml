@@ -34,7 +34,13 @@ let external_func : rs_fn_type option SMap.t =
             ; ret = rs_type_bitdynamic
             ; linked_gen_args = []
             } )
-      ; "update_subrange_bits", None
+      ; ( "update_subrange_bits"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_u64; rs_type_u64; rs_type_bitdynamic ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
       ; ( "subrange_bits"
         , Some
             { generics = []
@@ -63,7 +69,13 @@ let external_func : rs_fn_type option SMap.t =
             ; ret = rs_type_bitdynamic
             ; linked_gen_args = []
             } )
-      ; "sail_sign_extend", None
+      ; ( "sail_sign_extend"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_i128 ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
       ; ( "sail_zeros"
         , Some
             { generics = []
@@ -78,7 +90,20 @@ let external_func : rs_fn_type option SMap.t =
             ; ret = rs_type_bitdynamic
             ; linked_gen_args = []
             } )
-      ; "sub_vec", None
+      ; ( "sub_vec"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_bitdynamic ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
+      ; ( "slice"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic; rs_type_i128; rs_type_i128 ]
+            ; ret = rs_type_bitdynamic
+            ; linked_gen_args = []
+            } )
       ]
   in
   SMap.union (fun _ _ _ -> None) externals overwritten_func

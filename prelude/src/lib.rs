@@ -1,4 +1,5 @@
 #![allow(incomplete_features, non_camel_case_types)]
+#![feature(never_type)]
 
 use std::cmp::max;
 use std::cmp::min;
@@ -219,6 +220,21 @@ where
 {
     todo!()
 }
+
+pub fn array_into_static<T, const LEN: i128, const SIZE: usize>(bv: [T; SIZE]) -> [BitStatic<LEN>; SIZE]
+where
+    T: Into<BitDynamic>
+{
+    todo!()
+}
+
+pub fn array_into_dyn<T, const SIZE: usize>(bv: [T; SIZE]) -> [BitDynamic; SIZE]
+where
+    T: Into<BitDynamic>
+{
+    todo!()
+}
+
 
 pub fn into_dyn<T>(bv: T) -> BitDynamic
 where

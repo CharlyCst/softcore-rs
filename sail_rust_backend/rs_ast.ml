@@ -199,6 +199,7 @@ let rs_type_i32 : rs_type = RsTypId "i32"
 let rs_type_u128 : rs_type = RsTypId "u128"
 let rs_type_u64 : rs_type = RsTypId "u64"
 let rs_type_u32 : rs_type = RsTypId "u32"
+let rs_type_string : rs_type = RsTypId "String"
 
 let rs_type_builtins : rs_type list =
   [ rs_type_bool
@@ -209,6 +210,7 @@ let rs_type_builtins : rs_type list =
   ; rs_type_u128
   ; rs_type_u64
   ; rs_type_u32
+  ; rs_type_string
   ]
 ;;
 

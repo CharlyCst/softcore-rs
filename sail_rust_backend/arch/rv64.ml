@@ -80,7 +80,13 @@ let external_func : rs_fn_type option SMap.t =
       ; "signed", None
       ; "lteq_int", None
       ; "sail_branch_announce", None
-      ; "bits_str", None
+      ; ( "bits_str"
+        , Some
+            { generics = []
+            ; args = [ rs_type_bitdynamic ]
+            ; ret = rs_type_string
+            ; linked_gen_args = []
+            } )
       ; "print_reg", None
       ; "get_16_random_bits", None
       ; "print_platform", None
@@ -113,7 +119,6 @@ let external_func : rs_fn_type option SMap.t =
       ; "quot_round_zero", None
       ; "rem_round_zero", None
       ; "undefined_vector", None
-      ; "slice", None
       ]
   in
   SMap.union (fun _ _ _ -> None) externals overwritten_func

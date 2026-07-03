@@ -52,3 +52,16 @@
 - The compiler would be very very slightly faster if we had just one thing for
   the match where the condition of a branch is an option type, would simplify
   function a lot probably
+- Instead of using the `shift_bits_right` and other functions like it, we should
+  just use the `>>` binary operator, right?
+- Are `RsInstrList` and `RsBlock` basically the same thing?
+- We also need to apply our casts to constants objects where we know the return
+  type
+- `zero_extend_dyn`: Pas si grave de le passer en fonction plutôt que méthode
+  car dans tous les cas on renvoie un `BitDynamic`?
+
+## Fixing bugs
+
+- There is two functions / methods to set subrange of bitvectors, we don't cast
+  inside the methods
+- When creating a new structure, we need to do the casts

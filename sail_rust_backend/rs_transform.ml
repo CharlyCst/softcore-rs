@@ -559,13 +559,10 @@ let is_bitstatic_type (ctx : context) (typ : rs_type) =
   | _ -> false
 ;;
 
-
-(* TODO(Gurvan): Maybe add an additional parameters which say final type for
-   e_annot? *)
-let rec add_cast_function (cast_name : string) (e : rs_exp) : rs_exp =
+let rec add_cast_function ?(e_annot = None) (cast_name : string) (e : rs_exp) : rs_exp =
   match e.e_exp with
   | RsMatch (e', pes') ->
-    { e_annot = None
+    { e_annot
     ; e_exp =
         RsMatch
           ( e'
@@ -578,10 +575,28 @@ let rec add_cast_function (cast_name : string) (e : rs_exp) : rs_exp =
               pes' )
     }
   | RsIf (e1, e2, e3) ->
-    { e_annot = None
+    { e_annot
     ; e_exp = RsIf (e1, add_cast_function cast_name e2, add_cast_function cast_name e3)
     }
-  | _ -> { e_annot = None; e_exp = RsApp (mk_exp_id cast_name, [], [ e ]) }
+  | RsLet (mut, pat, e1, e2) ->
+    { e_annot; e_exp = RsLet (mut, pat, e1, add_cast_function cast_name e2) }
+  | RsBlock es ->
+    { e_annot
+    ; e_exp =
+        RsBlock
+          (match List.rev es with
+           | [] -> []
+           | tail :: init -> List.rev (add_cast_function cast_name tail :: init))
+    }
+  | RsInstrList es ->
+    { e_annot
+    ; e_exp =
+        RsInstrList
+          (match List.rev es with
+           | [] -> []
+           | tail :: init -> List.rev (add_cast_function cast_name tail :: init))
+    }
+  | _ -> { e_annot; e_exp = RsApp (mk_exp_id cast_name, [], [ e ]) }
 ;;
 
 (** If `e` has a different type to the expected BitVector type `typ`, return a
@@ -606,16 +621,13 @@ let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
   | RsTypGenericParam ("BoundedVec", RsTypParamTyp t :: _) when is_bitstatic_type ctx t ->
     add_cast_function "boundedvec_into_static" e
   | RsTypGenericParam ("BoundedVec", RsTypParamTyp t :: _) when is_bitdynamic_type ctx t
-    ->
-    add_cast_function "boundedvec_into_dyn"e
+    -> add_cast_function "boundedvec_into_dyn" e
   | RsTypOption (RsTypParamTyp t) when is_bitstatic_type ctx t ->
     add_cast_function "opt_into_static" e
   | RsTypOption (RsTypParamTyp t) when is_bitdynamic_type ctx t ->
     add_cast_function "opt_into_dyn" e
-  | t when is_bitstatic_type ctx t ->
-    add_cast_function "into_static" e
-  | t when is_bitdynamic_type ctx t ->
-    add_cast_function "into_dyn" e
+  | t when is_bitstatic_type ctx t -> add_cast_function "into_static" e
+  | t when is_bitdynamic_type ctx t -> add_cast_function ~e_annot:(Some rs_type_bitdynamic) "into_dyn" e
   | _ -> e
 ;;
 
@@ -660,13 +672,36 @@ let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
   (* TODO(Gurvan): Cast for binary operators: If one is a BitStatic and the
      other is a Bitdynamic, cast the BitDynamic into the BitStatic probably.
   *)
+  | RsBinop (({ e_annot = Some t1; e_exp = _ } as e1), b, e2)
+    when is_bitstatic_type ctx t1 -> RsBinop (e1, b, cast_bitvec ctx t1 e2)
+  | RsBinop (e1, b, ({ e_annot = Some t2; e_exp = _ } as e2))
+    when is_bitstatic_type ctx t2 -> RsBinop (cast_bitvec ctx t2 e1, b, e2)
+  | RsStruct (t, fields) ->
+    RsStruct
+      ( t
+      , List.map
+          (fun (field, exp) ->
+             match ctx_field_type t field ctx with
+             | Some field_type -> field, cast_bitvec ctx field_type exp
+             | None -> field, exp)
+          fields )
   | _ -> e.e_exp
+;;
+
+let use_dynamic_bitvec_obj (ctx : context) (obj : rs_obj) : rs_obj =
+  match obj with
+  | RsFn fn -> RsFn { fn with body = cast_bitvec ctx fn.signature.ret fn.body }
+  | RsConst const -> RsConst { const with value = cast_bitvec ctx const.typ const.value }
+  | _ -> obj
 ;;
 
 let use_dynamic_bitvec_args (ctx : context) (rust_program : rs_program) : rs_program =
   let ctx = update_context_types ctx rust_program in
   rust_transform_expr
-    { id_expr_type_transform with exp_aux = use_dynamic_bitvec_exp }
+    { id_expr_type_transform with
+      exp_aux = use_dynamic_bitvec_exp
+    ; obj = use_dynamic_bitvec_obj
+    }
     ctx
     rust_program
 ;;
