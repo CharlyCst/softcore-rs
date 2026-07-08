@@ -3933,7 +3933,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitStatic::<12> {
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
 pub fn csr_id_read_callback(csr: BitStatic::<12>, value: BitDynamic) {
     let name: &'static str = csr_name_map_forwards(into_static(csr));
-
+    
 }
 
 pub type regtype = xlenbits;
@@ -8242,10 +8242,10 @@ pub fn tval(excinfo: Option<BitDynamic>) -> BitDynamic {
 pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
-
+            
         }}
         Privilege::Supervisor => {{
-
+            
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 217, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
@@ -9495,7 +9495,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitStatic::<12>, rs1_val: BitDynamic, rd:
                 _ => {into_static(panic!("Unreachable code"))}
             };
             let final_val: BitDynamic = into_dyn(write_CSR(core_ctx, into_static(csr), into_dyn(new_val)));
-
+            
         } else {
             csr_id_read_callback(into_static(csr), into_dyn(csr_val))
         };

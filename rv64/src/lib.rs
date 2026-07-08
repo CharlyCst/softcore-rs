@@ -42,7 +42,7 @@ const DEFAULT_HPM_EVENT: raw::HpmEvent = raw::HpmEvent {
     bits: BitStatic::<64>::new(0),
 };
 const DEFAULT_TLB_ENTRY: Option<raw::TLB_Entry> = None;
-const ZEROES: BitStatic::<64> = BitStatic::<64>::new(0);
+const ZEROES: BitStatic<64> = BitStatic::<64>::new(0);
 
 // ————————————————————————————— Trap Handling —————————————————————————————— //
 
@@ -126,7 +126,11 @@ impl Core {
         let reg = match reg {
             raw::regidx::Regidx(reg) => reg.unsigned() as i128,
         };
-        raw::wX(self, raw::regno::Regno(reg), BitStatic::<64>::new(value).into());
+        raw::wX(
+            self,
+            raw::regno::Regno(reg),
+            BitStatic::<64>::new(value).into(),
+        );
     }
 
     /// Get the value of a single vector register.

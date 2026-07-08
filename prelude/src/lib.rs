@@ -33,7 +33,11 @@ pub fn parse_hex_bits(_n: i128, _hex_str: &str) -> BitDynamic {
     todo!("'parse_hex_bits' is not yet implemented");
 }
 
-pub fn bitvector_concat<B1, B2>(e1: B1, e2: B2) -> BitDynamic where B1: Into<BitDynamic>, B2: Into<BitDynamic> {
+pub fn bitvector_concat<B1, B2>(e1: B1, e2: B2) -> BitDynamic
+where
+    B1: Into<BitDynamic>,
+    B2: Into<BitDynamic>,
+{
     let e1_dyn: BitDynamic = e1.into();
     let e2_dyn: BitDynamic = e2.into();
     e1_dyn.concat(e2_dyn)
@@ -115,16 +119,16 @@ pub fn cancel_reservation(_unit: ()) {
     // In the future, extend this function
 }
 
-fn hex_bits<const LEN: i128>(bits: &str) -> BitStatic::<LEN> {
+fn hex_bits<const LEN: i128>(bits: &str) -> BitStatic<LEN> {
     let parsed = bits.parse::<u64>().expect("Could not parse hex bits");
     BitStatic::new(parsed)
 }
 
-pub fn hex_bits_12_forwards(_reg: BitStatic::<12>) -> ! {
+pub fn hex_bits_12_forwards(_reg: BitStatic<12>) -> ! {
     todo!("Implement this function")
 }
 
-pub fn hex_bits_12_backwards(bits: &str) -> BitStatic::<12> {
+pub fn hex_bits_12_backwards(bits: &str) -> BitStatic<12> {
     hex_bits::<12>(bits)
 }
 
@@ -201,51 +205,56 @@ where
 
 pub fn opt_into_static<T, const LEN: i128>(opt: Option<T>) -> Option<BitStatic<LEN>>
 where
-    T: Into<BitStatic::<LEN>>,
+    T: Into<BitStatic<LEN>>,
 {
     opt.map(T::into)
 }
 
 // TODO: boundedvec_into_static, boundedvec_into_dyn, array_into_static, array_into_dyn
-pub fn boundedvec_into_static<T, const LEN: i128, const BOUND: usize>(bv: BoundedVec<T, BOUND>) -> BoundedVec<BitStatic<LEN>, BOUND>
+pub fn boundedvec_into_static<T, const LEN: i128, const BOUND: usize>(
+    bv: BoundedVec<T, BOUND>,
+) -> BoundedVec<BitStatic<LEN>, BOUND>
 where
-    T: Into<BitStatic<LEN>>
+    T: Into<BitStatic<LEN>>,
 {
     todo!()
 }
 
-pub fn boundedvec_into_dyn<T, const BOUND: usize>(bv: BoundedVec<T, BOUND>) -> BoundedVec<BitDynamic, BOUND>
+pub fn boundedvec_into_dyn<T, const BOUND: usize>(
+    bv: BoundedVec<T, BOUND>,
+) -> BoundedVec<BitDynamic, BOUND>
 where
-    T: Into<BitDynamic>
+    T: Into<BitDynamic>,
 {
     todo!()
 }
 
-pub fn array_into_static<T, const LEN: i128, const SIZE: usize>(bv: [T; SIZE]) -> [BitStatic<LEN>; SIZE]
+pub fn array_into_static<T, const LEN: i128, const SIZE: usize>(
+    bv: [T; SIZE],
+) -> [BitStatic<LEN>; SIZE]
 where
-    T: Into<BitDynamic>
+    T: Into<BitDynamic>,
 {
     todo!()
 }
 
 pub fn array_into_dyn<T, const SIZE: usize>(bv: [T; SIZE]) -> [BitDynamic; SIZE]
 where
-    T: Into<BitDynamic>
+    T: Into<BitDynamic>,
 {
     todo!()
 }
 
-
 pub fn into_dyn<T>(bv: T) -> BitDynamic
 where
-    T: Into<BitDynamic>
+    T: Into<BitDynamic>,
 {
     T::into(bv)
 }
 
 pub fn into_static<T, const LEN: i128>(bv: T) -> BitStatic<LEN>
 where
-    T: Into<BitStatic<LEN>>
+    T: Into<BitStatic<LEN>>,
 {
     T::into(bv)
 }

@@ -141,8 +141,9 @@ impl BitDynamic {
     }
 
     pub fn wrapped_add<B>(mut self, rhs: B) -> Self
-        where
-            BitDynamic: From<B> {
+    where
+        BitDynamic: From<B>,
+    {
         let rhs = BitDynamic::from(rhs);
         assert!(self.len == rhs.len);
         let mut carry: u128 = 0;
@@ -343,7 +344,7 @@ impl BitDynamic {
         self
     }
 
-    pub const fn into_static<const LEN: i128>(self) -> BitStatic::<LEN> {
+    pub const fn into_static<const LEN: i128>(self) -> BitStatic<LEN> {
         assert!(self.len == LEN);
         BitStatic::<LEN> { bits: self.bits[0] }
     }
@@ -439,7 +440,11 @@ impl<const LEN: i128> BitStatic<LEN> {
         let len = to - from + 1;
         assert!(bits.len == len as i128);
 
-        let range_mask = if len == 64 { u64::MAX } else { (1u64 << len) - 1 };
+        let range_mask = if len == 64 {
+            u64::MAX
+        } else {
+            (1u64 << len) - 1
+        };
         let clear_mask = !(range_mask << from);
         self.bits &= clear_mask;
         let insert_bits = (bits.bits[0] & range_mask) << from;
@@ -484,7 +489,10 @@ impl<const LEN: i128> BitStatic<LEN> {
         self.wrapped_add(Self { bits: rhs })
     }
 
-    pub fn wrapped_add<B>(self, rhs: B) -> Self where B: Into<Self>{
+    pub fn wrapped_add<B>(self, rhs: B) -> Self
+    where
+        B: Into<Self>,
+    {
         let rhs_static: Self = rhs.into();
         Self {
             bits: (self.bits as u64).wrapping_add(rhs_static.bits),
@@ -557,7 +565,7 @@ impl<const LEN: i128> BitStatic<LEN> {
     }
 
     #[inline]
-    pub const fn into_static(self) -> BitStatic::<LEN> {
+    pub const fn into_static(self) -> BitStatic<LEN> {
         self
     }
 }
@@ -706,7 +714,6 @@ impl<const LEN: i128> BitXor<BitStatic<LEN>> for BitStatic<LEN> {
         BitStatic::<LEN>::bitxor_static(self, rhs)
     }
 }
-
 
 // TODO: The following should not be necessary anymore ---------------------------------------------
 

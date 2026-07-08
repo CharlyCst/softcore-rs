@@ -1,6 +1,6 @@
+use crate::{BitDynamic, BitStatic};
 use std::ops::{Deref, DerefMut};
 use std::slice::SliceIndex;
-use crate::{BitDynamic, BitStatic};
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BoundedVec<T, const BOUND: usize> {
@@ -79,7 +79,9 @@ impl<T: Default + Copy, const BOUND: usize> From<Vec<T>> for BoundedVec<T, BOUND
 
 // TODO(Gurvan): From slice functions
 
-impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitDynamic, BOUND>> for BoundedVec<BitStatic<LEN>, BOUND> {
+impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitDynamic, BOUND>>
+    for BoundedVec<BitStatic<LEN>, BOUND>
+{
     fn from(dynamic_bvec: BoundedVec<BitDynamic, BOUND>) -> Self {
         let mut static_vec = [BitStatic::<LEN>::zeros(); BOUND];
 
@@ -95,7 +97,9 @@ impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitDynamic, BOUND>> fo
         }
     }
 }
-impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitStatic<LEN>, BOUND>> for BoundedVec<BitDynamic, BOUND> {
+impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitStatic<LEN>, BOUND>>
+    for BoundedVec<BitDynamic, BOUND>
+{
     fn from(static_bvec: BoundedVec<BitStatic<LEN>, BOUND>) -> Self {
         let mut dynamic_vec = [BitDynamic::default(); BOUND];
 

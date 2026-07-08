@@ -544,22 +544,6 @@ let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program 
 (* ———————————————————— Dynamic BitVectors Arguments ——————————————————————— *)
 (* TODO(Gurvan): This is the same ugly fix that we use for vec! vs array *)
 
-(* TODO(Gurvan): This code is inefficient because we are checking
-   types twice to see if they are bitstatic or bitdynamic instead of
-   returning `IsBitStatic`, `IsBitDynamic` or `NotBitVector` *)
-
-let is_bitdynamic_type (ctx : context) (typ : rs_type) =
-  match ctx_type typ ctx with
-  | RsTypId "BitDynamic" -> true
-  | _ -> false
-;;
-
-let is_bitstatic_type (ctx : context) (typ : rs_type) =
-  match ctx_type typ ctx with
-  | RsTypGenericParam ("BitStatic", _) -> true
-  | _ -> false
-;;
-
 let rec add_cast_function ?(e_annot = None) (cast_name : string) (e : rs_exp) : rs_exp =
   match e.e_exp with
   | RsMatch (e', pes') ->
@@ -605,6 +589,7 @@ let rec add_cast_function ?(e_annot = None) (cast_name : string) (e : rs_exp) : 
 let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
   (* TODO(Gurvan): We should not do any cast if we e.e_annot is a BitDynamic and typ is
      already BitDynamic for example, or same with BitStatic *)
+  (* TODO(Gurvan): Add e_annot *)
   match typ with
   | RsTypTuple ts ->
     (match e.e_exp with
@@ -614,23 +599,28 @@ let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
        Reporting.simple_warn
          (Format.sprintf "Unsupported tuple construction '%s'" (string_of_rs_exp 0 e));
        e)
-  | RsTypArray (t, size) when is_bitdynamic_type ctx t ->
-    (* TODO(Gurvan): e_annot *)
-    add_cast_function "array_into_dyn" e
-  | RsTypArray (t, size) when is_bitstatic_type ctx t ->
-    add_cast_function "array_into_static" e
-  | RsTypGenericParam ("BoundedVec", RsTypParamTyp t :: _) when is_bitstatic_type ctx t ->
-    add_cast_function "boundedvec_into_static" e
-  | RsTypGenericParam ("BoundedVec", RsTypParamTyp t :: _) when is_bitdynamic_type ctx t
-    -> add_cast_function "boundedvec_into_dyn" e
-  | RsTypOption (RsTypParamTyp t) when is_bitstatic_type ctx t ->
-    add_cast_function "opt_into_static" e
-  | RsTypOption (RsTypParamTyp t) when is_bitdynamic_type ctx t ->
-    add_cast_function "opt_into_dyn" e
-  | t when is_bitstatic_type ctx t -> add_cast_function "into_static" e
-  | t when is_bitdynamic_type ctx t ->
-    add_cast_function ~e_annot:(Some rs_type_bitdynamic) "into_dyn" e
-  | _ -> e
+  | RsTypArray (t, size) ->
+    (match ctx_type t ctx with
+     | RsTypId "BitDynamic" -> add_cast_function "array_into_dyn" e
+     | RsTypGenericParam ("BitStatic", args) -> add_cast_function "array_into_static" e
+     | _ -> e)
+  | RsTypGenericParam ("BoundedVec", RsTypParamTyp t :: _) ->
+    (match ctx_type t ctx with
+     | RsTypId "BitDynamic" -> add_cast_function "boundedvec_into_dyn" e
+     | RsTypGenericParam ("BitStatic", args) ->
+       add_cast_function "boundedvec_into_static" e
+     | _ -> e)
+  | RsTypOption (RsTypParamTyp t) ->
+    (match ctx_type t ctx with
+     | RsTypId "BitDynamic" -> add_cast_function "opt_into_dyn" e
+     | RsTypGenericParam ("BitStatic", args) -> add_cast_function "opt_into_static" e
+     | _ -> e)
+  | t ->
+    (match ctx_type t ctx with
+     | RsTypId "BitDynamic" ->
+       add_cast_function ~e_annot:(Some rs_type_bitdynamic) "into_dyn" e
+     | RsTypGenericParam ("BitStatic", args) -> add_cast_function "into_static" e
+     | _ -> e)
 ;;
 
 let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
@@ -671,13 +661,15 @@ let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
     (match type_of_lexp ctx l with
      | Some t -> RsAssign (l, cast_bitvec ctx t e')
      | None -> e.e_exp)
-  (* TODO(Gurvan): Cast for binary operators: If one is a BitStatic and the
-     other is a Bitdynamic, cast the BitDynamic into the BitStatic probably.
-  *)
-  | RsBinop (({ e_annot = Some t1; e_exp = _ } as e1), b, e2)
-    when is_bitstatic_type ctx t1 -> RsBinop (e1, b, cast_bitvec ctx t1 e2)
-  | RsBinop (e1, b, ({ e_annot = Some t2; e_exp = _ } as e2))
-    when is_bitstatic_type ctx t2 -> RsBinop (cast_bitvec ctx t2 e1, b, e2)
+  | RsBinop (e1, b, e2) ->
+    let t1 = Option.map (fun t -> ctx_type t ctx) e1.e_annot in
+    let t2 = Option.map (fun t -> ctx_type t ctx) e2.e_annot in
+    (match t1, t2 with
+     | Some (RsTypGenericParam ("BitStatic", args) as t1), _ ->
+       RsBinop (e1, b, cast_bitvec ctx t1 e2)
+     | _, Some (RsTypGenericParam ("BitStatic", args) as t2) ->
+       RsBinop (cast_bitvec ctx t2 e1, b, e2)
+     | _ -> e.e_exp)
   | RsStruct (t, fields) ->
     RsStruct
       ( t
