@@ -693,6 +693,21 @@ impl<const LEN: i128> Shr<BitStatic<LEN>> for BitStatic<LEN> {
     }
 }
 
+impl<const LEN: i128> BitOr<BitStatic<LEN>> for BitStatic<LEN> {
+    type Output = Self;
+    fn bitor(self, rhs: Self) -> Self {
+        BitStatic::<LEN>::bitor_static(self, rhs)
+    }
+}
+
+impl<const LEN: i128> BitXor<BitStatic<LEN>> for BitStatic<LEN> {
+    type Output = Self;
+    fn bitxor(self, rhs: Self) -> Self {
+        BitStatic::<LEN>::bitxor_static(self, rhs)
+    }
+}
+
+
 // TODO: The following should not be necessary anymore ---------------------------------------------
 
 impl<const LEN: i128> BitAnd<BitStatic<LEN>> for BitDynamic {
@@ -720,20 +735,6 @@ impl<const LEN: i128> BitAnd for BitStatic<LEN> {
     type Output = Self;
     fn bitand(self, rhs: Self) -> Self {
         BitStatic::<LEN>::bitand_static(self, rhs)
-    }
-}
-
-impl<const LEN: i128> BitOr for BitStatic<LEN> {
-    type Output = Self;
-    fn bitor(self, rhs: Self) -> Self {
-        BitStatic::<LEN>::bitor_static(self, rhs)
-    }
-}
-
-impl<const LEN: i128> BitXor for BitStatic<LEN> {
-    type Output = Self;
-    fn bitxor(self, rhs: Self) -> Self {
-        BitStatic::<LEN>::bitxor_static(self, rhs)
     }
 }
 

@@ -3933,7 +3933,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitStatic::<12> {
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
 pub fn csr_id_read_callback(csr: BitStatic::<12>, value: BitDynamic) {
     let name: &'static str = csr_name_map_forwards(into_static(csr));
-    
+
 }
 
 pub type regtype = xlenbits;
@@ -7074,8 +7074,8 @@ pub const zvreg: vregidx = vregidx::Vregidx(into_static(BitStatic::<5>::new(0b00
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L94-99.
 pub fn dirty_v_context(core_ctx: &mut Core, unit_arg: ()) {
     assert!(hartSupports(core_ctx, extension::Ext_V), "riscv_vext_regs.sail:95.28-95.29");
-    core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(extStatus_to_bits(ExtStatus::Dirty), 10, 9));
-    core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b1), 63, 63))
+    core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 10, 9, into_dyn(extStatus_to_bits(ExtStatus::Dirty))));
+    core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 63, 63, into_dyn(BitStatic::<1>::new(0b1))))
 }
 
 /// rV
@@ -7193,8 +7193,8 @@ pub fn _get_Vcsr_vxsat(v: Vcsr) -> BitStatic::<1> {
 ///
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L232-236.
 pub fn ext_write_vcsr(core_ctx: &mut Core, vxrm_val: BitStatic::<2>, vxsat_val: BitStatic::<1>) {
-    core_ctx.vcsr.bits = into_static(core_ctx.vcsr.bits.set_subrange(vxrm_val, 2, 1));
-    core_ctx.vcsr.bits = into_static(core_ctx.vcsr.bits.set_subrange(vxsat_val, 0, 0));
+    core_ctx.vcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.vcsr.bits), 2, 1, into_dyn(vxrm_val)));
+    core_ctx.vcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.vcsr.bits), 0, 0, into_dyn(vxsat_val)));
     dirty_v_context(core_ctx, ())
 }
 
@@ -7688,7 +7688,7 @@ pub fn read_mhpmevent(core_ctx: &mut Core, index: i128) -> BitDynamic {
 /// Generated from the Sail sources at `riscv_zihpm.sail` L212-213.
 pub fn write_mhpmcounter(core_ctx: &mut Core, index: i128, value: BitDynamic) {
     if {(bitvector_access(into_dyn(sys_writable_hpm_counters(core_ctx, ())), index) == true)} {
-        core_ctx.mhpmcounter[(index as usize)] = core_ctx.mhpmcounter[(index as usize)].set_subrange(value, 63, 0)
+        core_ctx.mhpmcounter[(index as usize)] = update_subrange_bits(into_dyn(core_ctx.mhpmcounter[(index as usize)]), 63, 0, into_dyn(value))
     } else {
         ()
     }
@@ -7699,7 +7699,7 @@ pub fn write_mhpmcounter(core_ctx: &mut Core, index: i128, value: BitDynamic) {
 /// Generated from the Sail sources at `riscv_zihpm.sail` L215-216.
 pub fn write_mhpmcounterh(core_ctx: &mut Core, index: i128, value: BitStatic::<32>) {
     if {(bitvector_access(into_dyn(sys_writable_hpm_counters(core_ctx, ())), index) == true)} {
-        core_ctx.mhpmcounter[(index as usize)] = core_ctx.mhpmcounter[(index as usize)].set_subrange(value, 63, 32)
+        core_ctx.mhpmcounter[(index as usize)] = update_subrange_bits(into_dyn(core_ctx.mhpmcounter[(index as usize)]), 63, 32, into_dyn(value))
     } else {
         ()
     }
@@ -7854,8 +7854,8 @@ pub fn encdec_freg_backwards_matches(arg_hashtag_: BitStatic::<5>) -> bool {
 /// Generated from the Sail sources at `riscv_fdext_regs.sail` L109-114.
 pub fn dirty_fd_context(core_ctx: &mut Core, unit_arg: ()) {
     assert!(hartSupports(core_ctx, extension::Ext_F), "riscv_fdext_regs.sail:110.28-110.29");
-    core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(extStatus_to_bits(ExtStatus::Dirty), 14, 13));
-    core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b1), 63, 63))
+    core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 14, 13, into_dyn(extStatus_to_bits(ExtStatus::Dirty))));
+    core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 63, 63, into_dyn(BitStatic::<1>::new(0b1))))
 }
 
 /// dirty_fd_context_if_present
@@ -7892,8 +7892,8 @@ pub fn _get_Fcsr_FRM(v: Fcsr) -> BitStatic::<3> {
 ///
 /// Generated from the Sail sources at `riscv_fdext_regs.sail` L392-396.
 pub fn write_fcsr(core_ctx: &mut Core, frm: BitStatic::<3>, fflags: BitStatic::<5>) {
-    core_ctx.fcsr.bits = into_static(core_ctx.fcsr.bits.set_subrange(frm, 7, 5));
-    core_ctx.fcsr.bits = into_static(core_ctx.fcsr.bits.set_subrange(fflags, 4, 0));
+    core_ctx.fcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.fcsr.bits), 7, 5, into_dyn(frm)));
+    core_ctx.fcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.fcsr.bits), 4, 0, into_dyn(fflags)));
     dirty_fd_context_if_present(core_ctx, ())
 }
 
@@ -8242,10 +8242,10 @@ pub fn tval(excinfo: Option<BitDynamic>) -> BitDynamic {
 pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
-            
+
         }}
         Privilege::Supervisor => {{
-            
+
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 217, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
@@ -8258,17 +8258,17 @@ pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
 pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: BitStatic::<8>, pc: BitDynamic, info: Option<BitDynamic>, ext: Option<()>) -> BitDynamic {
     match del_priv {
         Privilege::Machine => {{
-            core_ctx.mcause.bits = into_dyn(core_ctx.mcause.bits.set_subrange(bool_to_bits(intr), 63, 63));
-            core_ctx.mcause.bits = into_dyn(core_ctx.mcause.bits.set_subrange(c.zero_extend_dyn(63), 62, 0));
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange({
+            core_ctx.mcause.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.mcause.bits), 63, 63, into_dyn(bool_to_bits(intr))));
+            core_ctx.mcause.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.mcause.bits), 62, 0, into_dyn(c.zero_extend_dyn(63))));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 7, 7, {
                 let var_1: Mstatus = core_ctx.mstatus;
-                _get_Mstatus_MIE(var_1)
-            }, 7, 7));
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b0), 3, 3));
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange({
+                into_dyn(_get_Mstatus_MIE(var_1))
+            }));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 3, 3, into_dyn(BitStatic::<1>::new(0b0))));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 12, 11, {
                 let var_2: Privilege = core_ctx.cur_privilege;
-                privLevel_to_bits(var_2)
-            }, 12, 11));
+                into_dyn(privLevel_to_bits(var_2))
+            }));
             core_ctx.mtval = into_static(tval(opt_into_dyn(info)));
             core_ctx.mepc = into_static(pc);
             core_ctx.cur_privilege = del_priv;
@@ -8280,19 +8280,19 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
         }}
         Privilege::Supervisor => {{
             assert!(currentlyEnabled(core_ctx, extension::Ext_S), "no supervisor mode present for delegation");
-            core_ctx.scause.bits = into_dyn(core_ctx.scause.bits.set_subrange(bool_to_bits(intr), 63, 63));
-            core_ctx.scause.bits = into_dyn(core_ctx.scause.bits.set_subrange(c.zero_extend_dyn(63), 62, 0));
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange({
+            core_ctx.scause.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.scause.bits), 63, 63, into_dyn(bool_to_bits(intr))));
+            core_ctx.scause.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.scause.bits), 62, 0, into_dyn(c.zero_extend_dyn(63))));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 5, 5, {
                 let var_4: Mstatus = core_ctx.mstatus;
-                _get_Mstatus_SIE(var_4)
-            }, 5, 5));
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b0), 1, 1));
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(match core_ctx.cur_privilege {
-                Privilege::User => {BitStatic::<1>::new(0b0)}
-                Privilege::Supervisor => {BitStatic::<1>::new(0b1)}
-                Privilege::Machine => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 260, "invalid privilege for s-mode trap")}
-                _ => {panic!("Unreachable code")}
-            }, 8, 8));
+                into_dyn(_get_Mstatus_SIE(var_4))
+            }));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 1, 1, into_dyn(BitStatic::<1>::new(0b0))));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 8, 8, match core_ctx.cur_privilege {
+                Privilege::User => {into_dyn(BitStatic::<1>::new(0b0))}
+                Privilege::Supervisor => {into_dyn(BitStatic::<1>::new(0b1))}
+                Privilege::Machine => {into_dyn(panic!("{}, l {}: {}", "riscv_sys_control.sail", 260, "invalid privilege for s-mode trap"))}
+                _ => {into_dyn(panic!("Unreachable code"))}
+            }));
             core_ctx.stval = into_static(tval(opt_into_dyn(info)));
             core_ctx.sepc = into_static(pc);
             core_ctx.cur_privilege = del_priv;
@@ -8318,11 +8318,11 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_resu
         }}
         (_, ctl_result::CTL_MRET(())) => {{
             let prev_priv: Privilege = core_ctx.cur_privilege;
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange({
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 3, 3, {
                 let var_1: Mstatus = core_ctx.mstatus;
-                _get_Mstatus_MPIE(var_1)
-            }, 3, 3));
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b1), 7, 7));
+                into_dyn(_get_Mstatus_MPIE(var_1))
+            }));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 7, 7, into_dyn(BitStatic::<1>::new(0b1))));
             core_ctx.cur_privilege = {
                 let var_2 = {
                     let var_3: Mstatus = core_ctx.mstatus;
@@ -8330,16 +8330,16 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_resu
                 };
                 privLevel_of_bits(into_static(var_2))
             };
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange({
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 12, 11, {
                 let var_4: Privilege = if {currentlyEnabled(core_ctx, extension::Ext_U)} {
                     Privilege::User
                 } else {
                     Privilege::Machine
                 };
-                privLevel_to_bits(var_4)
-            }, 12, 11));
+                into_dyn(privLevel_to_bits(var_4))
+            }));
             if {(core_ctx.cur_privilege != Privilege::Machine)} {
-                core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b0), 17, 17))
+                core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 17, 17, into_dyn(BitStatic::<1>::new(0b0))))
             } else {
                 ()
             };
@@ -8347,11 +8347,11 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_resu
         }}
         (_, ctl_result::CTL_SRET(())) => {{
             let prev_priv: Privilege = core_ctx.cur_privilege;
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange({
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 1, 1, {
                 let var_5: Mstatus = core_ctx.mstatus;
-                _get_Mstatus_SPIE(var_5)
-            }, 1, 1));
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b1), 5, 5));
+                into_dyn(_get_Mstatus_SPIE(var_5))
+            }));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 5, 5, into_dyn(BitStatic::<1>::new(0b1))));
             core_ctx.cur_privilege = if {({
                 let var_6: Mstatus = core_ctx.mstatus;
                 _get_Mstatus_SPP(var_6)
@@ -8360,9 +8360,9 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_resu
             } else {
                 Privilege::User
             };
-            core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b0), 8, 8));
+            core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 8, 8, into_dyn(BitStatic::<1>::new(0b0))));
             if {(core_ctx.cur_privilege != Privilege::Machine)} {
-                core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b0), 17, 17))
+                core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 17, 17, into_dyn(BitStatic::<1>::new(0b0))))
             } else {
                 ()
             };
@@ -8387,48 +8387,48 @@ pub fn handle_interrupt(core_ctx: &mut Core, i: InterruptType, del_priv: Privile
 ///
 /// Generated from the Sail sources at `riscv_sys_control.sail` L341-360.
 pub fn reset_misa(core_ctx: &mut Core, unit_arg: ()) {
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 0, 0, {
         let var_1: bool = hartSupports(core_ctx, extension::Ext_A);
-        bool_to_bits(var_1)
-    }, 0, 0));
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+        into_dyn(bool_to_bits(var_1))
+    }));
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 2, 2, {
         let var_2: bool = hartSupports(core_ctx, extension::Ext_C);
-        bool_to_bits(var_2)
-    }, 2, 2));
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+        into_dyn(bool_to_bits(var_2))
+    }));
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 1, 1, {
         let var_3: bool = hartSupports(core_ctx, extension::Ext_B);
-        bool_to_bits(var_3)
-    }, 1, 1));
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange(BitStatic::<1>::new(0b1), 8, 8));
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+        into_dyn(bool_to_bits(var_3))
+    }));
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 8, 8, into_dyn(BitStatic::<1>::new(0b1))));
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 12, 12, {
         let var_4: bool = hartSupports(core_ctx, extension::Ext_M);
-        bool_to_bits(var_4)
-    }, 12, 12));
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+        into_dyn(bool_to_bits(var_4))
+    }));
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 20, 20, {
         let var_5: bool = hartSupports(core_ctx, extension::Ext_U);
-        bool_to_bits(var_5)
-    }, 20, 20));
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+        into_dyn(bool_to_bits(var_5))
+    }));
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 18, 18, {
         let var_6: bool = hartSupports(core_ctx, extension::Ext_S);
-        bool_to_bits(var_6)
-    }, 18, 18));
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+        into_dyn(bool_to_bits(var_6))
+    }));
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 21, 21, {
         let var_7: bool = hartSupports(core_ctx, extension::Ext_V);
-        bool_to_bits(var_7)
-    }, 21, 21));
+        into_dyn(bool_to_bits(var_7))
+    }));
     if {(hartSupports(core_ctx, extension::Ext_F) && hartSupports(core_ctx, extension::Ext_Zfinx))} {
         panic!("{}, l {}: {}", "riscv_sys_control.sail", 352, "F and Zfinx cannot both be enabled!")
     } else {
         ()
     };
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 5, 5, {
         let var_8: bool = hartSupports(core_ctx, extension::Ext_F);
-        bool_to_bits(var_8)
-    }, 5, 5));
-    core_ctx.misa.bits = into_dyn(core_ctx.misa.bits.set_subrange({
+        into_dyn(bool_to_bits(var_8))
+    }));
+    core_ctx.misa.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.misa.bits), 3, 3, {
         let var_9: bool = hartSupports(core_ctx, extension::Ext_D);
-        bool_to_bits(var_9)
-    }, 3, 3))
+        into_dyn(bool_to_bits(var_9))
+    }))
 }
 
 /// reset_sys
@@ -8436,22 +8436,22 @@ pub fn reset_misa(core_ctx: &mut Core, unit_arg: ()) {
 /// Generated from the Sail sources at `riscv_sys_control.sail` L364-417.
 pub fn reset_sys(core_ctx: &mut Core, unit_arg: ()) {
     core_ctx.cur_privilege = Privilege::Machine;
-    core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b0), 3, 3));
-    core_ctx.mstatus.bits = into_static(core_ctx.mstatus.bits.set_subrange(BitStatic::<1>::new(0b0), 17, 17));
+    core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 3, 3, into_dyn(BitStatic::<1>::new(0b0))));
+    core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 17, 17, into_dyn(BitStatic::<1>::new(0b0))));
     reset_misa(core_ctx, ());
     cancel_reservation(());
     core_ctx.mcause.bits = into_dyn(zeros(64));
     reset_pmp(core_ctx, ());
     core_ctx.vstart = into_static(zeros(16));
     core_ctx.vl = into_static(zeros(64));
-    core_ctx.vcsr.bits = into_static(core_ctx.vcsr.bits.set_subrange(BitStatic::<2>::new(0b00), 2, 1));
-    core_ctx.vcsr.bits = into_static(core_ctx.vcsr.bits.set_subrange(BitStatic::<1>::new(0b0), 0, 0));
-    core_ctx.vtype.bits = into_dyn(core_ctx.vtype.bits.set_subrange(BitStatic::<1>::new(0b1), 63, 63));
-    core_ctx.vtype.bits = into_dyn(core_ctx.vtype.bits.set_subrange(zeros(55), 62, 8));
-    core_ctx.vtype.bits = into_dyn(core_ctx.vtype.bits.set_subrange(BitStatic::<1>::new(0b0), 7, 7));
-    core_ctx.vtype.bits = into_dyn(core_ctx.vtype.bits.set_subrange(BitStatic::<1>::new(0b0), 6, 6));
-    core_ctx.vtype.bits = into_dyn(core_ctx.vtype.bits.set_subrange(BitStatic::<3>::new(0b000), 5, 3));
-    core_ctx.vtype.bits = into_dyn(core_ctx.vtype.bits.set_subrange(BitStatic::<3>::new(0b000), 2, 0))
+    core_ctx.vcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.vcsr.bits), 2, 1, into_dyn(BitStatic::<2>::new(0b00))));
+    core_ctx.vcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.vcsr.bits), 0, 0, into_dyn(BitStatic::<1>::new(0b0))));
+    core_ctx.vtype.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.vtype.bits), 63, 63, into_dyn(BitStatic::<1>::new(0b1))));
+    core_ctx.vtype.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.vtype.bits), 62, 8, into_dyn(zeros(55))));
+    core_ctx.vtype.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.vtype.bits), 7, 7, into_dyn(BitStatic::<1>::new(0b0))));
+    core_ctx.vtype.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.vtype.bits), 6, 6, into_dyn(BitStatic::<1>::new(0b0))));
+    core_ctx.vtype.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.vtype.bits), 5, 3, into_dyn(BitStatic::<3>::new(0b000))));
+    core_ctx.vtype.bits = into_dyn(update_subrange_bits(into_dyn(core_ctx.vtype.bits), 2, 0, into_dyn(BitStatic::<3>::new(0b000))))
 }
 
 pub type MemoryOpResult<A> = result::<A, ExceptionType>;
@@ -9389,11 +9389,11 @@ pub fn write_CSR(core_ctx: &mut Core, merge_hashtag_var: BitStatic::<12>, missin
         into_dyn(read_mhpmcounter(core_ctx, index))}
         (b__35, value) if {(b__35 == into_static(BitStatic::<12>::new(0b000000010101)))} => {into_dyn(write_seed_csr(()))}
         (b__36, value) if {(b__36 == into_static(BitStatic::<12>::new(0b101100000000)))} => {{
-            core_ctx.mcycle = into_static(core_ctx.mcycle.set_subrange(value, 63, 0));
+            core_ctx.mcycle = into_static(update_subrange_bits(into_dyn(core_ctx.mcycle), 63, 0, into_dyn(value)));
             into_dyn(value)
         }}
         (b__37, value) if {(b__37 == into_static(BitStatic::<12>::new(0b101100000010)))} => {{
-            core_ctx.minstret = into_static(core_ctx.minstret.set_subrange(value, 63, 0));
+            core_ctx.minstret = into_static(update_subrange_bits(into_dyn(core_ctx.minstret), 63, 0, into_dyn(value)));
             core_ctx.minstret_increment = false;
             into_dyn(value)
         }}
@@ -9451,7 +9451,7 @@ pub fn write_CSR(core_ctx: &mut Core, merge_hashtag_var: BitStatic::<12>, missin
             into_dyn(core_ctx.minstretcfg.bits.subrange::<0, 64, 64>())
         }}
         (b__49, value) if {(b__49 == into_static(BitStatic::<12>::new(0b000101001101)))} => {{
-            core_ctx.stimecmp = into_static(core_ctx.stimecmp.set_subrange(value, 63, 0));
+            core_ctx.stimecmp = into_static(update_subrange_bits(into_dyn(core_ctx.stimecmp), 63, 0, into_dyn(value)));
             into_dyn(subrange_bits(into_dyn(core_ctx.stimecmp), 63, 0))
         }}
         (b__51, value) if {(b__51 == into_static(BitStatic::<12>::new(0b000110000000)))} => {{
@@ -9495,7 +9495,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitStatic::<12>, rs1_val: BitDynamic, rd:
                 _ => {into_static(panic!("Unreachable code"))}
             };
             let final_val: BitDynamic = into_dyn(write_CSR(core_ctx, into_static(csr), into_dyn(new_val)));
-            
+
         } else {
             csr_id_read_callback(into_static(csr), into_dyn(csr_val))
         };
@@ -9722,7 +9722,7 @@ pub fn get_fixed_rounding_incr(core_ctx: &mut Core, vec_elem: BitDynamic, shift_
 /// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L462-469.
 pub fn unsigned_saturation(core_ctx: &mut Core, len: i128, elem: BitDynamic) -> BitDynamic {
     if {(elem.unsigned() > ones(__id(len)).unsigned())} {
-        core_ctx.vcsr.bits = into_static(core_ctx.vcsr.bits.set_subrange(BitStatic::<1>::new(0b1), 0, 0));
+        core_ctx.vcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.vcsr.bits), 0, 0, into_dyn(BitStatic::<1>::new(0b1))));
         into_dyn(ones(__id(len)))
     } else {
         into_dyn(subrange_bits(into_dyn(elem), (__id(len) - 1), 0))
@@ -9734,10 +9734,10 @@ pub fn unsigned_saturation(core_ctx: &mut Core, len: i128, elem: BitDynamic) -> 
 /// Generated from the Sail sources at `riscv_insts_vext_utils.sail` L473-483.
 pub fn signed_saturation(core_ctx: &mut Core, len: i128, elem: BitDynamic) -> BitDynamic {
     if {(elem.signed() > bitvector_concat(into_dyn(BitStatic::<1>::new(0b0)), into_dyn(ones((__id(len) - 1)))).signed())} {
-        core_ctx.vcsr.bits = into_static(core_ctx.vcsr.bits.set_subrange(BitStatic::<1>::new(0b1), 0, 0));
+        core_ctx.vcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.vcsr.bits), 0, 0, into_dyn(BitStatic::<1>::new(0b1))));
         into_dyn(bitvector_concat(into_dyn(BitStatic::<1>::new(0b0)), into_dyn(ones((__id(len) - 1)))))
     } else if {(elem.signed() < bitvector_concat(into_dyn(BitStatic::<1>::new(0b1)), into_dyn(zeros((__id(len) - 1)))).signed())} {
-        core_ctx.vcsr.bits = into_static(core_ctx.vcsr.bits.set_subrange(BitStatic::<1>::new(0b1), 0, 0));
+        core_ctx.vcsr.bits = into_static(update_subrange_bits(into_dyn(core_ctx.vcsr.bits), 0, 0, into_dyn(BitStatic::<1>::new(0b1))));
         into_dyn(bitvector_concat(into_dyn(BitStatic::<1>::new(0b1)), into_dyn(zeros((__id(len) - 1)))))
     } else {
         into_dyn(subrange_bits(into_dyn(elem), (__id(len) - 1), 0))

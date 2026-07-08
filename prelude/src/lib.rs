@@ -115,17 +115,17 @@ pub fn cancel_reservation(_unit: ()) {
     // In the future, extend this function
 }
 
-fn hex_bits(len: i128, bits: &str) -> BitDynamic {
+fn hex_bits<const LEN: i128>(bits: &str) -> BitStatic::<LEN> {
     let parsed = bits.parse::<u64>().expect("Could not parse hex bits");
-    BitDynamic::new(len, parsed)
+    BitStatic::new(parsed)
 }
 
-pub fn hex_bits_12_forwards(_reg: BitDynamic) -> ! {
+pub fn hex_bits_12_forwards(_reg: BitStatic::<12>) -> ! {
     todo!("Implement this function")
 }
 
-pub fn hex_bits_12_backwards(bits: &str) -> BitDynamic {
-    hex_bits(12, bits)
+pub fn hex_bits_12_backwards(bits: &str) -> BitStatic::<12> {
+    hex_bits::<12>(bits)
 }
 
 pub fn hex_bits_12_backwards_matches(bits: &str) -> bool {

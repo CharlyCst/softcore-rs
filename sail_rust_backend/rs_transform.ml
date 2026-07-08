@@ -480,14 +480,15 @@ let bitvec_transform_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
         ; args = []
         }
     | RsAssign (RsLexpIndexRange (lexp, r_end, r_start), exp) ->
-      let method_app =
-        { exp = lexp_to_exp lexp
-        ; name = "set_subrange"
-        ; generics = []
-        ; args = [ exp; r_end; r_start ]
-        }
-      in
-      RsAssign (lexp, { exp with e_exp = RsMethodApp method_app })
+      RsAssign
+        ( lexp
+        , { exp with
+            e_exp =
+              RsApp
+                ( mk_exp_id "update_subrange_bits"
+                , []
+                , [ lexp_to_exp lexp; r_end; r_start; exp ] )
+          } )
     | RsApp ({ e_annot = _; e_exp = RsId "zero_extend" }, _generics, [ size; e ])
     | RsApp ({ e_annot = _; e_exp = RsId "sail_zero_extend" }, _generics, [ e; size ]) ->
       (* if is_const_rs_exp ctx size then
@@ -627,7 +628,8 @@ let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
   | RsTypOption (RsTypParamTyp t) when is_bitdynamic_type ctx t ->
     add_cast_function "opt_into_dyn" e
   | t when is_bitstatic_type ctx t -> add_cast_function "into_static" e
-  | t when is_bitdynamic_type ctx t -> add_cast_function ~e_annot:(Some rs_type_bitdynamic) "into_dyn" e
+  | t when is_bitdynamic_type ctx t ->
+    add_cast_function ~e_annot:(Some rs_type_bitdynamic) "into_dyn" e
   | _ -> e
 ;;
 

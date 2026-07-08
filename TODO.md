@@ -58,10 +58,14 @@
 - We also need to apply our casts to constants objects where we know the return
   type
 - `zero_extend_dyn`: Pas si grave de le passer en fonction plutôt que méthode
-  car dans tous les cas on renvoie un `BitDynamic`?
+  car dans tous les cas on renvoie un `BitDynamic`
 
 ## Fixing bugs
 
-- There is two functions / methods to set subrange of bitvectors, we don't cast
-  inside the methods
-- When creating a new structure, we need to do the casts
+- `into_dyn` is not static and so does not work in constants (2 errors)
+- We should add the constant parameters when we know it for `into_static` (10
+  errors)
+- Cannot infer type of the type parameters T for `opt_into_dyn(None)` (4)
+- Cannot infer the value of the const parameter `LEN` (6)
+- Missing / weird cast for `==` binary operators
+- Non constant functions in `const` (17)
