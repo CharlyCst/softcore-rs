@@ -12,6 +12,9 @@ type funmap = rs_fn SMap.t
 (** Map for structure definitions *)
 type structmap = rs_struct SMap.t
 
+(** Map for constants definitions *)
+type constmap = rs_const SMap.t
+
 (** Map for numerical constants *)
 type nummap = Libsail.Ast_util.Big_int.num SMap.t
 
@@ -22,7 +25,7 @@ type defs =
   ; aliasmap : aliasmap
   ; structmap : structmap
   ; funmap : funmap
-  ; constants : SSet.t
+  ; constants : constmap
   ; num_constants : nummap
   ; inline_fun : inline_fun
   }
@@ -72,6 +75,19 @@ let ctx_fun (fun_id : string) (ctx : context) : rs_fn option =
 
 let ctx_union_type (union_id : string) (ctx : context) : rs_type option =
   SMap.find_opt union_id ctx.defs.unions
+;;
+
+let ctx_const (const_id : string) (ctx : context) : rs_const option =
+  SMap.find_opt const_id ctx.defs.constants
+;;
+
+let ctx_id_require_sail_ctx (id : string) (ctx : context) : bool =
+  match ctx_fun id ctx with
+  | Some fn -> fn.use_sail_ctx
+  | None ->
+      match ctx_const id ctx with
+      | Some const -> const.use_sail_ctx
+      | None -> false
 ;;
 
 (** Unfold a type definition, resolving type aliases *)

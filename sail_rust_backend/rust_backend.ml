@@ -44,7 +44,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     ; aliasmap = SMap.empty
     ; structmap = SMap.empty
     ; funmap = SMap.empty
-    ; constants = SSet.empty
+    ; constants = SMap.empty
     ; num_constants = SMap.empty
     ; inline_fun = SMap.empty
     }
@@ -55,7 +55,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     ; aliasmap = map_union a.aliasmap b.aliasmap
     ; structmap = map_union a.structmap b.structmap
     ; funmap = map_union a.funmap b.funmap
-    ; constants = SSet.union a.constants b.constants
+    ; constants = map_union a.constants b.constants
     ; num_constants = map_union a.num_constants b.num_constants
     ; inline_fun = map_union a.inline_fun b.inline_fun
     }
@@ -851,7 +851,7 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     (* TODO *)
     (* NOTE: we should create a constant for numeral types only if there is no constant with the same name already defined. *)
     | TD_abbrev (id, _typq, A_aux (A_nexp nexp, _))
-      when not (SSet.mem (string_of_id id) s.defs.constants) ->
+      when not (SMap.mem (string_of_id id) s.defs.constants) ->
       let value =
         match big_int_of_nexp nexp with
         | Some n -> mk_big_num n
@@ -859,7 +859,8 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       in
       let name = string_of_id id in
       RsProg
-        [ RsConst { name; value; typ = rs_type_int; doc = [ name; ""; loc_to_doc l ] } ]
+        [ RsConst { name; value; typ = rs_type_int; doc = [ name; ""; loc_to_doc
+        l ]; use_sail_ctx = false } ]
     | TD_abbrev _ -> RsProg [] (* Ignore all other abbreviations *)
     | _ -> RsProg []
 
@@ -872,11 +873,13 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     match pat with
     | RsPatId id ->
       let const =
-        { name = id; value = rexp; typ = rs_type_int; doc = [ id; ""; loc_to_doc l ] }
+        { name = id; value = rexp; typ = rs_type_int; doc = [ id; ""; loc_to_doc
+        l ]; use_sail_ctx = false }
       in
       RsProg [ RsConst const ]
     | RsPatType (typ, RsPatId id) ->
-      let const = { name = id; value = rexp; typ; doc = [ id; ""; loc_to_doc l ] } in
+      let const = { name = id; value = rexp; typ; doc = [ id; ""; loc_to_doc l
+      ]; use_sail_ctx = false } in
       RsProg [ RsConst const ]
     | _ -> RsProg []
 
@@ -1229,7 +1232,11 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let pat = process_pat pat in
       (match pat with
        | RsPatId id | RsPatType (_, RsPatId id) ->
-         { defs_empty with constants = SSet.of_list [ id ] }
+           (* TODO(Remove this placeholder *)
+           let tmp : rs_const = { name = id; value = mk_exp_id "TODO"; typ=
+             RsTypUnit; doc = []; use_sail_ctx = false}
+           in
+         { defs_empty with constants = SMap.of_list [ id, tmp ] }
        | _ -> defs_empty)
     | _ -> defs_empty
   ;;

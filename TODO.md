@@ -39,30 +39,17 @@
   only know the expected type (sometime).
 - A way to fix our problem is just to say that `wrapped_add` the arguments
   should just be something which can be converted into a `BitDynamic`
-- Why does `wX` still use `BitDynamic` when in the sail model it uses
-  `xlenbits`?
 - We currently report a lot of  `We don't know if type "..." is a bitvector type`
-  because we don't track enums
-- Maybe instead of `..._into_static` we could just use `to_static`
-- Since `bitvector_concat` is used a lot, it would benefit from a switch of
-  either `bitvector_concat_bitstatic` and `bitvector_concat_bitdynamic`
-- Add a `return` to instructions to make it easier to know when we need to cast
-  to the return type of the function. Or we could just also cast the whole
-  expression of the function at top-level into the return type (way easier)
-- The compiler would be very very slightly faster if we had just one thing for
-  the match where the condition of a branch is an option type, would simplify
-  function a lot probably
-- Instead of using the `shift_bits_right` and other functions like it, we should
-  just use the `>>` binary operator, right?
+- (Minor) Maybe instead of `..._into_static` we could just use `to_static`
 - Are `RsInstrList` and `RsBlock` basically the same thing?
-- We also need to apply our casts to constants objects where we know the return
-  type
 - `zero_extend_dyn`: Pas si grave de le passer en fonction plutôt que méthode
   car dans tous les cas on renvoie un `BitDynamic`
 - Some functions are using `xlenbits` in the model but it still gets translated
-  into `BitDynamic`
+  into `BitDynamic` (such as `wX`)
 - Functions from the prelude library are always using `BitDynamic`, we should
   have two versions depending on the type of the arguments
+- Instead of updating the context everytime, we should be able to update context
+  in the `rust_transform_expr` or something like this
 
 ## Fixing bugs
 

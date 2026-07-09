@@ -175,6 +175,7 @@ type rs_const =
   ; typ : rs_type
   ; value : rs_exp
   ; doc : string list
+  ; mutable use_sail_ctx : bool
   }
 
 type rs_obj =
