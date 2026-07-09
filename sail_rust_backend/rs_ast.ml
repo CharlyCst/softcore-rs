@@ -75,7 +75,7 @@ and rs_method_app =
   }
 
 and rs_exp_aux =
-  | RsLet of bool * rs_pat * rs_exp * rs_exp (* first bool is mutable *)
+  | RsLet of bool * rs_pat * rs_exp * rs_exp (* first bool is true if mutable *)
   | RsApp of rs_exp * string list * rs_exp list (* the strings are the generics *)
   | RsMethodApp of rs_method_app
   | RsStaticApp of rs_type * string * rs_exp list

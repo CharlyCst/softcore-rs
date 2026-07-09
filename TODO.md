@@ -69,3 +69,4 @@
 - Cannot infer the value of the const parameter `LEN` (6)
 - Missing / weird cast for `==` binary operators
 - Non constant functions in `const` (17)
+  + Can be fixed by making them into methods instead which can be consts

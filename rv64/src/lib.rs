@@ -11,6 +11,8 @@
 //!
 //! [1]: https://github.com/riscv/sail-riscv
 
+#![feature(const_trait_impl)]
+
 mod arch_prelude;
 pub mod config;
 pub mod registers;

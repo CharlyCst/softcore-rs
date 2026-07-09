@@ -17,7 +17,7 @@ const fn assert_leq<const X: i128, const Y: i128>() {
 // BitDynamic (BitVector with dynamically known size) ----------------------------------------------
 
 const BITDYNAMIC_SIZE: usize = 8;
-#[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitDynamic {
     pub len: i128,
     // Little-Endian
@@ -350,13 +350,19 @@ impl BitDynamic {
     }
 }
 
+const impl Default for BitDynamic {
+    fn default() -> Self {
+        Self::new(0, 0)
+    }
+}
+
 impl PartialOrd for BitDynamic {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.bits.partial_cmp(&other.bits)
     }
 }
 
-impl<const LEN: i128> From<BitStatic<LEN>> for BitDynamic {
+const impl<const LEN: i128> From<BitStatic<LEN>> for BitDynamic {
     fn from(bv: BitStatic<LEN>) -> Self {
         bv.into_dyn()
     }
@@ -377,7 +383,7 @@ pub const fn bvd(len: i128, val: u64) -> BitDynamic {
 
 // BitStatic (BitVector with statically known small [<= 64] size) ---------------------------------
 
-#[derive(Eq, PartialEq, Clone, Copy, Debug, Default)]
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct BitStatic<const LEN: i128> {
     pub bits: u64,
 }
@@ -576,34 +582,41 @@ impl<const LEN: i128> PartialOrd for BitStatic<LEN> {
     }
 }
 
-impl<const LEN: i128> From<BitDynamic> for BitStatic<LEN> {
+const impl<const LEN: i128> From<BitDynamic> for BitStatic<LEN> {
     fn from(bv: BitDynamic) -> Self {
         bv.into_static()
     }
 }
 
-impl<const LEN: i128> From<!> for BitStatic<LEN> {
+const impl<const LEN: i128> From<!> for BitStatic<LEN> {
     #[inline]
     fn from(never: !) -> Self {
         match never {}
     }
 }
 
-impl<const LEN: i128> From<u32> for BitStatic<LEN> {
+const impl<const LEN: i128> From<u32> for BitStatic<LEN> {
     fn from(val: u32) -> Self {
         Self::new(val as u64)
     }
 }
 
-impl<const LEN: i128> From<u64> for BitStatic<LEN> {
+const impl<const LEN: i128> From<u64> for BitStatic<LEN> {
     fn from(val: u64) -> Self {
         Self::new(val)
     }
 }
-impl<const LEN: i128> From<i32> for BitStatic<LEN> {
+
+const impl<const LEN: i128> From<i32> for BitStatic<LEN> {
     fn from(val: i32) -> Self {
         // TODO: Should we assert that this is positive ?
         Self::new(val as u64)
+    }
+}
+
+const impl<const LEN: i128> Default for BitStatic<LEN> {
+    fn default() -> Self {
+        Self::new(0)
     }
 }
 

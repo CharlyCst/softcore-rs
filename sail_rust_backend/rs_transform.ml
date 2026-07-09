@@ -544,44 +544,60 @@ let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program 
 (* ———————————————————— Dynamic BitVectors Arguments ——————————————————————— *)
 (* TODO(Gurvan): This is the same ugly fix that we use for vec! vs array *)
 
-let rec add_cast_function ?(e_annot = None) (cast_name : string) (e : rs_exp) : rs_exp =
-  match e.e_exp with
-  | RsMatch (e', pes') ->
-    { e_annot
-    ; e_exp =
-        RsMatch
-          ( e'
-          , List.map
-              (fun i ->
-                 match i with
-                 | RsPexp (p, e) -> RsPexp (p, add_cast_function cast_name e)
-                 | RsPexpWhen (p, e1, e2) ->
-                   RsPexpWhen (p, e1, add_cast_function cast_name e2))
-              pes' )
-    }
-  | RsIf (e1, e2, e3) ->
-    { e_annot
-    ; e_exp = RsIf (e1, add_cast_function cast_name e2, add_cast_function cast_name e3)
-    }
-  | RsLet (mut, pat, e1, e2) ->
-    { e_annot; e_exp = RsLet (mut, pat, e1, add_cast_function cast_name e2) }
-  | RsBlock es ->
-    { e_annot
-    ; e_exp =
-        RsBlock
-          (match List.rev es with
-           | [] -> []
-           | tail :: init -> List.rev (add_cast_function cast_name tail :: init))
-    }
-  | RsInstrList es ->
-    { e_annot
-    ; e_exp =
-        RsInstrList
-          (match List.rev es with
-           | [] -> []
-           | tail :: init -> List.rev (add_cast_function cast_name tail :: init))
-    }
-  | _ -> { e_annot; e_exp = RsApp (mk_exp_id cast_name, [], [ e ]) }
+let cast_transform ?(e_annot = None) (transform : rs_exp -> rs_exp_aux) (e : rs_exp)
+  : rs_exp
+  =
+  let rec cast_transform_aux (e : rs_exp) : rs_exp =
+    match e.e_exp with
+    | RsMatch (e', pes') ->
+      { e_annot
+      ; e_exp =
+          RsMatch
+            ( e'
+            , List.map
+                (fun i ->
+                   match i with
+                   | RsPexp (p, e) -> RsPexp (p, cast_transform_aux e)
+                   | RsPexpWhen (p, e1, e2) -> RsPexpWhen (p, e1, cast_transform_aux e2))
+                pes' )
+      }
+    | RsIf (e1, e2, e3) ->
+      { e_annot; e_exp = RsIf (e1, cast_transform_aux e2, cast_transform_aux e3) }
+    | RsLet (mut, pat, e1, e2) ->
+      { e_annot; e_exp = RsLet (mut, pat, e1, cast_transform_aux e2) }
+    | RsBlock es ->
+      { e_annot
+      ; e_exp =
+          RsBlock
+            (match List.rev es with
+             | [] -> []
+             | tail :: init -> List.rev (cast_transform_aux tail :: init))
+      }
+    | RsInstrList es ->
+      { e_annot
+      ; e_exp =
+          RsInstrList
+            (match List.rev es with
+             | [] -> []
+             | tail :: init -> List.rev (cast_transform_aux tail :: init))
+      }
+    | RsTodo _ | RsNone -> e
+    | RsApp (e, _, _) when e.e_exp = RsId "panic!" -> e
+    (* TODO(Gurvan): We should also not add cast for `panic!` nor `assert!` *)
+    | _ -> { e_annot; e_exp = transform e }
+  in
+  cast_transform_aux e
+;;
+
+let add_cast_function ?(e_annot = None) (cast_name : string) (e : rs_exp) : rs_exp =
+  cast_transform ~e_annot (fun e -> RsApp (mk_exp_id cast_name, [], [ e ])) e
+;;
+
+let add_cast_method ?(e_annot = None) (name : string) (e : rs_exp) : rs_exp =
+  cast_transform
+    ~e_annot
+    (fun exp -> RsMethodApp { exp; name; generics = []; args = [] })
+    e
 ;;
 
 (** If `e` has a different type to the expected BitVector type `typ`, return a
@@ -589,7 +605,7 @@ let rec add_cast_function ?(e_annot = None) (cast_name : string) (e : rs_exp) : 
 let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
   (* TODO(Gurvan): We should not do any cast if we e.e_annot is a BitDynamic and typ is
      already BitDynamic for example, or same with BitStatic *)
-  (* TODO(Gurvan): Add e_annot *)
+  (* TODO(Gurvan): Add e_annot everywhere *)
   match typ with
   | RsTypTuple ts ->
     (match e.e_exp with
@@ -617,9 +633,9 @@ let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
      | _ -> e)
   | t ->
     (match ctx_type t ctx with
-     | RsTypId "BitDynamic" ->
-       add_cast_function ~e_annot:(Some rs_type_bitdynamic) "into_dyn" e
-     | RsTypGenericParam ("BitStatic", args) -> add_cast_function "into_static" e
+     | RsTypId "BitDynamic" as t' -> add_cast_function ~e_annot:(Some t') "into_dyn" e
+     | RsTypGenericParam ("BitStatic", args) as t' ->
+       add_cast_function ~e_annot:(Some t') "into_static" e
      | _ -> e)
 ;;
 
@@ -666,9 +682,9 @@ let use_dynamic_bitvec_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
     let t2 = Option.map (fun t -> ctx_type t ctx) e2.e_annot in
     (match t1, t2 with
      | Some (RsTypGenericParam ("BitStatic", args) as t1), _ ->
-       RsBinop (e1, b, cast_bitvec ctx t1 e2)
+       RsBinop (cast_bitvec ctx t1 e1, b, cast_bitvec ctx t1 e2)
      | _, Some (RsTypGenericParam ("BitStatic", args) as t2) ->
-       RsBinop (cast_bitvec ctx t2 e1, b, e2)
+       RsBinop (cast_bitvec ctx t2 e1, b, cast_bitvec ctx t2 e2)
      | _ -> e.e_exp)
   | RsStruct (t, fields) ->
     RsStruct

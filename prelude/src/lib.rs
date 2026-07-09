@@ -1,5 +1,11 @@
 #![allow(incomplete_features, non_camel_case_types)]
 #![feature(never_type)]
+#![feature(const_trait_impl)]
+#![feature(const_convert)]
+#![feature(const_option_ops)]
+#![feature(const_array)]
+#![feature(const_destruct)]
+#![feature(const_default)]
 
 use std::cmp::max;
 use std::cmp::min;
@@ -188,73 +194,66 @@ const fn mask128(nb_ones: usize) -> u128 {
     }
 }
 
-// TODO(Gurvan): Comment out?
-pub fn opt_into<T, V>(opt: Option<T>) -> Option<V>
-where
-    V: From<T>,
-{
-    opt.map(V::from)
-}
+// Conversions -------------------------------------------------------------------------------------
 
-pub fn opt_into_dyn<T>(opt: Option<T>) -> Option<BitDynamic>
+pub const fn opt_into_dyn<T>(opt: Option<T>) -> Option<BitDynamic>
 where
-    T: Into<BitDynamic>,
+    T: [const] Into<BitDynamic>,
 {
     opt.map(T::into)
 }
 
-pub fn opt_into_static<T, const LEN: i128>(opt: Option<T>) -> Option<BitStatic<LEN>>
+pub const fn opt_into_static<T, const LEN: i128>(opt: Option<T>) -> Option<BitStatic<LEN>>
 where
-    T: Into<BitStatic<LEN>>,
+    T: [const] Into<BitStatic<LEN>>,
 {
     opt.map(T::into)
 }
 
-// TODO: boundedvec_into_static, boundedvec_into_dyn, array_into_static, array_into_dyn
-pub fn boundedvec_into_static<T, const LEN: i128, const BOUND: usize>(
+pub const fn boundedvec_into_static<T, const LEN: i128, const BOUND: usize>(
     bv: BoundedVec<T, BOUND>,
 ) -> BoundedVec<BitStatic<LEN>, BOUND>
 where
-    T: Into<BitStatic<LEN>>,
+    T: [const] Into<BitStatic<LEN>> + Copy + Default,
 {
-    todo!()
+    bv.convert()
 }
 
-pub fn boundedvec_into_dyn<T, const BOUND: usize>(
+pub const fn boundedvec_into_dyn<T, const BOUND: usize>(
     bv: BoundedVec<T, BOUND>,
 ) -> BoundedVec<BitDynamic, BOUND>
 where
-    T: Into<BitDynamic>,
+    T: [const] Into<BitDynamic> + Copy + Default,
 {
-    todo!()
+    bv.convert()
 }
 
-pub fn array_into_static<T, const LEN: i128, const SIZE: usize>(
+pub const fn array_into_static<T, const LEN: i128, const SIZE: usize>(
     bv: [T; SIZE],
 ) -> [BitStatic<LEN>; SIZE]
 where
-    T: Into<BitDynamic>,
+    T: [const] Into<BitStatic<LEN>> + [const] std::marker::Destruct,
 {
-    todo!()
+    bv.map(T::into)
 }
 
-pub fn array_into_dyn<T, const SIZE: usize>(bv: [T; SIZE]) -> [BitDynamic; SIZE]
+pub const fn array_into_dyn<T, const SIZE: usize>(bv: [T; SIZE]) -> [BitDynamic; SIZE]
 where
-    T: Into<BitDynamic>,
+    T: [const] Into<BitDynamic> + [const] std::marker::Destruct,
 {
-    todo!()
+    bv.map(T::into)
 }
 
-pub fn into_dyn<T>(bv: T) -> BitDynamic
+pub const fn into_dyn<T>(bv: T) -> BitDynamic
 where
-    T: Into<BitDynamic>,
+    T: [const] Into<BitDynamic>,
 {
     T::into(bv)
 }
 
-pub fn into_static<T, const LEN: i128>(bv: T) -> BitStatic<LEN>
+pub const fn into_static<T, const LEN: i128>(bv: T) -> BitStatic<LEN>
 where
-    T: Into<BitStatic<LEN>>,
+    T: [const] Into<BitStatic<LEN>>,
 {
     T::into(bv)
 }

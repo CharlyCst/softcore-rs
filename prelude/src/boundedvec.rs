@@ -46,6 +46,24 @@ impl<T: Default + Copy, const BOUND: usize> BoundedVec<T, BOUND> {
     pub const fn truncate(&mut self, vl: usize) {
         self.len = if self.len < vl { self.len } else { vl };
     }
+
+    pub const fn convert<U: [const] Default + Copy>(self) -> BoundedVec<U, BOUND>
+    where
+        T: [const] Into<U>,
+    {
+        let mut res_vec = [U::default(); BOUND];
+
+        let mut i = 0;
+        while i < self.len {
+            res_vec[i] = T::into(self.vec[i]);
+            i += 1;
+        }
+
+        BoundedVec {
+            len: self.len,
+            vec: res_vec,
+        }
+    }
 }
 
 impl<T: Default, const BOUND: usize> Deref for BoundedVec<T, BOUND> {
@@ -79,7 +97,8 @@ impl<T: Default + Copy, const BOUND: usize> From<Vec<T>> for BoundedVec<T, BOUND
 
 // TODO(Gurvan): From slice functions
 
-impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitDynamic, BOUND>>
+/*
+const impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitDynamic, BOUND>>
     for BoundedVec<BitStatic<LEN>, BOUND>
 {
     fn from(dynamic_bvec: BoundedVec<BitDynamic, BOUND>) -> Self {
@@ -97,7 +116,8 @@ impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitDynamic, BOUND>>
         }
     }
 }
-impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitStatic<LEN>, BOUND>>
+
+const impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitStatic<LEN>, BOUND>>
     for BoundedVec<BitDynamic, BOUND>
 {
     fn from(static_bvec: BoundedVec<BitStatic<LEN>, BOUND>) -> Self {
@@ -115,5 +135,6 @@ impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitStatic<LEN>, BOUND>
         }
     }
 }
+*/
 
 // TODO(Gurvan): Test functions
