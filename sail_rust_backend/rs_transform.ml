@@ -582,8 +582,7 @@ let cast_transform ?(e_annot = None) (transform : rs_exp -> rs_exp_aux) (e : rs_
              | tail :: init -> List.rev (cast_transform_aux tail :: init))
       }
     | RsTodo _ | RsNone -> e
-    | RsApp (e, _, _) when e.e_exp = RsId "panic!" -> e
-    (* TODO(Gurvan): We should also not add cast for `panic!` nor `assert!` *)
+    | RsApp (e', _, _) when e'.e_exp = RsId "panic!" -> e
     | _ -> { e_annot; e_exp = transform e }
   in
   cast_transform_aux e

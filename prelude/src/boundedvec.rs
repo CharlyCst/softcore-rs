@@ -1,4 +1,3 @@
-use crate::{BitDynamic, BitStatic};
 use std::ops::{Deref, DerefMut};
 use std::slice::SliceIndex;
 
@@ -96,45 +95,5 @@ impl<T: Default + Copy, const BOUND: usize> From<Vec<T>> for BoundedVec<T, BOUND
 }
 
 // TODO(Gurvan): From slice functions
-
-/*
-const impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitDynamic, BOUND>>
-    for BoundedVec<BitStatic<LEN>, BOUND>
-{
-    fn from(dynamic_bvec: BoundedVec<BitDynamic, BOUND>) -> Self {
-        let mut static_vec = [BitStatic::<LEN>::zeros(); BOUND];
-
-        let mut i = 0;
-        while i < dynamic_bvec.len {
-            static_vec[i] = BitStatic::<LEN>::from(dynamic_bvec.vec[i]);
-            i += 1;
-        }
-
-        Self {
-            len: dynamic_bvec.len,
-            vec: static_vec,
-        }
-    }
-}
-
-const impl<const LEN: i128, const BOUND: usize> From<BoundedVec<BitStatic<LEN>, BOUND>>
-    for BoundedVec<BitDynamic, BOUND>
-{
-    fn from(static_bvec: BoundedVec<BitStatic<LEN>, BOUND>) -> Self {
-        let mut dynamic_vec = [BitDynamic::default(); BOUND];
-
-        let mut i = 0;
-        while i < static_bvec.len {
-            dynamic_vec[i] = BitDynamic::from(static_bvec.vec[i]);
-            i += 1;
-        }
-
-        Self {
-            len: static_bvec.len,
-            vec: dynamic_vec,
-        }
-    }
-}
-*/
 
 // TODO(Gurvan): Test functions

@@ -62,11 +62,5 @@
 
 ## Fixing bugs
 
-- `into_dyn` is not static and so does not work in constants (2 errors)
-- We should add the constant parameters when we know it for `into_static` (10
-  errors)
-- Cannot infer type of the type parameters T for `opt_into_dyn(None)` (4)
 - Cannot infer the value of the const parameter `LEN` (6)
 - Missing / weird cast for `==` binary operators
-- Non constant functions in `const` (17)
-  + Can be fixed by making them into methods instead which can be consts

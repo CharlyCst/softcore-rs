@@ -741,7 +741,7 @@ pub fn bool_bits_forwards(arg_hashtag_: bool) -> BitStatic::<1> {
     match arg_hashtag_ {
         true => {into_static(BitStatic::<1>::new(0b1))}
         false => {into_static(BitStatic::<1>::new(0b0))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -775,7 +775,7 @@ pub fn bool_not_bits_forwards(arg_hashtag_: bool) -> BitStatic::<1> {
     match arg_hashtag_ {
         true => {into_static(BitStatic::<1>::new(0b0))}
         false => {into_static(BitStatic::<1>::new(0b1))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -1427,7 +1427,7 @@ pub fn architecture_forwards(arg_hashtag_: Architecture) -> BitStatic::<2> {
         Architecture::RV32 => {into_static(BitStatic::<2>::new(0b01))}
         Architecture::RV64 => {into_static(BitStatic::<2>::new(0b10))}
         Architecture::RV128 => {into_static(BitStatic::<2>::new(0b11))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -1464,7 +1464,7 @@ pub fn privLevel_bits_forwards(arg_hashtag_: Privilege) -> BitStatic::<2> {
         Privilege::User => {into_static(BitStatic::<2>::new(0b00))}
         Privilege::Supervisor => {into_static(BitStatic::<2>::new(0b01))}
         Privilege::Machine => {into_static(BitStatic::<2>::new(0b11))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -3352,7 +3352,7 @@ pub fn interruptType_to_bits(i: InterruptType) -> BitStatic::<8> {
         InterruptType::I_U_External => {into_static(BitStatic::<8>::new(0b00001000))}
         InterruptType::I_S_External => {into_static(BitStatic::<8>::new(0b00001001))}
         InterruptType::I_M_External => {into_static(BitStatic::<8>::new(0b00001011))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -3378,7 +3378,7 @@ pub fn exceptionType_to_bits(e: ExceptionType) -> BitStatic::<8> {
         ExceptionType::E_Reserved_14(()) => {into_static(BitStatic::<8>::new(0b00001110))}
         ExceptionType::E_SAMO_Page_Fault(()) => {into_static(BitStatic::<8>::new(0b00001111))}
         ExceptionType::E_Extension(e) => {into_static(ext_exc_type_to_bits(e))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -3454,7 +3454,7 @@ pub fn extStatus_bits_forwards(arg_hashtag_: ExtStatus) -> BitStatic::<2> {
         ExtStatus::Initial => {into_static(BitStatic::<2>::new(0b01))}
         ExtStatus::Clean => {into_static(BitStatic::<2>::new(0b10))}
         ExtStatus::Dirty => {into_static(BitStatic::<2>::new(0b11))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -3924,7 +3924,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitStatic::<12> {
         _ => {panic!("Unreachable code")}
     } {
         Some(result) => {into_static(result)}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -4003,9 +4003,9 @@ pub fn rX(core_ctx: &mut Core, regno::Regno(r): regno) -> BitDynamic {
         l__600 if {(l__600 == 31)} => {into_static(core_ctx.x31)}
         _ => {{
             assert!(false, "invalid register number");
-            into_static(panic!("exit"))
+            panic!("exit")
         }}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     };
     into_dyn(regval_from_reg(into_dyn(v)))
 }
@@ -4078,7 +4078,7 @@ pub fn wX_bits(core_ctx: &mut Core, i: regidx, data: BitDynamic) {
 pub fn encdec_reg_forwards(arg_hashtag_: regidx) -> BitStatic::<5> {
     match arg_hashtag_ {
         regidx::Regidx(r) => {into_static(r)}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -5435,7 +5435,7 @@ pub fn cur_architecture(core_ctx: &mut Core, unit_arg: ()) -> Architecture {
             let var_3: Mstatus = core_ctx.mstatus;
             into_static(get_mstatus_UXL(var_3))
         }}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     };
     architecture_backwards(into_static(a))
 }
@@ -6064,7 +6064,7 @@ pub fn tvec_addr(m: Mtvec, c: Mcause) -> Option<BitDynamic> {
             opt_into_dyn(Some(base))
         }}
         TrapVectorMode::TV_Reserved => {None}
-        _ => {opt_into_dyn(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -6288,9 +6288,9 @@ pub fn legalize_satp(core_ctx: &mut Core, arch: Architecture, prev_value: BitDyn
             SATPMode::Sv48 if {currentlyEnabled(core_ctx, extension::Ext_Sv48)} => {into_dyn(s.bits)}
             SATPMode::Sv57 if {currentlyEnabled(core_ctx, extension::Ext_Sv57)} => {into_dyn(s.bits)}
             _ => {into_dyn(prev_value)}
-            _ => {into_dyn(panic!("Unreachable code"))}
+            _ => {panic!("Unreachable code")}
         }}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -6474,7 +6474,7 @@ pub fn pmpAddrMatchType_to_bits(bs: PmpAddrMatchType) -> BitStatic::<2> {
         PmpAddrMatchType::TOR => {into_static(BitStatic::<2>::new(0b01))}
         PmpAddrMatchType::NA4 => {into_static(BitStatic::<2>::new(0b10))}
         PmpAddrMatchType::NAPOT => {into_static(BitStatic::<2>::new(0b11))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -6512,7 +6512,7 @@ pub fn pmpReadAddrReg(core_ctx: &mut Core, n: i128) -> BitDynamic {
             into_dyn((addr & !(mask)))
         }}
         _ => {into_dyn(addr)}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -7032,7 +7032,7 @@ pub fn vregidx_bits(vregidx::Vregidx(b): vregidx) -> BitStatic::<5> {
 pub fn encdec_vreg_forwards(arg_hashtag_: vregidx) -> BitStatic::<5> {
     match arg_hashtag_ {
         vregidx::Vregidx(r) => {into_static(r)}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -7115,7 +7115,7 @@ pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitDynamic {
         l__279 if {(l__279 == 29)} => {into_dyn(core_ctx.vr29)}
         l__280 if {(l__280 == 30)} => {into_dyn(core_ctx.vr30)}
         _ => {into_dyn(core_ctx.vr31)}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -7359,8 +7359,8 @@ pub fn prepare_trap_vector(core_ctx: &mut Core, p: Privilege, cause: Mcause) -> 
     };
     match tvec_addr(tvec, cause) {
         Some(epc) => {into_dyn(epc)}
-        None => {into_dyn(panic!("{}, l {}: {}", "riscv_sys_exceptions.sail", 29, "Invalid tvec mode"))}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        None => {panic!("{}, l {}: {}", "riscv_sys_exceptions.sail", 29, "Invalid tvec mode")}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -7377,8 +7377,8 @@ pub fn get_xepc(core_ctx: &mut Core, p: Privilege) -> BitDynamic {
             let var_2: BitDynamic = into_dyn(core_ctx.sepc);
             into_dyn(align_pc(core_ctx, into_dyn(var_2)))
         }}
-        Privilege::User => {into_dyn(panic!("{}, l {}: {}", "riscv_sys_exceptions.sail", 45, "Invalid privilege level"))}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_exceptions.sail", 45, "Invalid privilege level")}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -7742,8 +7742,8 @@ pub fn get_scountovf(core_ctx: &mut Core, _priv_: Privilege) -> BitStatic::<32> 
     match _priv_ {
         Privilege::Machine => {into_static(overflow)}
         Privilege::Supervisor => {into_static((into_static(overflow) & into_static(core_ctx.mcounteren.bits)))}
-        Privilege::User => {into_static(panic!("{}, l {}: {}", "riscv_sscofpmf.sail", 74, "scountovf not readable from User mode"))}
-        _ => {into_static(panic!("Unreachable code"))}
+        Privilege::User => {panic!("{}, l {}: {}", "riscv_sscofpmf.sail", 74, "scountovf not readable from User mode")}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -7767,7 +7767,7 @@ pub fn opst_code_forwards(arg_hashtag_: seed_opst) -> BitStatic::<2> {
         seed_opst::WAIT => {into_static(BitStatic::<2>::new(0b01))}
         seed_opst::ES16 => {into_static(BitStatic::<2>::new(0b10))}
         seed_opst::DEAD => {into_static(BitStatic::<2>::new(0b11))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -8232,7 +8232,7 @@ pub fn tval(excinfo: Option<BitDynamic>) -> BitDynamic {
     match excinfo {
         Some(e) => {into_dyn(e)}
         None => {into_dyn(zeros(64))}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -8290,8 +8290,8 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
             core_ctx.mstatus.bits = into_static(update_subrange_bits(into_dyn(core_ctx.mstatus.bits), 8, 8, match core_ctx.cur_privilege {
                 Privilege::User => {into_dyn(BitStatic::<1>::new(0b0))}
                 Privilege::Supervisor => {into_dyn(BitStatic::<1>::new(0b1))}
-                Privilege::Machine => {into_dyn(panic!("{}, l {}: {}", "riscv_sys_control.sail", 260, "invalid privilege for s-mode trap"))}
-                _ => {into_dyn(panic!("Unreachable code"))}
+                Privilege::Machine => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 260, "invalid privilege for s-mode trap")}
+                _ => {panic!("Unreachable code")}
             }));
             core_ctx.stval = into_static(tval(opt_into_dyn(info)));
             core_ctx.sepc = into_static(pc);
@@ -8302,8 +8302,8 @@ pub fn trap_handler(core_ctx: &mut Core, del_priv: Privilege, intr: bool, c: Bit
                 into_dyn(prepare_trap_vector(core_ctx, del_priv, var_5))
             }
         }}
-        Privilege::User => {into_dyn(panic!("{}, l {}: {}", "riscv_sys_control.sail", 273, "Invalid privilege level"))}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 273, "Invalid privilege level")}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -8368,7 +8368,7 @@ pub fn exception_handler(core_ctx: &mut Core, cur_priv: Privilege, ctl: ctl_resu
             };
             into_dyn(prepare_xret_target(core_ctx, Privilege::Supervisor))
         }}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -8719,7 +8719,7 @@ pub fn encdec_uop_forwards(arg_hashtag_: uop) -> BitStatic::<7> {
     match arg_hashtag_ {
         uop::LUI => {into_static(BitStatic::<7>::new(0b0110111))}
         uop::AUIPC => {into_static(BitStatic::<7>::new(0b0010111))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -8757,7 +8757,7 @@ pub fn encdec_bop_forwards(arg_hashtag_: bop) -> BitStatic::<3> {
         bop::BGE => {into_static(BitStatic::<3>::new(0b101))}
         bop::BLTU => {into_static(BitStatic::<3>::new(0b110))}
         bop::BGEU => {into_static(BitStatic::<3>::new(0b111))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -8803,7 +8803,7 @@ pub fn encdec_iop_forwards(arg_hashtag_: iop) -> BitStatic::<3> {
         iop::ANDI => {into_static(BitStatic::<3>::new(0b111))}
         iop::ORI => {into_static(BitStatic::<3>::new(0b110))}
         iop::XORI => {into_static(BitStatic::<3>::new(0b100))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -8927,7 +8927,7 @@ pub fn encdec_mul_op_forwards(arg_hashtag_: mul_op) -> BitStatic::<3> {
         TODO_PAT_struct => {into_static(BitStatic::<3>::new(0b001))}
         TODO_PAT_struct => {into_static(BitStatic::<3>::new(0b010))}
         TODO_PAT_struct => {into_static(BitStatic::<3>::new(0b011))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -8982,7 +8982,7 @@ pub fn encdec_csrop_forwards(arg_hashtag_: csrop) -> BitStatic::<2> {
         csrop::CSRRW => {into_static(BitStatic::<2>::new(0b01))}
         csrop::CSRRS => {into_static(BitStatic::<2>::new(0b10))}
         csrop::CSRRC => {into_static(BitStatic::<2>::new(0b11))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -9150,9 +9150,9 @@ pub fn read_CSR(core_ctx: &mut Core, merge_hashtag_var: BitStatic::<12>) -> BitD
         b__59 if {(into_static(b__59) == into_static(BitStatic::<12>::new(0b000101001101)))} => {into_dyn(subrange_bits(into_dyn(core_ctx.stimecmp), 63, 0))}
         b__61 if {(into_static(b__61) == into_static(BitStatic::<12>::new(0b000110000000)))} => {into_dyn(core_ctx.satp)}
         csr => {{
-            into_dyn(panic!("{}, l {}: {}", "riscv_csr_end.sail", 17, format!("{}{}", "Read from CSR that does not exist: ", bits_str(into_dyn(csr)))))
+            panic!("{}, l {}: {}", "riscv_csr_end.sail", 17, format!("{}{}", "Read from CSR that does not exist: ", bits_str(into_dyn(csr))))
         }}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -9463,9 +9463,9 @@ pub fn write_CSR(core_ctx: &mut Core, merge_hashtag_var: BitStatic::<12>, missin
             into_dyn(core_ctx.satp)
         }}
         (csr, _) => {{
-            into_dyn(panic!("{}, l {}: {}", "riscv_csr_end.sail", 23, format!("{}{}", "Write to CSR that does not exist: ", bits_str(into_dyn(csr)))))
+            panic!("{}, l {}: {}", "riscv_csr_end.sail", 23, format!("{}{}", "Write to CSR that does not exist: ", bits_str(into_dyn(csr))))
         }}
-        _ => {into_dyn(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -9492,7 +9492,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitStatic::<12>, rs1_val: BitDynamic, rd:
                 csrop::CSRRW => {into_static(rs1_val)}
                 csrop::CSRRS => {into_static((csr_val | rs1_val))}
                 csrop::CSRRC => {into_static((csr_val & !(rs1_val)))}
-                _ => {into_static(panic!("Unreachable code"))}
+                _ => {panic!("Unreachable code")}
             };
             let final_val: BitDynamic = into_dyn(write_CSR(core_ctx, into_static(csr), into_dyn(new_val)));
             
@@ -9712,7 +9712,7 @@ pub fn get_fixed_rounding_incr(core_ctx: &mut Core, vec_elem: BitDynamic, shift_
             b__1 if {(into_static(b__1) == into_static(BitStatic::<2>::new(0b01)))} => {into_static(bool_to_bits(((into_static(slice(into_dyn(vec_elem), (shift_amount - 1), 1)) == into_static(BitStatic::<1>::new(0b1))) && ((slice(into_dyn(vec_elem), 0, (shift_amount - 1)) != zeros((__id(shift_amount) - 1))) || (into_static(slice(into_dyn(vec_elem), shift_amount, 1)) == into_static(BitStatic::<1>::new(0b1)))))))}
             b__2 if {(into_static(b__2) == into_static(BitStatic::<2>::new(0b10)))} => {into_static(BitStatic::<1>::new(0b0))}
             _ => {into_static(bool_to_bits((!((into_static(slice(into_dyn(vec_elem), shift_amount, 1)) == into_static(BitStatic::<1>::new(0b1)))) && (slice(into_dyn(vec_elem), 0, shift_amount) != zeros(__id(shift_amount))))))}
-            _ => {into_static(panic!("Unreachable code"))}
+            _ => {panic!("Unreachable code")}
         }
     }
 }
@@ -9803,7 +9803,7 @@ pub fn encdec_vvfunct6_forwards(arg_hashtag_: vvfunct6) -> BitStatic::<6> {
         vvfunct6::VV_VSRA => {into_static(BitStatic::<6>::new(0b101001))}
         vvfunct6::VV_VSSRL => {into_static(BitStatic::<6>::new(0b101010))}
         vvfunct6::VV_VSSRA => {into_static(BitStatic::<6>::new(0b101011))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -10061,7 +10061,7 @@ pub fn encdec_vifunct6_forwards(arg_hashtag_: vifunct6) -> BitStatic::<6> {
         vifunct6::VI_VSRA => {into_static(BitStatic::<6>::new(0b101001))}
         vifunct6::VI_VSSRL => {into_static(BitStatic::<6>::new(0b101010))}
         vifunct6::VI_VSSRA => {into_static(BitStatic::<6>::new(0b101011))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -11136,7 +11136,7 @@ pub fn encdec_cbop_forwards(arg_hashtag_: cbop_zicbom) -> BitStatic::<12> {
         cbop_zicbom::CBO_CLEAN => {into_static(BitStatic::<12>::new(0b000000000001))}
         cbop_zicbom::CBO_FLUSH => {into_static(BitStatic::<12>::new(0b000000000010))}
         cbop_zicbom::CBO_INVAL => {into_static(BitStatic::<12>::new(0b000000000000))}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -11686,7 +11686,7 @@ pub fn encdec_forwards(core_ctx: &mut Core, arg_hashtag_: ast) -> BitStatic::<32
         let mop_27_26: BitStatic::<2> = into_static(v__11.subrange::<0, 2, 2>());
         into_static(bitvector_concat(into_dyn(BitStatic::<1>::new(0b1)), into_dyn(bitvector_concat(into_dyn((mop_30 as BitStatic::<1>)), into_dyn(bitvector_concat(into_dyn(BitStatic::<2>::new(0b00)), into_dyn(bitvector_concat(into_dyn((mop_27_26 as BitStatic::<2>)), into_dyn(bitvector_concat(into_dyn(BitStatic::<1>::new(0b1)), into_dyn(bitvector_concat(into_dyn(encdec_reg_forwards(rs2)), into_dyn(bitvector_concat(into_dyn(encdec_reg_forwards(rs1)), into_dyn(bitvector_concat(into_dyn(BitStatic::<3>::new(0b100)), into_dyn(bitvector_concat(into_dyn(encdec_reg_forwards(rd)), into_dyn(BitStatic::<7>::new(0b1110011))))))))))))))))))))}
         ast::ILLEGAL(s) => {into_static(s)}
-        _ => {into_static(panic!("Unreachable code"))}
+        _ => {panic!("Unreachable code")}
     }
 }
 
@@ -18220,7 +18220,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 let var_1: BitDynamic = match op {
                     uop::LUI => {into_dyn(off)}
                     uop::AUIPC => {into_dyn(get_arch_pc(core_ctx, ()).wrapped_add(off))}
-                    _ => {into_dyn(panic!("Unreachable code"))}
+                    _ => {panic!("Unreachable code")}
                 };
                 wX_bits(core_ctx, rd, into_dyn(var_1))
             };
@@ -18319,7 +18319,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                     iop::ANDI => {into_dyn((rX_bits(core_ctx, rs1) & immext))}
                     iop::ORI => {into_dyn((rX_bits(core_ctx, rs1) | immext))}
                     iop::XORI => {into_dyn((rX_bits(core_ctx, rs1) ^ immext))}
-                    _ => {into_dyn(panic!("Unreachable code"))}
+                    _ => {panic!("Unreachable code")}
                 };
                 wX_bits(core_ctx, rd, into_dyn(var_11))
             };
@@ -18334,7 +18334,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         let var_19: BitDynamic = into_dyn(rX_bits(core_ctx, rs1));
                         into_dyn(shift_bits_right_arith(into_dyn(var_19), into_dyn(shamt)))
                     }}
-                    _ => {into_dyn(panic!("Unreachable code"))}
+                    _ => {panic!("Unreachable code")}
                 };
                 wX_bits(core_ctx, rd, into_dyn(var_18))
             };
@@ -18380,7 +18380,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         let var_31: BitDynamic = into_dyn(subrange_bits(into_dyn(rX_bits(core_ctx, rs2)), 5, 0));
                         into_dyn(shift_bits_right_arith(into_dyn(var_30), into_dyn(var_31)))
                     }}
-                    _ => {into_dyn(panic!("Unreachable code"))}
+                    _ => {panic!("Unreachable code")}
                 };
                 wX_bits(core_ctx, rd, into_dyn(var_20))
             };
@@ -18402,7 +18402,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 ropw::SLLW => {into_static(shift_bits_left(into_dyn(rs1_val), into_dyn(rs2_val.subrange::<0, 5, 5>())))}
                 ropw::SRLW => {into_static(shift_bits_right(into_dyn(rs1_val), into_dyn(rs2_val.subrange::<0, 5, 5>())))}
                 ropw::SRAW => {into_static(shift_bits_right_arith(into_dyn(rs1_val), into_dyn(rs2_val.subrange::<0, 5, 5>())))}
-                _ => {into_static(panic!("Unreachable code"))}
+                _ => {panic!("Unreachable code")}
             };
             wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
             RETIRE_SUCCESS
@@ -18413,7 +18413,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 sopw::SLLIW => {into_static(shift_bits_left(into_dyn(rs1_val), into_dyn(shamt)))}
                 sopw::SRLIW => {into_static(shift_bits_right(into_dyn(rs1_val), into_dyn(shamt)))}
                 sopw::SRAIW => {into_static(shift_bits_right_arith(into_dyn(rs1_val), into_dyn(shamt)))}
-                _ => {into_static(panic!("Unreachable code"))}
+                _ => {panic!("Unreachable code")}
             };
             wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
             RETIRE_SUCCESS
@@ -18922,7 +18922,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 bropw_zba::SH1ADDUW => {into_static(BitStatic::<2>::new(0b01))}
                 bropw_zba::SH2ADDUW => {into_static(BitStatic::<2>::new(0b10))}
                 bropw_zba::SH3ADDUW => {into_static(BitStatic::<2>::new(0b11))}
-                _ => {into_static(panic!("Unreachable code"))}
+                _ => {panic!("Unreachable code")}
             };
             let result: xlenbits = into_static(shift_bits_left(into_dyn(rs1_val.subrange::<0, 32, 32>().zero_extend_dyn(64)), into_dyn(shamt)).wrapped_add(rs2_val));
             wX_bits(core_ctx, rd, into_dyn(result));
@@ -18935,7 +18935,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 brop_zba::SH1ADD => {into_static(BitStatic::<2>::new(0b01))}
                 brop_zba::SH2ADD => {into_static(BitStatic::<2>::new(0b10))}
                 brop_zba::SH3ADD => {into_static(BitStatic::<2>::new(0b11))}
-                _ => {into_static(panic!("Unreachable code"))}
+                _ => {panic!("Unreachable code")}
             };
             let result: xlenbits = into_static(shift_bits_left(into_dyn(rs1_val), into_dyn(shamt)).wrapped_add(rs2_val));
             wX_bits(core_ctx, rd, into_dyn(result));
@@ -18965,7 +18965,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 biop_zbs::BEXTI => {into_static(bool_to_bits(((rs1_val & mask) != zeros(64))).zero_extend_dyn(64))}
                 biop_zbs::BINVI => {into_static((rs1_val ^ mask))}
                 biop_zbs::BSETI => {into_static((rs1_val | mask))}
-                _ => {into_static(panic!("Unreachable code"))}
+                _ => {panic!("Unreachable code")}
             };
             wX_bits(core_ctx, rd, into_dyn(result));
             RETIRE_SUCCESS
@@ -18979,7 +18979,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 brop_zbs::BEXT => {into_static(bool_to_bits(((rs1_val & mask) != zeros(64))).zero_extend_dyn(64))}
                 brop_zbs::BINV => {into_static((rs1_val ^ mask))}
                 brop_zbs::BSET => {into_static((rs1_val | mask))}
-                _ => {into_static(panic!("Unreachable code"))}
+                _ => {panic!("Unreachable code")}
             };
             wX_bits(core_ctx, rd, into_dyn(result));
             RETIRE_SUCCESS
@@ -19171,7 +19171,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let result: xlenbits = match op {
                 brop_zbkb::PACK => {into_static(bitvector_concat(into_dyn(rs2_val.subrange::<0, 32, 32>()), into_dyn(rs1_val.subrange::<0, 32, 32>())))}
                 brop_zbkb::PACKH => {into_static(bitvector_concat(into_dyn(rs2_val.subrange::<0, 8, 8>()), into_dyn(rs1_val.subrange::<0, 8, 8>())).zero_extend_dyn(64))}
-                _ => {into_static(panic!("Unreachable code"))}
+                _ => {panic!("Unreachable code")}
             };
             wX_bits(core_ctx, rd, into_dyn(result));
             RETIRE_SUCCESS
