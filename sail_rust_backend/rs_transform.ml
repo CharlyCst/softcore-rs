@@ -380,7 +380,8 @@ and is_const_rs_typ_param (ctx : context) (param : rs_type_param) : bool =
   | RsTypParamNum e -> is_const_rs_exp ctx e
 ;;
 
-let type_of_lexp (ctx : context) (lexp : rs_lexp) : rs_type option =
+(* TODO(Gurvan): Use reporting.warn here instead for erors *)
+let rec type_of_lexp (ctx : context) (lexp : rs_lexp) : rs_type option =
   match lexp with
   | RsLexpId x -> Some (ctx_type (RsTypId x) ctx)
   | RsLexpTyp (_, t) -> Some (ctx_type t ctx)
@@ -389,8 +390,13 @@ let type_of_lexp (ctx : context) (lexp : rs_lexp) : rs_type option =
      | Some t -> ctx_field_type t field ctx
      | None ->
        Format.eprintf "Couldn't find field %s because left side is not annotated\n" field;
-       None (*TODO(Gurvan): Proper error *))
-  | RsLexpIndex (e1, e2) -> None (* TODO *)
+       None)
+  | RsLexpIndex (e1, e2) ->
+    Option.bind (type_of_lexp ctx e1) (function
+      | RsTypArray (t, _) -> Some t
+      | _ ->
+        Format.eprintf "Couldn't find type of lexp %s\n" (string_of_rs_lexp 0 lexp);
+        None)
   | RsLexpIndexRange (e1, e2, e3) -> None (* TODO *)
   | RsLexpBitVectorAccess (e1, e2) -> None (* TODO *)
   | RsLexpTodo -> None

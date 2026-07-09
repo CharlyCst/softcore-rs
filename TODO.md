@@ -59,6 +59,10 @@
   type
 - `zero_extend_dyn`: Pas si grave de le passer en fonction plutôt que méthode
   car dans tous les cas on renvoie un `BitDynamic`
+- Some functions are using `xlenbits` in the model but it still gets translated
+  into `BitDynamic`
+- Functions from the prelude library are always using `BitDynamic`, we should
+  have two versions depending on the type of the arguments
 
 ## Fixing bugs
 

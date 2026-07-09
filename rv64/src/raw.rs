@@ -3933,7 +3933,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitStatic::<12> {
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
 pub fn csr_id_read_callback(csr: BitStatic::<12>, value: BitDynamic) {
     let name: &'static str = csr_name_map_forwards(into_static(csr));
-    
+
 }
 
 pub type regtype = xlenbits;
@@ -6584,7 +6584,7 @@ pub fn pmpWriteAddrReg(core_ctx: &mut Core, n: i128, v: BitDynamic) {
         } else {
             false
         };
-        pmpWriteAddr(pmpLocked(core_ctx.pmpcfg_n[(n as usize)]), var_1, into_dyn(core_ctx.pmpaddr_n[(n as usize)]), into_dyn(v))
+        into_static(pmpWriteAddr(pmpLocked(core_ctx.pmpcfg_n[(n as usize)]), var_1, into_dyn(core_ctx.pmpaddr_n[(n as usize)]), into_dyn(v)))
     }
 }
 
@@ -7688,7 +7688,7 @@ pub fn read_mhpmevent(core_ctx: &mut Core, index: i128) -> BitDynamic {
 /// Generated from the Sail sources at `riscv_zihpm.sail` L212-213.
 pub fn write_mhpmcounter(core_ctx: &mut Core, index: i128, value: BitDynamic) {
     if {(bitvector_access(into_dyn(sys_writable_hpm_counters(core_ctx, ())), index) == true)} {
-        core_ctx.mhpmcounter[(index as usize)] = update_subrange_bits(into_dyn(core_ctx.mhpmcounter[(index as usize)]), 63, 0, into_dyn(value))
+        core_ctx.mhpmcounter[(index as usize)] = into_static(update_subrange_bits(into_dyn(core_ctx.mhpmcounter[(index as usize)]), 63, 0, into_dyn(value)))
     } else {
         ()
     }
@@ -7699,7 +7699,7 @@ pub fn write_mhpmcounter(core_ctx: &mut Core, index: i128, value: BitDynamic) {
 /// Generated from the Sail sources at `riscv_zihpm.sail` L215-216.
 pub fn write_mhpmcounterh(core_ctx: &mut Core, index: i128, value: BitStatic::<32>) {
     if {(bitvector_access(into_dyn(sys_writable_hpm_counters(core_ctx, ())), index) == true)} {
-        core_ctx.mhpmcounter[(index as usize)] = update_subrange_bits(into_dyn(core_ctx.mhpmcounter[(index as usize)]), 63, 32, into_dyn(value))
+        core_ctx.mhpmcounter[(index as usize)] = into_static(update_subrange_bits(into_dyn(core_ctx.mhpmcounter[(index as usize)]), 63, 32, into_dyn(value)))
     } else {
         ()
     }
@@ -8242,10 +8242,10 @@ pub fn tval(excinfo: Option<BitDynamic>) -> BitDynamic {
 pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
-            
+
         }}
         Privilege::Supervisor => {{
-            
+
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 217, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
@@ -9495,7 +9495,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitStatic::<12>, rs1_val: BitDynamic, rd:
                 _ => {panic!("Unreachable code")}
             };
             let final_val: BitDynamic = into_dyn(write_CSR(core_ctx, into_static(csr), into_dyn(new_val)));
-            
+
         } else {
             csr_id_read_callback(into_static(csr), into_dyn(csr_val))
         };
