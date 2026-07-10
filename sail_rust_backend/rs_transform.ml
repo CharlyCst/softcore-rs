@@ -226,9 +226,7 @@ and transform_type (ct : expr_type_transform) (ctx : context) (typ : rs_type) : 
 and transform_type_annot (ct : expr_type_transform) (ctx : context) (typ : rs_type option)
   : rs_type option
   =
-  match typ with
-  | Some t -> Some (transform_type ct ctx t)
-  | None -> None
+  Option.map (transform_type ct ctx) typ
 ;;
 
 (* ———————————————————————— Expression and Type transformer ————————————————————————— *)
@@ -253,57 +251,86 @@ let transform_alias (ct : expr_type_transform) (ctx : context) (alias : rs_alias
   }
 ;;
 
-let transform_obj (ct : expr_type_transform) (ctx : context) (obj : rs_obj) : rs_obj =
-  let obj = ct.obj ctx obj in
-  match obj with
-  | RsFn fn -> RsFn (transform_fn ct ctx fn)
-  | RsAlias alias -> RsAlias (transform_alias ct ctx alias)
-  | RsStruct s ->
-    RsStruct
-      { s with fields = List.map (fun (a, b) -> a, transform_type ct ctx b) s.fields }
-  | RsEnum enum ->
-    RsEnum
-      { enum with
-        fields =
-          List.map
-            (fun (name, typ) ->
-               match typ with
-               | None -> name, None
-               | Some typ -> name, Some (transform_type ct ctx typ))
-            enum.fields
-      }
-  | RsConst const ->
-    RsConst
-      { const with
-        value = transform_exp ct ctx const.value
-      ; typ = transform_type ct ctx const.typ
-      }
-  | _ -> obj
+let transform_struct (ct : expr_type_transform) (ctx : context) (s : rs_struct)
+  : rs_struct
+  =
+  { s with fields = List.map (fun (a, b) -> a, transform_type ct ctx b) s.fields }
 ;;
 
-let rust_transform_expr (ct : expr_type_transform) (ctx : context) (RsProg objs)
-  : rs_program
+let transform_enum (ct : expr_type_transform) (ctx : context) (enum : rs_enum) : rs_enum =
+  { enum with
+    fields =
+      List.map
+        (fun (name, typ) ->
+           match typ with
+           | None -> name, None
+           | Some typ -> name, Some (transform_type ct ctx typ))
+        enum.fields
+  }
+;;
+
+let transform_const (ct : expr_type_transform) (ctx : context) (const : rs_const)
+  : rs_const
   =
-  RsProg (List.map (transform_obj ct ctx) objs)
+  { const with
+    value = transform_exp ct ctx const.value
+  ; typ = transform_type ct ctx const.typ
+  }
+;;
+
+let transform_obj (ct : expr_type_transform) (ctx : context) (obj : rs_obj)
+  : context * rs_obj
+  =
+  (* TODO(Gurvan): The object before the transformation should be removed before
+     adding it back probably? *)
+  let obj' =
+    match ct.obj ctx obj with
+    | RsFn fn -> RsFn (transform_fn ct ctx fn)
+    | RsAlias alias -> RsAlias (transform_alias ct ctx alias)
+    | RsStruct s -> RsStruct (transform_struct ct ctx s)
+    | RsEnum enum -> RsEnum (transform_enum ct ctx enum)
+    | RsConst const -> RsConst (transform_const ct ctx const)
+    | _ -> obj
+  in
+  ctx_add_obj obj' (ctx_remove_obj obj ctx), obj'
+;;
+
+let rust_transform_expr
+      (ct : expr_type_transform)
+      ((ctx, RsProg objs) : context * rs_program)
+  : context * rs_program
+  =
+  let ctx, objs = List.fold_left_map (transform_obj ct) ctx objs in
+  ctx, RsProg objs
 ;;
 
 (* ———————————————————————— Function transformer ————————————————————————— *)
 
 type func_transform = { func : context -> rs_fn -> rs_fn }
 
-let transform_obj_func (ct : func_transform) (ctx : context) (obj : rs_obj) : rs_obj =
+let transform_obj_func (ct : func_transform) (ctx : context) (obj : rs_obj)
+  : context * rs_obj
+  =
   match obj with
-  | RsFn fn -> RsFn (ct.func ctx fn)
-  | _ -> obj
+  | RsFn fn ->
+    let fn = ct.func ctx fn in
+    let ctx =
+      { ctx with defs = { ctx.defs with funmap = SMap.add fn.name fn ctx.defs.funmap } }
+    in
+    ctx, RsFn fn
+  | _ -> ctx, obj
 ;;
 
-let rust_transform_func (ct : func_transform) (ctx : context) (RsProg objs) : rs_program =
-  RsProg (List.map (transform_obj_func ct ctx) objs)
+let rust_transform_func (ct : func_transform) ((ctx, RsProg objs) : context * rs_program)
+  : context * rs_program
+  =
+  let ctx, objs = List.fold_left_map (transform_obj_func ct) ctx objs in
+  ctx, RsProg objs
 ;;
 
 (* ——————————————————————————————— Utils ——————————————————————————————————— *)
 
-let update_context (ctx : context) (RsProg objs : rs_program) : context =
+let update_context ((ctx, RsProg objs) : context * rs_program) : context * rs_program =
   let add_obj (defs : defs) (obj : rs_obj) : defs =
     match obj with
     | RsFn f -> { defs with funmap = SMap.add f.name f defs.funmap }
@@ -334,7 +361,8 @@ let update_context (ctx : context) (RsProg objs : rs_program) : context =
     | RsConst const -> { defs with constants = SMap.add const.name const defs.constants }
     | _ -> defs
   in
-  { ctx with defs = List.fold_left add_obj { ctx.defs with funmap = SMap.empty } objs }
+  ( { ctx with defs = List.fold_left add_obj { ctx.defs with funmap = SMap.empty } objs }
+  , RsProg objs )
 ;;
 
 let is_const_rs_typ_id (ctx : context) (x : string) : bool =
@@ -427,10 +455,6 @@ let parse_first_tuple_entry (values : rs_pexp list) : rs_pat list =
     failwith "Code should be unreachable"
 ;;
 
-(* TODO(Gurvan):
-  - Try to add a `into` everywhere `exp` is of type BitVec.
-  -
-*)
 let bitvec_transform_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   let e_exp =
     match exp.e_exp with
@@ -523,15 +547,11 @@ let bitvec_transform_type (ctx : context) (typ : rs_type) : rs_type =
   | _ -> typ
 ;;
 
-let use_dynamic_bitvec (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context ctx rust_program in
-  rust_transform_expr
-    { id_expr_type_transform with
-      exp_aux = bitvec_transform_exp
-    ; typ = bitvec_transform_type
-    }
-    ctx
-    rust_program
+let use_dynamic_bitvec : expr_type_transform =
+  { id_expr_type_transform with
+    exp_aux = bitvec_transform_exp
+  ; typ = bitvec_transform_type
+  }
 ;;
 
 (* ———————————————————— Dynamic BitVectors Arguments ——————————————————————— *)
@@ -581,8 +601,11 @@ let cast_transform ?(e_annot = None) (transform : rs_exp -> rs_exp_aux) (e : rs_
   cast_transform_aux e
 ;;
 
-let add_cast_function ?(e_annot = None) (cast_name : string) (e : rs_exp) : rs_exp =
-  cast_transform ~e_annot (fun e -> RsApp (mk_exp_id cast_name, [], [ e ])) e
+let add_cast_function (e_annot : rs_type) (cast_name : string) (e : rs_exp) : rs_exp =
+  cast_transform
+    ~e_annot:(Some e_annot)
+    (fun e -> RsApp (mk_exp_id cast_name, [], [ e ]))
+    e
 ;;
 
 let add_cast_method ?(e_annot = None) (name : string) (e : rs_exp) : rs_exp =
@@ -598,6 +621,7 @@ let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
   (* TODO(Gurvan): We should not do any cast if we e.e_annot is a BitDynamic and typ is
      already BitDynamic for example, or same with BitStatic *)
   (* TODO(Gurvan): Add e_annot everywhere *)
+  let add_cast_function = add_cast_function typ in
   match typ with
   | RsTypTuple ts ->
     (match e.e_exp with
@@ -625,9 +649,8 @@ let rec cast_bitvec (ctx : context) (typ : rs_type) (e : rs_exp) : rs_exp =
      | _ -> e)
   | t ->
     (match ctx_type t ctx with
-     | RsTypId "BitDynamic" as t' -> add_cast_function ~e_annot:(Some t') "into_dyn" e
-     | RsTypGenericParam ("BitStatic", args) as t' ->
-       add_cast_function ~e_annot:(Some t') "into_static" e
+     | RsTypId "BitDynamic" -> add_cast_function "into_dyn" e
+     | RsTypGenericParam ("BitStatic", args) -> add_cast_function "into_static" e
      | _ -> e)
 ;;
 
@@ -697,15 +720,15 @@ let use_dynamic_bitvec_obj (ctx : context) (obj : rs_obj) : rs_obj =
   | _ -> obj
 ;;
 
-let use_dynamic_bitvec_args (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context ctx rust_program in
+let use_dynamic_bitvec_args ((ctx, rust_program) : context * rs_program)
+  : context * rs_program
+  =
   rust_transform_expr
     { id_expr_type_transform with
       exp_aux = use_dynamic_bitvec_exp
     ; obj = use_dynamic_bitvec_obj
     }
-    ctx
-    rust_program
+    (ctx, rust_program)
 ;;
 
 (* —————————————————————————— Expression Optimizer —————————————————————————— *)
@@ -958,15 +981,16 @@ and propagate_in_lexp (ctx : bindings) (lexp : rs_lexp) : rs_lexp =
 ;;
 
 (** Perform constant propagation, inlining all variables bound to literal values. **)
-let constant_propagation (program : rs_program) : rs_program =
+let constant_propagation ((ctx, RsProg objs) : context * rs_program)
+  : context * rs_program
+  =
   let propagate_in_fn fn = { fn with body = propagate_in_exp SMap.empty fn.body } in
   let propagate obj =
     match obj with
     | RsFn fn -> RsFn (propagate_in_fn fn)
     | _ -> obj
   in
-  let (RsProg objs) = program in
-  RsProg (List.map propagate objs)
+  ctx, RsProg (List.map propagate objs)
 ;;
 
 (* ——————————————————————————— Nested Blocks remover ———————————————————————————— *)
@@ -1498,12 +1522,11 @@ let expr_type_hoister : expr_type_transform =
 (* another function that needs the context.                                   *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-
 let exp_virt_ctx_usage (ctx : context) (exp : rs_exp) : rs_exp_aux =
   (match exp.e_exp with
    (* NOTE(Gurvan): We need to check both id and id in app because the transform
       is not applied under application (see other note) *)
-   | RsId id when ctx_id_require_sail_ctx id ctx ->  ctx.uses_sail_ctx <- true
+   | RsId id when ctx_id_require_sail_ctx id ctx -> ctx.uses_sail_ctx <- true
    | RsApp ({ e_annot = _; e_exp = RsId fn }, _, _) ->
      (match ctx_fun fn ctx with
       | Some fn when fn.use_sail_ctx -> ctx.uses_sail_ctx <- true
@@ -1528,6 +1551,7 @@ let is_sail_context_needed_fn (ctx : context) (func : rs_fn) : rs_fn =
     ignore (transform_fn exp_virt_context_call_graph ctx func);
     (match ctx.uses_sail_ctx with
      | true ->
+       (* TOOD(Gurvan): This should no longer be necessary? *)
        (* We need to keep the context in sync *)
        let ctx_func = Option.get (ctx_fun func.name ctx) in
        ctx_func.use_sail_ctx <- true;
@@ -1535,8 +1559,12 @@ let is_sail_context_needed_fn (ctx : context) (func : rs_fn) : rs_fn =
      | false -> func)
 ;;
 
-(* TODO(Gurvan): Here we are not keeping the context in sync for all iterations
-   right? So if we modify something it is annoying *)
+(* TODO(Gurvan):
+   Here we are not keeping the context in sync for all iterations
+   right? So if we modify something it is annoying. But keeping the context in
+   sync should be the role of the `rust_transform_expr` thing probably, and it
+   should do so between each and every modification
+*)
 
 let is_sail_context_needed_const (ctx : context) (const : rs_const) : rs_const =
   match const.use_sail_ctx with
@@ -1545,8 +1573,8 @@ let is_sail_context_needed_const (ctx : context) (const : rs_const) : rs_const =
     ctx.uses_sail_ctx <- false;
     ignore (transform_exp exp_virt_context_call_graph ctx const.value);
     (match ctx.uses_sail_ctx with
-     | true -> Format.printf "%s now uses sail_ctx\n" const.name; { const with use_sail_ctx = true }
-     | false -> Format.printf "%s don't need sail_ctx\n" const.name; const)
+     | true -> { const with use_sail_ctx = true }
+     | false -> const)
 ;;
 
 let is_sail_context_needed_obj (ctx : context) (obj : rs_obj) : rs_obj =
@@ -1556,19 +1584,19 @@ let is_sail_context_needed_obj (ctx : context) (obj : rs_obj) : rs_obj =
   | _ -> obj
 ;;
 
-let virt_context_call_graph (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context ctx rust_program in
+let virt_context_call_graph ((ctx, rust_program) : context * rs_program)
+  : context * rs_program
+  =
   rust_transform_expr
     { id_expr_type_transform with obj = is_sail_context_needed_obj }
-    ctx
-    rust_program
+    (ctx, rust_program)
 ;;
 
 (* ———————————————————————— VirtContext transformer ————————————————————————— *)
 (* Adds a virtual context as first argument to all functions.                 *)
 (* —————————————————————————————————————————————————————————————————————————— *)
 
-let sail_context_inserter_fn (_ctx : context) (func : rs_fn) : rs_fn =
+let sail_context_inserter_fn (func : rs_fn) : rs_fn =
   if func.use_sail_ctx then Format.eprintf "Inserting context argument for %s\n" func.name;
   if func.use_sail_ctx
   then
@@ -1580,20 +1608,36 @@ let sail_context_inserter_fn (_ctx : context) (func : rs_fn) : rs_fn =
   else func
 ;;
 
-let sail_context_inserter_const (_ctx : context) (const : rs_const) : rs_obj =
+let sail_context_inserter_const (const : rs_const) : rs_obj =
   match const.use_sail_ctx with
-  | true -> Format.eprintf "Constant %s is now a function\n" const.name; RsConst const
+  | true ->
+    Format.eprintf "Constant %s should be a function\n" const.name;
+    let signature : rs_fn_type =
+      { args = []; ret = const.typ; generics = []; linked_gen_args = [] }
+    in
+    let fn : rs_fn =
+      { name = const.name
+      ; signature
+      ; args = []
+      ; body = const.value
+      ; doc = const.doc
+      ; use_sail_ctx = const.use_sail_ctx
+      ; const = false
+      }
+    in
+    RsFn (sail_context_inserter_fn fn)
   | false -> RsConst const
+;;
 
 let sail_context_inserter (ctx : context) (obj : rs_obj) : rs_obj =
   match obj with
-  | RsFn fn -> RsFn (sail_context_inserter_fn ctx fn)
-  | RsConst const -> sail_context_inserter_const ctx const
+  | RsFn fn -> RsFn (sail_context_inserter_fn fn)
+  | RsConst const -> sail_context_inserter_const const
   | _ -> obj
+;;
 
-let virt_context_transform (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context ctx rust_program in
-  rust_transform_expr { id_expr_type_transform with obj = sail_context_inserter } ctx rust_program
+let virt_context_transform : expr_type_transform =
+  { id_expr_type_transform with obj = sail_context_inserter }
 ;;
 
 (* —————————————————————————— Enum Args Namespace ——————————————————————————— *)
@@ -1850,8 +1894,8 @@ let filter_bits_bitvector_alias (obj : rs_obj) : rs_program =
   | _ -> RsProg [ obj ]
 ;;
 
-let rust_remove_type_bits (RsProg objs) : rs_program =
-  merge_rs_prog_list (List.map filter_bits_bitvector_alias objs)
+let rust_remove_type_bits (ctx, RsProg objs) : context * rs_program =
+  ctx, merge_rs_prog_list (List.map filter_bits_bitvector_alias objs)
 ;;
 
 (* ———————————————————————— prelude_func_filter  ————————————————————————— *)
@@ -1885,14 +1929,15 @@ let prelude_func : SSet.t =
     ]
 ;;
 
-let rust_prelude_func_filter_alias (obj : rs_obj) : rs_program =
+let rust_prelude_func_filter_alias (obj : rs_obj) : bool =
   match obj with
-  | RsFn { name; _ } when SSet.mem name prelude_func -> RsProg []
-  | _ -> RsProg [ obj ]
+  | RsFn { name; _ } -> not (SSet.mem name prelude_func)
+  | _ -> true
 ;;
 
-let rust_prelude_func_filter (RsProg objs) : rs_program =
-  merge_rs_prog_list (List.map rust_prelude_func_filter_alias objs)
+let rust_prelude_func_filter (ctx, RsProg objs) : context * rs_program =
+  let objs = List.filter rust_prelude_func_filter_alias objs in
+  update_context (ctx, RsProg objs)
 ;;
 
 (* ———————————————————————— Annotations and imports inserter  ————————————————————————— *)
@@ -1906,8 +1951,8 @@ let insert_annotation_imports_aux () : rs_program =
     ]
 ;;
 
-let insert_annotation_imports (RsProg objs) : rs_program =
-  merge_rs_prog_list [ insert_annotation_imports_aux (); RsProg objs ]
+let insert_annotation_imports (ctx, RsProg objs) : context * rs_program =
+  ctx, merge_rs_prog_list [ insert_annotation_imports_aux (); RsProg objs ]
 ;;
 
 (* ———————————————————————— BasicTypes rewriter  ————————————————————————— *)
@@ -2023,12 +2068,8 @@ let sail_context_arg_inserter_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   | e -> e
 ;;
 
-let sail_context_arg_inserter (ctx : context) (rs_program : rs_program) : rs_program =
-  let ctx = update_context ctx rs_program in
-  rust_transform_expr
-    { id_expr_type_transform with exp_aux = sail_context_arg_inserter_exp }
-    ctx
-    rs_program
+let sail_context_arg_inserter : expr_type_transform =
+  { id_expr_type_transform with exp_aux = sail_context_arg_inserter_exp }
 ;;
 
 (* TODO: This is a very (almost useless) basic dead code remover only for our use case. Extend it in the future *)
@@ -2164,15 +2205,15 @@ let use_dynamic_vector_exp (ctx : context) (e : rs_exp) : rs_exp_aux =
   | _ -> e.e_exp
 ;;
 
-let use_dynamic_vectors (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context ctx rust_program in
+let use_dynamic_vectors ((ctx, rust_program) : context * rs_program)
+  : context * rs_program
+  =
   rust_transform_expr
     { id_expr_type_transform with
       exp_aux = use_dynamic_vector_exp
     ; typ = use_dynamic_vector_typ
     }
-    ctx
-    rust_program
+    (ctx, rust_program)
 ;;
 
 (* —————————————————————— Dynamic Vectors Arguments ————————————————————————— *)
@@ -2199,26 +2240,21 @@ let use_dynamic_vector_exp (ctx : context) (exp : rs_exp) : rs_exp_aux =
   | e -> e
 ;;
 
-let use_dynamic_vectors_args (ctx : context) (rust_program : rs_program) : rs_program =
-  let ctx = update_context ctx rust_program in
+let use_dynamic_vectors_args ((ctx, rust_program) : context * rs_program)
+  : context * rs_program
+  =
   rust_transform_expr
     { id_expr_type_transform with exp_aux = use_dynamic_vector_exp }
-    ctx
-    rust_program
+    (ctx, rust_program)
 ;;
 
 (* ————————————————————————————— Rust Transform ————————————————————————————— *)
 
-(* TODO(Gurvan): could be made polymorphic, limit should be called fuel *)
-
 (** Computes the fix point of a function. **)
-let rec fix_point fn ctx limit rs_program =
-  let new_args = fn ctx rs_program in
-  (* if new_args = rs_program || limit = 0 then *)
-  (*     new_args *)
-  (* else *)
-  (*     fix_point fn new_args (limit - 1) ctx *)
-  if limit = 0 then new_args else fix_point fn ctx (limit - 1) new_args
+let rec fix_point fn fuel args =
+  match fuel with
+  | 0 -> args
+  | n -> fix_point fn (fuel - 1) (fn args)
 ;;
 
 (* TODO(Gurvan): It seems like this optimizer is trying to outsmart the rust
@@ -2227,7 +2263,7 @@ let rec fix_point fn ctx limit rs_program =
    This means that num_constants and inline_fun could also be removed from
    context?
 *)
-let optimizer (ctx : context) (rust_program : rs_program) : rs_program =
+let optimizer ((ctx, rust_program) : context * rs_program) : context * rs_program =
   let get_num_constants (RsProg obj : rs_program) : (string * Big_int.num) list =
     let rec constants obj =
       match obj with
@@ -2264,8 +2300,9 @@ let optimizer (ctx : context) (rust_program : rs_program) : rs_program =
     ; inline_fun = SMap.of_list inline_fun
     }
   in
-  let ctx = { ctx with defs } in
-  rust_program |> rust_transform_expr expression_optimizer ctx |> constant_propagation
+  ({ ctx with defs }, rust_program)
+  |> rust_transform_expr expression_optimizer
+  |> constant_propagation
 ;;
 
 let transform (rust_program : rs_program) (ctx : context) : rs_program =
@@ -2273,38 +2310,42 @@ let transform (rust_program : rs_program) (ctx : context) : rs_program =
 
      We must first replace the Sail native function and perform a basic pass of optimization
      to detect some bitvec patterns properly *)
-  let rust_program =
-    rust_program
-    |> rust_transform_expr remove_unsupported_calls ctx
-    |> rust_transform_expr remove_unsupported_match ctx
-    |> fix_point virt_context_call_graph ctx 3
-    |> virt_context_transform ctx
-    |> rust_transform_expr nested_block_remover ctx
-    |> rust_transform_expr native_func_transform ctx
-    |> fix_point optimizer ctx 10
-    |> rust_transform_func enum_arg_namespace ctx
-    |> rust_transform_func fix_scattered_func ctx
+
+  (* TODO(Gurvan): Do we really need the context as argument here or should we
+     be able to build it ourself ? *)
+  let ctx, rust_program =
+    (ctx, rust_program)
+    |> rust_transform_expr remove_unsupported_calls
+    |> rust_transform_expr remove_unsupported_match
+    |> fix_point virt_context_call_graph 5
+    |> rust_transform_expr virt_context_transform
+    |> rust_transform_expr nested_block_remover
+    |> rust_transform_expr native_func_transform
+    |> fix_point optimizer 10
+    |> rust_transform_func enum_arg_namespace
+    |> rust_transform_func fix_scattered_func
     (* |> rust_transform_func fix_generic_type ctx *)
-    |> rust_transform_expr enum_binder ctx
+    |> rust_transform_expr enum_binder
     |> rust_remove_type_bits
     |> rust_prelude_func_filter
+    |> update_context
     |> insert_annotation_imports
-    |> rust_transform_expr transform_basic_types ctx
-    |> rust_transform_expr add_wildcard_match ctx
-    |> sail_context_arg_inserter ctx
-    |> rust_transform_expr expr_type_hoister ctx
-    |> rust_transform_expr expr_type_operator_rewriter ctx
-    |> rust_transform_expr atom_rewriter ctx
-    |> rust_transform_func const_fn_rewriter ctx
-    |> rust_transform_func operator_rewriter ctx
-    |> fix_point optimizer ctx 5
+    |> rust_transform_expr transform_basic_types
+    |> rust_transform_expr add_wildcard_match
+    |> rust_transform_expr sail_context_arg_inserter
+    |> rust_transform_expr expr_type_hoister
+    |> rust_transform_expr expr_type_operator_rewriter
+    |> rust_transform_expr atom_rewriter
+    |> rust_transform_func const_fn_rewriter
+    |> rust_transform_func operator_rewriter
+    |> fix_point optimizer 5
     (* Optimizer: Dead code elimination *)
-    |> rust_transform_expr dead_code_remover ctx
-    |> use_dynamic_vectors ctx
-    |> use_dynamic_vectors_args ctx
-    |> use_dynamic_bitvec ctx
-    |> use_dynamic_bitvec_args ctx
-    |> rust_transform_func remove_unused_generics ctx
+    |> rust_transform_expr dead_code_remover
+    |> use_dynamic_vectors
+    |> use_dynamic_vectors_args
+    |> rust_transform_expr use_dynamic_bitvec
+    |> use_dynamic_bitvec_args
+    |> rust_transform_func remove_unused_generics
   in
   (* TODO(Gurvan): The following should just be a function and could be chained
    to the above *)

@@ -438,34 +438,34 @@ pub const fn new_core(config: raw::Config) -> Core {
         cur_privilege: raw::Privilege::Machine,
         cur_inst: BitStatic::new(0),
         misa: raw::Misa {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0).into_dyn(),
         },
         mstatus: raw::Mstatus {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0),
         },
         menvcfg: raw::MEnvcfg {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0),
         },
         senvcfg: raw::SEnvcfg {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0).into_dyn(),
         },
         mie: raw::Minterrupts {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0).into_dyn(),
         },
         mip: raw::Minterrupts {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0).into_dyn(),
         },
         medeleg: raw::Medeleg {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0),
         },
         mideleg: raw::Minterrupts {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0).into_dyn(),
         },
         mtvec: raw::Mtvec {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0).into_dyn(),
         },
         mcause: raw::Mcause {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0).into_dyn(),
         },
         mepc: BitStatic::new(0),
         mtval: BitStatic::new(0),
@@ -489,19 +489,19 @@ pub const fn new_core(config: raw::Config) -> Core {
         mhartid: BitStatic::new(0),
         mconfigptr: BitStatic::new(0),
         stvec: raw::Mtvec {
-            bits: BitStatic::<64>::new(0).into(),
+            bits: BitStatic::<64>::new(0).into_dyn(),
         },
         sscratch: BitStatic::new(0),
         sepc: BitStatic::new(0),
         scause: raw::Mcause {
-            bits: BitStatic::<64>::new(0).into(), // TODO(Gurvan): Check the size?
+            bits: BitStatic::<64>::new(0).into_dyn(), // TODO(Gurvan): Check the size?
         },
         stval: BitStatic::new(0),
         tselect: BitStatic::new(0),
         vstart: BitStatic::<16>::new(0),
         vl: BitStatic::new(0),
         vtype: raw::Vtype {
-            bits: BitStatic::<64>::new(0).into(), // TODO(Gurvan): Check the size?
+            bits: BitStatic::<64>::new(0).into_dyn(), // TODO(Gurvan): Check the size?
         },
         pmpcfg_n: [DEFAULT_PMP_CFG; 64],
         pmpaddr_n: [ZEROES; 64],

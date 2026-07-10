@@ -961,7 +961,9 @@ pub fn vlen_exp(core_ctx: &mut Core) -> i128 {
 /// vlen
 ///
 /// Generated from the Sail sources at `riscv_vlen.sail` L19.
-pub const vlen: i128 = i128::pow(2, ((vlen_exp as u32) as u32));
+pub fn vlen(core_ctx: &mut Core) -> i128 {
+    i128::pow(2, ((vlen_exp as u32) as u32))
+}
 
 /// get_vlen_pow
 ///
@@ -3933,7 +3935,7 @@ pub fn csr_name_map_backwards(arg_hashtag_: &'static str) -> BitStatic::<12> {
 /// Generated from the Sail sources at `riscv_callbacks.sail` L47-50.
 pub fn csr_id_read_callback(csr: BitStatic::<12>, value: BitDynamic) {
     let name: &'static str = csr_name_map_forwards(into_static(csr));
-    
+
 }
 
 pub type regtype = xlenbits;
@@ -6809,7 +6811,7 @@ pub fn ext_data_get_addr(core_ctx: &mut Core, base: regidx, offset: BitDynamic, 
     Ext_DataAddr_Check::Ext_DataAddr_OK(addr)
 }
 
-pub type vreglenbits = BitStatic::<vlen>;
+pub type vreglenbits = BitDynamic;
 
 pub type vregtype = vreglenbits;
 
@@ -7124,38 +7126,38 @@ pub fn rV(core_ctx: &mut Core, vregno::Vregno(r): vregno) -> BitDynamic {
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L138-177.
 pub fn wV(core_ctx: &mut Core, vregno::Vregno(r): vregno, v: BitDynamic) {
     match r {
-        l__219 if {(l__219 == 0)} => {core_ctx.vr0 = into_static(v)}
-        l__220 if {(l__220 == 1)} => {core_ctx.vr1 = into_static(v)}
-        l__221 if {(l__221 == 2)} => {core_ctx.vr2 = into_static(v)}
-        l__222 if {(l__222 == 3)} => {core_ctx.vr3 = into_static(v)}
-        l__223 if {(l__223 == 4)} => {core_ctx.vr4 = into_static(v)}
-        l__224 if {(l__224 == 5)} => {core_ctx.vr5 = into_static(v)}
-        l__225 if {(l__225 == 6)} => {core_ctx.vr6 = into_static(v)}
-        l__226 if {(l__226 == 7)} => {core_ctx.vr7 = into_static(v)}
-        l__227 if {(l__227 == 8)} => {core_ctx.vr8 = into_static(v)}
-        l__228 if {(l__228 == 9)} => {core_ctx.vr9 = into_static(v)}
-        l__229 if {(l__229 == 10)} => {core_ctx.vr10 = into_static(v)}
-        l__230 if {(l__230 == 11)} => {core_ctx.vr11 = into_static(v)}
-        l__231 if {(l__231 == 12)} => {core_ctx.vr12 = into_static(v)}
-        l__232 if {(l__232 == 13)} => {core_ctx.vr13 = into_static(v)}
-        l__233 if {(l__233 == 14)} => {core_ctx.vr14 = into_static(v)}
-        l__234 if {(l__234 == 15)} => {core_ctx.vr15 = into_static(v)}
-        l__235 if {(l__235 == 16)} => {core_ctx.vr16 = into_static(v)}
-        l__236 if {(l__236 == 17)} => {core_ctx.vr17 = into_static(v)}
-        l__237 if {(l__237 == 18)} => {core_ctx.vr18 = into_static(v)}
-        l__238 if {(l__238 == 19)} => {core_ctx.vr19 = into_static(v)}
-        l__239 if {(l__239 == 20)} => {core_ctx.vr20 = into_static(v)}
-        l__240 if {(l__240 == 21)} => {core_ctx.vr21 = into_static(v)}
-        l__241 if {(l__241 == 22)} => {core_ctx.vr22 = into_static(v)}
-        l__242 if {(l__242 == 23)} => {core_ctx.vr23 = into_static(v)}
-        l__243 if {(l__243 == 24)} => {core_ctx.vr24 = into_static(v)}
-        l__244 if {(l__244 == 25)} => {core_ctx.vr25 = into_static(v)}
-        l__245 if {(l__245 == 26)} => {core_ctx.vr26 = into_static(v)}
-        l__246 if {(l__246 == 27)} => {core_ctx.vr27 = into_static(v)}
-        l__247 if {(l__247 == 28)} => {core_ctx.vr28 = into_static(v)}
-        l__248 if {(l__248 == 29)} => {core_ctx.vr29 = into_static(v)}
-        l__249 if {(l__249 == 30)} => {core_ctx.vr30 = into_static(v)}
-        _ => {core_ctx.vr31 = into_static(v)}
+        l__219 if {(l__219 == 0)} => {core_ctx.vr0 = into_dyn(v)}
+        l__220 if {(l__220 == 1)} => {core_ctx.vr1 = into_dyn(v)}
+        l__221 if {(l__221 == 2)} => {core_ctx.vr2 = into_dyn(v)}
+        l__222 if {(l__222 == 3)} => {core_ctx.vr3 = into_dyn(v)}
+        l__223 if {(l__223 == 4)} => {core_ctx.vr4 = into_dyn(v)}
+        l__224 if {(l__224 == 5)} => {core_ctx.vr5 = into_dyn(v)}
+        l__225 if {(l__225 == 6)} => {core_ctx.vr6 = into_dyn(v)}
+        l__226 if {(l__226 == 7)} => {core_ctx.vr7 = into_dyn(v)}
+        l__227 if {(l__227 == 8)} => {core_ctx.vr8 = into_dyn(v)}
+        l__228 if {(l__228 == 9)} => {core_ctx.vr9 = into_dyn(v)}
+        l__229 if {(l__229 == 10)} => {core_ctx.vr10 = into_dyn(v)}
+        l__230 if {(l__230 == 11)} => {core_ctx.vr11 = into_dyn(v)}
+        l__231 if {(l__231 == 12)} => {core_ctx.vr12 = into_dyn(v)}
+        l__232 if {(l__232 == 13)} => {core_ctx.vr13 = into_dyn(v)}
+        l__233 if {(l__233 == 14)} => {core_ctx.vr14 = into_dyn(v)}
+        l__234 if {(l__234 == 15)} => {core_ctx.vr15 = into_dyn(v)}
+        l__235 if {(l__235 == 16)} => {core_ctx.vr16 = into_dyn(v)}
+        l__236 if {(l__236 == 17)} => {core_ctx.vr17 = into_dyn(v)}
+        l__237 if {(l__237 == 18)} => {core_ctx.vr18 = into_dyn(v)}
+        l__238 if {(l__238 == 19)} => {core_ctx.vr19 = into_dyn(v)}
+        l__239 if {(l__239 == 20)} => {core_ctx.vr20 = into_dyn(v)}
+        l__240 if {(l__240 == 21)} => {core_ctx.vr21 = into_dyn(v)}
+        l__241 if {(l__241 == 22)} => {core_ctx.vr22 = into_dyn(v)}
+        l__242 if {(l__242 == 23)} => {core_ctx.vr23 = into_dyn(v)}
+        l__243 if {(l__243 == 24)} => {core_ctx.vr24 = into_dyn(v)}
+        l__244 if {(l__244 == 25)} => {core_ctx.vr25 = into_dyn(v)}
+        l__245 if {(l__245 == 26)} => {core_ctx.vr26 = into_dyn(v)}
+        l__246 if {(l__246 == 27)} => {core_ctx.vr27 = into_dyn(v)}
+        l__247 if {(l__247 == 28)} => {core_ctx.vr28 = into_dyn(v)}
+        l__248 if {(l__248 == 29)} => {core_ctx.vr29 = into_dyn(v)}
+        l__249 if {(l__249 == 30)} => {core_ctx.vr30 = into_dyn(v)}
+        _ => {core_ctx.vr31 = into_dyn(v)}
         _ => {panic!("Unreachable code")}
     };
     dirty_v_context(core_ctx, ())
@@ -7216,7 +7218,7 @@ pub fn get_num_elem(core_ctx: &mut Core, LMUL_pow: i128, SEW: i128) -> i128 {
 ///
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L251-262.
 pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx) -> BoundedVec::<BitDynamic, 32> {
-    let bv: vregtype = into_static(rV_bits(core_ctx, vrid));
+    let bv: vregtype = into_dyn(rV_bits(core_ctx, vrid));
     let mut result: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(vec![zeros(__id(SEW)); (__id(num_elem) as usize)].into());
     assert!(((8 <= SEW) && (SEW <= 64)), "riscv_vext_regs.sail:255.29-255.30");
     for i in 0..=(num_elem - 1) {
@@ -7230,7 +7232,7 @@ pub fn read_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vr
 ///
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L266-276.
 pub fn write_single_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, vrid: vregidx, v: BoundedVec::<BitDynamic, 32>) {
-    let mut r: vregtype = into_static(zeros(i128::pow(2, (vlen_exp(core_ctx) as u32))));
+    let mut r: vregtype = into_dyn(zeros(i128::pow(2, (vlen_exp(core_ctx) as u32))));
     assert!(((8 <= SEW) && (SEW <= 64)), "riscv_vext_regs.sail:269.29-269.30");
     for i in (0..=(num_elem - 1)).rev() {
         {
@@ -7309,7 +7311,7 @@ pub fn write_vreg(core_ctx: &mut Core, num_elem: i128, SEW: i128, LMUL_pow: i128
 ///
 /// Generated from the Sail sources at `riscv_vext_regs.sail` L374-387.
 pub fn read_vmask(core_ctx: &mut Core, num_elem: i128, vm: BitStatic::<1>, vrid: vregidx) -> BitDynamic {
-    let vreg_val: vregtype = into_static(rV_bits(core_ctx, vrid));
+    let vreg_val: vregtype = into_dyn(rV_bits(core_ctx, vrid));
     let mut result: BitDynamic = into_dyn(ones(__id(num_elem)));
     if {(into_static(vm) == into_static(BitStatic::<1>::new(0b1)))} {
         return result;
@@ -8242,10 +8244,10 @@ pub fn tval(excinfo: Option<BitDynamic>) -> BitDynamic {
 pub fn track_trap(core_ctx: &mut Core, p: Privilege) {
     match p {
         Privilege::Machine => {{
-            
+
         }}
         Privilege::Supervisor => {{
-            
+
         }}
         Privilege::User => {panic!("{}, l {}: {}", "riscv_sys_control.sail", 217, "Invalid privilege level")}
         _ => {panic!("Unreachable code")}
@@ -8499,7 +8501,7 @@ pub const MTIME_BASE_HI: physaddrbits = into_static(BitStatic::<20>::new(0b00001
 ///
 /// Generated from the Sail sources at `riscv_platform.sail` L448-456.
 pub fn handle_illegal(core_ctx: &mut Core, instbits: BitStatic::<32>) {
-    let info = if {plat_mtval_has_illegal_inst_bits(core_ctx, ())} {
+    let info: Option<BitDynamic> = if {plat_mtval_has_illegal_inst_bits(core_ctx, ())} {
         opt_into_dyn(Some(instbits.zero_extend_dyn(64)))
     } else {
         None
@@ -8612,7 +8614,7 @@ pub fn flush_TLB_Entry(ent: TLB_Entry, asid: Option<BitStatic::<16>>, vaddr: Opt
     };
     let addr_matches: bool = match vaddr {
         Some(vaddr) => {{
-            let vaddr: BitStatic::<64> = into_static(sign_extend(64, into_dyn(vaddr)));
+            let vaddr: BitStatic::<64> = into_static(sign_extend((64 as nat), into_dyn(vaddr)));
             (ent.vpn == (vaddr.subrange::<12, 57, 45>() & !(ent.levelMask)))
         }}
         None => {true}
@@ -9495,7 +9497,7 @@ pub fn doCSR(core_ctx: &mut Core, csr: BitStatic::<12>, rs1_val: BitDynamic, rd:
                 _ => {panic!("Unreachable code")}
             };
             let final_val: BitDynamic = into_dyn(write_CSR(core_ctx, into_static(csr), into_dyn(new_val)));
-            
+
         } else {
             csr_id_read_callback(into_static(csr), into_dyn(csr_val))
         };
@@ -9610,7 +9612,7 @@ pub fn get_scalar(core_ctx: &mut Core, rs1: regidx, SEW: i128) -> BitDynamic {
     if {(SEW <= 64)} {
         into_dyn(subrange_bits(into_dyn(rX_bits(core_ctx, rs1)), (SEW - 1), 0))
     } else {
-        into_dyn(sign_extend(SEW, into_dyn(rX_bits(core_ctx, rs1))))
+        into_dyn(sign_extend((SEW as nat), into_dyn(rX_bits(core_ctx, rs1))))
     }
 }
 
@@ -18215,7 +18217,7 @@ pub fn encdec_backwards(core_ctx: &mut Core, arg_hashtag_: BitStatic::<32>) -> a
 pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
     match merge_hashtag_var {
         ast::UTYPE((imm, rd, op)) => {{
-            let off: xlenbits = into_static(sign_extend(64, into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<12>::new(0b000000000000))))));
+            let off: xlenbits = into_static(sign_extend((64 as nat), into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<12>::new(0b000000000000))))));
             {
                 let var_1: BitDynamic = match op {
                     uop::LUI => {into_dyn(off)}
@@ -18227,7 +18229,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             RETIRE_SUCCESS
         }}
         ast::JAL((imm, rd)) => {{
-            let target: BitDynamic = into_dyn(core_ctx.PC.wrapped_add(sign_extend(64, into_dyn(imm))));
+            let target: BitDynamic = into_dyn(core_ctx.PC.wrapped_add(sign_extend((64 as nat), into_dyn(imm))));
             match ext_control_check_pc(into_dyn(target)) {
                 Ext_ControlAddr_Check::Ext_ControlAddr_Error(e) => {ExecutionResult::Ext_ControlAddr_Check_Failure(e)}
                 Ext_ControlAddr_Check::Ext_ControlAddr_OK(target) => {{
@@ -18273,7 +18275,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 _ => {panic!("Unreachable code")}
             };
             if {taken} {
-                let target: BitDynamic = into_dyn(core_ctx.PC.wrapped_add(sign_extend(64, into_dyn(imm))));
+                let target: BitDynamic = into_dyn(core_ctx.PC.wrapped_add(sign_extend((64 as nat), into_dyn(imm))));
                 match ext_control_check_pc(into_dyn(target)) {
                     Ext_ControlAddr_Check::Ext_ControlAddr_Error(e) => {ExecutionResult::Ext_ControlAddr_Check_Failure(e)}
                     Ext_ControlAddr_Check::Ext_ControlAddr_OK(target) => {{
@@ -18292,7 +18294,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             }
         }}
         ast::ITYPE((imm, rs1, rd, op)) => {{
-            let immext: xlenbits = into_static(sign_extend(64, into_dyn(imm)));
+            let immext: xlenbits = into_static(sign_extend((64 as nat), into_dyn(imm)));
             {
                 let var_11: BitDynamic = match op {
                     iop::ADDI => {into_dyn(rX_bits(core_ctx, rs1).wrapped_add(immext))}
@@ -18389,8 +18391,8 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
         ast::LOAD((imm, rs1, rd, is_unsigned, width, aq, rl)) => {todo!("Unsupported: 'LOAD'")}
         ast::STORE((imm, rs2, rs1, width, aq, rl)) => {todo!("Unsupported: 'STORE'")}
         ast::ADDIW((imm, rs1, rd)) => {{
-            let result: BitDynamic = into_dyn(rX_bits(core_ctx, rs1).wrapped_add(sign_extend(64, into_dyn(imm))));
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result.subrange::<0, 32, 32>()))));
+            let result: BitDynamic = into_dyn(rX_bits(core_ctx, rs1).wrapped_add(sign_extend((64 as nat), into_dyn(imm))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(result.subrange::<0, 32, 32>()))));
             RETIRE_SUCCESS
         }}
         ast::RTYPEW((rs2, rs1, rd, op)) => {{
@@ -18404,7 +18406,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 ropw::SRAW => {into_static(shift_bits_right_arith(into_dyn(rs1_val), into_dyn(rs2_val.subrange::<0, 5, 5>())))}
                 _ => {panic!("Unreachable code")}
             };
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(result))));
             RETIRE_SUCCESS
         }}
         ast::SHIFTIWOP((shamt, rs1, rd, op)) => {{
@@ -18415,7 +18417,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 sopw::SRAIW => {into_static(shift_bits_right_arith(into_dyn(rs1_val), into_dyn(shamt)))}
                 _ => {panic!("Unreachable code")}
             };
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(result))));
             RETIRE_SUCCESS
         }}
         ast::FENCE((pred, succ)) => {{
@@ -18526,12 +18528,12 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             _ => {panic!("Unreachable code")}
         }}
         ast::SFENCE_VMA((rs1, rs2)) => {{
-            let addr = if {(rs1 != zreg)} {
+            let addr: Option<BitDynamic> = if {(rs1 != zreg)} {
                 opt_into_dyn(Some(rX_bits(core_ctx, rs1)))
             } else {
                 None
             };
-            let asid = if {(rs2 != zreg)} {
+            let asid: Option<BitDynamic> = if {(rs2 != zreg)} {
                 opt_into_dyn(Some(subrange_bits(into_dyn(rX_bits(core_ctx, rs2)), 15, 0)))
             } else {
                 None
@@ -18593,21 +18595,21 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             execute(core_ctx, ast::STORE((into_static(imm), rs2, rs1, word_width::DOUBLE, false, false)))
         }}
         ast::C_ADDI((nzi, rsd)) => {{
-            let imm: BitStatic::<12> = into_static(sign_extend(12, into_dyn(nzi)));
+            let imm: BitStatic::<12> = into_static(sign_extend((12 as nat), into_dyn(nzi)));
             execute(core_ctx, ast::ITYPE((into_static(imm), rsd, rsd, iop::ADDI)))
         }}
-        ast::C_JAL(imm) => {execute(core_ctx, ast::JAL((into_static(sign_extend(21, into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<1>::new(0b0)))))), ra)))}
-        ast::C_ADDIW((imm, rsd)) => {execute(core_ctx, ast::ADDIW((into_static(sign_extend(12, into_dyn(imm))), rsd, rsd)))}
+        ast::C_JAL(imm) => {execute(core_ctx, ast::JAL((into_static(sign_extend((21 as nat), into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<1>::new(0b0)))))), ra)))}
+        ast::C_ADDIW((imm, rsd)) => {execute(core_ctx, ast::ADDIW((into_static(sign_extend((12 as nat), into_dyn(imm))), rsd, rsd)))}
         ast::C_LI((imm, rd)) => {{
-            let imm: BitStatic::<12> = into_static(sign_extend(12, into_dyn(imm)));
+            let imm: BitStatic::<12> = into_static(sign_extend((12 as nat), into_dyn(imm)));
             execute(core_ctx, ast::ITYPE((into_static(imm), zreg, rd, iop::ADDI)))
         }}
         ast::C_ADDI16SP(imm) => {{
-            let imm: BitStatic::<12> = into_static(sign_extend(12, into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<4>::new(0b0000))))));
+            let imm: BitStatic::<12> = into_static(sign_extend((12 as nat), into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<4>::new(0b0000))))));
             execute(core_ctx, ast::ITYPE((into_static(imm), sp, sp, iop::ADDI)))
         }}
         ast::C_LUI((imm, rd)) => {{
-            let res: BitStatic::<20> = into_static(sign_extend(20, into_dyn(imm)));
+            let res: BitStatic::<20> = into_static(sign_extend((20 as nat), into_dyn(imm)));
             execute(core_ctx, ast::UTYPE((into_static(res), rd, uop::LUI)))
         }}
         ast::C_SRLI((shamt, rsd)) => {{
@@ -18620,7 +18622,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
         }}
         ast::C_ANDI((imm, rsd)) => {{
             let rsd: regidx = creg2reg_idx(rsd);
-            execute(core_ctx, ast::ITYPE((into_static(sign_extend(12, into_dyn(imm))), rsd, rsd, iop::ANDI)))
+            execute(core_ctx, ast::ITYPE((into_static(sign_extend((12 as nat), into_dyn(imm))), rsd, rsd, iop::ANDI)))
         }}
         ast::C_SUB((rsd, rs2)) => {{
             let rsd: regidx = creg2reg_idx(rsd);
@@ -18652,9 +18654,9 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let rs2: regidx = creg2reg_idx(rs2);
             execute(core_ctx, ast::RTYPEW((rs2, rsd, rsd, ropw::ADDW)))
         }}
-        ast::C_J(imm) => {execute(core_ctx, ast::JAL((into_static(sign_extend(21, into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<1>::new(0b0)))))), zreg)))}
-        ast::C_BEQZ((imm, rs)) => {execute(core_ctx, ast::BTYPE((into_static(sign_extend(13, into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<1>::new(0b0)))))), zreg, creg2reg_idx(rs), bop::BEQ)))}
-        ast::C_BNEZ((imm, rs)) => {execute(core_ctx, ast::BTYPE((into_static(sign_extend(13, into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<1>::new(0b0)))))), zreg, creg2reg_idx(rs), bop::BNE)))}
+        ast::C_J(imm) => {execute(core_ctx, ast::JAL((into_static(sign_extend((21 as nat), into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<1>::new(0b0)))))), zreg)))}
+        ast::C_BEQZ((imm, rs)) => {execute(core_ctx, ast::BTYPE((into_static(sign_extend((13 as nat), into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<1>::new(0b0)))))), zreg, creg2reg_idx(rs), bop::BEQ)))}
+        ast::C_BNEZ((imm, rs)) => {execute(core_ctx, ast::BTYPE((into_static(sign_extend((13 as nat), into_dyn(bitvector_concat(into_dyn(imm), into_dyn(BitStatic::<1>::new(0b0)))))), zreg, creg2reg_idx(rs), bop::BNE)))}
         ast::C_SLLI((shamt, rsd)) => {execute(core_ctx, ast::SHIFTIOP((into_static(shamt), rsd, rsd, sop::SLLI)))}
         ast::C_LWSP((uimm, rd)) => {{
             let imm: BitStatic::<12> = into_static(bitvector_concat(into_dyn(uimm), into_dyn(BitStatic::<2>::new(0b00))).zero_extend_dyn(12));
@@ -18752,7 +18754,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let rs1_int: i128 = rs1_val.signed();
             let rs2_int: i128 = rs2_val.signed();
             let result32: BitDynamic = into_dyn(subrange_bits(into_dyn(to_bits(64, (rs1_int * rs2_int))), 31, 0));
-            let result: xlenbits = into_static(sign_extend(64, into_dyn(result32)));
+            let result: xlenbits = into_static(sign_extend((64 as nat), into_dyn(result32)));
             wX_bits(core_ctx, rd, into_dyn(result));
             RETIRE_SUCCESS
         }}
@@ -18779,7 +18781,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             } else {
                 q
             };
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(to_bits(32, q__quote)))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(to_bits(32, q__quote)))));
             RETIRE_SUCCESS
         }}
         ast::REMW((rs2, rs1, rd, s)) => {{
@@ -18800,7 +18802,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             } else {
                 rem_round_zero(rs1_int, rs2_int)
             };
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(to_bits(32, r)))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(to_bits(32, r)))));
             RETIRE_SUCCESS
         }}
         ast::CSRReg((csr, rs1, rd, op)) => {{
@@ -19136,13 +19138,13 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
         ast::SM3P0((rs1, rd)) => {{
             let r1: BitStatic::<32> = into_static(subrange_bits(into_dyn(rX_bits(core_ctx, rs1)), 31, 0));
             let result: BitStatic::<32> = into_static((into_static(r1) ^ into_static((into_static(rotatel(into_dyn(r1), 9)) ^ into_static(rotatel(into_dyn(r1), 17))))));
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(result))));
             RETIRE_SUCCESS
         }}
         ast::SM3P1((rs1, rd)) => {{
             let r1: BitStatic::<32> = into_static(subrange_bits(into_dyn(rX_bits(core_ctx, rs1)), 31, 0));
             let result: BitStatic::<32> = into_static((into_static(r1) ^ into_static((into_static(rotatel(into_dyn(r1), 15)) ^ into_static(rotatel(into_dyn(r1), 23))))));
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(result))));
             RETIRE_SUCCESS
         }}
         ast::SM4ED((bs, rs2, rs1, rd)) => {{
@@ -19152,7 +19154,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let y: BitStatic::<32> = into_static((into_static(x) ^ into_static((into_static((into_static(x) << into_static(8))) ^ into_static((into_static((into_static(x) << into_static(2))) ^ into_static((into_static((into_static(x) << into_static(18))) ^ into_static((into_static((into_static((into_static(x) & into_static(BitStatic::<32>::new(0b00000000000000000000000000111111)))) << into_static(26))) ^ into_static((into_static((into_static(x) & into_static(BitStatic::<32>::new(0b00000000000000000000000011000000)))) << into_static(10)))))))))))));
             let z: BitStatic::<32> = into_static(rotate_bits_left(into_dyn(y), into_dyn(shamt)));
             let result: BitStatic::<32> = into_static((into_static(z) ^ into_static(subrange_bits(into_dyn(rX_bits(core_ctx, rs1)), 31, 0))));
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(result))));
             RETIRE_SUCCESS
         }}
         ast::SM4KS((bs, rs2, rs1, rd)) => {{
@@ -19162,7 +19164,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let y: BitStatic::<32> = into_static((into_static(x) ^ into_static((into_static((into_static((into_static(x) & into_static(BitStatic::<32>::new(0b00000000000000000000000000000111)))) << into_static(29))) ^ into_static((into_static((into_static((into_static(x) & into_static(BitStatic::<32>::new(0b00000000000000000000000011111110)))) << into_static(7))) ^ into_static((into_static((into_static((into_static(x) & into_static(BitStatic::<32>::new(0b00000000000000000000000000000001)))) << into_static(23))) ^ into_static((into_static((into_static(x) & into_static(BitStatic::<32>::new(0b00000000000000000000000011111000)))) << into_static(13)))))))))));
             let z: BitStatic::<32> = into_static(rotate_bits_left(into_dyn(y), into_dyn(shamt)));
             let result: BitStatic::<32> = into_static((into_static(z) ^ into_static(subrange_bits(into_dyn(rX_bits(core_ctx, rs1)), 31, 0))));
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(result))));
             RETIRE_SUCCESS
         }}
         ast::ZBKB_RTYPE((rs2, rs1, rd, op)) => {{
@@ -19181,7 +19183,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let rs1_val: BitDynamic = into_dyn(rX_bits(core_ctx, rs1));
             let rs2_val: BitDynamic = into_dyn(rX_bits(core_ctx, rs2));
             let result: BitStatic::<32> = into_static(bitvector_concat(into_dyn(rs2_val.subrange::<0, 16, 16>()), into_dyn(rs1_val.subrange::<0, 16, 16>())));
-            wX_bits(core_ctx, rd, into_dyn(sign_extend(64, into_dyn(result))));
+            wX_bits(core_ctx, rd, into_dyn(sign_extend((64 as nat), into_dyn(result))));
             RETIRE_SUCCESS
         }}
         ast::ZIP((rs1, rd)) => {{
@@ -19369,7 +19371,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
                 _ => {panic!("Unreachable code")}
             };
-            let mut result = boundedvec_into_dyn(initial_result);
+            let mut result: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(initial_result);
             for i in 0..=(num_elem - 1) {
                 if {(bitvector_access(into_dyn(mask), i) == true)} {
                     result[(i as usize)] = match funct6 {
@@ -19379,7 +19381,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         vvfunct6::VV_VOR => {(vs2_val[(i as usize)] | vs1_val[(i as usize)])}
                         vvfunct6::VV_VXOR => {(vs2_val[(i as usize)] ^ vs1_val[(i as usize)])}
                         vvfunct6::VV_VSADDU => {unsigned_saturation(core_ctx, __id(m), into_dyn(vs2_val[(i as usize)].zero_extend_dyn((__id(m) + 1)).wrapped_add(vs1_val[(i as usize)].zero_extend_dyn((__id(m) + 1)))))}
-                        vvfunct6::VV_VSADD => {signed_saturation(core_ctx, __id(m), into_dyn(sign_extend((__id(m) + 1), into_dyn(vs2_val[(i as usize)])).wrapped_add(sign_extend((__id(m) + 1), into_dyn(vs1_val[(i as usize)])))))}
+                        vvfunct6::VV_VSADD => {signed_saturation(core_ctx, __id(m), into_dyn(sign_extend(((__id(m) + 1) as nat), into_dyn(vs2_val[(i as usize)])).wrapped_add(sign_extend(((__id(m) + 1) as nat), into_dyn(vs1_val[(i as usize)])))))}
                         vvfunct6::VV_VSSUBU => {{
                             if {(vs2_val[(i as usize)].unsigned() < vs1_val[(i as usize)].unsigned())} {
                                 zeros(__id(m))
@@ -19387,7 +19389,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                                 unsigned_saturation(core_ctx, __id(m), into_dyn(sub_vec(into_dyn(vs2_val[(i as usize)].zero_extend_dyn((__id(m) + 1))), into_dyn(vs1_val[(i as usize)].zero_extend_dyn((__id(m) + 1))))))
                             }
                         }}
-                        vvfunct6::VV_VSSUB => {signed_saturation(core_ctx, __id(m), into_dyn(sub_vec(into_dyn(sign_extend((__id(m) + 1), into_dyn(vs2_val[(i as usize)]))), into_dyn(sign_extend((__id(m) + 1), into_dyn(vs1_val[(i as usize)]))))))}
+                        vvfunct6::VV_VSSUB => {signed_saturation(core_ctx, __id(m), into_dyn(sub_vec(into_dyn(sign_extend(((__id(m) + 1) as nat), into_dyn(vs2_val[(i as usize)]))), into_dyn(sign_extend(((__id(m) + 1) as nat), into_dyn(vs1_val[(i as usize)]))))))}
                         vvfunct6::VV_VSMUL => {{
                             let result_mul: BitDynamic = into_dyn(to_bits((__id(m) * 2), (vs2_val[(i as usize)].signed() * vs1_val[(i as usize)].signed())));
                             let rounding_incr: BitStatic::<1> = into_static(get_fixed_rounding_incr(core_ctx, into_dyn(result_mul), (__id(m) - 1)));
@@ -19404,7 +19406,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         }}
                         vvfunct6::VV_VSRA => {{
                             let shift_amount: nat = get_shift_amount(into_dyn(vs1_val[(i as usize)]), SEW);
-                            let v_double: BitDynamic = into_dyn(sign_extend((__id(m) * 2), into_dyn(vs2_val[(i as usize)])));
+                            let v_double: BitDynamic = into_dyn(sign_extend(((__id(m) * 2) as nat), into_dyn(vs2_val[(i as usize)])));
                             slice(into_dyn((v_double >> shift_amount)), 0, SEW)
                         }}
                         vvfunct6::VV_VSSRL => {{
@@ -19415,7 +19417,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         vvfunct6::VV_VSSRA => {{
                             let shift_amount: nat = get_shift_amount(into_dyn(vs1_val[(i as usize)]), SEW);
                             let rounding_incr: BitStatic::<1> = into_static(get_fixed_rounding_incr(core_ctx, into_dyn(vs2_val[(i as usize)]), shift_amount));
-                            let v_double: BitDynamic = into_dyn(sign_extend((__id(m) * 2), into_dyn(vs2_val[(i as usize)])));
+                            let v_double: BitDynamic = into_dyn(sign_extend(((__id(m) * 2) as nat), into_dyn(vs2_val[(i as usize)])));
                             slice(into_dyn((v_double >> shift_amount)), 0, SEW).wrapped_add(rounding_incr.zero_extend_dyn(__id(m)))
                         }}
                         vvfunct6::VV_VMINU => {to_bits(SEW, min_int(vs2_val[(i as usize)].unsigned(), vs1_val[(i as usize)].unsigned()))}
@@ -19491,7 +19493,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
                 _ => {panic!("Unreachable code")}
             };
-            let mut result = boundedvec_into_dyn(initial_result);
+            let mut result: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(initial_result);
             for i in 0..=(num_elem - 1) {
                 if {(bitvector_access(into_dyn(mask), i) == true)} {
                     result[(i as usize)] = rs1_val
@@ -19515,7 +19517,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             let n: i128 = num_elem;
             let m: i128 = SEW;
             let vm_val: BitDynamic = into_dyn(read_vmask(core_ctx, num_elem, into_static(vm), zvreg));
-            let imm_val: BitDynamic = into_dyn(sign_extend(__id(m), into_dyn(simm)));
+            let imm_val: BitDynamic = into_dyn(sign_extend((__id(m) as nat), into_dyn(simm)));
             let vs2_val: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2));
             let vd_val: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd));
             let (initial_result, mask): (BoundedVec::<BitDynamic, 32>, BitDynamic) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, boundedvec_into_dyn(vd_val), into_dyn(vm_val)) {
@@ -19523,7 +19525,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                 result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
                 _ => {panic!("Unreachable code")}
             };
-            let mut result = boundedvec_into_dyn(initial_result);
+            let mut result: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(initial_result);
             for i in 0..=(num_elem - 1) {
                 if {(bitvector_access(into_dyn(mask), i) == true)} {
                     result[(i as usize)] = match funct6 {
@@ -19533,7 +19535,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         vifunct6::VI_VOR => {(vs2_val[(i as usize)] | imm_val)}
                         vifunct6::VI_VXOR => {(vs2_val[(i as usize)] ^ imm_val)}
                         vifunct6::VI_VSADDU => {unsigned_saturation(core_ctx, __id(m), into_dyn(vs2_val[(i as usize)].zero_extend_dyn((__id(m) + 1)).wrapped_add(imm_val.zero_extend_dyn((__id(m) + 1)))))}
-                        vifunct6::VI_VSADD => {signed_saturation(core_ctx, __id(m), into_dyn(sign_extend((__id(m) + 1), into_dyn(vs2_val[(i as usize)])).wrapped_add(sign_extend((__id(m) + 1), into_dyn(imm_val)))))}
+                        vifunct6::VI_VSADD => {signed_saturation(core_ctx, __id(m), into_dyn(sign_extend(((__id(m) + 1) as nat), into_dyn(vs2_val[(i as usize)])).wrapped_add(sign_extend(((__id(m) + 1) as nat), into_dyn(imm_val)))))}
                         vifunct6::VI_VSLL => {{
                             let shift_amount: nat = get_shift_amount(into_dyn(simm.zero_extend_dyn(__id(m))), SEW);
                             (vs2_val[(i as usize)] << shift_amount)
@@ -19544,7 +19546,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         }}
                         vifunct6::VI_VSRA => {{
                             let shift_amount: nat = get_shift_amount(into_dyn(simm.zero_extend_dyn(__id(m))), SEW);
-                            let v_double: BitDynamic = into_dyn(sign_extend((__id(m) * 2), into_dyn(vs2_val[(i as usize)])));
+                            let v_double: BitDynamic = into_dyn(sign_extend(((__id(m) * 2) as nat), into_dyn(vs2_val[(i as usize)])));
                             slice(into_dyn((v_double >> shift_amount)), 0, SEW)
                         }}
                         vifunct6::VI_VSSRL => {{
@@ -19555,7 +19557,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
                         vifunct6::VI_VSSRA => {{
                             let shift_amount: nat = get_shift_amount(into_dyn(simm.zero_extend_dyn(__id(m))), SEW);
                             let rounding_incr: BitStatic::<1> = into_static(get_fixed_rounding_incr(core_ctx, into_dyn(vs2_val[(i as usize)]), shift_amount));
-                            let v_double: BitDynamic = into_dyn(sign_extend((__id(m) * 2), into_dyn(vs2_val[(i as usize)])));
+                            let v_double: BitDynamic = into_dyn(sign_extend(((__id(m) * 2) as nat), into_dyn(vs2_val[(i as usize)])));
                             slice(into_dyn((v_double >> shift_amount)), 0, SEW).wrapped_add(rounding_incr.zero_extend_dyn(__id(m)))
                         }}
                         _ => {panic!("Unreachable code")}
@@ -19690,7 +19692,7 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
             RETIRE_SUCCESS
         }}
         ast::JALR((imm, rs1, rd)) => {{
-            let t: xlenbits = into_static(rX_bits(core_ctx, rs1).wrapped_add(sign_extend(64, into_dyn(imm))));
+            let t: xlenbits = into_static(rX_bits(core_ctx, rs1).wrapped_add(sign_extend((64 as nat), into_dyn(imm))));
             match ext_control_check_addr(into_dyn(t)) {
                 Ext_ControlAddr_Check::Ext_ControlAddr_Error(e) => {ExecutionResult::Ext_ControlAddr_Check_Failure(e)}
                 Ext_ControlAddr_Check::Ext_ControlAddr_OK(addr) => {{

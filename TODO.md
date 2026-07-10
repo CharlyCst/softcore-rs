@@ -1,8 +1,5 @@
 # TODO
 
-- `rs_transform.ml`:
-  + We should be updating the context definitions with each transformations
-    instead of re-construction the function type context in `use_dynamic_bitvec_args`
 - Do we really need to have `RsTypGeneric` and `RsTypGenericParam`?
 - Is `RsTypOption` not the same thing as simply a `RsTypGenericParam`?
 - Use references for most `BitDynamic` functions in `bitvector.rs`
@@ -20,8 +17,6 @@
 - Add a `RsTypMutBorrow` type instead of doing `RsTypId "&mut Core"`
 - Add a `RsPatPathSeparator` for the `add_namespace` function
 - We should be able to specify which functions we want to export and make public
-- Updating the context continuously is highly inefficient, we should update it
-  in the `rust_transform_func` probably
 - Check in the compiler if we have constants bigger than `64`, in which case we
   still want to use `BitDynamic`
 - I think some functions from `rv64/arch_prelude.rs` are unused
@@ -48,8 +43,6 @@
   into `BitDynamic` (such as `wX`)
 - Functions from the prelude library are always using `BitDynamic`, we should
   have two versions depending on the type of the arguments
-- Instead of updating the context everytime, we should be able to update context
-  in the `rust_transform_expr` or something like this
 
 ## Fixing bugs
 

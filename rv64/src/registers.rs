@@ -2,7 +2,7 @@
 
 use crate::raw::regidx;
 use crate::raw::vregidx;
-use softcore_prelude::{BitDynamic, BitStatic};
+use softcore_prelude::{BitStatic};
 
 /// The type of general purpose registers
 pub type GeneralRegister = regidx;

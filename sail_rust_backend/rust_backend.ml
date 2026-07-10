@@ -859,8 +859,14 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       in
       let name = string_of_id id in
       RsProg
-        [ RsConst { name; value; typ = rs_type_int; doc = [ name; ""; loc_to_doc
-        l ]; use_sail_ctx = false } ]
+        [ RsConst
+            { name
+            ; value
+            ; typ = rs_type_int
+            ; doc = [ name; ""; loc_to_doc l ]
+            ; use_sail_ctx = false
+            }
+        ]
     | TD_abbrev _ -> RsProg [] (* Ignore all other abbreviations *)
     | _ -> RsProg []
 
@@ -873,13 +879,23 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
     match pat with
     | RsPatId id ->
       let const =
-        { name = id; value = rexp; typ = rs_type_int; doc = [ id; ""; loc_to_doc
-        l ]; use_sail_ctx = false }
+        { name = id
+        ; value = rexp
+        ; typ = rs_type_int
+        ; doc = [ id; ""; loc_to_doc l ]
+        ; use_sail_ctx = false
+        }
       in
       RsProg [ RsConst const ]
     | RsPatType (typ, RsPatId id) ->
-      let const = { name = id; value = rexp; typ; doc = [ id; ""; loc_to_doc l
-      ]; use_sail_ctx = false } in
+      let const =
+        { name = id
+        ; value = rexp
+        ; typ
+        ; doc = [ id; ""; loc_to_doc l ]
+        ; use_sail_ctx = false
+        }
+      in
       RsProg [ RsConst const ]
     | _ -> RsProg []
 
@@ -1232,10 +1248,15 @@ module Codegen (CodegenConfig : CODEGEN_CONFIG) = struct
       let pat = process_pat pat in
       (match pat with
        | RsPatId id | RsPatType (_, RsPatId id) ->
-           (* TODO(Remove this placeholder *)
-           let tmp : rs_const = { name = id; value = mk_exp_id "TODO"; typ=
-             RsTypUnit; doc = []; use_sail_ctx = false}
-           in
+         (* TODO(Remove this placeholder *)
+         let tmp : rs_const =
+           { name = id
+           ; value = mk_exp_id "TODO"
+           ; typ = RsTypUnit
+           ; doc = []
+           ; use_sail_ctx = false
+           }
+         in
          { defs_empty with constants = SMap.of_list [ id, tmp ] }
        | _ -> defs_empty)
     | _ -> defs_empty
