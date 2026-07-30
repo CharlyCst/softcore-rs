@@ -88,9 +88,7 @@ impl Core {
             ExecutionResult::Retire_Success(_) => Trap::None,
             ExecutionResult::Wait_For_Interrupt(_) => Trap::None,
             ExecutionResult::Illegal_Instruction(_) => {
-                let instr_bits = raw::encdec_forwards(self, instr);
-                raw::handle_illegal(self, instr_bits);
-                Trap::Some(self.nextPC.bits())
+                panic!("Illegal instruction");
             }
             ExecutionResult::Trap((privilege, ctl, pc)) => {
                 let pc = raw::exception_handler(self, privilege, ctl, pc);
