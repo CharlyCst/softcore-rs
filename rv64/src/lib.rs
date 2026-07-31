@@ -58,6 +58,14 @@ impl Trap {
             Trap::None => false,
         }
     }
+
+    /// Panics if `self` is `Trap::Some`.
+    pub fn assert_no_trap(self) {
+        match self {
+            Trap::Some(_) => panic!("softcore assembly trapped"),
+            Trap::None => (),
+        }
+    }
 }
 
 // —————————————————————————— Core implementation ——————————————————————————— //
@@ -83,7 +91,7 @@ impl Core {
 
     /// Handle the necessary steps post instruction execution, such as jumping to the trap handler
     /// if necessary.
-    fn process_execution_result(&mut self, exec_res: ExecutionResult, instr: ast) -> Trap {
+    fn process_execution_result(&mut self, exec_res: ExecutionResult, _instr: ast) -> Trap {
         match exec_res {
             ExecutionResult::Retire_Success(_) => Trap::None,
             ExecutionResult::Wait_For_Interrupt(_) => Trap::None,
