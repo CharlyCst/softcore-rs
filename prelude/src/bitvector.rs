@@ -159,49 +159,55 @@ impl BitDynamic {
     }
 
     pub const fn shl(self, rhs: u128) -> Self {
-        let mut res = Self::zeros(self.len);
+        const MAX_SHIFT_BITS: u128 = (BITDYNAMIC_SIZE as u128) * 64;
+        assert!(rhs < MAX_SHIFT_BITS, "shift amount out of bounds");
+
         let shift_limbs = (rhs / 64) as usize;
         let shift_bits = (rhs % 64) as u32;
+        let comp_shift_bits = 64 - shift_bits;
         let mask = Self::bit_mask(self.len);
 
-        // TODO: We could assert the following as this might be undefined behavior? Check sail spec
-        if shift_limbs >= BITDYNAMIC_SIZE {
-            return res;
-        }
-
-        let mut i = BITDYNAMIC_SIZE - 1;
-        while i >= shift_limbs {
+        let mut res = Self::zeros(self.len);
+        let mut i = shift_limbs;
+        while i < BITDYNAMIC_SIZE {
             let src_idx = i - shift_limbs;
             let mut val = self.bits[src_idx] << shift_bits;
-            if shift_bits > 0 && src_idx > 0 {
-                val |= self.bits[src_idx - 1] >> (64 - shift_bits);
+
+            if shift_bits != 0 && src_idx > 0 {
+                val |= self.bits[src_idx - 1] >> comp_shift_bits;
             }
+
             res.bits[i] = val & mask[i];
-
-            if i == 0 {
-                break;
-            }
-            i -= 1;
-        }
-        res
-    }
-
-    pub const fn shr(self, rhs: u128) -> Self {
-        let mut res = Self::zeros(self.len);
-        let shift_limbs = (rhs / 64) as usize;
-        let shift_bits = (rhs % 64) as u32;
-        let mask = Self::bit_mask(self.len);
-
-        let mut i = 0;
-        while i + shift_limbs < BITDYNAMIC_SIZE {
-            let src_idx = i + shift_limbs;
-            res.bits[i] = self.bits[src_idx] >> shift_bits;
-            if shift_bits > 0 && src_idx + 1 < BITDYNAMIC_SIZE {
-                res.bits[i] |= self.bits[src_idx + 1] << (64 - shift_bits);
-            }
-            res.bits[i] &= mask[i];
             i += 1;
         }
+
+        res
+    }
+    pub const fn shr(self, rhs: u128) -> Self {
+        const MAX_SHIFT_BITS: u128 = (BITDYNAMIC_SIZE as u128) * 64;
+        assert!(rhs < MAX_SHIFT_BITS, "shift amount out of bounds");
+
+        let shift_limbs = (rhs / 64) as usize;
+        let shift_bits = (rhs % 63) as u32;
+        let comp_shift_bits = 64 - shift_bits;
+        let mask = Self::bit_mask(self.len);
+
+        let limit = BITDYNAMIC_SIZE - shift_limbs;
+
+        let mut res = Self::zeros(self.len);
+        let mut i = 0;
+        while i < limit {
+            let src_idx = i + shift_limbs;
+            let mut val = self.bits[src_idx] >> shift_bits;
+
+            if shift_bits != 0 && src_idx + 1 < BITDYNAMIC_SIZE {
+                val |= self.bits[src_idx + 1] << comp_shift_bits;
+            }
+
+            res.bits[i] = val & mask[i];
+            i += 1;
+        }
+
         res
     }
 
@@ -545,6 +551,11 @@ impl<const LEN: i128> BitStatic<LEN> {
     pub const fn zero_extend_dyn(self, len: i128) -> BitDynamic {
         assert!(LEN < len);
         BitDynamic::new(len, self.bits)
+    }
+
+    pub const fn get_subrange(self, end: i128, start: i128) -> BitDynamic {
+        assert!(0 <= start && start <= end && end <= LEN);
+        BitDynamic::new(end - start, self.shr(start as u128).bits)
     }
 
     pub const fn subrange<const START: i128, const END: i128, const RESULT_LEN: i128>(
