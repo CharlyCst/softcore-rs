@@ -202,12 +202,11 @@ let unsupported_match : SSet.t =
     ; "VCLMUL_VV"
     ; "VCLMUL_VX"
     ; "VCLMULH_VV"
-    ; "VCLMULH_VX" (* ; "VVTYPE" (* TODO(Gurvan): Comment out *) *)
+    ; "VCLMULH_VX"
     ; "NVSTYPE"
     ; "NVTYPE"
     ; "MASKTYPEV"
     ; "MOVETYPEV"
-    ; "VXTYPE"
     ; "NXSTYPE"
     ; "NXTYPE"
     ; "VXSG"

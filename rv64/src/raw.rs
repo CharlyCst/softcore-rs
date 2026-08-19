@@ -9916,6 +9916,35 @@ pub fn encdec_nvfunct6_backwards_matches(arg_hashtag_: BitStatic::<6>) -> bool {
     }
 }
 
+/// encdec_vxfunct6_forwards
+///
+/// Generated from the Sail sources.
+pub fn encdec_vxfunct6_forwards(arg_hashtag_: vxfunct6) -> BitStatic::<6> {
+    match arg_hashtag_ {
+        vxfunct6::VX_VADD => {into_static(BitStatic::<6>::new(0b000000))}
+        vxfunct6::VX_VSUB => {into_static(BitStatic::<6>::new(0b000010))}
+        vxfunct6::VX_VRSUB => {into_static(BitStatic::<6>::new(0b000011))}
+        vxfunct6::VX_VMINU => {into_static(BitStatic::<6>::new(0b000100))}
+        vxfunct6::VX_VMIN => {into_static(BitStatic::<6>::new(0b000101))}
+        vxfunct6::VX_VMAXU => {into_static(BitStatic::<6>::new(0b000110))}
+        vxfunct6::VX_VMAX => {into_static(BitStatic::<6>::new(0b000111))}
+        vxfunct6::VX_VAND => {into_static(BitStatic::<6>::new(0b001001))}
+        vxfunct6::VX_VOR => {into_static(BitStatic::<6>::new(0b001010))}
+        vxfunct6::VX_VXOR => {into_static(BitStatic::<6>::new(0b001011))}
+        vxfunct6::VX_VSADDU => {into_static(BitStatic::<6>::new(0b100000))}
+        vxfunct6::VX_VSADD => {into_static(BitStatic::<6>::new(0b100001))}
+        vxfunct6::VX_VSSUBU => {into_static(BitStatic::<6>::new(0b100010))}
+        vxfunct6::VX_VSSUB => {into_static(BitStatic::<6>::new(0b100011))}
+        vxfunct6::VX_VSLL => {into_static(BitStatic::<6>::new(0b100101))}
+        vxfunct6::VX_VSMUL => {into_static(BitStatic::<6>::new(0b100111))}
+        vxfunct6::VX_VSRL => {into_static(BitStatic::<6>::new(0b101000))}
+        vxfunct6::VX_VSRA => {into_static(BitStatic::<6>::new(0b101001))}
+        vxfunct6::VX_VSSRL => {into_static(BitStatic::<6>::new(0b101010))}
+        vxfunct6::VX_VSSRA => {into_static(BitStatic::<6>::new(0b101011))}
+        _ => {panic!("Unreachable code")}
+    }
+}
+
 /// encdec_vxfunct6_backwards
 ///
 /// Generated from the Sail sources.
@@ -11580,7 +11609,7 @@ pub fn encdec_forwards(core_ctx: &mut Core, arg_hashtag_: ast) -> BitStatic::<32
         ast::NVTYPE((funct6, vm, vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NVTYPE'")}
         ast::MASKTYPEV((vs2, vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'MASKTYPEV'")}
         ast::MOVETYPEV((vs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'MOVETYPEV'")}
-        ast::VXTYPE((funct6, vm, vs2, rs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VXTYPE'")}
+        ast::VXTYPE((funct6, vm, vs2, rs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {into_static(bitvector_concat(into_dyn(encdec_vxfunct6_forwards(funct6)), into_dyn(bitvector_concat(into_dyn((vm as BitStatic::<1>)), into_dyn(bitvector_concat(into_dyn(encdec_vreg_forwards(vs2)), into_dyn(bitvector_concat(into_dyn(encdec_reg_forwards(rs1)), into_dyn(bitvector_concat(into_dyn(BitStatic::<3>::new(0b100)), into_dyn(bitvector_concat(into_dyn(encdec_vreg_forwards(vd)), into_dyn(BitStatic::<7>::new(0b1010111))))))))))))))}
         ast::NXSTYPE((funct6, vm, vs2, rs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NXSTYPE'")}
         ast::NXTYPE((funct6, vm, vs2, rs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'NXTYPE'")}
         ast::VXSG((funct6, vm, vs2, rs1, vd)) if {currentlyEnabled(core_ctx, extension::Ext_V)} => {todo!("Unsupported: 'VXSG'")}
@@ -19469,7 +19498,90 @@ pub fn execute(core_ctx: &mut Core, merge_hashtag_var: ast) -> ExecutionResult {
         ast::NVTYPE((funct6, vm, vs2, vs1, vd)) => {todo!("Unsupported: 'NVTYPE'")}
         ast::MASKTYPEV((vs2, vs1, vd)) => {todo!("Unsupported: 'MASKTYPEV'")}
         ast::MOVETYPEV((vs1, vd)) => {todo!("Unsupported: 'MOVETYPEV'")}
-        ast::VXTYPE((funct6, vm, vs2, rs1, vd)) => {todo!("Unsupported: 'VXTYPE'")}
+        ast::VXTYPE((funct6, vm, vs2, rs1, vd)) => {{
+            let SEW: i128 = get_sew(core_ctx, ());
+            let LMUL_pow: i128 = get_lmul_pow(core_ctx, ());
+            let num_elem: i128 = get_num_elem(core_ctx, LMUL_pow, SEW);
+            if {illegal_normal(core_ctx, vd, into_static(vm))} {
+                return ExecutionResult::Illegal_Instruction(());
+            } else {
+                ()
+            };
+            let n: i128 = num_elem;
+            let m: i128 = SEW;
+            let vm_val: BitDynamic = into_dyn(read_vmask(core_ctx, num_elem, into_static(vm), zvreg));
+            let rs1_val: BitDynamic = into_dyn(get_scalar(core_ctx, rs1, SEW));
+            let vs2_val: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vs2));
+            let vd_val: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(read_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd));
+            let (initial_result, mask): (BoundedVec::<BitDynamic, 32>, BitDynamic) = match init_masked_result(core_ctx, num_elem, SEW, LMUL_pow, boundedvec_into_dyn(vd_val), into_dyn(vm_val)) {
+                result::Ok(v) => {v}
+                result::Err(()) => {return ExecutionResult::Illegal_Instruction(());}
+                _ => {panic!("Unreachable code")}
+            };
+            let mut result: BoundedVec::<BitDynamic, 32> = boundedvec_into_dyn(initial_result);
+            for i in 0..=(num_elem - 1) {
+                if {(bitvector_access(into_dyn(mask), i) == true)} {
+                    result[(i as usize)] = match funct6 {
+                        vxfunct6::VX_VADD => {vs2_val[(i as usize)].wrapped_add(rs1_val)}
+                        vxfunct6::VX_VSUB => {sub_vec(into_dyn(vs2_val[(i as usize)]), into_dyn(rs1_val))}
+                        vxfunct6::VX_VRSUB => {sub_vec(into_dyn(rs1_val), into_dyn(vs2_val[(i as usize)]))}
+                        vxfunct6::VX_VAND => {(vs2_val[(i as usize)] & rs1_val)}
+                        vxfunct6::VX_VOR => {(vs2_val[(i as usize)] | rs1_val)}
+                        vxfunct6::VX_VXOR => {(vs2_val[(i as usize)] ^ rs1_val)}
+                        vxfunct6::VX_VSADDU => {unsigned_saturation(core_ctx, __id(m), into_dyn(vs2_val[(i as usize)].zero_extend_dyn((__id(m) + 1)).wrapped_add(rs1_val.zero_extend_dyn((__id(m) + 1)))))}
+                        vxfunct6::VX_VSADD => {signed_saturation(core_ctx, __id(m), into_dyn(sign_extend(((__id(m) + 1) as nat), into_dyn(vs2_val[(i as usize)])).wrapped_add(sign_extend(((__id(m) + 1) as nat), into_dyn(rs1_val)))))}
+                        vxfunct6::VX_VSSUBU => {{
+                            if {(vs2_val[(i as usize)].unsigned() < rs1_val.unsigned())} {
+                                zeros(__id(m))
+                            } else {
+                                unsigned_saturation(core_ctx, __id(m), into_dyn(sub_vec(into_dyn(vs2_val[(i as usize)].zero_extend_dyn((__id(m) + 1))), into_dyn(rs1_val.zero_extend_dyn((__id(m) + 1))))))
+                            }
+                        }}
+                        vxfunct6::VX_VSSUB => {signed_saturation(core_ctx, __id(m), into_dyn(sub_vec(into_dyn(sign_extend(((__id(m) + 1) as nat), into_dyn(vs2_val[(i as usize)]))), into_dyn(sign_extend(((__id(m) + 1) as nat), into_dyn(rs1_val))))))}
+                        vxfunct6::VX_VSMUL => {{
+                            let result_mul: BitDynamic = into_dyn(to_bits((__id(m) * 2), (vs2_val[(i as usize)].signed() * rs1_val.signed())));
+                            let rounding_incr: BitStatic::<1> = into_static(get_fixed_rounding_incr(core_ctx, into_dyn(result_mul), (__id(m) - 1)));
+                            let result_wide: BitDynamic = into_dyn((result_mul >> (__id(m) - 1)).wrapped_add(rounding_incr.zero_extend_dyn((__id(m) * 2))));
+                            signed_saturation(core_ctx, __id(m), into_dyn(subrange_bits(into_dyn(result_wide), __id(m), 0)))
+                        }}
+                        vxfunct6::VX_VSLL => {{
+                            let shift_amount: nat = get_shift_amount(into_dyn(rs1_val), SEW);
+                            (vs2_val[(i as usize)] << shift_amount)
+                        }}
+                        vxfunct6::VX_VSRL => {{
+                            let shift_amount: nat = get_shift_amount(into_dyn(rs1_val), SEW);
+                            (vs2_val[(i as usize)] >> shift_amount)
+                        }}
+                        vxfunct6::VX_VSRA => {{
+                            let shift_amount: nat = get_shift_amount(into_dyn(rs1_val), SEW);
+                            let v_double: BitDynamic = into_dyn(sign_extend(((__id(m) * 2) as nat), into_dyn(vs2_val[(i as usize)])));
+                            slice(into_dyn((v_double >> shift_amount)), 0, SEW)
+                        }}
+                        vxfunct6::VX_VSSRL => {{
+                            let shift_amount: nat = get_shift_amount(into_dyn(rs1_val), SEW);
+                            let rounding_incr: BitStatic::<1> = into_static(get_fixed_rounding_incr(core_ctx, into_dyn(vs2_val[(i as usize)]), shift_amount));
+                            (vs2_val[(i as usize)] >> shift_amount).wrapped_add(rounding_incr.zero_extend_dyn(__id(m)))
+                        }}
+                        vxfunct6::VX_VSSRA => {{
+                            let shift_amount: nat = get_shift_amount(into_dyn(rs1_val), SEW);
+                            let rounding_incr: BitStatic::<1> = into_static(get_fixed_rounding_incr(core_ctx, into_dyn(vs2_val[(i as usize)]), shift_amount));
+                            let v_double: BitDynamic = into_dyn(sign_extend(((__id(m) * 2) as nat), into_dyn(vs2_val[(i as usize)])));
+                            slice(into_dyn((v_double >> shift_amount)), 0, SEW).wrapped_add(rounding_incr.zero_extend_dyn(__id(m)))
+                        }}
+                        vxfunct6::VX_VMINU => {to_bits(SEW, min_int(vs2_val[(i as usize)].unsigned(), rs1_val.unsigned()))}
+                        vxfunct6::VX_VMIN => {to_bits(SEW, min_int(vs2_val[(i as usize)].signed(), rs1_val.signed()))}
+                        vxfunct6::VX_VMAXU => {to_bits(SEW, max_int(vs2_val[(i as usize)].unsigned(), rs1_val.unsigned()))}
+                        vxfunct6::VX_VMAX => {to_bits(SEW, max_int(vs2_val[(i as usize)].signed(), rs1_val.signed()))}
+                        _ => {panic!("Unreachable code")}
+                    }
+                } else {
+                    ()
+                }
+            };
+            write_vreg(core_ctx, num_elem, SEW, LMUL_pow, vd, boundedvec_into_dyn(result));
+            set_vstart(core_ctx, into_static(zeros(16)));
+            RETIRE_SUCCESS
+        }}
         ast::NXSTYPE((funct6, vm, vs2, rs1, vd)) => {todo!("Unsupported: 'NXSTYPE'")}
         ast::NXTYPE((funct6, vm, vs2, rs1, vd)) => {todo!("Unsupported: 'NXTYPE'")}
         ast::VXSG((funct6, vm, vs2, rs1, vd)) => {todo!("Unsupported: 'VXSG'")}
