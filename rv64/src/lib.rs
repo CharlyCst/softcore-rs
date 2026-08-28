@@ -141,13 +141,13 @@ impl Core {
     }
 
     /// Set the value of a single vector register.
-    /// TODO: value should be a BitDynamic
     pub fn set_single_vec(&mut self, reg: VectorRegister, value: BitDynamic) {
         raw::wV_bits(self, reg, value)
     }
 
     /// Get the values of vector registers according to current Core vtype.
-    /// NOTE: Does not take into account any mask, nor vstart
+    /// NOTE: Does not take into account any mask, nor vstart (we could assert that no masks or
+    /// vstart are set?)
     /// NOTE: 32 here is hardcoded but maybe we would like to do something cleaner
     pub fn get_vec(&mut self, reg: VectorRegister) -> BoundedVec<BitDynamic, 32> {
         let sew = raw::get_sew(self, ());
@@ -158,7 +158,8 @@ impl Core {
     }
 
     /// Set the values of vector registers according to current Core vtype.
-    /// NOTE: Does not take into account any mask, nor vstart
+    /// NOTE: Does not take into account any mask, nor vstart (we could assert that no masks or
+    /// vstart are set?)
     pub fn set_vec(&mut self, reg: VectorRegister, value: BoundedVec<BitDynamic, 32>) {
         // TODO(Gurvan): Check for endianness problem
         // NOTE: For now we are kinda always considering that the tail policy is always
